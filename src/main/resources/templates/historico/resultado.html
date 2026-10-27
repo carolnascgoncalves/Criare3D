@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Resultado do Cálculo')}"></head>
+
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">CRIARE 3D</span>
+            <h1>Resultado da impressão</h1>
+            <p>Confira os custos e o preço sugerido para sua peça.</p>
+        </div>
+
+        <a th:href="@{/historico/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Histórico
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Cálculo concluído!</h2>
+                <p>Confira os valores antes de salvar no histórico.</p>
+            </div>
+        </div>
+
+        <div class="formulario-conteudo">
+            <div class="resumo-peca">
+                <span class="texto-apoio">PEÇA CALCULADA</span>
+                <h2 th:text="${resultado.nomePeca}">Nome da peça</h2>
+                <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
+            </div>
+
+            <div class="resultado-grade">
+                <div class="resultado-item">
+                    <span>Custo do filamento</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoFilamento, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                </div>
+
+                <div class="resultado-item">
+                    <span>Custo de energia</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEnergia, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                </div>
+
+                <div class="resultado-item">
+                    <span>Custo da embalagem</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEmbalagem, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                </div>
+
+                <div class="resultado-item resultado-total">
+                    <span>Custo total</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                </div>
+            </div>
+
+            <div class="preco-sugerido">
+                <span>Preço de venda sugerido</span>
+                <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                <small th:text="${'Acréscimo configurado: ' + resultado.markupPercentual + '%'}">Acréscimo configurado</small>
+            </div>
+
+            <div class="detalhes-calculo">
+                <h3>Dados utilizados</h3>
+
+                <div class="detalhe-linha">
+                    <span>Filamento</span>
+                    <strong th:text="${resultado.nomeFilamento}">Filamento</strong>
+                </div>
+
+                <div class="detalhe-linha">
+                    <span>Quantidade utilizada</span>
+                    <strong th:text="${resultado.quantidadeFilamentoGramas + ' g'}">0 g</strong>
+                </div>
+
+                <div class="detalhe-linha">
+                    <span>Impressora</span>
+                    <strong th:text="${resultado.nomeImpressora}">Impressora</strong>
+                </div>
+
+                <div class="detalhe-linha">
+                    <span>Tempo de impressão</span>
+                    <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">0 minutos</strong>
+                </div>
+            </div>
+
+            <div class="acoes-resultado">
+                <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
+                    <input type="hidden" th:field="*{pecaId}">
+                    <input type="hidden" th:field="*{filamentoId}">
+                    <input type="hidden" th:field="*{quantidadeFilamentoGramas}">
+                    <input type="hidden" th:field="*{impressoraId}">
+                    <input type="hidden" th:field="*{tempoImpressaoMinutos}">
+                    <input type="hidden" th:field="*{embalagemId}">
+
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-check-lg"></i> Salvar no histórico
+                    </button>
+                </form>
+
+                <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
+                    <input type="hidden" th:field="*{pecaId}">
+                    <input type="hidden" th:field="*{filamentoId}">
+                    <input type="hidden" th:field="*{quantidadeFilamentoGramas}">
+                    <input type="hidden" th:field="*{impressoraId}">
+                    <input type="hidden" th:field="*{tempoImpressaoMinutos}">
+                    <input type="hidden" th:field="*{embalagemId}">
+
+                    <button type="submit" class="botao botao-secundario">
+                        <i class="bi bi-pencil"></i> Voltar e editar
+                    </button>
+                </form>
+
+                <a th:href="@{/historico/novo}" class="botao botao-secundario">Novo cálculo</a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

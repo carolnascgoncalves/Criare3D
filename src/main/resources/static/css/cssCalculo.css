@@ -1,0 +1,493 @@
+
+/* ========================================
+   CÁLCULO - ETAPAS
+======================================== */
+
+.etapas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.etapa {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    color: var(--marrom-claro);
+    background: #fffaf6;
+    transition: 0.2s ease;
+}
+
+.etapa-numero {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f0e1d5;
+    color: var(--marrom);
+    font-weight: 700;
+}
+
+.etapa-nome {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.etapa.ativa {
+    border-color: var(--destaque);
+    background: #fff0eb;
+}
+
+.etapa.ativa .etapa-numero,
+.etapa.concluida .etapa-numero {
+    background: var(--destaque);
+    color: var(--marrom);
+}
+
+.conteudo-etapa {
+    display: none;
+}
+
+.conteudo-etapa.ativa {
+    display: block;
+}
+
+.etapa-intro {
+    margin-bottom: 24px;
+}
+
+.etapa-intro h2,
+.resultado-cabecalho h2 {
+    margin: 6px 0;
+    color: var(--marrom);
+}
+
+.etapa-intro p,
+.resultado-cabecalho p {
+    margin: 0;
+    color: var(--marrom-claro);
+}
+
+/* ========================================
+   FORMULÁRIO DO CÁLCULO
+======================================== */
+
+#formCalculo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#formCalculo .conteudo-etapa .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+#formCalculo .campo label {
+    margin-bottom: 0;
+}
+
+#formCalculo .campo small {
+    display: block;
+    margin-top: 0;
+    color: var(--marrom-claro);
+    font-size: 0.85rem;
+}
+
+#formCalculo .formulario-acoes {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.aviso-info,
+.resumo-revisao {
+    padding: 16px;
+    margin-bottom: 20px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+    color: var(--marrom);
+}
+
+.resumo-revisao h3 {
+    margin: 0 0 8px;
+}
+
+.resumo-revisao p {
+    margin: 6px 0;
+    color: var(--marrom-claro);
+}
+
+.mensagem-erro {
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background: #fff0eb;
+    color: #8a3427;
+}
+
+/* ========================================
+   RESULTADO DO CÁLCULO
+======================================== */
+
+.resumo-peca {
+    margin-bottom: 28px;
+}
+
+.resumo-peca h2 {
+    margin: 8px 0;
+    color: var(--marrom);
+}
+
+.resumo-peca p {
+    margin: 0;
+    color: var(--marrom-claro);
+}
+
+.resultado-grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.resultado-item {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+}
+
+.resultado-item span,
+.preco-sugerido span {
+    color: var(--marrom-claro);
+}
+
+.resultado-item strong {
+    color: var(--marrom);
+    font-size: 1.35rem;
+}
+
+.resultado-item.resultado-total {
+    background: var(--fundo);
+}
+
+.preco-sugerido {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 26px;
+    margin-top: 20px;
+    border-radius: 12px;
+    background: #fff0eb;
+}
+
+.preco-sugerido strong {
+    color: var(--marrom);
+    font-size: 2rem;
+}
+
+.preco-sugerido small {
+    color: var(--marrom-claro);
+}
+
+.detalhes-calculo {
+    margin-top: 28px;
+}
+
+.detalhes-calculo h3 {
+    margin-bottom: 12px;
+    color: var(--marrom);
+}
+
+.detalhe-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid #eee3da;
+}
+
+.detalhe-linha span {
+    color: var(--marrom-claro);
+}
+
+.detalhe-linha strong {
+    color: var(--marrom);
+    text-align: right;
+}
+
+.acoes-resultado {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #eee3da;
+}
+
+.acoes-resultado form {
+    margin: 0;
+}
+
+/* ========================================
+   HISTÓRICO DE CÁLCULOS
+======================================== */
+
+.contador-historicos {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 20px;
+    background: var(--fundo);
+    color: var(--marrom);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.historico-conteudo {
+    padding: 24px;
+}
+
+.historico-vazio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 20px;
+    text-align: center;
+}
+
+.historico-vazio-icone {
+    display: grid;
+    place-items: center;
+    width: 68px;
+    height: 68px;
+    margin-bottom: 18px;
+    border-radius: 20px;
+    background: #fff0eb;
+    color: var(--marrom-claro);
+    font-size: 1.8rem;
+}
+
+.historico-vazio h3 {
+    margin: 0 0 8px;
+    color: var(--marrom);
+}
+
+.historico-vazio p {
+    max-width: 420px;
+    margin: 0 0 22px;
+    color: var(--marrom-claro);
+    line-height: 1.6;
+}
+
+.tabela-responsiva {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabela-historico {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.tabela-historico th {
+    padding: 14px 16px;
+    background: #fffaf6;
+    color: var(--marrom-claro);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.tabela-historico td {
+    padding: 18px 16px;
+    border-bottom: 1px solid #eee3da;
+    color: var(--marrom);
+    vertical-align: middle;
+}
+
+.tabela-historico tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tabela-historico tbody tr:hover {
+    background: #fffbf8;
+}
+
+.peca-historico {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 150px;
+}
+
+.peca-historico-icone {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--fundo);
+    color: var(--marrom);
+}
+
+.peca-historico strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.data-historico,
+.valor-custo,
+.valor-preco {
+    white-space: nowrap;
+}
+
+.data-historico {
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+.valor-custo {
+    color: var(--marrom-claro);
+    font-weight: 600;
+}
+
+.valor-preco {
+    color: var(--marrom);
+    font-weight: 700;
+}
+
+.tabela-historico .coluna-acoes {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tabela-historico .botao-acao {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: #fffaf6;
+    color: var(--marrom);
+    text-decoration: none;
+    transition: 0.2s ease;
+}
+
+.tabela-historico .botao-acao:hover {
+    border-color: var(--destaque);
+    background: #fff0eb;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
+@media (max-width: 650px) {
+    .etapas {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .etapa {
+        padding: 12px;
+    }
+
+    .resultado-grade {
+        grid-template-columns: 1fr;
+    }
+
+    .preco-sugerido strong {
+        font-size: 1.6rem;
+    }
+
+    .detalhe-linha {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .detalhe-linha strong {
+        text-align: left;
+    }
+
+    .historico-conteudo {
+        padding: 16px;
+    }
+
+    .historico-vazio {
+        padding: 32px 12px;
+    }
+
+    .cartao-cabecalho {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}
+
+/* EXCLUSÃO DO HISTÓRICO */
+
+.formulario-excluir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+}
+
+.botao-acao-excluir {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: #a23c37;
+    background: #fff0ee;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.botao-acao-excluir:hover {
+    color: var(--branco);
+    background: #a23c37;
+}
+
+/* MENSAGEM DE SUCESSO */
+
+.alerta-sucesso {
+    margin-bottom: 20px;
+    padding: 15px 18px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: #f8ddd5;
+    color: var(--marrom);
+}
+
+@media (max-width: 650px) {
+    .botao-acao-excluir {
+        width: 32px;
+        height: 32px;
+    }
+}

@@ -1,0 +1,81 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Detalhes do Filamento')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Detalhes do filamento</h1>
+            <p>Confira as informações do filamento cadastrado.</p>
+        </div>
+
+        <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
+           class="botao botao-principal">
+            <i class="bi bi-pencil"></i> Editar filamento
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2 th:text="${filamento.nome}">Nome do filamento</h2>
+                <p>Informações do material e do rolo adquirido.</p>
+            </div>
+
+            <span class="icone-peca">
+                <i class="bi bi-palette"></i>
+            </span>
+        </div>
+
+        <div class="detalhes-conteudo">
+            <div class="detalhe-item">
+                <span>Nome do filamento</span>
+                <strong th:text="${filamento.nome}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Cor do filamento</span>
+                <strong th:text="${filamento.cor}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Marca</span>
+                <strong th:text="${filamento.marca}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Peso do rolo</span>
+                <div class="detalhe-valor">
+                    <span th:text="${filamento.pesoRoloGramas}"></span>
+                    <span class="detalhe-unidade">g</span>
+                </div>
+            </div>
+
+            <div class="detalhe-item">
+                <span class="detalhe-label">Preço do rolo</span>
+                <div class="detalhe-valor">
+                    <span class="detalhe-unidade">R$</span>
+                    <span th:text="${#numbers.formatDecimal(filamento.precoRolo, 1, 2)}">89,90</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="formulario-acoes">
+            <a th:href="@{/filamento/listar}" class="botao botao-secundario">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
+               class="botao botao-principal">
+                <i class="bi bi-pencil"></i> Editar filamento
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

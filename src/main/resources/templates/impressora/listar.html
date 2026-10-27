@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Impressoras')}"></head>
+
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <div class="alerta-erro"
+         th:if="${param.erro != null and param.erro[0] == 'impressoraEmUso'}">
+        Não é possível excluir esta impressora porque ela está vinculada a
+        <strong th:text="${param.quantidade[0]}">0</strong>
+        cálculo(s) do histórico. Os registros antigos precisam ser preservados.
+    </div>
+
+    <div class="alerta-sucesso"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'impressoraRemovida'}">
+        Impressora excluída com sucesso!
+    </div>
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU EQUIPAMENTO</span>
+            <h1>Impressoras</h1>
+            <p>Gerencie as impressoras utilizadas nos seus cálculos de impressão 3D.</p>
+        </div>
+
+        <a th:href="@{/impressora/novo}" class="botao botao-principal">
+            <i class="bi bi-plus-lg"></i> Nova impressora
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Suas impressoras</h2>
+                <p>Consulte e gerencie seus equipamentos cadastrados.</p>
+            </div>
+
+            <span class="contador"
+                  th:text="${#lists.size(impressoras)} + ' cadastradas'">
+                0 cadastradas
+            </span>
+        </div>
+
+        <div class="tabela-container" th:if="${!#lists.isEmpty(impressoras)}">
+            <table class="tabela">
+                <thead>
+                <tr>
+                    <th>Impressora</th>
+                    <th class="coluna-acoes">Ações</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="impressora : ${impressoras}">
+                    <td>
+                        <div class="identificacao-peca">
+                            <span class="icone-peca">
+                                <i class="bi bi-printer"></i>
+                            </span>
+
+                            <span class="nome-peca"
+                                  th:text="${impressora.nome}">
+                                Nome da impressora
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="coluna-acoes">
+                        <div class="acoes">
+                            <a th:href="@{/impressora/detalhes/{id}(id=${impressora.id})}"
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
+                               class="botao-acao"
+                               title="Editar impressora"
+                               aria-label="Editar impressora">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a th:href="@{/impressora/remover/{id}(id=${impressora.id})}"
+                               class="botao-acao botao-excluir"
+                               title="Remover impressora"
+                               aria-label="Remover impressora"
+                               onclick="return confirm('Tem certeza que deseja remover esta impressora?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="estado-vazio" th:if="${#lists.isEmpty(impressoras)}">
+            <i class="bi bi-printer"></i>
+            <h3>Nenhuma impressora cadastrada</h3>
+            <p>Cadastre sua primeira impressora para começar.</p>
+
+            <a th:href="@{/impressora/novo}" class="botao botao-principal">
+                Cadastrar impressora
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
+```

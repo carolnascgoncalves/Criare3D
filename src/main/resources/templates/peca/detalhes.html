@@ -1,0 +1,68 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Detalhes da Peça')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: cabecalho('Peças')}"></div>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU CATÁLOGO</span>
+            <h1>Detalhes da peça</h1>
+            <p>Confira as informações cadastradas para esta peça.</p>
+        </div>
+
+        <a th:href="@{/peca/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2 th:text="${peca.nome}">Nome da peça</h2>
+                <p>Informações gerais e parâmetros de impressão.</p>
+            </div>
+
+            <span class="icone-peca">
+                <i class="bi bi-box-seam"></i>
+            </span>
+        </div>
+
+        <div class="detalhes-conteudo">
+            <div class="detalhe-item">
+                <span>Nome da peça</span>
+                <strong th:text="${peca.nome}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Quantidade de filamento</span>
+                <strong th:text="${peca.quantidadeFilamentoGramas} + ' g'"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Tempo de impressão</span>
+                <strong th:text="${peca.tempoImpressaoMinutos} + ' minutos'"></strong>
+            </div>
+
+            <div class="formulario-acoes">
+                <a th:href="@{/peca/editar/{id}(id=${peca.id})}"
+                   class="botao botao-principal">
+                    <i class="bi bi-pencil"></i> Editar peça
+                </a>
+
+                <a th:href="@{/peca/listar}"
+                   class="botao botao-secundario">
+                    Voltar para listagem
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Histórico de Cálculos')}"></head>
+
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU CATÁLOGO</span>
+            <h1>Histórico de cálculos</h1>
+            <p>Acompanhe os custos e preços sugeridos das suas impressões 3D.</p>
+        </div>
+
+        <a th:href="@{/historico/novo}" class="botao botao-principal">
+            <i class="bi bi-plus-lg"></i> Novo cálculo
+        </a>
+    </section>
+
+    <div class="alerta-sucesso"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'historicoRemovido'}">
+        <i class="bi bi-check-circle"></i>
+        Cálculo excluído do histórico com sucesso!
+    </div>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Cálculos realizados</h2>
+                <p>Consulte os resultados que você já salvou.</p>
+            </div>
+
+            <span class="contador-historicos"
+                  th:text="${#lists.size(historicos) + ' registros'}">
+                0 registros
+            </span>
+        </div>
+
+        <div class="historico-conteudo">
+            <div class="historico-vazio" th:if="${#lists.isEmpty(historicos)}">
+                <div class="historico-vazio-icone">
+                    <i class="bi bi-calculator"></i>
+                </div>
+
+                <h3>Nenhum cálculo por aqui ainda</h3>
+                <p>Faça seu primeiro cálculo para acompanhar os custos das suas impressões.</p>
+
+                <a th:href="@{/historico/novo}" class="botao botao-principal">
+                    <i class="bi bi-plus-lg"></i> Fazer primeiro cálculo
+                </a>
+            </div>
+
+            <div class="tabela-responsiva" th:if="${!#lists.isEmpty(historicos)}">
+                <table class="tabela-historico">
+                    <thead>
+                    <tr>
+                        <th>Peça</th>
+                        <th>Data do cálculo</th>
+                        <th>Custo total</th>
+                        <th>Preço sugerido</th>
+                        <th class="coluna-acoes">Ações</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="historico : ${historicos}">
+                        <td>
+                            <div class="peca-historico">
+                                <span class="peca-historico-icone">
+                                    <i class="bi bi-box"></i>
+                                </span>
+                                <strong th:text="${historico.nomePeca}">Nome da peça</strong>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="data-historico"
+                                  th:text="${historico.dataCalculo != null ? #strings.replace(historico.dataCalculo.toString().substring(0, 16), 'T', ' às ') : '-'}">
+                                Data do cálculo
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="valor-custo"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'POINT', 2, 'COMMA')}">
+                                R$ 0,00
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="valor-preco"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
+                                R$ 0,00
+                            </span>
+                        </td>
+
+                        <td class="coluna-acoes">
+                            <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes do cálculo">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
+                                  method="post"
+                                  class="formulario-excluir"
+                                  onsubmit="return confirm('Tem certeza de que deseja excluir este cálculo do histórico? Esta ação não poderá ser desfeita.');">
+                                <button type="submit"
+                                        class="botao-acao-excluir"
+                                        title="Excluir cálculo"
+                                        aria-label="Excluir cálculo do histórico">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

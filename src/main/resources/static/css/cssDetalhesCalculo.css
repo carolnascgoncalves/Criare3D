@@ -1,0 +1,245 @@
+.detalhes-calculo {
+    padding-bottom: 40px;
+}
+
+.detalhes-calculo .pagina-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.detalhes-calculo .pagina-intro h1 {
+    margin: 0 0 8px;
+    color: var(--marrom);
+}
+
+.detalhes-calculo .pagina-intro p {
+    margin: 0;
+    color: var(--marrom-claro);
+}
+
+.botao-voltar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 11px 18px;
+    border: 1px solid var(--marrom-claro);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--marrom);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.botao-voltar:hover {
+    background: var(--marrom);
+    color: #fff;
+}
+
+.detalhes-cartao {
+    overflow: hidden;
+    border: 1px solid rgba(73, 46, 30, 0.12);
+    border-radius: 18px;
+    background: #fffaf6;
+    box-shadow: 0 5px 18px rgba(73, 46, 30, 0.06);
+}
+
+.detalhes-cartao-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 26px;
+    background: var(--fundo);
+    border-bottom: 1px solid rgba(73, 46, 30, 0.12);
+}
+
+.detalhes-etiqueta {
+    display: block;
+    margin-bottom: 7px;
+    color: var(--marrom-claro);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.detalhes-cartao-cabecalho h2 {
+    margin: 0;
+    color: var(--marrom);
+    font-size: 1.6rem;
+    overflow-wrap: anywhere;
+}
+
+.detalhes-data {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: right;
+}
+
+.detalhes-data span,
+.detalhes-item span,
+.detalhes-custo-info span,
+.detalhes-preco span {
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+.detalhes-data strong {
+    color: var(--marrom);
+}
+
+.detalhes-conteudo {
+    padding: 26px;
+}
+
+.detalhes-secao + .detalhes-secao {
+    margin-top: 32px;
+}
+
+.detalhes-secao h3 {
+    margin: 0 0 20px;
+    color: var(--marrom);
+    font-size: 1.15rem;
+}
+
+.detalhes-grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.detalhes-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 17px;
+    border: 1px solid rgba(73, 46, 30, 0.1);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.detalhes-item strong {
+    color: var(--marrom);
+    overflow-wrap: anywhere;
+}
+
+.detalhes-custo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 17px 0;
+    border-bottom: 1px solid rgba(73, 46, 30, 0.1);
+}
+
+.detalhes-custo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.detalhes-custo-info strong {
+    color: var(--marrom);
+}
+
+.detalhes-valor {
+    color: var(--marrom);
+    white-space: nowrap;
+}
+
+.detalhes-custo-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 18px;
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--fundo);
+    color: var(--marrom);
+}
+
+.detalhes-custo-total span {
+    font-weight: 600;
+}
+
+.detalhes-custo-total strong {
+    font-size: 1.35rem;
+    white-space: nowrap;
+}
+
+.detalhes-preco {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 16px;
+    margin-top: 28px;
+}
+
+.detalhes-preco > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px;
+    border: 1px solid rgba(73, 46, 30, 0.12);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.detalhes-preco > div > strong {
+    color: var(--marrom);
+    font-size: 1.3rem;
+}
+
+.detalhes-preco-final {
+    background: #f9e1d9 !important;
+    border-color: var(--destaque) !important;
+}
+
+.detalhes-preco .detalhes-preco-final strong {
+    color: var(--marrom);
+    font-size: 1.8rem;
+    overflow-wrap: anywhere;
+}
+
+.detalhes-acoes {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+@media (max-width: 650px) {
+    .detalhes-cartao-cabecalho,
+    .detalhes-conteudo {
+        padding: 20px;
+    }
+
+    .detalhes-data {
+        text-align: left;
+    }
+
+    .detalhes-grade,
+    .detalhes-preco {
+        grid-template-columns: 1fr;
+    }
+
+    .detalhes-custo-total {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .detalhes-custo-total strong {
+        font-size: 1.25rem;
+    }
+
+    .detalhes-preco .detalhes-preco-final strong {
+        font-size: 1.55rem;
+    }
+}

@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Embalagens')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <div class="alerta-erro"
+         th:if="${param.erro != null and param.erro[0] == 'embalagemEmUso'}">
+        Não é possível excluir esta embalagem porque ela está vinculada a
+        <strong th:text="${param.quantidade[0]}">0</strong>
+        cálculo(s) do histórico. Os registros antigos precisam ser preservados.
+    </div>
+
+    <div class="alerta-sucesso"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemRemovida'}">
+        Embalagem excluída com sucesso!
+    </div>
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Embalagens</h1>
+            <p>Gerencie as embalagens utilizadas nos seus cálculos de impressão.</p>
+        </div>
+
+        <a th:href="@{/embalagem/novo}" class="botao botao-principal">
+            <span>+</span> Nova embalagem
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Embalagens cadastradas</h2>
+                <p>Consulte e gerencie as embalagens do seu catálogo.</p>
+            </div>
+
+            <span class="contador"
+                  th:text="${#lists.size(embalagens)} + ' itens'">
+                0 itens
+            </span>
+        </div>
+
+        <div class="tabela-container"
+             th:if="${!#lists.isEmpty(embalagens)}">
+            <table class="tabela">
+                <thead>
+                <tr>
+                    <th>Nome da embalagem</th>
+                    <th>Custo unitário</th>
+                    <th class="coluna-acoes">Ações</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="embalagem : ${embalagens}">
+                    <td>
+                        <div class="nome-peca">
+                            <span class="icone-peca">
+                                <i class="bi bi-box-seam"></i>
+                            </span>
+                            <span th:text="${embalagem.nome}"></span>
+                        </div>
+                    </td>
+
+                    <td th:text="'R$ ' + ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 2)}"></td>
+
+                    <td class="coluna-acoes">
+                        <div class="acoes">
+                            <a th:href="@{/embalagem/detalhes/{id}(id=${embalagem.id})}"
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a th:href="@{/embalagem/editar/{id}(id=${embalagem.id})}"
+                               class="botao-acao"
+                               title="Editar embalagem"
+                               aria-label="Editar embalagem">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a th:href="@{/embalagem/remover/{id}(id=${embalagem.id})}"
+                               class="botao-acao botao-excluir"
+                               title="Remover embalagem"
+                               aria-label="Remover embalagem"
+                               onclick="return confirm('Tem certeza que deseja remover esta embalagem?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="estado-vazio"
+             th:if="${#lists.isEmpty(embalagens)}">
+            <span class="estado-vazio-icone">
+                <i class="bi bi-inbox"></i>
+            </span>
+            <h3>Nenhuma embalagem por aqui</h3>
+            <p>Cadastre sua primeira embalagem para organizar os custos do seu catálogo.</p>
+            <a th:href="@{/embalagem/novo}" class="botao botao-principal">
+                Cadastrar primeira embalagem
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

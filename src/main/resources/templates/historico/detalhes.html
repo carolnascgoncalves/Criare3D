@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina detalhes-calculo">
+    <section class="pagina-intro">
+        <div>
+            <h1>Detalhes do cálculo</h1>
+            <p>Confira os custos e os dados da impressão registrados no histórico.</p>
+        </div>
+        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+    </section>
+
+    <section class="detalhes-cartao">
+        <div class="detalhes-cartao-cabecalho">
+            <div>
+                <span class="detalhes-etiqueta">PEÇA</span>
+                <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
+            </div>
+            <div class="detalhes-data">
+                <span>Data do cálculo</span>
+                <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy HH:mm') : 'Não informada'}">26/10/2026 14:30</strong>
+            </div>
+        </div>
+
+        <div class="detalhes-conteudo">
+            <section class="detalhes-secao">
+                <h3>Dados da impressão</h3>
+
+                <div class="detalhes-grade">
+                    <div class="detalhes-item">
+                        <span>Filamento</span>
+                        <strong th:text="${historico.nomeFilamento}">PLA</strong>
+                    </div>
+                    <div class="detalhes-item">
+                        <span>Impressora</span>
+                        <strong th:text="${historico.nomeImpressora}">Impressora 3D</strong>
+                    </div>
+                    <div class="detalhes-item">
+                        <span>Filamento utilizado</span>
+                        <strong th:text="${historico.quantidadeFilamentoGramas != null ? #numbers.formatDecimal(historico.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g' : 'Não informado'}">45,00 g</strong>
+                    </div>
+                    <div class="detalhes-item">
+                        <span>Tempo de impressão</span>
+                        <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">3h 20min</strong>
+                    </div>
+                    <div class="detalhes-item">
+                        <span>Potência da impressora</span>
+                        <strong th:text="${historico.potenciaWatts != null ? #numbers.formatDecimal(historico.potenciaWatts, 1, 'COMMA', 2, 'POINT') + ' W' : 'Não informada'}">150,00 W</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="detalhes-secao">
+                <h3>Composição dos custos</h3>
+
+                <div class="detalhes-custo">
+                    <div class="detalhes-custo-info">
+                        <strong>Custo do filamento</strong>
+                        <span th:text="${historico.nomeFilamento}">PLA</span>
+                    </div>
+                    <strong class="detalhes-valor" th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 4,50</strong>
+                </div>
+
+                <div class="detalhes-custo">
+                    <div class="detalhes-custo-info">
+                        <strong>Custo de energia</strong>
+                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 4, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
+                    </div>
+                    <strong class="detalhes-valor" th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 1,20</strong>
+                </div>
+
+                <div class="detalhes-custo">
+                    <div class="detalhes-custo-info">
+                        <strong>Embalagem</strong>
+                        <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">Embalagem</span>
+                    </div>
+                    <strong class="detalhes-valor" th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 2,00</strong>
+                </div>
+
+                <div class="detalhes-custo-total">
+                    <span>Custo total de produção</span>
+                    <strong th:text="${historico.custoTotal != null ? 'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 7,70</strong>
+                </div>
+            </section>
+
+            <section class="detalhes-preco">
+                <div>
+                    <span>Markup aplicado</span>
+                    <strong th:text="${historico.markupPercentual != null ? #numbers.formatDecimal(historico.markupPercentual, 1, 'COMMA', 2, 'POINT') + '%' : 'Não informado'}">50,00%</strong>
+                </div>
+                <div class="detalhes-preco-final">
+                    <span>Preço de venda sugerido</span>
+                    <strong th:text="${historico.precoSugerido != null ? 'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 11,55</strong>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <div class="detalhes-acoes">
+        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+    </div>
+</main>
+
+</body>
+</html>

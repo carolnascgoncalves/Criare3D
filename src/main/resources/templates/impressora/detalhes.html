@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Detalhes da Impressora')}"></head>
+
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU EQUIPAMENTO</span>
+            <h1>Detalhes da impressora</h1>
+            <p>Confira as informações cadastradas para este equipamento.</p>
+        </div>
+
+        <a th:href="@{/impressora/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2 th:text="${impressora.nome}">Nome da impressora</h2>
+                <p>Informações gerais e consumo de energia.</p>
+            </div>
+
+            <span class="icone-peca">
+                <i class="bi bi-printer"></i>
+            </span>
+        </div>
+
+        <div class="detalhes-conteudo">
+            <div class="detalhe-item">
+                <span>Nome da impressora</span>
+                <strong th:text="${impressora.nome}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Modelo</span>
+                <strong th:text="${impressora.modelo}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Potência</span>
+                <strong th:text="${impressora.potenciaWatts} + ' W'"></strong>
+            </div>
+
+            <div class="formulario-acoes">
+                <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
+                   class="botao botao-principal">
+                    <i class="bi bi-pencil"></i> Editar impressora
+                </a>
+
+                <a th:href="@{/impressora/listar}" class="botao botao-secundario">
+                    Voltar para listagem
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

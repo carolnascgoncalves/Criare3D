@@ -1,0 +1,127 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Criare 3D | Início')}"></head>
+
+<body>
+
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina">
+
+    <section class="boas-vindas">
+        <span class="etiqueta">PAINEL PRINCIPAL</span>
+
+        <h1>Bem-vinda ao Criare 3D!</h1>
+
+        <p>
+            Gerencie suas peças, impressoras e filamentos
+            em um só lugar.
+        </p>
+
+        <a th:href="@{/historico/novo}" class="botao-principal">
+            Começar um cálculo
+        </a>
+    </section>
+
+    <section class="secao">
+        <div class="titulo-secao">
+            <div>
+                <h2>Visão geral</h2>
+                <p>Acompanhe os itens cadastrados no sistema.</p>
+            </div>
+        </div>
+
+        <div class="resumo-grid">
+
+            <a th:href="@{/peca/listar}" class="resumo-card">
+                <span class="resumo-icone">▧</span>
+                <span class="resumo-titulo">Peças cadastradas</span>
+                <strong class="resumo-valor" th:text="${totalPecas}">0</strong>
+                <span class="resumo-link">Ver peças →</span>
+            </a>
+
+            <a th:href="@{/filamento/listar}" class="resumo-card">
+                <span class="resumo-icone">◉</span>
+                <span class="resumo-titulo">Filamentos</span>
+                <strong class="resumo-valor" th:text="${totalFilamentos}">0</strong>
+                <span class="resumo-link">Ver filamentos →</span>
+            </a>
+
+            <a th:href="@{/impressora/listar}" class="resumo-card">
+                <span class="resumo-icone">▤</span>
+                <span class="resumo-titulo">Impressoras</span>
+                <strong class="resumo-valor" th:text="${totalImpressoras}">0</strong>
+                <span class="resumo-link">Ver impressoras →</span>
+            </a>
+
+            <a th:href="@{/historico/listar}" class="resumo-card">
+                <span class="resumo-icone">◷</span>
+                <span class="resumo-titulo">Cálculos realizados</span>
+                <strong class="resumo-valor" th:text="${totalCalculos}">0</strong>
+                <span class="resumo-link">Ver histórico →</span>
+            </a>
+
+        </div>
+    </section>
+
+    <section class="secao">
+        <div class="titulo-secao">
+            <div>
+                <h2>Acesso rápido</h2>
+                <p>Escolha o que deseja fazer.</p>
+            </div>
+        </div>
+
+        <div class="atalhos-grid">
+
+            <a th:href="@{/peca/novo}" class="atalho-card">
+                <span class="atalho-icone">＋</span>
+                <span>
+                    <strong>Cadastrar peça</strong>
+                    <small>Adicione uma nova peça ao catálogo.</small>
+                </span>
+                <span class="seta">→</span>
+            </a>
+
+            <a th:href="@{/filamento/novo}" class="atalho-card">
+                <span class="atalho-icone">＋</span>
+                <span>
+                    <strong>Adicionar filamento</strong>
+                    <small>Cadastre materiais e seus custos.</small>
+                </span>
+                <span class="seta">→</span>
+            </a>
+
+            <a th:href="@{/impressora/novo}" class="atalho-card">
+                <span class="atalho-icone">＋</span>
+                <span>
+                    <strong>Cadastrar impressora</strong>
+                    <small>Registre suas impressoras 3D.</small>
+                </span>
+                <span class="seta">→</span>
+            </a>
+
+            <a th:href="@{/embalagem/novo}" class="atalho-card">
+                <span class="atalho-icone">＋</span>
+                <span>
+                    <strong>Adicionar embalagem</strong>
+                    <small>Organize os custos de embalagem.</small>
+                </span>
+                <span class="seta">→</span>
+            </a>
+
+        </div>
+    </section>
+
+    <footer class="rodape">
+        Criare 3D · Gestão e cálculo de custos de impressão 3D
+    </footer>
+
+</main>
+
+<script th:replace="~{fragmentos :: bootstrap-script}"></script>
+
+</body>
+</html>

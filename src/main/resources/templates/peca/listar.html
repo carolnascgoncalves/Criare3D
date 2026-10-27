@@ -1,0 +1,118 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peças - Criare 3D</title>
+</head>
+<body>
+
+<div th:replace="~{fragmentos :: cabecalho('Peças')}"></div>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <div class="alerta-erro"
+         th:if="${param.erro != null and param.erro[0] == 'pecaEmUso'}">
+        Não é possível excluir esta peça porque ela está vinculada a
+        <strong th:text="${param.quantidade[0]}">0</strong>
+        cálculo(s) do histórico. Os registros antigos precisam ser preservados.
+    </div>
+
+    <div class="alerta-sucesso"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'pecaRemovida'}">
+        Peça excluída com sucesso!
+    </div>
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU CATÁLOGO</span>
+            <h1>Peças</h1>
+            <p>Gerencie suas peças e os dados utilizados nos cálculos de impressão.</p>
+        </div>
+
+        <a th:href="@{/peca/novo}" class="botao botao-principal">
+            <span>+</span> Nova peça
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Peças cadastradas</h2>
+                <p>Consulte e gerencie as peças do seu catálogo.</p>
+            </div>
+
+            <span class="contador"
+                  th:text="${#lists.size(pecas)} + ' itens'">
+                0 itens
+            </span>
+        </div>
+
+        <div class="tabela-container"
+             th:if="${!#lists.isEmpty(pecas)}">
+            <table class="tabela">
+                <thead>
+                <tr>
+                    <th>Nome da peça</th>
+                    <th class="coluna-acoes">Ações</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="peca : ${pecas}">
+                    <td>
+                        <div class="nome-peca">
+                            <span class="icone-peca">
+                                <i class="bi bi-box"></i>
+                            </span>
+                            <span th:text="${peca.nome}"></span>
+                        </div>
+                    </td>
+
+                    <td class="coluna-acoes">
+                        <div class="acoes">
+                            <a th:href="@{/peca/detalhes/{id}(id=${peca.id})}"
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a th:href="@{/peca/editar/{id}(id=${peca.id})}"
+                               class="botao-acao"
+                               title="Editar peça"
+                               aria-label="Editar peça">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a th:href="@{/peca/remover/{id}(id=${peca.id})}"
+                               class="botao-acao botao-excluir"
+                               title="Remover peça"
+                               aria-label="Remover peça"
+                               onclick="return confirm('Tem certeza que deseja remover esta peça?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="estado-vazio"
+             th:if="${#lists.isEmpty(pecas)}">
+            <span class="estado-vazio-icone">
+                <i class="bi bi-inbox"></i>
+            </span>
+            <h3>Nenhuma peça por aqui</h3>
+            <p>Cadastre sua primeira peça para começar a organizar seu catálogo.</p>
+            <a th:href="@{/peca/novo}" class="botao botao-principal">
+                Cadastrar primeira peça
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

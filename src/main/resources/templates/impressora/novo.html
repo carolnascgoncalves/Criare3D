@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Nova Impressora')}"></head>
+
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU EQUIPAMENTO</span>
+            <h1>Cadastrar impressora</h1>
+            <p>Adicione uma impressora ao seu catálogo.</p>
+        </div>
+
+        <a th:href="@{/impressora/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Informações da impressora</h2>
+                <p>Informe o nome, o modelo e a potência do equipamento.</p>
+            </div>
+        </div>
+
+        <div class="formulario-conteudo">
+            <form th:action="@{/impressora/cadastrar}"
+                  th:object="${impressora}"
+                  method="post"
+                  class="formulario">
+
+                <div class="campo">
+                    <label for="nome">Nome da impressora</label>
+                    <input type="text" id="nome" th:field="*{nome}">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('nome')}"
+                         th:errors="*{nome}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="modelo">Modelo</label>
+                    <input type="text" id="modelo" th:field="*{modelo}">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('modelo')}"
+                         th:errors="*{modelo}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="potenciaWatts">Potência (W)</label>
+                    <input type="number"
+                           id="potenciaWatts"
+                           th:field="*{potenciaWatts}"
+                           step="0.01"
+                           min="0">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('potenciaWatts')}"
+                         th:errors="*{potenciaWatts}"></div>
+                </div>
+
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-check-lg"></i> Cadastrar impressora
+                    </button>
+
+                    <a th:href="@{/impressora/listar}" class="botao botao-secundario">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

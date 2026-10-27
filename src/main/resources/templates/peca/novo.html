@@ -1,0 +1,92 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Nova Peça')}"></head>
+
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU CATÁLOGO</span>
+            <h1>Cadastrar peça</h1>
+            <p>Adicione uma nova peça ao seu catálogo de impressão 3D.</p>
+        </div>
+
+        <a th:href="@{/peca/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Informações da peça</h2>
+                <p>Preencha os dados e os parâmetros de impressão.</p>
+            </div>
+        </div>
+
+        <div class="formulario-conteudo">
+            <form th:action="@{/peca/cadastrar}"
+                  th:object="${peca}"
+                  method="post"
+                  class="formulario">
+
+                <div class="campo">
+                    <label for="nome">Nome da peça</label>
+                    <input type="text" id="nome" th:field="*{nome}">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('nome')}"
+                         th:errors="*{nome}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="quantidadeFilamentoGramas">
+                        Quantidade de filamento (gramas)
+                    </label>
+                    <input type="number"
+                           id="quantidadeFilamentoGramas"
+                           th:field="*{quantidadeFilamentoGramas}"
+                           step="0.01"
+                           min="0">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('quantidadeFilamentoGramas')}"
+                         th:errors="*{quantidadeFilamentoGramas}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="tempoImpressaoMinutos">
+                        Tempo de impressão (minutos)
+                    </label>
+                    <input type="number"
+                           id="tempoImpressaoMinutos"
+                           th:field="*{tempoImpressaoMinutos}"
+                           min="0">
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('tempoImpressaoMinutos')}"
+                         th:errors="*{tempoImpressaoMinutos}"></div>
+                </div>
+
+
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-check-lg"></i> Cadastrar peça
+                    </button>
+
+                    <a th:href="@{/peca/listar}" class="botao botao-secundario">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Filamentos')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <div class="alerta-erro"
+         th:if="${param.erro != null and param.erro[0] == 'filamentoEmUso'}">
+        Não é possível excluir este filamento porque ele está vinculado a
+        <strong th:text="${param.quantidade[0]}">0</strong>
+        cálculo(s) do histórico. Os registros antigos precisam ser preservados.
+    </div>
+
+    <div class="alerta-sucesso"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoRemovido'}">
+        Filamento excluído com sucesso!
+    </div>
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Filamentos</h1>
+            <p>Gerencie os filamentos utilizados nos seus cálculos de impressão 3D.</p>
+        </div>
+
+        <a th:href="@{/filamento/novo}" class="botao botao-principal">
+            <i class="bi bi-plus-lg"></i> Novo filamento
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Filamentos cadastrados</h2>
+                <p>Consulte e gerencie os materiais do seu catálogo.</p>
+            </div>
+
+            <span class="contador"
+                  th:text="${#lists.size(filamentos)} + ' cadastrados'">
+                0 cadastrados
+            </span>
+        </div>
+
+        <div class="tabela-container"
+             th:if="${!#lists.isEmpty(filamentos)}">
+            <table class="tabela">
+                <thead>
+                <tr>
+                    <th>Filamento</th>
+                    <th class="coluna-acoes">Ações</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="filamento : ${filamentos}">
+                    <td>
+                        <div class="nome-peca">
+                            <span class="icone-peca">
+                                <i class="bi bi-palette"></i>
+                            </span>
+                            <span th:text="${filamento.nome}">Nome do filamento</span>
+                        </div>
+                    </td>
+
+                    <td class="coluna-acoes">
+                        <div class="acoes">
+                            <a th:href="@{/filamento/detalhes/{id}(id=${filamento.id})}"
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
+                                <i class="bi bi-eye"></i>
+                            </a>
+
+                            <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
+                               class="botao-acao"
+                               title="Editar filamento"
+                               aria-label="Editar filamento">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+
+                            <a th:href="@{/filamento/remover/{id}(id=${filamento.id})}"
+                               class="botao-acao botao-excluir"
+                               title="Remover filamento"
+                               aria-label="Remover filamento"
+                               onclick="return confirm('Tem certeza que deseja remover este filamento?')">
+                                <i class="bi bi-trash3"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="estado-vazio"
+             th:if="${#lists.isEmpty(filamentos)}">
+            <span class="estado-vazio-icone">
+                <i class="bi bi-palette"></i>
+            </span>
+            <h3>Nenhum filamento cadastrado</h3>
+            <p>Cadastre seu primeiro filamento para organizar seus materiais.</p>
+            <a th:href="@{/filamento/novo}" class="botao botao-principal">
+                Cadastrar filamento
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>

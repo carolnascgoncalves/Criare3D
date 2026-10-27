@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="cabecalho(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title th:text="${titulo}">Criare 3D</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
+
+    <link rel="stylesheet" th:href="@{/css/cssDetalhesCalculo.css}">
+</head>
+
+<body>
+
+<nav th:fragment="menu" class="menu-principal">
+    <a th:href="@{/}" class="marca">
+        <img th:src="@{/images/criare3d.jpg}"
+             alt="Criare 3D"
+             class="marca-icone">
+        <span>Criare 3D</span>
+    </a>
+
+    <div class="menu-links">
+        <a th:href="@{/}" class="menu-link">Início</a>
+        <a th:href="@{/peca/listar}" class="menu-link">Peças</a>
+        <a th:href="@{/filamento/listar}" class="menu-link">Filamentos</a>
+        <a th:href="@{/impressora/listar}" class="menu-link">Impressoras</a>
+        <a th:href="@{/embalagem/listar}" class="menu-link">Embalagens</a>
+        <a th:href="@{/historico/listar}" class="menu-link">Histórico</a>
+        <a th:href="@{/configuracao}" class="menu-link">Configurações</a>
+    </div>
+
+    <a th:href="@{/historico/novo}" class="botao-menu">Calcular peça</a>
+</nav>
+
+<script th:fragment="bootstrap-script"
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+</script>
+
+</body>
+</html>

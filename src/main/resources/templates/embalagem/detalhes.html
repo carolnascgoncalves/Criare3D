@@ -1,0 +1,60 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Detalhes da Embalagem')}"></head>
+<body>
+
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Detalhes da embalagem</h1>
+            <p>Confira as informações da embalagem cadastrada.</p>
+        </div>
+
+        <a th:href="@{/embalagem/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2 th:text="${embalagem.nome}">Nome da embalagem</h2>
+                <p>Informações gerais e custo da embalagem.</p>
+            </div>
+
+            <span class="icone-peca">
+                <i class="bi bi-box-seam"></i>
+            </span>
+        </div>
+
+        <div class="detalhes-conteudo">
+            <div class="detalhe-item">
+                <span>Nome da embalagem</span>
+                <strong th:text="${embalagem.nome}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Custo unitário</span>
+                <strong th:text="'R$ ' + ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 2)}"></strong>
+            </div>
+        </div>
+
+        <div class="formulario-acoes">
+            <a th:href="@{/embalagem/editar/{id}(id=${embalagem.id})}"
+               class="botao botao-principal">
+                <i class="bi bi-pencil"></i> Editar embalagem
+            </a>
+
+            <a th:href="@{/embalagem/listar}" class="botao botao-secundario">
+                Voltar para listagem
+            </a>
+        </div>
+    </section>
+</main>
+
+</body>
+</html>
