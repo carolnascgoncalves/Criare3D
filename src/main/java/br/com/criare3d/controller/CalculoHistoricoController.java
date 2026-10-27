@@ -1,5 +1,5 @@
 
-package br.com.criare3d.controller;
+        package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
@@ -62,7 +62,6 @@ public class CalculoHistoricoController {
         return mv;
     }
 
-
     @PostMapping("/historico/calcular")
     public ModelAndView calcular(
             @Valid @ModelAttribute("calculo") CalculoRequest request,
@@ -102,7 +101,6 @@ public class CalculoHistoricoController {
         return mv;
     }
 
-
     @PostMapping("/historico/salvar")
     public ModelAndView salvar(
             @Valid @ModelAttribute("calculo") CalculoRequest request,
@@ -120,7 +118,7 @@ public class CalculoHistoricoController {
             CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
             calculoHistoricoService.create(calculo);
 
-            return new ModelAndView("redirect:historico/listar");
+            return new ModelAndView("redirect:/historico/listar");
         } catch (IllegalArgumentException e) {
             mv.addObject("erro", e.getMessage());
             carregarDadosFormulario(mv);
@@ -136,7 +134,7 @@ public class CalculoHistoricoController {
                     mv.addObject("historico", CalculoResponse.toDto(entidade));
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:historico/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
     }
 
     private void carregarDadosFormulario(ModelAndView mv) {
@@ -155,6 +153,7 @@ public class CalculoHistoricoController {
             calculoHistoricoService.delete(id);
         }
 
-        return new ModelAndView("redirect:historico/listar?sucesso=historicoRemovido");
+        return new ModelAndView(
+                "redirect:/historico/listar?sucesso=historicoRemovido");
     }
 }

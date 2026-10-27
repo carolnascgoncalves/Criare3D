@@ -1,4 +1,3 @@
-
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.FilamentoRequest;
@@ -28,7 +27,10 @@ public class FilamentoController {
     private CalculoHistoricoService calculoHistoricoService;
 
     @GetMapping("/filamento/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+    public ModelAndView fetchAll(
+            @PageableDefault(page = 0, size = 10, sort = "nome",
+                    direction = Sort.Direction.ASC) Pageable pageable) {
+
         ModelAndView mv = new ModelAndView("filamento/listar");
         mv.addObject("filamentos", filamentoService.fetchAll(pageable).getContent());
         return mv;
@@ -42,7 +44,10 @@ public class FilamentoController {
     }
 
     @PostMapping("/filamento/cadastrar")
-    public ModelAndView create(@Valid @ModelAttribute("filamento") FilamentoRequest request, BindingResult bd) {
+    public ModelAndView create(
+            @Valid @ModelAttribute("filamento") FilamentoRequest request,
+            BindingResult bd) {
+
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("filamento/novo");
             mv.addObject("filamento", request);
@@ -50,7 +55,7 @@ public class FilamentoController {
         }
 
         filamentoService.create(FilamentoRequest.toEntity(request));
-        return new ModelAndView("redirect:filamento/listar");
+        return new ModelAndView("redirect:/filamento/listar");
     }
 
     @GetMapping("/filamento/detalhes/{id}")
@@ -61,7 +66,7 @@ public class FilamentoController {
                     mv.addObject("filamento", entidade);
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:filamento/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
     }
 
     @GetMapping("/filamento/editar/{id}")
@@ -73,15 +78,19 @@ public class FilamentoController {
                     mv.addObject("id", id);
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:filamento/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
     }
 
     @PostMapping("/filamento/atualizar/{id}")
-    public ModelAndView atualizarFilamento(@PathVariable UUID id, @Valid @ModelAttribute("filamento") FilamentoDadosRequest request, BindingResult bd) {
+    public ModelAndView atualizarFilamento(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("filamento") FilamentoDadosRequest request,
+            BindingResult bd) {
+
         var atual = filamentoService.fetchById(id);
 
         if (atual.isEmpty()) {
-            return new ModelAndView("redirect:filamento/listar");
+            return new ModelAndView("redirect:/filamento/listar");
         }
 
         if (bd.hasErrors()) {
@@ -92,24 +101,23 @@ public class FilamentoController {
         }
 
         filamentoService.update(id, FilamentoDadosRequest.toEntity(request));
-        return new ModelAndView("redirect:filamento/listar");
+        return new ModelAndView("redirect:/filamento/listar");
     }
 
     @GetMapping("/filamento/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!filamentoService.existsById(id)) {
-            return new ModelAndView("redirect:filamento/listar");
+            return new ModelAndView("redirect:/filamento/listar");
         }
 
         long quantidade = calculoHistoricoService.contarPorFilamento(id);
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:filamento/listar?erro=filamentoEmUso&quantidade=" + quantidade
-            );
+                    "redirect:/filamento/listar?erro=filamentoEmUso&quantidade=" + quantidade);
         }
 
         filamentoService.delete(id);
-        return new ModelAndView("redirect:filamento/listar?sucesso=filamentoRemovido");
+        return new ModelAndView("redirect:/filamento/listar?sucesso=filamentoRemovido");
     }
 }

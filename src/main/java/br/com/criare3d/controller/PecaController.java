@@ -54,7 +54,7 @@ public class PecaController {
         Peca entidade = PecaRequest.toEntity(request);
         pecaService.create(entidade);
 
-        return new ModelAndView("redirect:peca/listar");
+        return new ModelAndView("redirect:/peca/listar");
     }
 
     @GetMapping("/peca/detalhes/{id}")
@@ -65,7 +65,7 @@ public class PecaController {
                     mv.addObject("peca", entidade);
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:peca/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:/peca/listar"));
     }
 
     @GetMapping("/peca/editar/{id}")
@@ -77,26 +77,26 @@ public class PecaController {
                     mv.addObject("id", id);
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:peca/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:/peca/listar"));
     }
 
 
     @GetMapping("/peca/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!pecaService.existsById(id)) {
-            return new ModelAndView("redirect:peca/listar");
+            return new ModelAndView("redirect:/peca/listar");
         }
 
         long quantidade = calculoHistoricoService.contarPorPeca(id);
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:peca/listar?erro=pecaEmUso&quantidade=" + quantidade
+                    "redirect:/peca/listar?erro=pecaEmUso&quantidade=" + quantidade
             );
         }
 
         pecaService.delete(id);
-        return new ModelAndView("redirect:peca/listar?sucesso=pecaRemovida");
+        return new ModelAndView("redirect:/peca/listar?sucesso=pecaRemovida");
     }
 
     @PostMapping("/peca/atualizar/{id}")
@@ -104,7 +104,7 @@ public class PecaController {
         var atual = pecaService.fetchById(id);
 
         if (atual.isEmpty()) {
-            return new ModelAndView("redirect:peca/listar");
+            return new ModelAndView("redirect:/peca/listar");
         }
 
         if (bd.hasErrors()) {
@@ -116,6 +116,6 @@ public class PecaController {
 
         pecaService.update(id, PecaRequest.toEntity(request));
 
-        return new ModelAndView("redirect:peca/listar");
+        return new ModelAndView("redirect:/peca/listar");
     }
 }

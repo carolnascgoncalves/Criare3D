@@ -1,13 +1,8 @@
-
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.ConfiguracaoRequest;
-import br.com.criare3d.dto.ConfiguracaoResponse;
-import br.com.criare3d.dto.ConfiguracaoDadosRequest;
-import br.com.criare3d.service.interfaces.ConfiguracaoService;
-
-import br.com.criare3d.dto.ConfiguracaoRequest;
 import br.com.criare3d.models.Configuracao;
+import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -49,6 +44,6 @@ public class ConfiguracaoController {
         Configuracao dados = ConfiguracaoRequest.toEntity(request);
         configuracaoService.update(atual.getId(), dados);
 
-        return new ModelAndView("redirect:configuracao?sucesso");
+        return new ModelAndView("redirect:/configuracao?sucesso");
     }
 }
