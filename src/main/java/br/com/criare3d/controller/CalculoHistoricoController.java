@@ -48,7 +48,7 @@ public class CalculoHistoricoController {
             @PageableDefault(page = 0, size = 10, sort = "id",
                     direction = Sort.Direction.DESC) Pageable pageable) {
 
-        ModelAndView mv = new ModelAndView("/historico/listar");
+        ModelAndView mv = new ModelAndView("historico/listar");
         mv.addObject("historicos",
                 calculoHistoricoService.fetchAll(pageable).getContent());
         return mv;
@@ -56,7 +56,7 @@ public class CalculoHistoricoController {
 
     @GetMapping("/historico/novo")
     public ModelAndView retornarPaginaCadastro() {
-        ModelAndView mv = new ModelAndView("/historico/novo");
+        ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", new CalculoRequest());
         carregarDadosFormulario(mv);
         return mv;
@@ -69,7 +69,7 @@ public class CalculoHistoricoController {
             BindingResult bd) {
 
         if (bd.hasErrors()) {
-            ModelAndView mv = new ModelAndView("/historico/novo");
+            ModelAndView mv = new ModelAndView("historico/novo");
             mv.addObject("calculo", request);
             carregarDadosFormulario(mv);
             return mv;
@@ -78,13 +78,13 @@ public class CalculoHistoricoController {
         try {
             CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
 
-            ModelAndView mv = new ModelAndView("/historico/resultado");
+            ModelAndView mv = new ModelAndView("historico/resultado");
             mv.addObject("calculo", request);
             mv.addObject("resultado", CalculoResponse.toDto(calculo));
             return mv;
 
         } catch (IllegalArgumentException e) {
-            ModelAndView mv = new ModelAndView("/historico/novo");
+            ModelAndView mv = new ModelAndView("historico/novo");
             mv.addObject("calculo", request);
             mv.addObject("erro", e.getMessage());
             carregarDadosFormulario(mv);
@@ -96,7 +96,7 @@ public class CalculoHistoricoController {
     public ModelAndView editar(
             @ModelAttribute("calculo") CalculoRequest request) {
 
-        ModelAndView mv = new ModelAndView("/historico/novo");
+        ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
         carregarDadosFormulario(mv);
         return mv;
@@ -108,7 +108,7 @@ public class CalculoHistoricoController {
             @Valid @ModelAttribute("calculo") CalculoRequest request,
             BindingResult bd) {
 
-        ModelAndView mv = new ModelAndView("/historico/novo");
+        ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
 
         if (bd.hasErrors()) {
@@ -120,7 +120,7 @@ public class CalculoHistoricoController {
             CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
             calculoHistoricoService.create(calculo);
 
-            return new ModelAndView("redirect:/historico/listar");
+            return new ModelAndView("redirect:historico/listar");
         } catch (IllegalArgumentException e) {
             mv.addObject("erro", e.getMessage());
             carregarDadosFormulario(mv);
@@ -132,11 +132,11 @@ public class CalculoHistoricoController {
     public ModelAndView fetchById(@PathVariable UUID id) {
         return calculoHistoricoService.fetchById(id)
                 .map(entidade -> {
-                    ModelAndView mv = new ModelAndView("/historico/detalhes");
+                    ModelAndView mv = new ModelAndView("historico/detalhes");
                     mv.addObject("historico", CalculoResponse.toDto(entidade));
                     return mv;
                 })
-                .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
+                .orElseGet(() -> new ModelAndView("redirect:historico/listar"));
     }
 
     private void carregarDadosFormulario(ModelAndView mv) {
@@ -155,6 +155,6 @@ public class CalculoHistoricoController {
             calculoHistoricoService.delete(id);
         }
 
-        return new ModelAndView("redirect:/historico/listar?sucesso=historicoRemovido");
+        return new ModelAndView("redirect:historico/listar?sucesso=historicoRemovido");
     }
 }
