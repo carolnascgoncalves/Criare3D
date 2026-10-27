@@ -49,6 +49,6 @@ public class ConfiguracaoController {
         Configuracao dados = ConfiguracaoRequest.toEntity(request);
         configuracaoService.update(atual.getId(), dados);
 
-        return new ModelAndView("redirect:/configuracao?sucesso");
+        return new ModelAndView("redirect:configuracao?sucesso");
     }
 }
