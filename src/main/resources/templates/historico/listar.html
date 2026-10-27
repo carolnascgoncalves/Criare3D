@@ -77,10 +77,7 @@
                         </td>
 
                         <td>
-                            <span class="data-historico"
-                                  th:text="${historico.dataCalculo != null ? #strings.replace(historico.dataCalculo.toString().substring(0, 16), 'T', ' às ') : '-'}">
-                                Data do cálculo
-                            </span>
+                            <span th:text="${#temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm')}"></span>
                         </td>
 
                         <td>

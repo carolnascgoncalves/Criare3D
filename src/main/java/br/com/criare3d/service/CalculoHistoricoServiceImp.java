@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -161,7 +162,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setCustoTotal(custoTotal);
         historico.setMarkupPercentual(configuracao.getMarkupPercentual());
         historico.setPrecoSugerido(precoSugerido);
-        historico.setDataCalculo(LocalDateTime.now());
+        historico.setDataCalculo(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
 
         return historico;
     }

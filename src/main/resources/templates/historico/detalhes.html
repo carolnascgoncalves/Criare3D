@@ -23,7 +23,7 @@
             </div>
             <div class="detalhes-data">
                 <span>Data do cálculo</span>
-                <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy HH:mm') : 'Não informada'}">26/10/2026 14:30</strong>
+                <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm') : 'Não informada'}">26/10/2026 às 14h30</strong>
             </div>
         </div>
 
