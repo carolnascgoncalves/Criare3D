@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function preencherDadosPeca() {
         const opcao = pecaSelect.selectedOptions[0];
 
-        if (!opcao || !opcao.value || opcao.value.startsWith("__cadastrar_")) {
+        if (!opcao || !opcao.value || opcao.dataset.acao) {
             return;
         }
 
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pecaSelect.addEventListener("change", preencherDadosPeca);
 
-    function configurarCadastroRapido(idSelect, valor, rota) {
+    function configurarCadastroRapido(idSelect, rota) {
         const select = document.getElementById(idSelect);
 
         if (!select) {
@@ -97,16 +97,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         select.addEventListener("change", () => {
-            if (select.value === valor) {
+            const opcao = select.selectedOptions[0];
+            const acao = opcao?.dataset.acao;
+
+            if (acao && acao.startsWith("cadastrar-")) {
                 window.location.href = rota;
             }
         });
     }
 
-    configurarCadastroRapido("pecaId", "__cadastrar_peca__", "/peca/novo");
-    configurarCadastroRapido("filamentoId", "__cadastrar_filamento__", "/filamento/novo");
-    configurarCadastroRapido("impressoraId", "__cadastrar_impressora__", "/impressora/novo");
-    configurarCadastroRapido("embalagemId", "__cadastrar_embalagem__", "/embalagem/novo");
+    configurarCadastroRapido("pecaId", "/peca/novo");
+    configurarCadastroRapido("filamentoId", "/filamento/novo");
+    configurarCadastroRapido("impressoraId", "/impressora/novo");
+    configurarCadastroRapido("embalagemId", "/embalagem/novo");
 
     formulario.addEventListener("submit", event => {
         if (!validarEtapa()) {
