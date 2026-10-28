@@ -36,6 +36,9 @@ public class FilamentoServiceImp implements FilamentoService {
                    if(patch.getCor() != null)
                        existing.setCor(patch.getCor());
 
+                   if(patch.getCodigoCor() != null)
+                       existing.setCodigoCor(patch.getCodigoCor());
+
                    if(patch.getMarca() != null)
                        existing.setMarca(patch.getMarca());
 

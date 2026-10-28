@@ -22,93 +22,98 @@
                 <p>Altere os campos que deseja atualizar.</p>
             </div>
         </div>
+        <div class="formulario-conteudo">
+            <form th:action="@{/filamento/atualizar/{id}(id=${id})}"
+                  th:object="${filamento}"
+                  method="post"
+                  class="formulario formulario-filamento">
 
-        <form th:action="@{/filamento/atualizar/{id}(id=${id})}"
-              th:object="${filamento}"
-              method="post"
-              class="formulario">
 
-            <div class="formulario-conteudo">
-                <div class="campo">
-                    <label for="nome">Nome do filamento</label>
-                    <input type="text"
-                           id="nome"
-                           th:field="*{nome}"
-                           placeholder="Ex.: PLA Premium"
-                           minlength="2"
-                           maxlength="150"
-                           required>
-                    <span class="erro-campo"
-                          th:if="${#fields.hasErrors('nome')}"
-                          th:errors="*{nome}"></span>
+                    <div class="campo">
+                        <label for="nome">Nome do filamento</label>
+                        <input type="text"
+                               id="nome"
+                               th:field="*{nome}"
+                               minlength="2"
+                               maxlength="150"
+                               required>
+                        <span class="erro-campo"
+                              th:if="${#fields.hasErrors('nome')}"
+                              th:errors="*{nome}"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="cor">Nome da cor</label>
+                        <input type="text"
+                               id="cor"
+                               th:field="*{cor}"
+                               minlength="2"
+                               maxlength="80"
+                               required>
+                        <span class="erro-campo"
+                              th:if="${#fields.hasErrors('cor')}"
+                              th:errors="*{cor}"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="codigoCor">Escolha a cor</label>
+                        <input type="color"
+                               id="codigoCor"
+                               th:field="*{codigoCor}"
+                               required>
+                        <small>Você pode alterar a tonalidade do filamento.</small>
+                    </div>
+
+
+                    <div class="campo">
+                        <label for="marca">Marca</label>
+                        <input type="text"
+                               id="marca"
+                               th:field="*{marca}"
+                               minlength="0"
+                               maxlength="150"
+                               required>
+                        <span class="erro-campo"
+                              th:if="${#fields.hasErrors('marca')}"
+                              th:errors="*{marca}"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="pesoRoloGramas">Peso do rolo (gramas)</label>
+                        <input type="number"
+                               id="pesoRoloGramas"
+                               th:field="*{pesoRoloGramas}"
+                               min="0.01"
+                               step="0.01"
+                               required>
+                        <span class="erro-campo"
+                              th:if="${#fields.hasErrors('pesoRoloGramas')}"
+                              th:errors="*{pesoRoloGramas}"></span>
+                    </div>
+
+                    <div class="campo">
+                        <label for="precoRolo">Preço do rolo (R$)</label>
+                        <input type="number"
+                               id="precoRolo"
+                               th:field="*{precoRolo}"
+                               min="0.01"
+                               step="0.01"
+                               required>
+                        <span class="erro-campo"
+                              th:if="${#fields.hasErrors('precoRolo')}"
+                              th:errors="*{precoRolo}"></span>
+                    </div>
+
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-check-lg"></i> Salvar alterações
+                    </button>
+                    <a th:href="@{/filamento/listar}" class="botao botao-secundario">
+                        Cancelar
+                    </a>
                 </div>
-
-                <div class="campo">
-                    <label for="cor">Cor do filamento</label>
-                    <input type="text"
-                           id="cor"
-                           th:field="*{cor}"
-                           minlength="2"
-                           maxlength="80"
-                           required>
-                    <span class="erro-campo"
-                          th:if="${#fields.hasErrors('cor')}"
-                          th:errors="*{cor}"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="marca">Marca</label>
-                    <input type="text"
-                           id="marca"
-                           th:field="*{marca}"
-                           placeholder="Ex.: Voolt3D"
-                           minlength="2"
-                           maxlength="150"
-                           required>
-                    <span class="erro-campo"
-                          th:if="${#fields.hasErrors('marca')}"
-                          th:errors="*{marca}"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="pesoRoloGramas">Peso do rolo (gramas)</label>
-                    <input type="number"
-                           id="pesoRoloGramas"
-                           th:field="*{pesoRoloGramas}"
-                           placeholder="Ex.: 1000"
-                           min="0.01"
-                           step="0.01"
-                           required>
-                    <span class="erro-campo"
-                          th:if="${#fields.hasErrors('pesoRoloGramas')}"
-                          th:errors="*{pesoRoloGramas}"></span>
-                </div>
-
-                <div class="campo">
-                    <label for="precoRolo">Preço do rolo (R$)</label>
-                    <input type="number"
-                           id="precoRolo"
-                           th:field="*{precoRolo}"
-                           placeholder="Ex.: 89.90"
-                           min="0.01"
-                           step="0.01"
-                           required>
-                    <span class="erro-campo"
-                          th:if="${#fields.hasErrors('precoRolo')}"
-                          th:errors="*{precoRolo}"></span>
-                </div>
-            </div>
-
-            <div class="formulario-acoes">
-                <button type="submit" class="botao botao-principal">
-                    <i class="bi bi-check-lg"></i> Salvar alterações
-                </button>
-                <a th:href="@{/filamento/listar}" class="botao botao-secundario">
-                    Cancelar
-                </a>
-
-            </div>
-        </form>
+            </form>
+        </div>
     </section>
 </main>
 

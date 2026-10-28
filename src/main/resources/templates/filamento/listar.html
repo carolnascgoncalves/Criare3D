@@ -61,7 +61,13 @@
                             <span class="icone-peca">
                                 <i class="bi bi-palette"></i>
                             </span>
-                            <span th:text="${filamento.nome}">Nome do filamento</span>
+                            <div class="info-filamento">
+                                <span class="nome-filamento" th:text="${filamento.nome}">Nome do filamento</span>
+                                <span class="cor-filamento">Cor:
+                                    <span class="indicador-cor" th:style="'background-color: ' + (${filamento.codigoCor != null ? filamento.codigoCor : '#ead6c8'})"></span>
+                                    <span th:text="${filamento.cor}">Verde</span>
+                                </span>
+                            </div>
                         </div>
                     </td>
 

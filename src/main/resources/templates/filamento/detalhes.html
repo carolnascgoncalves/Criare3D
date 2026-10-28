@@ -40,8 +40,12 @@
 
             <div class="detalhe-item">
                 <span>Cor do filamento</span>
-                <strong th:text="${filamento.cor}"></strong>
+                <div class="cor-detalhes">
+                    <span class="indicador-cor" th:style="'background-color: ' + (${filamento.codigoCor != null ? filamento.codigoCor : '#ead6c8'})"></span>
+                    <strong th:text="${filamento.cor}">Verde-menta</strong>
+                </div>
             </div>
+
 
             <div class="detalhe-item">
                 <span>Marca</span>

@@ -21,6 +21,8 @@ public class FilamentoResponse {
 
     private @Getter @Setter String cor;
 
+    private @Getter @Setter String codigoCor;
+
     private @Getter @Setter String marca;
 
     private @Getter @Setter BigDecimal pesoRoloGramas;
@@ -32,6 +34,7 @@ public class FilamentoResponse {
                 .id(filamento.getId())
                 .nome(filamento.getNome())
                 .cor(filamento.getCor())
+                .codigoCor(filamento.getCodigoCor())
                 .marca(filamento.getMarca())
                 .pesoRoloGramas(filamento.getPesoRoloGramas())
                 .precoRolo(filamento.getPrecoRolo())

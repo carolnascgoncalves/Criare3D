@@ -42,18 +42,31 @@
                               th:errors="*{nome}"></span>
                     </div>
 
-                    <div class="campo">
-                        <label for="cor">Cor</label>
-                        <input type="text"
-                               id="cor"
-                               th:field="*{cor}"
-                               minlength="2"
-                               maxlength="80"
-                               required>
-                        <span class="erro-campo"
-                              th:if="${#fields.hasErrors('cor')}"
-                              th:errors="*{cor}"></span>
-                    </div>
+
+                <div class="campo">
+                    <label for="cor">Nome da cor</label>
+                    <input type="text"
+                           id="cor"
+                           th:field="*{cor}"
+                           placeholder="Ex.: Verde-menta"
+                           minlength="2"
+                           maxlength="80"
+                           required>
+                    <span class="erro-campo"
+                          th:if="${#fields.hasErrors('cor')}"
+                          th:errors="*{cor}"></span>
+                </div>
+
+                <div class="campo">
+                    <label for="codigoCor">Escolha a cor</label>
+                    <input type="color"
+                           id="codigoCor"
+                           th:field="*{codigoCor}"
+                           value="#75C9A5"
+                           required>
+                    <small>Selecione a tonalidade exata do filamento.</small>
+                </div>
+
 
                     <div class="campo">
                         <label for="marca">Marca</label>

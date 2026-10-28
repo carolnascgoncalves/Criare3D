@@ -23,6 +23,9 @@ public class FilamentoDadosRequest {
     @Column(name= "cor_fil", nullable = false, length = 80)
     private @Getter @Setter String cor;
 
+    @Column(name = "codigo_cor_fil", length = 7)
+    private @Getter @Setter String codigoCor;
+
     @Size(min = 0, max = 150, message = "A marca do filamento deve ter entre 2 à 150 caracteres")
     @Column(name= "marca_fil", length = 150)
     private @Getter @Setter String marca;
@@ -39,6 +42,7 @@ public class FilamentoDadosRequest {
         return FilamentoDadosRequest.builder()
                 .nome(filamento.getNome())
                 .cor(filamento.getCor())
+                .codigoCor(filamento.getCodigoCor())
                 .marca(filamento.getMarca())
                 .pesoRoloGramas(filamento.getPesoRoloGramas())
                 .precoRolo(filamento.getPrecoRolo())
@@ -49,6 +53,7 @@ public class FilamentoDadosRequest {
         return Filamento.builder()
                 .nome(dto.getNome())
                 .cor(dto.getCor())
+                .codigoCor(dto.getCodigoCor())
                 .marca((dto.getMarca()))
                 .pesoRoloGramas(dto.getPesoRoloGramas())
                 .precoRolo(dto.getPrecoRolo())

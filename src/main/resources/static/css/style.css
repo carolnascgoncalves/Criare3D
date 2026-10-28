@@ -890,16 +890,6 @@ tr:nth-child(even) {
     padding: 0 28px 28px;
 }
 
-/* Edição do filamento */
-.cartao > .formulario {
-    padding-bottom: 28px;
-}
-
-.cartao > .formulario > .formulario-acoes {
-    padding: 0 28px;
-}
-
-
 /* Configurações */
 .configuracao-formulario {
     display: flex;
@@ -1067,4 +1057,75 @@ tr:nth-child(even) {
     border-radius: 10px;
     background: #eaf5e8;
     color: #315d34;
+}
+
+
+/* Identificação do filamento na listagem */
+.nome-peca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: normal;
+}
+
+.info-filamento {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    font-weight: normal;
+}
+
+.nome-filamento {
+    color: var(--marrom);
+    font-weight: normal;
+}
+
+.cor-filamento {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--marrom-claro);
+    font-size: 12px;
+    font-weight: normal;
+}
+
+
+.indicador-cor {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 1px solid rgba(73, 46, 30, 0.25);
+    border-radius: 50%;
+    background-color: #ead6c8;
+}
+
+.cor-detalhes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cor-detalhes strong {
+    font-weight: normal;
+}
+
+
+/* Seletor de cor do filamento */
+input[type="color"] {
+    width: 64px;
+    height: 44px;
+    padding: 4px;
+    border: 2px solid var(--borda);
+    border-radius: 10px;
+    background-color: var(--branco);
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+/* Destaque ao selecionar o campo */
+input[type="color"]:focus {
+    outline: none;
+    border-color: var(--destaque);
 }
