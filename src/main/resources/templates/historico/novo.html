@@ -33,12 +33,10 @@
                     <span class="etapa-numero">01</span>
                     <span class="etapa-nome">Materiais</span>
                 </div>
-
                 <div class="etapa" data-etapa="2">
                     <span class="etapa-numero">02</span>
                     <span class="etapa-nome">Impressão</span>
                 </div>
-
                 <div class="etapa" data-etapa="3">
                     <span class="etapa-numero">03</span>
                     <span class="etapa-nome">Embalagem e revisão</span>
@@ -55,7 +53,6 @@
                   novalidate>
 
                 <section class="conteudo-etapa ativa" data-conteudo="1">
-
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 01</span>
                         <h2>Materiais</h2>
@@ -84,7 +81,6 @@
                                 <h3>Filamentos utilizados</h3>
                                 <p>Adicione uma linha para cada filamento ou cor usada.</p>
                             </div>
-
                             <button type="button" class="botao botao-secundario" id="adicionarFilamento">
                                 <i class="bi bi-plus-lg"></i> Adicionar filamento
                             </button>
@@ -106,7 +102,7 @@
                                     <option value="">Selecione um filamento</option>
                                     <option th:each="filamento : ${filamentos}"
                                             th:value="${filamento.id}"
-                                            th:text="${filamento.nome}"
+                                            th:text="|${filamento.nome} - ${filamento.cor}|"
                                             th:attr="data-cor=${filamento.cor},
                                                      data-codigo-cor=${filamento.codigoCor}">
                                     </option>
@@ -116,12 +112,8 @@
 
                             <div class="campo">
                                 <label>Quantidade utilizada (gramas)</label>
-                                <input type="number"
-                                       data-campo-quantidade
-                                       min="0.01"
-                                       step="0.01"
-                                       placeholder="Ex.: 25.50"
-                                       required>
+                                <input type="number" data-campo-quantidade min="0.01" step="0.01"
+                                       placeholder="Ex.: 25.50" required>
                             </div>
 
                             <button type="button" class="botao botao-principal" data-confirmar-filamento>
@@ -136,23 +128,27 @@
                         <p id="consumoPrevistoResumo">Consumo previsto: 0 g</p>
 
                         <div id="listaFilamentos">
-                            <div class="filamento-calculo-item" data-filamento-item>
+                            <div class="filamento-calculo-item"
+                                 data-filamento-item
+                                 th:each="item, stat : *{filamentos}"
+                                 th:attr="data-confirmado=${item.filamentoId != null and item.quantidadeFilamentoGramas != null}"
+                                 th:hidden="${item.filamentoId != null and item.quantidadeFilamentoGramas != null}">
+
                                 <div class="filamento-calculo-cabecalho">
-                                    <strong>Filamento 1</strong>
-                                    <button type="button" class="botao-remover-filamento" data-remover-filamento hidden>
+                                    <strong th:text="|Filamento ${stat.index + 1}|">Filamento 1</strong>
+                                    <button type="button" class="botao-remover-filamento" data-remover-filamento>
                                         <i class="bi bi-trash"></i> Remover
                                     </button>
                                 </div>
 
                                 <div class="campo">
                                     <label>Filamento</label>
-                                    <select name="filamentos[0].filamentoId"
-                                            data-campo-filamento
-                                            required>
+                                    <select th:field="*{filamentos[__${stat.index}__].filamentoId}"
+                                            data-campo-filamento required>
                                         <option value="">Selecione um filamento</option>
                                         <option th:each="filamento : ${filamentos}"
                                                 th:value="${filamento.id}"
-                                                th:text="${filamento.nome}"
+                                                th:text="|${filamento.nome} - ${filamento.cor}|"
                                                 th:attr="data-cor=${filamento.cor},
                                                          data-codigo-cor=${filamento.codigoCor}">
                                         </option>
@@ -163,12 +159,9 @@
                                 <div class="campo">
                                     <label>Quantidade utilizada (gramas)</label>
                                     <input type="number"
-                                           name="filamentos[0].quantidadeFilamentoGramas"
-                                           data-campo-quantidade
-                                           min="0.01"
-                                           step="0.01"
-                                           placeholder="Ex.: 25.50"
-                                           required>
+                                           th:field="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"
+                                           data-campo-quantidade min="0.01" step="0.01"
+                                           placeholder="Ex.: 25.50" required>
                                 </div>
 
                                 <button type="button" class="botao botao-principal" data-confirmar-filamento>
@@ -211,33 +204,21 @@
                             </option>
                             <option value="" data-acao="cadastrar-impressora">+ Cadastrar nova impressora</option>
                         </select>
-
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('impressoraId')}"
-                             th:errors="*{impressoraId}"></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('impressoraId')}" th:errors="*{impressoraId}"></div>
                     </div>
 
                     <div class="campo">
                         <label for="tempoImpressaoMinutos">Tempo de impressão (minutos)</label>
-                        <input type="number"
-                               id="tempoImpressaoMinutos"
-                               th:field="*{tempoImpressaoMinutos}"
-                               min="1"
-                               step="1"
-                               required>
-
+                        <input type="number" id="tempoImpressaoMinutos"
+                               th:field="*{tempoImpressaoMinutos}" min="1" step="1" required>
                         <small>Informe o tempo total estimado da impressão em minutos.</small>
-
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('tempoImpressaoMinutos')}"
-                             th:errors="*{tempoImpressaoMinutos}"></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
                     </div>
 
                     <div class="formulario-acoes">
                         <button type="button" class="botao botao-secundario" data-anterior>
                             <i class="bi bi-arrow-left"></i> Voltar
                         </button>
-
                         <button type="button" class="botao botao-principal" data-proximo>
                             Próxima etapa <i class="bi bi-arrow-right"></i>
                         </button>
@@ -251,14 +232,12 @@
                         <p>Confira os dados e escolha como o custo da embalagem será considerado.</p>
                     </div>
 
-                    <div class="aviso-info"
-                         th:if="${configuracao != null and configuracao.embalagemFixa}">
+                    <div class="aviso-info" th:if="${configuracao != null and configuracao.embalagemFixa}">
                         <i class="bi bi-info-circle"></i>
                         A configuração utiliza um custo fixo de embalagem.
                     </div>
 
-                    <div class="campo"
-                         th:if="${configuracao == null or configuracao.embalagemFixa != true}">
+                    <div class="campo" th:if="${configuracao == null or configuracao.embalagemFixa != true}">
                         <label for="embalagemId">Embalagem</label>
                         <select id="embalagemId" th:field="*{embalagemId}">
                             <option value="">Selecione uma embalagem</option>
@@ -280,7 +259,6 @@
                         <button type="button" class="botao botao-secundario" data-anterior>
                             <i class="bi bi-arrow-left"></i> Voltar
                         </button>
-
                         <button type="submit" class="botao botao-principal">
                             <i class="bi bi-calculator"></i> Calcular custos
                         </button>

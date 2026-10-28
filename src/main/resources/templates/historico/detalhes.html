@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
@@ -35,13 +34,14 @@
                         <span>Filamentos utilizados</span>
                         <div class="detalhes-lista-filamentos">
                             <div class="detalhes-filamento" th:each="item : ${historico.itensFilamento}">
-                                <span class="amostra-cor" th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}" th:style="|background-color: ${item.codigoCor}|"></span>
+                                <span class="amostra-cor"
+                                      th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
+                                      th:style="|background-color: ${item.codigoCor}|"></span>
                                 <div class="detalhes-filamento-info">
                                     <strong th:text="${item.nomeFilamento}">PLA</strong>
                                     <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">Branco</span>
                                     <span th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g utilizados'}">25,00 g utilizados</span>
                                 </div>
-
                                 <strong class="detalhes-valor"
                                         th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">
                                     R$ 2,50
@@ -73,20 +73,21 @@
                         <strong>Custo dos filamentos</strong>
                         <span th:text="${#lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)'}">2 filamentos utilizados</span>
                     </div>
-
                     <strong class="detalhes-valor"
                             th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 4,50
                     </strong>
                 </div>
 
-
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
                         <strong>Custo de energia</strong>
-                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 4, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
+                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 1, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
                     </div>
-                    <strong class="detalhes-valor" th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 1,20</strong>
+                    <strong class="detalhes-valor"
+                            th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">
+                        R$ 1,20
+                    </strong>
                 </div>
 
                 <div class="detalhes-custo">
@@ -94,7 +95,10 @@
                         <strong>Embalagem</strong>
                         <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">Embalagem</span>
                     </div>
-                    <strong class="detalhes-valor" th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 2,00</strong>
+                    <strong class="detalhes-valor"
+                            th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">
+                        R$ 2,00
+                    </strong>
                 </div>
 
                 <div class="detalhes-custo-total">

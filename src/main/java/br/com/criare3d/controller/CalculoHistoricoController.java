@@ -54,7 +54,7 @@ public class CalculoHistoricoController {
                 calculoHistoricoService.fetchAll(pageable).getContent());
         return mv;
     }
-    
+
     @GetMapping("/historico/novo")
     public ModelAndView retornarPaginaCadastro() {
         ModelAndView mv = new ModelAndView("historico/novo");

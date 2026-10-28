@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", () => {
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
@@ -9,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const listaResumo = document.getElementById("listaResumoConsumo");
     const totalFilamentoResumo = document.getElementById("totalFilamentoResumo");
     const totalPrevistoResumo = document.getElementById("totalPrevistoResumo");
-    const formulario = document.getElementById("formCalculo");
 
     if (!listaFilamentos || !modeloFilamento) return;
 
@@ -22,6 +22,31 @@ document.addEventListener("DOMContentLoaded", () => {
     function obterPrevisto() {
         const opcao = pecaId?.selectedOptions[0];
         return Number(opcao?.dataset.gramas) || 0;
+    }
+
+    function obterCodigoCor(codigo) {
+        if (codigo && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(codigo.trim())) {
+            return codigo.trim();
+        }
+
+        return "#E9A4C7";
+    }
+
+    function clarearCor(hex, proporcao = 0.55) {
+        const cor = obterCodigoCor(hex).replace("#", "");
+
+        const valor = cor.length === 3
+            ? cor.split("").map(letra => letra + letra).join("")
+            : cor;
+
+        const vermelho = parseInt(valor.substring(0, 2), 16);
+        const verde = parseInt(valor.substring(2, 4), 16);
+        const azul = parseInt(valor.substring(4, 6), 16);
+
+        const clarear = componente =>
+            Math.round(componente + (255 - componente) * proporcao);
+
+        return `rgb(${clarear(vermelho)}, ${clarear(verde)}, ${clarear(azul)})`;
     }
 
     function atualizarNomesCampos() {
@@ -46,11 +71,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    function criarSegmento(filamento, largura, anterior) {
+        const segmento = document.createElement("div");
+
+        segmento.style.width = `${largura}%`;
+        segmento.style.height = "100%";
+        segmento.style.flex = `0 0 ${largura}%`;
+        segmento.style.backgroundColor = anterior
+            ? clarearCor(filamento.codigoCor)
+            : obterCodigoCor(filamento.codigoCor);
+        segmento.style.boxSizing = "border-box";
+
+        return segmento;
+    }
+
     function atualizarResumo() {
         const previsto = obterPrevisto();
         const pecaSelecionada = pecaId?.selectedOptions[0];
         const itens = [...listaFilamentos.querySelectorAll("[data-filamento-item]")];
-        let totalAcumulado = 0;
 
         listaResumo.innerHTML = "";
 
@@ -59,23 +97,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (pecaSelecionada && pecaId.value) {
                 nomePecaResumo.textContent = pecaSelecionada.textContent.trim();
-                consumoPrevistoResumo.textContent =
-                    `Consumo previsto: ${formatarGramas(previsto)}`;
+                consumoPrevistoResumo.textContent = `Consumo previsto: ${formatarGramas(previsto)}`;
             }
         }
 
-        itens.forEach((item) => {
-            if (item.dataset.confirmado !== "true") return;
+        const confirmados = itens
+            .filter(item => item.dataset.confirmado === "true")
+            .map(item => {
+                const select = item.querySelector("[data-campo-filamento]");
+                const quantidade = item.querySelector("[data-campo-quantidade]");
+                const opcao = select.selectedOptions[0];
 
-            const select = item.querySelector("[data-campo-filamento]");
-            const quantidade = item.querySelector("[data-campo-quantidade]");
-            const opcao = select.selectedOptions[0];
+                return {
+                    elemento: item,
+                    gramas: Number(quantidade.value) || 0,
+                    nome: opcao?.textContent.trim() || "Filamento",
+                    codigoCor: obterCodigoCor(opcao?.dataset.codigoCor)
+                };
+            });
 
-            const gramas = Number(quantidade.value) || 0;
-            totalAcumulado += gramas;
+        const totalAcumulado = confirmados.reduce(
+            (total, item) => total + item.gramas,
+            0
+        );
 
+        confirmados.forEach((filamento, indice) => {
             const cartao = document.createElement("div");
             cartao.className = "resumo-consumo-filamento";
+
+            // Soma o consumo do filamento atual com todos os anteriores.
+            const consumoAcumulado = confirmados
+                .slice(0, indice + 1)
+                .reduce((total, item) => total + item.gramas, 0);
 
             const cabecalho = document.createElement("div");
             cabecalho.className = "resumo-consumo-filamento-cabecalho";
@@ -83,23 +136,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const identificacao = document.createElement("div");
             identificacao.className = "resumo-consumo-identificacao";
 
-            const codigoCor = opcao.dataset.codigoCor;
-            const nomeCor = opcao.dataset.cor;
             const amostra = document.createElement("span");
             amostra.className = "amostra-cor";
-
-            if (codigoCor) {
-                amostra.style.backgroundColor = codigoCor;
-            }
+            amostra.style.backgroundColor = filamento.codigoCor;
 
             const nome = document.createElement("strong");
-            nome.textContent = nomeCor
-                ? `${opcao.textContent.trim()} — ${nomeCor}`
-                : opcao.textContent.trim();
+            nome.textContent = filamento.nome;
 
             const quantidadeTexto = document.createElement("span");
             quantidadeTexto.className = "resumo-consumo-quantidade";
-            quantidadeTexto.textContent = `${formatarGramas(gramas)} utilizados`;
+            quantidadeTexto.textContent = `${formatarGramas(filamento.gramas)} neste filamento`;
 
             const textoIdentificacao = document.createElement("div");
             textoIdentificacao.className = "resumo-consumo-identificacao-texto";
@@ -114,34 +160,51 @@ document.addEventListener("DOMContentLoaded", () => {
             const topoMedidor = document.createElement("div");
             topoMedidor.className = "resumo-consumo-medidor-topo";
 
-            const porcentagem = previsto > 0
-                ? (totalAcumulado / previsto) * 100
-                : 0;
-
-            const porcentagemVisivel = Math.min(porcentagem, 100);
-
             const valor = document.createElement("strong");
             valor.className = "resumo-consumo-medidor-valor";
-            valor.textContent =
-                `${formatarGramas(totalAcumulado)}/${formatarGramas(previsto)}`;
+
+            // O numerador é acumulado; o previsto original não muda.
+            valor.textContent = `${formatarGramas(consumoAcumulado)} / ${formatarGramas(previsto)}`;
 
             const barra = document.createElement("div");
             barra.className = "resumo-consumo-barra";
+            barra.style.display = "flex";
+            barra.style.overflow = "hidden";
+            barra.style.position = "relative";
 
-            const progresso = document.createElement("div");
-            progresso.className = "resumo-consumo-progresso";
-            progresso.style.width = `${porcentagemVisivel}%`;
+            let larguraUsada = 0;
 
-            if (porcentagem > 100) {
-                progresso.classList.add("acima-do-previsto");
-            }
+            // Mantém as cores anteriores mais claras e a cor atual original.
+            const segmentos = [
+                filamento,
+                ...confirmados.slice(0, indice).reverse()
+            ];
 
-            barra.appendChild(progresso);
+            segmentos.forEach((segmento, posicao) => {
+                if (previsto <= 0 || larguraUsada >= 100) return;
+
+                const larguraOriginal = segmento.gramas / previsto * 100;
+                const larguraDisponivel = 100 - larguraUsada;
+                const largura = Math.min(larguraOriginal, larguraDisponivel);
+
+                if (largura <= 0) return;
+
+                barra.appendChild(
+                    criarSegmento(segmento, largura, posicao > 0)
+                );
+
+                larguraUsada += largura;
+            });
 
             const percentual = document.createElement("p");
             percentual.className = "resumo-consumo-percentual";
+
+            const porcentagemAcumulada = previsto > 0
+                ? consumoAcumulado / previsto * 100
+                : 0;
+
             percentual.textContent =
-                `${Number(porcentagem.toFixed(1)).toLocaleString("pt-BR")}% do previsto`;
+                `${Number(porcentagemAcumulada.toFixed(1)).toLocaleString("pt-BR")}% do previsto`;
 
             topoMedidor.appendChild(valor);
             medidor.append(topoMedidor, barra, percentual);
@@ -153,18 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
             editar.type = "button";
             editar.className = "botao botao-secundario";
             editar.innerHTML = '<i class="bi bi-pencil"></i> Editar';
+
             editar.addEventListener("click", () => {
-                item.dataset.confirmado = "false";
-                item.hidden = false;
+                filamento.elemento.dataset.confirmado = "false";
+                filamento.elemento.hidden = false;
                 atualizarTudo();
+                filamento.elemento.querySelector("[data-campo-filamento]").focus();
             });
 
             const excluir = document.createElement("button");
             excluir.type = "button";
             excluir.className = "botao-remover-filamento";
             excluir.innerHTML = '<i class="bi bi-trash"></i> Excluir';
+
             excluir.addEventListener("click", () => {
-                item.remove();
+                filamento.elemento.remove();
 
                 if (!listaFilamentos.querySelector("[data-filamento-item]")) {
                     criarFilamento();
@@ -177,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
             cartao.append(cabecalho, medidor, acoes);
             listaResumo.appendChild(cartao);
 
-            item.hidden = true;
+            filamento.elemento.hidden = true;
         });
 
         totalFilamentoResumo.textContent = formatarGramas(totalAcumulado);
@@ -186,9 +252,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const status = document.getElementById("statusConsumoResumo");
 
         if (status) {
-            status.textContent = totalAcumulado <= previsto
-                ? "Quantidade dentro do previsto"
-                : "Quantidade acima do previsto";
+            const dentroDoPrevisto = totalAcumulado <= previsto;
+
+            status.textContent = dentroDoPrevisto
+                ? "✓ Quantidade dentro do previsto"
+                : "⚠ Quantidade acima do previsto";
+
+            status.classList.toggle("consumo-dentro", dentroDoPrevisto);
+            status.classList.toggle("consumo-acima", !dentroDoPrevisto);
         }
     }
 
@@ -214,12 +285,10 @@ document.addEventListener("DOMContentLoaded", () => {
         criarFilamento();
 
         const itens = listaFilamentos.querySelectorAll("[data-filamento-item]");
-        const novo = itens[itens.length - 1];
-
-        novo.querySelector("[data-campo-filamento]").focus();
+        itens[itens.length - 1].querySelector("[data-campo-filamento]").focus();
     });
 
-    listaFilamentos.addEventListener("click", (event) => {
+    listaFilamentos.addEventListener("click", event => {
         const confirmar = event.target.closest("[data-confirmar-filamento]");
         const remover = event.target.closest("[data-remover-filamento]");
 
@@ -274,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    listaFilamentos.addEventListener("change", (event) => {
+    listaFilamentos.addEventListener("change", event => {
         const select = event.target.closest("[data-campo-filamento]");
 
         if (!select) return;
@@ -289,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
         atualizarResumo();
     });
 
-    listaFilamentos.addEventListener("input", (event) => {
+    listaFilamentos.addEventListener("input", event => {
         if (event.target.matches("[data-campo-quantidade]")) {
             atualizarResumo();
         }
