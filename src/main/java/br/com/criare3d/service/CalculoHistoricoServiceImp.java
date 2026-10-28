@@ -2,6 +2,7 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.*;
@@ -43,7 +44,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public long contarPorFilamento(UUID filamentoId) {
-        return calculoHistoricoRepository.countByFilamento_Id(filamentoId);
+        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId);
     }
 
     @Override
@@ -71,29 +72,102 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         calculoHistoricoRepository.deleteById(id);
     }
 
+
     public CalculoHistorico calcular(CalculoRequest request) {
         Peca peca = pecaService.fetchById(request.getPecaId())
                 .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
 
-        Filamento filamento = filamentoService.fetchById(request.getFilamentoId())
-                .orElseThrow(() -> new IllegalArgumentException("Filamento não encontrado"));
+        if (request.getFilamentos() == null || request.getFilamentos().isEmpty()) {
+            throw new IllegalArgumentException("Adicione pelo menos um filamento");
+        }
 
         Impressora impressora = impressoraService.fetchById(request.getImpressoraId())
                 .orElseThrow(() -> new IllegalArgumentException("Impressora não encontrada"));
 
         Configuracao configuracao = configuracaoService.buscarOuCriarConfiguracao();
 
-        BigDecimal quantidade = request.getQuantidadeFilamentoGramas();
-        BigDecimal tempo = BigDecimal.valueOf(request.getTempoImpressaoMinutos());
-
-        if (filamento.getPesoRoloGramas() == null
-                || filamento.getPesoRoloGramas().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("O peso do rolo deve ser maior que zero");
+        if (impressora.getPotenciaWatts() == null
+                || impressora.getPotenciaWatts().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(
+                    "A potência da impressora deve ser maior que zero");
         }
 
-        BigDecimal custoFilamento = quantidade
-                .multiply(filamento.getPrecoRolo())
-                .divide(filamento.getPesoRoloGramas(), 2, RoundingMode.HALF_UP);
+        if (configuracao.getTarifaEnergiaKwh() == null
+                || configuracao.getTarifaEnergiaKwh().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "A tarifa de energia não pode ser negativa ou nula");
+        }
+
+        if (configuracao.getMarkupPercentual() == null
+                || configuracao.getMarkupPercentual().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                    "O percentual de lucro não pode ser negativo ou nulo");
+        }
+
+        BigDecimal tempo = BigDecimal.valueOf(request.getTempoImpressaoMinutos());
+        BigDecimal custoFilamentoTotal = BigDecimal.ZERO;
+
+        CalculoHistorico historico = CalculoHistorico.builder()
+                .itensFilamento(new java.util.ArrayList<>())
+                .build();
+
+        for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
+            if (itemRequest.getFilamentoId() == null) {
+                throw new IllegalArgumentException("Selecione todos os filamentos");
+            }
+
+            BigDecimal quantidade = itemRequest.getQuantidadeFilamentoGramas();
+
+            if (quantidade == null || quantidade.compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(
+                        "A quantidade de cada filamento deve ser maior que zero");
+            }
+
+            Filamento filamento = filamentoService.fetchById(itemRequest.getFilamentoId())
+                    .orElseThrow(() -> new IllegalArgumentException("Filamento não encontrado"));
+
+            if (filamento.getPesoRoloGramas() == null
+                    || filamento.getPesoRoloGramas().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException(
+                        "O peso do rolo deve ser maior que zero: " + filamento.getNome());
+            }
+
+            if (filamento.getPrecoRolo() == null
+                    || filamento.getPrecoRolo().compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException(
+                        "O preço do rolo é inválido: " + filamento.getNome());
+            }
+
+            BigDecimal custoIndividual = quantidade
+                    .multiply(filamento.getPrecoRolo())
+                    .divide(filamento.getPesoRoloGramas(), 2, RoundingMode.HALF_UP);
+
+            ItemCalculoHistorico item = ItemCalculoHistorico.builder()
+                    .calculoHistorico(historico)
+                    .filamento(filamento)
+                    .nomeFilamento(filamento.getNome())
+                    .corFilamento(filamento.getCor())
+                    .codigoCor(filamento.getCodigoCor())
+                    .precoRoloFilamento(filamento.getPrecoRolo())
+                    .pesoRoloGramas(filamento.getPesoRoloGramas())
+                    .quantidadeFilamentoGramas(quantidade)
+                    .custoFilamento(custoIndividual)
+                    .build();
+
+            historico.getItensFilamento().add(item);
+            custoFilamentoTotal = custoFilamentoTotal.add(custoIndividual);
+        }
+
+        custoFilamentoTotal = custoFilamentoTotal.setScale(2, RoundingMode.HALF_UP);
+
+        ItemCalculoHistorico primeiroItem = historico.getItensFilamento().get(0);
+
+        historico.setFilamento(primeiroItem.getFilamento());
+        historico.setNomeFilamento(primeiroItem.getNomeFilamento());
+        historico.setPrecoRoloFilamento(primeiroItem.getPrecoRoloFilamento());
+        historico.setPesoRoloGramas(primeiroItem.getPesoRoloGramas());
+        historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
+        historico.setCustoFilamento(custoFilamentoTotal);
 
         BigDecimal custoEnergia = impressora.getPotenciaWatts()
                 .divide(BigDecimal.valueOf(1000), 6, RoundingMode.HALF_UP)
@@ -108,6 +182,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         if (Boolean.TRUE.equals(configuracao.getEmbalagemFixa())) {
             custoEmbalagem = configuracao.getCustoEmbalagemFixa();
+
+            if (custoEmbalagem == null || custoEmbalagem.compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("O custo fixo da embalagem não pode ser negativo ou nulo");
+            }
             nomeEmbalagem = "Embalagem (valor fixo)";
         } else {
             if (request.getEmbalagemId() == null) {
@@ -121,7 +199,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             nomeEmbalagem = embalagem.getNome();
         }
 
-        BigDecimal custoTotal = custoFilamento
+        BigDecimal custoTotal = custoFilamentoTotal
                 .add(custoEnergia)
                 .add(custoEmbalagem)
                 .setScale(2, RoundingMode.HALF_UP);
@@ -135,17 +213,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .multiply(fatorMarkup)
                 .setScale(2, RoundingMode.HALF_UP);
 
-        CalculoHistorico historico = CalculoRequest.toEntity(request);
-
         historico.setPeca(peca);
         historico.setNomePeca(peca.getNome());
-
-        historico.setFilamento(filamento);
-        historico.setNomeFilamento(filamento.getNome());
-        historico.setPrecoRoloFilamento(filamento.getPrecoRolo());
-        historico.setPesoRoloGramas(filamento.getPesoRoloGramas());
-        historico.setQuantidadeFilamentoGramas(quantidade);
-        historico.setCustoFilamento(custoFilamento);
 
         historico.setImpressora(impressora);
         historico.setNomeImpressora(impressora.getNome());
@@ -167,15 +236,15 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return historico;
     }
 
+
     @Override
     public Page<CalculoHistorico> fetchAll(Pageable pageable) {
         return calculoHistoricoRepository.findAll(pageable);
     }
 
     @Override
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Optional<CalculoHistorico> fetchById(UUID id) {
-        return calculoHistoricoRepository.findById(id);
+        return calculoHistoricoRepository.buscarPorIdComItens(id);
     }
 
     @Override

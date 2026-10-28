@@ -138,6 +138,74 @@
 }
 
 /* ========================================
+   FILAMENTOS DO FORMULÁRIO
+======================================== */
+
+.filamentos-calculo {
+    margin-bottom: 24px;
+}
+
+.filamentos-calculo-cabecalho,
+.filamento-calculo-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.filamentos-calculo-cabecalho {
+    margin-bottom: 18px;
+}
+
+.filamentos-calculo-cabecalho h3 {
+    margin: 0 0 6px;
+    color: var(--marrom);
+}
+
+.filamentos-calculo-cabecalho p {
+    margin: 0;
+    color: var(--marrom-claro);
+}
+
+.filamento-calculo-item {
+    padding: 20px;
+    margin-bottom: 14px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+}
+
+.filamento-calculo-cabecalho {
+    margin-bottom: 18px;
+    color: var(--marrom);
+}
+
+.filamento-calculo-item .campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.filamento-calculo-item .campo:last-child {
+    margin-bottom: 0;
+}
+
+.botao-remover-filamento {
+    padding: 7px 10px;
+    border: 1px solid #e7c8c0;
+    border-radius: 8px;
+    background: #fff0eb;
+    color: #8a3427;
+    cursor: pointer;
+}
+
+.botao-remover-filamento[hidden] {
+    display: none;
+}
+
+/* ========================================
    RESULTADO DO CÁLCULO
 ======================================== */
 
@@ -204,6 +272,8 @@
     color: var(--marrom-claro);
 }
 
+/* DETALHES DO RESULTADO */
+
 .detalhes-calculo {
     margin-top: 28px;
 }
@@ -228,6 +298,50 @@
 .detalhe-linha strong {
     color: var(--marrom);
     text-align: right;
+}
+
+/* FILAMENTOS E CORES NO RESULTADO */
+
+.amostra-cor {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 1px solid rgba(73, 46, 30, 0.2);
+    border-radius: 50%;
+    background: #eee;
+}
+
+.resultado-filamento {
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+}
+
+.resultado-filamento-cabecalho {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.resultado-filamento-nome {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.resultado-filamento-nome strong {
+    color: var(--marrom);
+    overflow-wrap: anywhere;
+}
+
+.resultado-filamento-nome span {
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
 }
 
 .acoes-resultado {
@@ -400,51 +514,6 @@
     background: #fff0eb;
 }
 
-/* ========================================
-   RESPONSIVIDADE
-======================================== */
-
-@media (max-width: 650px) {
-    .etapas {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .etapa {
-        padding: 12px;
-    }
-
-    .resultado-grade {
-        grid-template-columns: 1fr;
-    }
-
-    .preco-sugerido strong {
-        font-size: 1.6rem;
-    }
-
-    .detalhe-linha {
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .detalhe-linha strong {
-        text-align: left;
-    }
-
-    .historico-conteudo {
-        padding: 16px;
-    }
-
-    .historico-vazio {
-        padding: 32px 12px;
-    }
-
-    .cartao-cabecalho {
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-}
-
 /* EXCLUSÃO DO HISTÓRICO */
 
 .formulario-excluir {
@@ -485,9 +554,275 @@
     color: var(--marrom);
 }
 
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
 @media (max-width: 650px) {
+    .etapas {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .etapa {
+        padding: 12px;
+    }
+
+    .filamento-calculo-item {
+        background: #f3e9df;
+        border: 1px solid #d9c3af;
+        border-radius: 12px;
+        padding: 18px;
+    }
+
+    .filamento-calculo-cabecalho {
+        margin-bottom: 14px;
+    }
+
+    .resultado-grade {
+        grid-template-columns: 1fr;
+    }
+
+    .preco-sugerido strong {
+        font-size: 1.6rem;
+    }
+
+    .detalhe-linha {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .detalhe-linha strong {
+        text-align: left;
+    }
+
+    .historico-conteudo {
+        padding: 16px;
+    }
+
+    .historico-vazio {
+        padding: 32px 12px;
+    }
+
+    .cartao-cabecalho {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
     .botao-acao-excluir {
         width: 32px;
         height: 32px;
     }
+}
+
+/* RESUMO DO CONSUMO DA PEÇA */
+
+.resumo-consumo-peca {
+    padding: 22px;
+    margin: 24px 0;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: #fffaf6;
+}
+
+.resumo-consumo-peca[hidden] {
+    display: none;
+}
+
+.resumo-consumo-peca > .texto-apoio {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.resumo-consumo-peca > h3 {
+    margin: 0 0 8px;
+    color: var(--marrom);
+    font-size: 1.35rem;
+    overflow-wrap: anywhere;
+}
+
+.resumo-consumo-peca > p {
+    margin: 0 0 20px;
+    color: var(--marrom-claro);
+}
+
+.resumo-consumo-filamento {
+    padding: 16px 0;
+    border-top: 1px solid var(--borda);
+}
+
+.resumo-consumo-filamento-cabecalho {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.resumo-consumo-identificacao {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.resumo-consumo-identificacao strong {
+    color: var(--marrom);
+    overflow-wrap: anywhere;
+}
+
+.resumo-consumo-identificacao span {
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+
+.resumo-consumo-medidor {
+    margin-top: 2px;
+}
+
+.resumo-consumo-medidor-topo {
+    position: relative;
+    height: 28px;
+    margin-bottom: 8px;
+}
+
+.resumo-consumo-medidor-valor {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: var(--marrom);
+    font-size: 1rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.resumo-consumo-barra {
+    height: 9px;
+    overflow: hidden;
+    border-radius: 20px;
+    background: var(--fundo);
+}
+
+.resumo-consumo-progresso {
+    height: 100%;
+    border-radius: inherit;
+    background: var(--destaque);
+    transition: width 0.2s ease;
+}
+
+.resumo-consumo-progresso.acima-do-previsto {
+    background: var(--marrom);
+}
+
+.resumo-consumo-percentual {
+    margin-top: 8px;
+    color: var(--marrom-claro);
+    font-size: 0.85rem;
+}
+
+.resumo-consumo-total #statusConsumoResumo {
+    margin: 4px 0 0;
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+.resumo-consumo-progresso.acima-do-previsto {
+    background: #a23c37;
+}
+
+.resumo-consumo-total {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 20px;
+    margin-top: 12px;
+    border-top: 1px solid var(--borda);
+}
+
+.resumo-consumo-total > span {
+    color: var(--marrom-claro);
+    font-weight: 600;
+}
+
+.resumo-consumo-total strong {
+    color: var(--marrom);
+    font-size: 1.8rem;
+}
+
+.resumo-consumo-total small {
+    color: var(--marrom-claro);
+}
+
+/* Formulário de seleção do filamento */
+#listaFilamentos .filamento-calculo-item {
+    background-color: #f3e9df !important;
+    border: 1px solid #d9c3af;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 12px;
+}
+/* Cartão do filamento confirmado */
+.resumo-consumo-filamento {
+    padding: 14px 0;
+}
+
+.resumo-consumo-filamento-cabecalho {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-bottom: 0;
+}
+
+.resumo-consumo-identificacao {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.resumo-consumo-identificacao-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+}
+
+.resumo-consumo-identificacao-texto strong {
+    display: block;
+}
+
+.resumo-consumo-quantidade {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--marrom-claro);
+}
+
+.resumo-consumo-identificacao .amostra-cor {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #00000020;
+}
+
+.resumo-consumo-medidor {
+    margin-top: 8px;
+}
+
+.resumo-consumo-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.resumo-consumo-acoes button {
+    flex: 1;
+    min-width: 0;
+    min-height: 40px;
+    margin: 0;
+    justify-content: center;
 }

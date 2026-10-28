@@ -2,20 +2,18 @@
 document.addEventListener("DOMContentLoaded", () => {
     const formulario = document.getElementById("formCalculo");
 
-    if (!formulario) {
-        return;
-    }
+    if (!formulario) return;
 
     const etapas = document.querySelectorAll("[data-etapa]");
     const conteudos = document.querySelectorAll("[data-conteudo]");
     const pecaSelect = document.getElementById("pecaId");
-    const quantidadeInput = document.getElementById("quantidadeFilamentoGramas");
     const tempoInput = document.getElementById("tempoImpressaoMinutos");
 
     let etapaAtual = 1;
 
     function mostrarEtapa(numero) {
         etapaAtual = numero;
+        sessionStorage.setItem("etapaCalculo", numero);
 
         etapas.forEach(etapa => {
             const numeroEtapa = Number(etapa.dataset.etapa);
@@ -37,18 +35,14 @@ document.addEventListener("DOMContentLoaded", () => {
             `[data-conteudo="${etapaAtual}"]`
         );
 
-        if (!conteudo) {
-            return false;
-        }
+        if (!conteudo) return false;
 
         const campos = conteudo.querySelectorAll(
             "input:not([type='hidden']), select, textarea"
         );
 
         for (const campo of campos) {
-            if (campo.disabled || campo.type === "hidden") {
-                continue;
-            }
+            if (campo.disabled || campo.type === "hidden") continue;
 
             if (!campo.checkValidity()) {
                 campo.reportValidity();
@@ -80,11 +74,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const opcao = pecaSelect.selectedOptions[0];
 
         if (!opcao || !opcao.value || opcao.dataset.acao) {
+            if (tempoInput) tempoInput.value = "";
             return;
         }
 
-        quantidadeInput.value = opcao.dataset.gramas || "";
-        tempoInput.value = opcao.dataset.tempo || "";
+        if (tempoInput) {
+            tempoInput.value = opcao.dataset.tempo || "";
+        }
+
+        document.dispatchEvent(new Event("pecaSelecionada"));
     }
 
     pecaSelect.addEventListener("change", preencherDadosPeca);
@@ -92,30 +90,93 @@ document.addEventListener("DOMContentLoaded", () => {
     function configurarCadastroRapido(idSelect, rota) {
         const select = document.getElementById(idSelect);
 
-        if (!select) {
-            return;
-        }
+        if (!select) return;
 
         select.addEventListener("change", () => {
             const opcao = select.selectedOptions[0];
-            const acao = opcao?.dataset.acao;
 
-            if (acao && acao.startsWith("cadastrar-")) {
+            if (opcao?.dataset.acao?.startsWith("cadastrar-")) {
                 window.location.href = rota;
             }
         });
     }
 
     configurarCadastroRapido("pecaId", "/peca/novo");
-    configurarCadastroRapido("filamentoId", "/filamento/novo");
     configurarCadastroRapido("impressoraId", "/impressora/novo");
     configurarCadastroRapido("embalagemId", "/embalagem/novo");
 
     formulario.addEventListener("submit", event => {
-        if (!validarEtapa()) {
-            event.preventDefault();
-        }
+
+        formulario.addEventListener("submit", event => {
+            const listaFilamentos = document.getElementById("listaFilamentos");
+            const itensFilamento = [
+                ...listaFilamentos.querySelectorAll("[data-filamento-item]")
+            ];
+
+            const pendente = itensFilamento.find(
+                item => item.dataset.confirmado !== "true"
+            );
+
+            if (pendente) {
+                event.preventDefault();
+
+                mostrarEtapa(1);
+                pendente.hidden = false;
+
+                const select = pendente.querySelector("[data-campo-filamento]");
+                const quantidade = pendente.querySelector("[data-campo-quantidade]");
+
+                requestAnimationFrame(() => {
+                    if (!select.value) {
+                        select.reportValidity();
+                        select.focus();
+                    } else if (!quantidade.checkValidity()) {
+                        quantidade.reportValidity();
+                        quantidade.focus();
+                    } else {
+                        alert("Confirme o filamento antes de calcular os custos.");
+                        pendente.querySelector("[data-confirmar-filamento]").focus();
+                    }
+                });
+
+                return;
+            }
+
+            const conteudosOrdenados = [...conteudos].sort(
+                (a, b) => Number(a.dataset.conteudo) - Number(b.dataset.conteudo)
+            );
+
+            for (const conteudo of conteudosOrdenados) {
+                const campos = conteudo.querySelectorAll(
+                    "input:not([type='hidden']), select, textarea"
+                );
+
+                for (const campo of campos) {
+                    if (campo.disabled || campo.type === "hidden") continue;
+
+                    if (!campo.checkValidity()) {
+                        event.preventDefault();
+
+                        const etapa = Number(conteudo.dataset.conteudo);
+                        mostrarEtapa(etapa);
+
+                        requestAnimationFrame(() => {
+                            campo.reportValidity();
+                            campo.focus();
+                        });
+
+                        return;
+                    }
+                }
+            }
+        });
+
     });
 
-    mostrarEtapa(1);
+    const etapaSalva = sessionStorage.getItem("etapaCalculo");
+    mostrarEtapa(etapaSalva ? Number(etapaSalva) : 1);
+
+    if (pecaSelect.value) {
+        preencherDadosPeca();
+    }
 });

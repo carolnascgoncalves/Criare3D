@@ -1,3 +1,4 @@
+
 .detalhes-calculo {
     padding-bottom: 40px;
 }
@@ -130,6 +131,68 @@
     overflow-wrap: anywhere;
 }
 
+/* FILAMENTOS UTILIZADOS */
+
+.detalhes-item-filamentos {
+    grid-column: 1 / -1;
+}
+
+.detalhes-lista-filamentos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.detalhes-filamento {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px;
+    margin-bottom: 0;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+}
+
+.detalhes-filamento-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.detalhes-filamento-info strong {
+    color: var(--marrom);
+    overflow-wrap: anywhere;
+}
+
+.detalhes-filamento-info span {
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+.detalhes-valor {
+    color: var(--marrom);
+    white-space: nowrap;
+}
+
+/* AMOSTRAS DE COR */
+
+.amostra-cor {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border: 1px solid rgba(73, 46, 30, 0.2);
+    border-radius: 50%;
+    background: #eee;
+}
+
+/* COMPOSIÇÃO DOS CUSTOS */
+
 .detalhes-custo {
     display: flex;
     align-items: center;
@@ -147,11 +210,6 @@
 
 .detalhes-custo-info strong {
     color: var(--marrom);
-}
-
-.detalhes-valor {
-    color: var(--marrom);
-    white-space: nowrap;
 }
 
 .detalhes-custo-total {
@@ -174,6 +232,8 @@
     font-size: 1.35rem;
     white-space: nowrap;
 }
+
+/* PREÇO SUGERIDO */
 
 .detalhes-preco {
     display: grid;
@@ -215,6 +275,8 @@
     margin-top: 22px;
 }
 
+/* RESPONSIVIDADE */
+
 @media (max-width: 650px) {
     .detalhes-cartao-cabecalho,
     .detalhes-conteudo {
@@ -241,5 +303,13 @@
 
     .detalhes-preco .detalhes-preco-final strong {
         font-size: 1.55rem;
+    }
+
+    .detalhes-filamento {
+        flex-wrap: wrap;
+    }
+
+    .detalhes-filamento-info {
+        flex-basis: calc(100% - 40px);
     }
 }

@@ -63,10 +63,7 @@ public class CalculoHistoricoController {
     }
 
     @PostMapping("/historico/calcular")
-    public ModelAndView calcular(
-            @Valid @ModelAttribute("calculo") CalculoRequest request,
-            BindingResult bd) {
-
+    public ModelAndView calcular(@Valid @ModelAttribute("calculo") CalculoRequest request, BindingResult bd) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("historico/novo");
             mv.addObject("calculo", request);
@@ -92,9 +89,7 @@ public class CalculoHistoricoController {
     }
 
     @PostMapping("/historico/editar")
-    public ModelAndView editar(
-            @ModelAttribute("calculo") CalculoRequest request) {
-
+    public ModelAndView editar(@ModelAttribute("calculo") CalculoRequest request) {
         ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
         carregarDadosFormulario(mv);
@@ -102,10 +97,7 @@ public class CalculoHistoricoController {
     }
 
     @PostMapping("/historico/salvar")
-    public ModelAndView salvar(
-            @Valid @ModelAttribute("calculo") CalculoRequest request,
-            BindingResult bd) {
-
+    public ModelAndView salvar(@Valid @ModelAttribute("calculo") CalculoRequest request, BindingResult bd) {
         ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
 

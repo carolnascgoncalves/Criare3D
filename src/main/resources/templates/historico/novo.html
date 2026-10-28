@@ -52,13 +52,15 @@
                   th:object="${calculo}"
                   method="post"
                   class="formulario"
-                  id="formCalculo">
+                  id="formCalculo"
+                  novalidate>
 
                 <section class="conteudo-etapa ativa" data-conteudo="1">
+
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 01</span>
                         <h2>Materiais</h2>
-                        <p>Escolha a peça e o filamento que serão utilizados.</p>
+                        <p>Escolha a peça e adicione todos os filamentos utilizados na impressão.</p>
                     </div>
 
                     <div class="campo">
@@ -71,46 +73,119 @@
                                     th:attr="data-gramas=${peca.quantidadeFilamentoGramas},
                                              data-tempo=${peca.tempoImpressaoMinutos}">
                             </option>
-
                             <option value="" data-acao="cadastrar-peca">+ Cadastrar nova peça</option>
-
                         </select>
-
-                        <small>Os dados de consumo serão preenchidos com base no cadastro da peça.</small>
-
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('pecaId')}"
-                             th:errors="*{pecaId}"></div>
+                        <small>Os dados de consumo e tempo podem ser preenchidos com base no cadastro da peça.</small>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('pecaId')}" th:errors="*{pecaId}"></div>
                     </div>
 
-                    <div class="campo">
-                        <label for="filamentoId">Filamento</label>
-                        <select id="filamentoId" th:field="*{filamentoId}" required>
-                            <option value="">Selecione um filamento</option>
-                            <option th:each="filamento : ${filamentos}"
-                                    th:value="${filamento.id}"
-                                    th:text="${filamento.nome}">
-                            </option>
-                            <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
-                        </select>
+                    <div class="filamentos-calculo">
+                        <div class="filamentos-calculo-cabecalho">
+                            <div>
+                                <h3>Filamentos utilizados</h3>
+                                <p>Adicione uma linha para cada filamento ou cor usada.</p>
+                            </div>
 
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('filamentoId')}"
-                             th:errors="*{filamentoId}"></div>
+                            <button type="button" class="botao botao-secundario" id="adicionarFilamento">
+                                <i class="bi bi-plus-lg"></i> Adicionar filamento
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="campo">
-                        <label for="quantidadeFilamentoGramas">Quantidade de filamento (gramas)</label>
-                        <input type="number"
-                               id="quantidadeFilamentoGramas"
-                               th:field="*{quantidadeFilamentoGramas}"
-                               step="0.01"
-                               min="0.01"
-                               required>
+                    <template id="modeloFilamento">
+                        <div class="filamento-calculo-item" data-filamento-item>
+                            <div class="filamento-calculo-cabecalho">
+                                <strong>Filamento</strong>
+                                <button type="button" class="botao-remover-filamento" data-remover-filamento>
+                                    <i class="bi bi-trash"></i> Remover
+                                </button>
+                            </div>
 
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('quantidadeFilamentoGramas')}"
-                             th:errors="*{quantidadeFilamentoGramas}"></div>
+                            <div class="campo">
+                                <label>Filamento</label>
+                                <select data-campo-filamento required>
+                                    <option value="">Selecione um filamento</option>
+                                    <option th:each="filamento : ${filamentos}"
+                                            th:value="${filamento.id}"
+                                            th:text="${filamento.nome}"
+                                            th:attr="data-cor=${filamento.cor},
+                                                     data-codigo-cor=${filamento.codigoCor}">
+                                    </option>
+                                    <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
+                                </select>
+                            </div>
+
+                            <div class="campo">
+                                <label>Quantidade utilizada (gramas)</label>
+                                <input type="number"
+                                       data-campo-quantidade
+                                       min="0.01"
+                                       step="0.01"
+                                       placeholder="Ex.: 25.50"
+                                       required>
+                            </div>
+
+                            <button type="button" class="botao botao-principal" data-confirmar-filamento>
+                                <i class="bi bi-check-lg"></i> Confirmar filamento
+                            </button>
+                        </div>
+                    </template>
+
+                    <div id="resumoConsumoPeca" class="resumo-consumo-peca" hidden>
+                        <span class="texto-apoio">PEÇA SELECIONADA</span>
+                        <h3 id="nomePecaResumo">Peça</h3>
+                        <p id="consumoPrevistoResumo">Consumo previsto: 0 g</p>
+
+                        <div id="listaFilamentos">
+                            <div class="filamento-calculo-item" data-filamento-item>
+                                <div class="filamento-calculo-cabecalho">
+                                    <strong>Filamento 1</strong>
+                                    <button type="button" class="botao-remover-filamento" data-remover-filamento hidden>
+                                        <i class="bi bi-trash"></i> Remover
+                                    </button>
+                                </div>
+
+                                <div class="campo">
+                                    <label>Filamento</label>
+                                    <select name="filamentos[0].filamentoId"
+                                            data-campo-filamento
+                                            required>
+                                        <option value="">Selecione um filamento</option>
+                                        <option th:each="filamento : ${filamentos}"
+                                                th:value="${filamento.id}"
+                                                th:text="${filamento.nome}"
+                                                th:attr="data-cor=${filamento.cor},
+                                                         data-codigo-cor=${filamento.codigoCor}">
+                                        </option>
+                                        <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
+                                    </select>
+                                </div>
+
+                                <div class="campo">
+                                    <label>Quantidade utilizada (gramas)</label>
+                                    <input type="number"
+                                           name="filamentos[0].quantidadeFilamentoGramas"
+                                           data-campo-quantidade
+                                           min="0.01"
+                                           step="0.01"
+                                           placeholder="Ex.: 25.50"
+                                           required>
+                                </div>
+
+                                <button type="button" class="botao botao-principal" data-confirmar-filamento>
+                                    <i class="bi bi-check-lg"></i> Confirmar filamento
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="listaResumoConsumo"></div>
+
+                        <div class="resumo-consumo-total">
+                            <span>TOTAL DE FILAMENTO UTILIZADO</span>
+                            <strong id="totalFilamentoResumo">0 g</strong>
+                            <small id="totalPrevistoResumo">de 0 g previstos</small>
+                            <p id="statusConsumoResumo"></p>
+                        </div>
                     </div>
 
                     <div class="formulario-acoes">
@@ -218,5 +293,6 @@
 </main>
 
 <script th:src="@{/js/calculoHistorico.js}" defer></script>
+<script th:src="@{/js/filamentosCalculo.js}" defer></script>
 </body>
 </html>

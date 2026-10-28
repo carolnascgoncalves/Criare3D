@@ -9,6 +9,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "calculoHistorico")
@@ -108,4 +110,12 @@ public class CalculoHistorico {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_peca_fk")
     private @Getter @Setter Peca peca;
+
+    @OneToMany(
+            mappedBy = "calculoHistorico",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private @Getter @Setter List<ItemCalculoHistorico> itensFilamento = new ArrayList<>();
 }

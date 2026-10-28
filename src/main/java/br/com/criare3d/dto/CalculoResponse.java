@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,6 +31,7 @@ public class CalculoResponse {
     private @Getter @Setter BigDecimal markupPercentual;
     private @Getter @Setter BigDecimal precoSugerido;
     private @Getter @Setter LocalDateTime dataCalculo;
+    private @Getter @Setter List<ItemCalculoResponse> itensFilamento;
 
     public static CalculoResponse toDto(final CalculoHistorico calculo) {
         return CalculoResponse.builder()
@@ -50,6 +53,9 @@ public class CalculoResponse {
                 .markupPercentual(calculo.getMarkupPercentual())
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())
+                .itensFilamento(calculo.getItensFilamento().stream()
+                        .map(ItemCalculoResponse::toDto)
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

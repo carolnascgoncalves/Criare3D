@@ -30,19 +30,29 @@
         <div class="detalhes-conteudo">
             <section class="detalhes-secao">
                 <h3>Dados da impressão</h3>
-
                 <div class="detalhes-grade">
-                    <div class="detalhes-item">
-                        <span>Filamento</span>
-                        <strong th:text="${historico.nomeFilamento}">PLA</strong>
+                    <div class="detalhes-item detalhes-item-filamentos">
+                        <span>Filamentos utilizados</span>
+                        <div class="detalhes-lista-filamentos">
+                            <div class="detalhes-filamento" th:each="item : ${historico.itensFilamento}">
+                                <span class="amostra-cor" th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}" th:style="|background-color: ${item.codigoCor}|"></span>
+                                <div class="detalhes-filamento-info">
+                                    <strong th:text="${item.nomeFilamento}">PLA</strong>
+                                    <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">Branco</span>
+                                    <span th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g utilizados'}">25,00 g utilizados</span>
+                                </div>
+
+                                <strong class="detalhes-valor"
+                                        th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">
+                                    R$ 2,50
+                                </strong>
+                            </div>
+                        </div>
                     </div>
+
                     <div class="detalhes-item">
                         <span>Impressora</span>
                         <strong th:text="${historico.nomeImpressora}">Impressora 3D</strong>
-                    </div>
-                    <div class="detalhes-item">
-                        <span>Filamento utilizado</span>
-                        <strong th:text="${historico.quantidadeFilamentoGramas != null ? #numbers.formatDecimal(historico.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g' : 'Não informado'}">45,00 g</strong>
                     </div>
                     <div class="detalhes-item">
                         <span>Tempo de impressão</span>
@@ -60,11 +70,16 @@
 
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
-                        <strong>Custo do filamento</strong>
-                        <span th:text="${historico.nomeFilamento}">PLA</span>
+                        <strong>Custo dos filamentos</strong>
+                        <span th:text="${#lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)'}">2 filamentos utilizados</span>
                     </div>
-                    <strong class="detalhes-valor" th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 4,50</strong>
+
+                    <strong class="detalhes-valor"
+                            th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                        R$ 4,50
+                    </strong>
                 </div>
+
 
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">

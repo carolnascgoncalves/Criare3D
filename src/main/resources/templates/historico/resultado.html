@@ -63,35 +63,65 @@
                 <small th:text="${'Acréscimo configurado: ' + resultado.markupPercentual + '%'}">Acréscimo configurado</small>
             </div>
 
+
             <div class="detalhes-calculo">
-                <h3>Dados utilizados</h3>
+                <h3>Filamentos utilizados</h3>
 
-                <div class="detalhe-linha">
-                    <span>Filamento</span>
-                    <strong th:text="${resultado.nomeFilamento}">Filamento</strong>
-                </div>
+                <div class="resultado-filamento"
+                     th:each="item : ${resultado.itensFilamento}">
 
-                <div class="detalhe-linha">
-                    <span>Quantidade utilizada</span>
-                    <strong th:text="${resultado.quantidadeFilamentoGramas + ' g'}">0 g</strong>
+                    <div class="resultado-filamento-cabecalho">
+            <span class="amostra-cor"
+                  th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
+                  th:style="|background-color: ${item.codigoCor}|">
+            </span>
+
+                        <div class="resultado-filamento-nome">
+                            <strong th:text="${item.nomeFilamento}">PLA</strong>
+                            <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">
+                    Branco
+                </span>
+                        </div>
+                    </div>
+
+                    <div class="detalhe-linha">
+                        <span>Quantidade utilizada</span>
+                        <strong th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g'}">
+                            25,00 g
+                        </strong>
+                    </div>
+
+                    <div class="detalhe-linha">
+                        <span>Custo deste filamento</span>
+                        <strong th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">
+                            R$ 2,50
+                        </strong>
+                    </div>
                 </div>
 
                 <div class="detalhe-linha">
                     <span>Impressora</span>
-                    <strong th:text="${resultado.nomeImpressora}">Impressora</strong>
+                    <strong th:text="${resultado.nomeImpressora}">Impressora 3D</strong>
                 </div>
 
                 <div class="detalhe-linha">
                     <span>Tempo de impressão</span>
-                    <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">0 minutos</strong>
+                    <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">120 minutos</strong>
                 </div>
             </div>
 
             <div class="acoes-resultado">
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-                    <input type="hidden" th:field="*{filamentoId}">
-                    <input type="hidden" th:field="*{quantidadeFilamentoGramas}">
+                    <th:block th:each="item, stat : *{filamentos}">
+                        <input type="hidden"
+                               th:name="|filamentos[${stat.index}].filamentoId|"
+                               th:value="${item.filamentoId}">
+
+                        <input type="hidden"
+                               th:name="|filamentos[${stat.index}].quantidadeFilamentoGramas|"
+                               th:value="${item.quantidadeFilamentoGramas}">
+                    </th:block>
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
@@ -103,8 +133,15 @@
 
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-                    <input type="hidden" th:field="*{filamentoId}">
-                    <input type="hidden" th:field="*{quantidadeFilamentoGramas}">
+                    <th:block th:each="item, stat : *{filamentos}">
+                        <input type="hidden"
+                               th:name="|filamentos[${stat.index}].filamentoId|"
+                               th:value="${item.filamentoId}">
+
+                        <input type="hidden"
+                               th:name="|filamentos[${stat.index}].quantidadeFilamentoGramas|"
+                               th:value="${item.quantidadeFilamentoGramas}">
+                    </th:block>
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
