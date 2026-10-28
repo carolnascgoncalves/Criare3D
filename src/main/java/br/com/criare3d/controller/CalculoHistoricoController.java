@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
+import br.com.criare3d.dto.ItemCalculoRequest;
 
 @Controller
 public class CalculoHistoricoController {
@@ -53,12 +54,17 @@ public class CalculoHistoricoController {
                 calculoHistoricoService.fetchAll(pageable).getContent());
         return mv;
     }
-
+    
     @GetMapping("/historico/novo")
     public ModelAndView retornarPaginaCadastro() {
         ModelAndView mv = new ModelAndView("historico/novo");
-        mv.addObject("calculo", new CalculoRequest());
+
+        CalculoRequest request = new CalculoRequest();
+        request.getFilamentos().add(new ItemCalculoRequest());
+
+        mv.addObject("calculo", request);
         carregarDadosFormulario(mv);
+
         return mv;
     }
 

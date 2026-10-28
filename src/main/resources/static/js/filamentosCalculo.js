@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
