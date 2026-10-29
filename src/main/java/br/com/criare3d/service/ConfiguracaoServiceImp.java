@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class ConfiguracaoServiceImp implements ConfiguracaoService {
@@ -28,16 +29,20 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setEmbalagemFixa(false);
         }
 
+        if (configuracao.getTarifaEnergiaKwh() == null) {
+            configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
+        }
+
+        if (configuracao.getCustoEmbalagemFixa() == null) {
+            configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
+        }
+
         return configuracaoRepository.save(configuracao);
     }
 
     @Override
     public Optional<Configuracao> update(UUID id, Configuracao configuracao) {
         return configuracaoRepository.findById(id).map(atual -> {
-            if (configuracao.getMarkupPercentual() != null) {
-                atual.setMarkupPercentual(configuracao.getMarkupPercentual());
-            }
-
             if (configuracao.getTarifaEnergiaKwh() != null) {
                 atual.setTarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh());
             }
@@ -82,7 +87,6 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         return buscarConfiguracao().orElseGet(() -> {
             Configuracao configuracao = new Configuracao();
 
-            configuracao.setMarkupPercentual(BigDecimal.ZERO);
             configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
             configuracao.setEmbalagemFixa(false);
             configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
@@ -91,3 +95,4 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         });
     }
 }
+

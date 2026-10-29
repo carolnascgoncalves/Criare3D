@@ -73,6 +73,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
 
+
     public CalculoHistorico calcular(CalculoRequest request) {
         Peca peca = pecaService.fetchById(request.getPecaId())
                 .orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
@@ -88,20 +89,18 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         if (impressora.getPotenciaWatts() == null
                 || impressora.getPotenciaWatts().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(
-                    "A potência da impressora deve ser maior que zero");
+            throw new IllegalArgumentException("A potência da impressora deve ser maior que zero");
         }
 
         if (configuracao.getTarifaEnergiaKwh() == null
                 || configuracao.getTarifaEnergiaKwh().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException(
-                    "A tarifa de energia não pode ser negativa ou nula");
+            throw new IllegalArgumentException("A tarifa de energia não pode ser negativa ou nula");
         }
 
-        if (configuracao.getMarkupPercentual() == null
-                || configuracao.getMarkupPercentual().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException(
-                    "O percentual de lucro não pode ser negativo ou nulo");
+        BigDecimal markupPercentual = request.getMarkupPercentual();
+
+        if (markupPercentual == null || markupPercentual.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Selecione um markup válido, maior ou igual a zero");
         }
 
         BigDecimal tempo = BigDecimal.valueOf(request.getTempoImpressaoMinutos());
@@ -184,8 +183,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             custoEmbalagem = configuracao.getCustoEmbalagemFixa();
 
             if (custoEmbalagem == null || custoEmbalagem.compareTo(BigDecimal.ZERO) < 0) {
-                throw new IllegalArgumentException("O custo fixo da embalagem não pode ser negativo ou nulo");
+                throw new IllegalArgumentException(
+                        "O custo fixo da embalagem não pode ser negativo ou nulo");
             }
+
             nomeEmbalagem = "Embalagem (valor fixo)";
         } else {
             if (request.getEmbalagemId() == null) {
@@ -205,8 +206,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .setScale(2, RoundingMode.HALF_UP);
 
         BigDecimal fatorMarkup = BigDecimal.ONE.add(
-                configuracao.getMarkupPercentual()
-                        .divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)
+                markupPercentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP)
         );
 
         BigDecimal precoSugerido = custoTotal
@@ -229,12 +229,13 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setCustoEmbalagem(custoEmbalagem);
 
         historico.setCustoTotal(custoTotal);
-        historico.setMarkupPercentual(configuracao.getMarkupPercentual());
+        historico.setMarkupPercentual(markupPercentual);
         historico.setPrecoSugerido(precoSugerido);
         historico.setDataCalculo(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
 
         return historico;
     }
+
 
 
     @Override

@@ -31,28 +31,13 @@
                         <i class="bi bi-calculator"></i>
                     </div>
                     <div>
-                        <h2>Precificação e energia</h2>
-                        <p>Defina os valores utilizados no cálculo do preço das peças.</p>
+                        <h2>Energia</h2>
+                        <p>Defina o valor utilizado para calcular o consumo de energia das peças.</p>
                     </div>
                 </div>
             </div>
 
             <div class="configuracao-conteudo">
-                <div class="campo">
-                    <label for="markupPercentual">Markup (%)</label>
-                    <input type="number"
-                           id="markupPercentual"
-                           th:field="*{markupPercentual}"
-                           min="0"
-                           step="0.01"
-                           placeholder="Ex.: 30"
-                           required>
-                    <small>Percentual aplicado para formar o preço de venda.</small>
-                    <span class="mensagem-erro"
-                          th:if="${#fields.hasErrors('markupPercentual')}"
-                          th:errors="*{markupPercentual}"></span>
-                </div>
-
                 <div class="campo">
                     <label for="tarifaEnergiaKwh">Tarifa de energia (R$/kWh)</label>
                     <input type="number"
@@ -119,8 +104,7 @@
             </button>
         </div>
 
-        <p class="configuracao-sucesso"
-           th:if="${param.sucesso}">
+        <p class="configuracao-sucesso" th:if="${param.sucesso}">
             <i class="bi bi-check-circle"></i>
             Configurações salvas com sucesso!
         </p>

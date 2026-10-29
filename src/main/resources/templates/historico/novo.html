@@ -263,8 +263,8 @@
                         <button type="button" class="botao botao-secundario" data-anterior>
                             <i class="bi bi-arrow-left"></i> Voltar
                         </button>
-                        <button type="submit" class="botao botao-principal">
-                            <i class="bi bi-calculator"></i> Calcular custos
+                        <button type="button" class="botao botao-principal" data-proximo>
+                            Próxima etapa <i class="bi bi-arrow-right"></i>
                         </button>
                     </div>
                 </section>
@@ -277,15 +277,14 @@
                     </div>
 
                     <div class="campo">
-                        <label for="markupPercentual">Markup aplicado</label>
-                        <select id="markupPercentual"
-                                th:field="*{markupPercentual}"
-                                required>
+                        <label for="markupPercentual">Markup (%)</label>
+                        <select id="markupPercentual" th:field="*{markupPercentual}" required>
                             <option value="">Selecione o markup</option>
                             <option value="30">30%</option>
                             <option value="40">40%</option>
                             <option value="50">50%</option>
                         </select>
+
                         <small>
                             O markup será aplicado sobre o custo total de produção.
                             Você poderá escolher um percentual diferente em cada cálculo.

@@ -28,7 +28,6 @@ public class ConfiguracaoDadosRequest {
 
     public static ConfiguracaoDadosRequest toDto(Configuracao configuracao){
         return ConfiguracaoDadosRequest.builder()
-                .markupPercentual(configuracao.getMarkupPercentual())
                 .tarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh())
                 .embalagemFixa(configuracao.getEmbalagemFixa())
                 .custoEmbalagemFixa(configuracao.getCustoEmbalagemFixa())
@@ -37,7 +36,6 @@ public class ConfiguracaoDadosRequest {
 
     public static Configuracao toEntity(ConfiguracaoDadosRequest dto){
         return Configuracao.builder()
-                .markupPercentual(dto.getMarkupPercentual())
                 .tarifaEnergiaKwh(dto.getTarifaEnergiaKwh())
                 .embalagemFixa(dto.getEmbalagemFixa())
                 .custoEmbalagemFixa(dto.getCustoEmbalagemFixa())

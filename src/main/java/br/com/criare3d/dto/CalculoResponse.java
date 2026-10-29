@@ -32,6 +32,7 @@ public class CalculoResponse {
     private @Getter @Setter BigDecimal precoSugerido;
     private @Getter @Setter LocalDateTime dataCalculo;
     private @Getter @Setter List<ItemCalculoResponse> itensFilamento;
+    private @Getter @Setter BigDecimal lucroEstimado;
 
     public static CalculoResponse toDto(final CalculoHistorico calculo) {
         return CalculoResponse.builder()
@@ -56,6 +57,7 @@ public class CalculoResponse {
                 .itensFilamento(calculo.getItensFilamento().stream()
                         .map(ItemCalculoResponse::toDto)
                         .collect(Collectors.toList()))
+                .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
                 .build();
     }
 }
