@@ -59,43 +59,41 @@
 
             <div class="preco-sugerido">
                 <span>Preço de venda sugerido</span>
-                <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-                <small th:text="${'Acréscimo configurado: ' + resultado.markupPercentual + '%'}">Acréscimo configurado</small>
+                <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
+                    R$ 0,00
+                </strong>
+                <small th:text="${'Markup aplicado: ' + resultado.markupPercentual + '%'}">
+                    Markup aplicado: 30%
+                </small>
+                <small th:text="${'Lucro estimado: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
+                    Lucro estimado: R$ 0,00
+                </small>
             </div>
 
 
             <div class="detalhes-calculo">
                 <h3>Filamentos utilizados</h3>
 
-                <div class="resultado-filamento"
-                     th:each="item : ${resultado.itensFilamento}">
-
+                <div class="resultado-filamento" th:each="item : ${resultado.itensFilamento}">
                     <div class="resultado-filamento-cabecalho">
-            <span class="amostra-cor"
-                  th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
-                  th:style="|background-color: ${item.codigoCor}|">
-            </span>
-
+                    <span class="amostra-cor"
+                          th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
+                          th:style="|background-color: ${item.codigoCor}|">
+                    </span>
                         <div class="resultado-filamento-nome">
                             <strong th:text="${item.nomeFilamento}">PLA</strong>
-                            <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">
-                    Branco
-                </span>
+                            <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">Branco</span>
                         </div>
                     </div>
 
                     <div class="detalhe-linha">
                         <span>Quantidade utilizada</span>
-                        <strong th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g'}">
-                            25,00 g
-                        </strong>
+                        <strong th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g'}">25,00 g</strong>
                     </div>
 
                     <div class="detalhe-linha">
                         <span>Custo deste filamento</span>
-                        <strong th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">
-                            R$ 2,50
-                        </strong>
+                        <strong th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">R$ 2,50</strong>
                     </div>
                 </div>
 
@@ -125,6 +123,7 @@
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
+                    <input type="hidden" th:field="*{markupPercentual}">
 
                     <button type="submit" class="botao botao-principal">
                         <i class="bi bi-check-lg"></i> Salvar no histórico
@@ -145,6 +144,7 @@
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
+                    <input type="hidden" th:field="*{markupPercentual}">
 
                     <button type="submit" class="botao botao-secundario">
                         <i class="bi bi-pencil"></i> Voltar e editar

@@ -18,6 +18,4 @@ public interface CalculoHistoricoService {
     long contarPorImpressora(UUID impressoraId);
     long contarPorPeca(UUID pecaId);
     void delete(UUID id);
-
-
 }

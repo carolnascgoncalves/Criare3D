@@ -10,8 +10,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
-    long countByFilamento_Id(UUID filamentoId);
-
     long countByEmbalagem_Id(UUID embalagemId);
 
     long countByImpressora_Id(UUID impressoraId);

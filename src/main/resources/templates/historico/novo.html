@@ -39,7 +39,11 @@
                 </div>
                 <div class="etapa" data-etapa="3">
                     <span class="etapa-numero">03</span>
-                    <span class="etapa-nome">Embalagem e revisão</span>
+                    <span class="etapa-nome">Embalagem</span>
+                </div>
+                <div class="etapa" data-etapa="4">
+                    <span class="etapa-numero">04</span>
+                    <span class="etapa-nome">Markup</span>
                 </div>
             </div>
 
@@ -228,8 +232,8 @@
                 <section class="conteudo-etapa" data-conteudo="3">
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 03</span>
-                        <h2>Embalagem e revisão</h2>
-                        <p>Confira os dados e escolha como o custo da embalagem será considerado.</p>
+                        <h2>Embalagem</h2>
+                        <p>Confira como o custo da embalagem será considerado neste cálculo.</p>
                     </div>
 
                     <div class="aviso-info" th:if="${configuracao != null and configuracao.embalagemFixa}">
@@ -250,9 +254,48 @@
                     </div>
 
                     <div class="resumo-revisao">
-                        <h3>Antes de calcular</h3>
-                        <p>O cálculo utilizará os valores de configuração para a tarifa de energia e o percentual de acréscimo.</p>
-                        <p>Você poderá conferir os custos e o preço sugerido antes de salvar o histórico.</p>
+                        <h3>Antes de continuar</h3>
+                        <p>Confira os dados da impressão e os custos que serão considerados no cálculo.</p>
+                        <p>Na próxima etapa, você poderá escolher o markup aplicado ao custo total para obter o preço sugerido.</p>
+                    </div>
+
+                    <div class="formulario-acoes">
+                        <button type="button" class="botao botao-secundario" data-anterior>
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </button>
+                        <button type="submit" class="botao botao-principal">
+                            <i class="bi bi-calculator"></i> Calcular custos
+                        </button>
+                    </div>
+                </section>
+
+                <section class="conteudo-etapa" data-conteudo="4">
+                    <div class="etapa-intro">
+                        <span class="texto-apoio">ETAPA 04</span>
+                        <h2>Markup</h2>
+                        <p>Escolha o percentual de acréscimo que deseja aplicar sobre o custo total desta impressão.</p>
+                    </div>
+
+                    <div class="campo">
+                        <label for="markupPercentual">Markup aplicado</label>
+                        <select id="markupPercentual"
+                                th:field="*{markupPercentual}"
+                                required>
+                            <option value="">Selecione o markup</option>
+                            <option value="30">30%</option>
+                            <option value="40">40%</option>
+                            <option value="50">50%</option>
+                        </select>
+                        <small>
+                            O markup será aplicado sobre o custo total de produção.
+                            Você poderá escolher um percentual diferente em cada cálculo.
+                        </small>
+                    </div>
+
+                    <div class="resumo-revisao">
+                        <h3>Como o preço será calculado?</h3>
+                        <p>Primeiro, somamos os custos de filamento, energia e embalagem.</p>
+                        <p>Depois, aplicamos o percentual escolhido para calcular o preço de venda sugerido.</p>
                     </div>
 
                     <div class="formulario-acoes">
