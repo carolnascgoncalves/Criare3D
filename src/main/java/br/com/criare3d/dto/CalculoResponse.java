@@ -6,35 +6,73 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CalculoResponse {
-    private @Getter @Setter UUID id;
-    private @Getter @Setter String nomePeca;
-    private @Getter @Setter String nomeFilamento;
-    private @Getter @Setter BigDecimal precoRoloFilamento;
-    private @Getter @Setter BigDecimal pesoRoloGramas;
-    private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
-    private @Getter @Setter String nomeImpressora;
-    private @Getter @Setter BigDecimal potenciaWatts;
-    private @Getter @Setter Long tempoImpressaoMinutos;
-    private @Getter @Setter BigDecimal tarifaEnergiaKwh;
-    private @Getter @Setter BigDecimal custoFilamento;
-    private @Getter @Setter BigDecimal custoEnergia;
-    private @Getter @Setter String nomeEmbalagem;
-    private @Getter @Setter BigDecimal custoEmbalagem;
-    private @Getter @Setter BigDecimal custoTotal;
-    private @Getter @Setter BigDecimal markupPercentual;
-    private @Getter @Setter BigDecimal precoSugerido;
-    private @Getter @Setter LocalDateTime dataCalculo;
-    private @Getter @Setter List<ItemCalculoResponse> itensFilamento;
-    private @Getter @Setter BigDecimal lucroEstimado;
 
-    public static CalculoResponse toDto(final CalculoHistorico calculo) {
+    private java.util.UUID id;
+
+    private String nomePeca;
+    private String nomeFilamento;
+    private BigDecimal precoRoloFilamento;
+    private BigDecimal pesoRoloGramas;
+    private BigDecimal quantidadeFilamentoGramas;
+
+    private String nomeImpressora;
+    private BigDecimal potenciaWatts;
+    private Long tempoImpressaoMinutos;
+    private BigDecimal tarifaEnergiaKwh;
+
+    private BigDecimal custoFilamento;
+    private BigDecimal custoEnergia;
+    private String nomeEmbalagem;
+    private BigDecimal custoEmbalagem;
+    private BigDecimal custoTotal;
+
+    private BigDecimal markupPercentual;
+    private BigDecimal precoSugerido;
+    private LocalDateTime dataCalculo;
+
+    private List<ItemCalculoResponse> itensFilamento;
+
+    private BigDecimal lucroEstimado;
+
+    // Dados da venda pela plataforma
+    private String plataformaVenda;
+    private String tipoAnuncio;
+    private BigDecimal percentualComissaoPlataforma;
+    private BigDecimal custoAdicionalPlataforma;
+    private BigDecimal percentualImposto;
+    private BigDecimal freteVendedor;
+    private Boolean taxaCpfShopee;
+    private Boolean freteGratisTikTok;
+    private BigDecimal percentualAfiliado;
+
+    private String tipoPessoaShopee;
+    private Boolean mais450PedidosShopee;
+    private Boolean isencaoComissaoTikTok;
+    private String faixaPesoPacote;
+    private Boolean formularioAvancado;
+
+    private BigDecimal precoVendaPlataforma;
+    private BigDecimal taxasPlataforma;
+    private BigDecimal lucroLiquido;
+
+    public static CalculoResponse toDto(CalculoHistorico calculo) {
+
+        List<ItemCalculoResponse> itens = calculo.getItensFilamento() == null
+                ? new ArrayList<>()
+                : calculo.getItensFilamento()
+                .stream()
+                .map(ItemCalculoResponse::toDto)
+                .collect(Collectors.toList());
+
         return CalculoResponse.builder()
                 .id(calculo.getId())
                 .nomePeca(calculo.getNomePeca())
@@ -54,10 +92,25 @@ public class CalculoResponse {
                 .markupPercentual(calculo.getMarkupPercentual())
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())
-                .itensFilamento(calculo.getItensFilamento().stream()
-                        .map(ItemCalculoResponse::toDto)
-                        .collect(Collectors.toList()))
+                .itensFilamento(itens)
                 .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
+                .tipoPessoaShopee(calculo.getTipoPessoaShopee())
+                .mais450PedidosShopee(calculo.getMais450PedidosShopee())
+                .isencaoComissaoTikTok(calculo.getIsencaoComissaoTikTok())
+                .faixaPesoPacote(calculo.getFaixaPesoPacote())
+                .formularioAvancado(calculo.getFormularioAvancado())
+                .plataformaVenda(calculo.getPlataformaVenda())
+                .tipoAnuncio(calculo.getTipoAnuncio())
+                .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())
+                .custoAdicionalPlataforma(calculo.getCustoAdicionalPlataforma())
+                .percentualImposto(calculo.getPercentualImposto())
+                .freteVendedor(calculo.getFreteVendedor())
+                .taxaCpfShopee(calculo.getTaxaCpfShopee())
+                .freteGratisTikTok(calculo.getFreteGratisTikTok())
+                .percentualAfiliado(calculo.getPercentualAfiliado())
+                .precoVendaPlataforma(calculo.getPrecoVendaPlataforma())
+                .taxasPlataforma(calculo.getTaxasPlataforma())
+                .lucroLiquido(calculo.getLucroLiquido())
                 .build();
     }
 }

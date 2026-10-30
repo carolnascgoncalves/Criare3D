@@ -17,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 import br.com.criare3d.dto.ItemCalculoRequest;
 
@@ -61,6 +62,14 @@ public class CalculoHistoricoController {
 
         CalculoRequest request = new CalculoRequest();
         request.getFilamentos().add(new ItemCalculoRequest());
+
+        var configuracao = configuracaoService.buscarOuCriarConfiguracao();
+
+        if (Boolean.TRUE.equals(configuracao.getMarkupFixo())) {
+            request.setMarkupPercentual(configuracao.getMarkupPercentual());
+        } else {
+            request.setMarkupPercentual(new BigDecimal("30.00"));
+        }
 
         mv.addObject("calculo", request);
         carregarDadosFormulario(mv);

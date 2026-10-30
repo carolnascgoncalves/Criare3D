@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 
@@ -12,7 +11,7 @@
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
             <h1>Resultado da impressão</h1>
-            <p>Confira os custos e o preço sugerido para sua peça.</p>
+            <p>Confira os custos e o preço de venda calculado para sua peça.</p>
         </div>
 
         <a th:href="@{/historico/listar}" class="botao botao-secundario">
@@ -35,6 +34,8 @@
                 <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
             </div>
 
+            <!-- CUSTOS DE PRODUÇÃO -->
+
             <div class="resultado-grade">
                 <div class="resultado-item">
                     <span>Custo do filamento</span>
@@ -52,34 +53,114 @@
                 </div>
 
                 <div class="resultado-item resultado-total">
-                    <span>Custo total</span>
+                    <span>Custo total de produção</span>
                     <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                 </div>
             </div>
 
+            <!-- PREÇO COM MARKUP -->
+
             <div class="preco-sugerido">
-                <span>Preço de venda sugerido</span>
+                <span>Preço sugerido antes das taxas da plataforma</span>
                 <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
                     R$ 0,00
                 </strong>
                 <small th:text="${'Markup aplicado: ' + resultado.markupPercentual + '%'}">
                     Markup aplicado: 30%
                 </small>
-                <small th:text="${'Lucro estimado: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
+                <small th:text="${'Lucro estimado antes das taxas: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
                     Lucro estimado: R$ 0,00
                 </small>
             </div>
 
+            <!-- DADOS DA PLATAFORMA -->
+
+            <section class="detalhes-calculo"
+                     th:if="${resultado.plataformaVenda != null and resultado.plataformaVenda != 'NENHUMA'}">
+
+                <h3>Preço de venda na plataforma</h3>
+
+                <div class="detalhe-linha">
+                    <span>Plataforma</span>
+                    <strong th:text="${resultado.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (resultado.plataformaVenda == 'TIKTOK' or resultado.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')}">
+                        Shopee
+                    </strong>
+                </div>
+
+                <div class="detalhe-linha" th:if="${resultado.tipoAnuncio != null}">
+                    <span>Tipo de anúncio</span>
+                    <strong th:text="${resultado.tipoAnuncio}">Clássico</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.tipoPessoaShopee != null}">
+                    <span>Cadastro Shopee</span>
+                    <strong th:text="${resultado.tipoPessoaShopee}">CPF</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.mais450PedidosShopee == true}">
+                    <span>Mais de 450 pedidos nos últimos 90 dias</span>
+                    <strong>Sim</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.faixaPesoPacote != null}">
+                    <span>Peso do pacote</span>
+                    <strong th:text="${resultado.faixaPesoPacote}">Até 300 g</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.freteGratisTikTok == true}">
+                    <span>Programa de frete grátis TikTok</span>
+                    <strong>Ativado</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.isencaoComissaoTikTok == true}">
+                    <span>Isenção de comissão TikTok</span>
+                    <strong>Ativada</strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${resultado.percentualAfiliado != null and resultado.percentualAfiliado.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <span>Comissão de afiliado</span>
+                    <strong th:text="${#numbers.formatDecimal(resultado.percentualAfiliado, 1, 'COMMA', 2, 'POINT') + '%'}">10%</strong>
+                </div>
+
+                <div class="detalhe-linha">
+                    <span>Total de taxas e custos da venda</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.taxasPlataforma, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                </div>
+
+                <div class="preco-sugerido">
+                    <span>Preço de venda recomendado</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoVendaPlataforma, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 0,00
+                    </strong>
+                    <small>Valor calculado para cobrir os custos de produção, markup e taxas da plataforma.</small>
+                </div>
+
+                <div class="resultado-item resultado-total">
+                    <span>Lucro líquido estimado</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.lucroLiquido, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 0,00
+                    </strong>
+                </div>
+            </section>
+
+            <!-- FILAMENTOS UTILIZADOS -->
 
             <div class="detalhes-calculo">
                 <h3>Filamentos utilizados</h3>
 
                 <div class="resultado-filamento" th:each="item : ${resultado.itensFilamento}">
                     <div class="resultado-filamento-cabecalho">
-                    <span class="amostra-cor"
-                          th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
-                          th:style="|background-color: ${item.codigoCor}|">
-                    </span>
+                        <span class="amostra-cor"
+                              th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
+                              th:style="|background-color: ${item.codigoCor}|">
+                        </span>
+
                         <div class="resultado-filamento-nome">
                             <strong th:text="${item.nomeFilamento}">PLA</strong>
                             <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">Branco</span>
@@ -108,9 +189,16 @@
                 </div>
             </div>
 
+            <!-- AÇÕES -->
+
             <div class="acoes-resultado">
-                <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
+
+                <form th:action="@{/historico/salvar}"
+                      th:object="${calculo}"
+                      method="post">
+
                     <input type="hidden" th:field="*{pecaId}">
+
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"
                                th:name="|filamentos[${stat.index}].filamentoId|"
@@ -120,18 +208,37 @@
                                th:name="|filamentos[${stat.index}].quantidadeFilamentoGramas|"
                                th:value="${item.quantidadeFilamentoGramas}">
                     </th:block>
+
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
                     <input type="hidden" th:field="*{markupPercentual}">
+
+                    <input type="hidden" th:field="*{plataformaVenda}">
+                    <input type="hidden" th:field="*{tipoAnuncio}">
+                    <input type="hidden" th:field="*{percentualComissaoPlataforma}">
+                    <input type="hidden" th:field="*{custoAdicionalPlataforma}">
+                    <input type="hidden" th:field="*{percentualImposto}">
+                    <input type="hidden" th:field="*{freteVendedor}">
+                    <input type="hidden" th:field="*{taxaCpfShopee}">
+                    <input type="hidden" th:field="*{tipoPessoaShopee}">
+                    <input type="hidden" th:field="*{mais450PedidosShopee}">
+                    <input type="hidden" th:field="*{freteGratisTikTok}">
+                    <input type="hidden" th:field="*{percentualAfiliado}">
+                    <input type="hidden" th:field="*{isencaoComissaoTikTok}">
+                    <input type="hidden" th:field="*{faixaPesoPacote}">
 
                     <button type="submit" class="botao botao-principal">
                         <i class="bi bi-check-lg"></i> Salvar no histórico
                     </button>
                 </form>
 
-                <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
+                <form th:action="@{/historico/editar}"
+                      th:object="${calculo}"
+                      method="post">
+
                     <input type="hidden" th:field="*{pecaId}">
+
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"
                                th:name="|filamentos[${stat.index}].filamentoId|"
@@ -141,18 +248,34 @@
                                th:name="|filamentos[${stat.index}].quantidadeFilamentoGramas|"
                                th:value="${item.quantidadeFilamentoGramas}">
                     </th:block>
+
                     <input type="hidden" th:field="*{impressoraId}">
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
                     <input type="hidden" th:field="*{markupPercentual}">
 
+                    <input type="hidden" th:field="*{plataformaVenda}">
+                    <input type="hidden" th:field="*{tipoAnuncio}">
+                    <input type="hidden" th:field="*{percentualComissaoPlataforma}">
+                    <input type="hidden" th:field="*{custoAdicionalPlataforma}">
+                    <input type="hidden" th:field="*{percentualImposto}">
+                    <input type="hidden" th:field="*{freteVendedor}">
+                    <input type="hidden" th:field="*{taxaCpfShopee}">
+                    <input type="hidden" th:field="*{tipoPessoaShopee}">
+                    <input type="hidden" th:field="*{mais450PedidosShopee}">
+                    <input type="hidden" th:field="*{freteGratisTikTok}">
+                    <input type="hidden" th:field="*{percentualAfiliado}">
+                    <input type="hidden" th:field="*{isencaoComissaoTikTok}">
+                    <input type="hidden" th:field="*{faixaPesoPacote}">
 
                     <button type="submit" class="botao botao-secundario">
                         <i class="bi bi-pencil"></i> Voltar e editar
                     </button>
                 </form>
 
-                <a th:href="@{/historico/novo}" class="botao botao-secundario">Novo cálculo</a>
+                <a th:href="@{/historico/novo}" class="botao botao-secundario">
+                    Novo cálculo
+                </a>
             </div>
         </div>
     </section>

@@ -1,4 +1,3 @@
-
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Configuracao;
@@ -15,7 +14,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
-
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class ConfiguracaoServiceImp implements ConfiguracaoService {
@@ -29,12 +27,12 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setEmbalagemFixa(false);
         }
 
-        if (configuracao.getTarifaEnergiaKwh() == null) {
-            configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
+        if (configuracao.getMarkupFixo() == null) {
+            configuracao.setMarkupFixo(false);
         }
 
-        if (configuracao.getCustoEmbalagemFixa() == null) {
-            configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
+        if (configuracao.getFormularioAvancado() == null) {
+            configuracao.setFormularioAvancado(false);
         }
 
         return configuracaoRepository.save(configuracao);
@@ -43,6 +41,14 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
     @Override
     public Optional<Configuracao> update(UUID id, Configuracao configuracao) {
         return configuracaoRepository.findById(id).map(atual -> {
+            if (configuracao.getMarkupPercentual() != null) {
+                atual.setMarkupPercentual(configuracao.getMarkupPercentual());
+            }
+
+            if (configuracao.getMarkupFixo() != null) {
+                atual.setMarkupFixo(configuracao.getMarkupFixo());
+            }
+
             if (configuracao.getTarifaEnergiaKwh() != null) {
                 atual.setTarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh());
             }
@@ -53,6 +59,10 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
             if (configuracao.getCustoEmbalagemFixa() != null) {
                 atual.setCustoEmbalagemFixa(configuracao.getCustoEmbalagemFixa());
+            }
+
+            if (configuracao.getFormularioAvancado() != null) {
+                atual.setFormularioAvancado(configuracao.getFormularioAvancado());
             }
 
             return configuracaoRepository.save(atual);
@@ -87,12 +97,14 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         return buscarConfiguracao().orElseGet(() -> {
             Configuracao configuracao = new Configuracao();
 
+            configuracao.setMarkupPercentual(BigDecimal.ZERO);
+            configuracao.setMarkupFixo(false);
             configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
             configuracao.setEmbalagemFixa(false);
             configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
+            configuracao.setFormularioAvancado(false);
 
             return configuracaoRepository.save(configuracao);
         });
     }
 }
-

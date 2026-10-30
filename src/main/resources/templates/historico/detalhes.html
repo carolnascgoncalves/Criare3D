@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
-<body>
 
+<head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
+
+<body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina detalhes-calculo">
@@ -11,7 +12,10 @@
             <h1>Detalhes do cálculo</h1>
             <p>Confira os custos e os dados da impressão registrados no histórico.</p>
         </div>
-        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+
+        <a th:href="@{/historico/listar}" class="botao-voltar">
+            Voltar ao histórico
+        </a>
     </section>
 
     <section class="detalhes-cartao">
@@ -20,28 +24,47 @@
                 <span class="detalhes-etiqueta">PEÇA</span>
                 <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
             </div>
+
             <div class="detalhes-data">
                 <span>Data do cálculo</span>
-                <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm') : 'Não informada'}">26/10/2026 às 14h30</strong>
+                <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm') : 'Não informada'}">
+                    26/10/2026 às 14h30
+                </strong>
             </div>
         </div>
 
         <div class="detalhes-conteudo">
+
+            <!-- DADOS DA IMPRESSÃO -->
+
             <section class="detalhes-secao">
                 <h3>Dados da impressão</h3>
+
                 <div class="detalhes-grade">
                     <div class="detalhes-item detalhes-item-filamentos">
                         <span>Filamentos utilizados</span>
+
                         <div class="detalhes-lista-filamentos">
-                            <div class="detalhes-filamento" th:each="item : ${historico.itensFilamento}">
+                            <div class="detalhes-filamento"
+                                 th:each="item : ${historico.itensFilamento}">
+
                                 <span class="amostra-cor"
                                       th:if="${item.codigoCor != null and !#strings.isEmpty(item.codigoCor)}"
-                                      th:style="|background-color: ${item.codigoCor}|"></span>
+                                      th:style="|background-color: ${item.codigoCor}|">
+                                </span>
+
                                 <div class="detalhes-filamento-info">
                                     <strong th:text="${item.nomeFilamento}">PLA</strong>
-                                    <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">Branco</span>
-                                    <span th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g utilizados'}">25,00 g utilizados</span>
+
+                                    <span th:text="${item.corFilamento != null ? item.corFilamento : 'Cor não informada'}">
+                                        Branco
+                                    </span>
+
+                                    <span th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g utilizados'}">
+                                        25,00 g utilizados
+                                    </span>
                                 </div>
+
                                 <strong class="detalhes-valor"
                                         th:text="${'R$ ' + #numbers.formatDecimal(item.custoFilamento, 1, 'POINT', 2, 'COMMA')}">
                                     R$ 2,50
@@ -52,18 +75,28 @@
 
                     <div class="detalhes-item">
                         <span>Impressora</span>
-                        <strong th:text="${historico.nomeImpressora}">Impressora 3D</strong>
+                        <strong th:text="${historico.nomeImpressora}">
+                            Impressora 3D
+                        </strong>
                     </div>
+
                     <div class="detalhes-item">
                         <span>Tempo de impressão</span>
-                        <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">3h 20min</strong>
+                        <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">
+                            3h 20min
+                        </strong>
                     </div>
+
                     <div class="detalhes-item">
                         <span>Potência da impressora</span>
-                        <strong th:text="${historico.potenciaWatts != null ? #numbers.formatDecimal(historico.potenciaWatts, 1, 'COMMA', 2, 'POINT') + ' W' : 'Não informada'}">150,00 W</strong>
+                        <strong th:text="${historico.potenciaWatts != null ? #numbers.formatDecimal(historico.potenciaWatts, 1, 'COMMA', 2, 'POINT') + ' W' : 'Não informada'}">
+                            150,00 W
+                        </strong>
                     </div>
                 </div>
             </section>
+
+            <!-- COMPOSIÇÃO DOS CUSTOS -->
 
             <section class="detalhes-secao">
                 <h3>Composição dos custos</h3>
@@ -71,8 +104,11 @@
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
                         <strong>Custo dos filamentos</strong>
-                        <span th:text="${#lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)'}">2 filamentos utilizados</span>
+                        <span th:text="${historico.itensFilamento != null ? #lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)' : 'Filamentos'}">
+                            2 filamentos utilizados
+                        </span>
                     </div>
+
                     <strong class="detalhes-valor"
                             th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 4,50
@@ -82,10 +118,13 @@
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
                         <strong>Custo de energia</strong>
-                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 1, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
+                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 2, 'POINT') + '/kWh' : 'Tarifa não informada'}">
+                            Tarifa de energia
+                        </span>
                     </div>
+
                     <strong class="detalhes-valor"
-                            th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">
+                            th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 1,20
                     </strong>
                 </div>
@@ -93,35 +132,228 @@
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
                         <strong>Embalagem</strong>
-                        <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">Embalagem</span>
+                        <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">
+                            Embalagem
+                        </span>
                     </div>
+
                     <strong class="detalhes-valor"
-                            th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">
+                            th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 2,00
                     </strong>
                 </div>
 
                 <div class="detalhes-custo-total">
                     <span>Custo total de produção</span>
-                    <strong th:text="${historico.custoTotal != null ? 'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 7,70</strong>
+                    <strong th:text="${historico.custoTotal != null ? 'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                        R$ 7,70
+                    </strong>
                 </div>
             </section>
+
+            <!-- MARKUP E PREÇO SUGERIDO -->
 
             <section class="detalhes-preco">
                 <div>
                     <span>Markup aplicado</span>
-                    <strong th:text="${historico.markupPercentual != null ? #numbers.formatDecimal(historico.markupPercentual, 1, 'COMMA', 2, 'POINT') + '%' : 'Não informado'}">50,00%</strong>
+                    <strong th:text="${historico.markupPercentual != null ? #numbers.formatDecimal(historico.markupPercentual, 1, 'COMMA', 2, 'POINT') + '%' : 'Não informado'}">
+                        50,00%
+                    </strong>
                 </div>
+
                 <div class="detalhes-preco-final">
-                    <span>Preço de venda sugerido</span>
-                    <strong th:text="${historico.precoSugerido != null ? 'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'COMMA', 2, 'POINT') : 'Não informado'}">R$ 11,55</strong>
+                    <span>Preço sugerido antes das taxas</span>
+                    <strong th:text="${historico.precoSugerido != null ? 'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                        R$ 11,55
+                    </strong>
                 </div>
+            </section>
+
+            <!-- DADOS DA PLATAFORMA -->
+
+            <section class="detalhes-secao"
+                     th:if="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA'}">
+
+                <h3>Dados da venda</h3>
+
+                <div class="detalhes-custo">
+                    <div class="detalhes-custo-info">
+                        <strong>Plataforma</strong>
+                        <span>Plataforma selecionada no cálculo</span>
+                    </div>
+
+                    <strong class="detalhes-valor"
+                            th:text="${(historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : historico.plataformaVenda == 'TIKTOK') or( historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')}">
+                        Shopee
+                    </strong>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.tipoAnuncio != null}">
+                    <div class="detalhes-custo-info">
+                        <strong>Tipo de anúncio</strong>
+                        <span>Modalidade selecionada</span>
+                    </div>
+
+                    <strong class="detalhes-valor"
+                            th:text="${historico.tipoAnuncio}">
+                        Clássico
+                    </strong>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.percentualComissaoPlataforma != null}">
+                    <div class="detalhes-custo-info">
+                        <strong>Comissão da plataforma</strong>
+                        <span th:text="${#numbers.formatDecimal(historico.percentualComissaoPlataforma, 1, 'COMMA', 2, 'POINT') + '%'}">
+                            12%
+                        </span>
+                    </div>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.percentualImposto != null and historico.percentualImposto.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <div class="detalhes-custo-info">
+                        <strong>Imposto</strong>
+                        <span th:text="${#numbers.formatDecimal(historico.percentualImposto, 1, 'COMMA', 2, 'POINT') + '%'}">
+                            6%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- SHOPEE -->
+
+                <div class="detalhes-custo"
+                     th:if="${historico.tipoPessoaShopee != null}">
+                    <div class="detalhes-custo-info">
+                        <strong>Tipo de cadastro Shopee</strong>
+                        <span>Cadastro utilizado no cálculo</span>
+                    </div>
+
+                    <strong class="detalhes-valor"
+                            th:text="${historico.tipoPessoaShopee}">
+                        CPF
+                    </strong>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.mais450PedidosShopee == true}">
+                    <div class="detalhes-custo-info">
+                        <strong>Volume de pedidos Shopee</strong>
+                        <span>Mais de 450 pedidos nos últimos 90 dias</span>
+                    </div>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.taxaCpfShopee == true}">
+                    <div class="detalhes-custo-info">
+                        <strong>Adicional Shopee</strong>
+                        <span>Taxa extra por item</span>
+                    </div>
+
+                    <strong class="detalhes-valor">R$ 3,00</strong>
+                </div>
+
+                <!-- TIKTOK SHOP -->
+
+                <div class="detalhes-custo"
+                     th:if="${historico.freteGratisTikTok == true}">
+                    <div class="detalhes-custo-info">
+                        <strong>Programa de frete grátis</strong>
+                        <span>6% limitado a R$ 50,00 por produto</span>
+                    </div>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.isencaoComissaoTikTok == true}">
+                    <div class="detalhes-custo-info">
+                        <strong>Isenção de comissão TikTok</strong>
+                        <span>Isenção para novos vendedores ativada</span>
+                    </div>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.percentualAfiliado != null and historico.percentualAfiliado.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <div class="detalhes-custo-info">
+                        <strong>Comissão de afiliado</strong>
+                        <span th:text="${#numbers.formatDecimal(historico.percentualAfiliado, 1, 'COMMA', 2, 'POINT') + '%'}">
+                            10%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- MERCADO LIVRE -->
+
+                <div class="detalhes-custo"
+                     th:if="${historico.faixaPesoPacote != null}">
+                    <div class="detalhes-custo-info">
+                        <strong>Peso do pacote</strong>
+                        <span th:text="${historico.faixaPesoPacote}">
+                            Até 300 g
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CUSTOS ADICIONAIS -->
+
+                <div class="detalhes-custo"
+                     th:if="${historico.freteVendedor != null and historico.freteVendedor.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <div class="detalhes-custo-info">
+                        <strong>Frete pago pelo vendedor</strong>
+                        <span>Valor informado no cálculo</span>
+                    </div>
+
+                    <strong class="detalhes-valor"
+                            th:text="${'R$ ' + #numbers.formatDecimal(historico.freteVendedor, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 8,50
+                    </strong>
+                </div>
+
+                <div class="detalhes-custo"
+                     th:if="${historico.custoAdicionalPlataforma != null and historico.custoAdicionalPlataforma.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <div class="detalhes-custo-info">
+                        <strong>Custo adicional da plataforma</strong>
+                        <span>Valor por unidade</span>
+                    </div>
+
+                    <strong class="detalhes-valor"
+                            th:text="${'R$ ' + #numbers.formatDecimal(historico.custoAdicionalPlataforma, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 2,00
+                    </strong>
+                </div>
+
+                <!-- RESULTADO DA VENDA -->
+
+                <div class="detalhes-custo-total">
+                    <span>Total de taxas e custos da venda</span>
+                    <strong th:text="${historico.taxasPlataforma != null ? 'R$ ' + #numbers.formatDecimal(historico.taxasPlataforma, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                        R$ 0,00
+                    </strong>
+                </div>
+
+                <section class="detalhes-preco">
+                    <div class="detalhes-preco-final">
+                        <span>Preço de venda recomendado</span>
+                        <strong th:text="${historico.precoVendaPlataforma != null ? 'R$ ' + #numbers.formatDecimal(historico.precoVendaPlataforma, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                            R$ 0,00
+                        </strong>
+                    </div>
+
+                    <div class="detalhes-preco-final">
+                        <span>Lucro líquido estimado</span>
+                        <strong th:text="${historico.lucroLiquido != null ? 'R$ ' + #numbers.formatDecimal(historico.lucroLiquido, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
+                            R$ 0,00
+                        </strong>
+                    </div>
+                </section>
             </section>
         </div>
     </section>
 
     <div class="detalhes-acoes">
-        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+        <a th:href="@{/historico/listar}" class="botao-voltar">
+            Voltar ao histórico
+        </a>
     </div>
 </main>
 

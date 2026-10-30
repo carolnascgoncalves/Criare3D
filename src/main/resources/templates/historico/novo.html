@@ -11,7 +11,7 @@
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
             <h1>Novo cálculo</h1>
-            <p>Calcule os custos de impressão e descubra o preço sugerido para sua peça.</p>
+            <p>Calcule os custos de impressão e descubra o preço de venda para sua peça.</p>
         </div>
 
         <a th:href="@{/historico/listar}" class="botao botao-secundario">
@@ -43,11 +43,13 @@
                 </div>
                 <div class="etapa" data-etapa="4">
                     <span class="etapa-numero">04</span>
-                    <span class="etapa-nome">Markup</span>
+                    <span class="etapa-nome">Venda e markup</span>
                 </div>
             </div>
 
-            <div class="mensagem-erro" th:if="${erro != null}" th:text="${erro}"></div>
+            <div class="mensagem-erro"
+                 th:if="${erro != null}"
+                 th:text="${erro}"></div>
 
             <form th:action="@{/historico/calcular}"
                   th:object="${calculo}"
@@ -55,6 +57,8 @@
                   class="formulario"
                   id="formCalculo"
                   novalidate>
+
+                <!-- ETAPA 01: MATERIAIS -->
 
                 <section class="conteudo-etapa ativa" data-conteudo="1">
                     <div class="etapa-intro">
@@ -76,7 +80,9 @@
                             <option value="" data-acao="cadastrar-peca">+ Cadastrar nova peça</option>
                         </select>
                         <small>Os dados de consumo e tempo podem ser preenchidos com base no cadastro da peça.</small>
-                        <div class="erro-campo" th:if="${#fields.hasErrors('pecaId')}" th:errors="*{pecaId}"></div>
+                        <div class="erro-campo"
+                             th:if="${#fields.hasErrors('pecaId')}"
+                             th:errors="*{pecaId}"></div>
                     </div>
 
                     <div class="filamentos-calculo">
@@ -85,7 +91,10 @@
                                 <h3>Filamentos utilizados</h3>
                                 <p>Adicione uma linha para cada filamento ou cor usada.</p>
                             </div>
-                            <button type="button" class="botao botao-secundario" id="adicionarFilamento">
+
+                            <button type="button"
+                                    class="botao botao-secundario"
+                                    id="adicionarFilamento">
                                 <i class="bi bi-plus-lg"></i> Adicionar filamento
                             </button>
                         </div>
@@ -95,7 +104,9 @@
                         <div class="filamento-calculo-item" data-filamento-item>
                             <div class="filamento-calculo-cabecalho">
                                 <strong>Filamento</strong>
-                                <button type="button" class="botao-remover-filamento" data-remover-filamento>
+                                <button type="button"
+                                        class="botao-remover-filamento"
+                                        data-remover-filamento>
                                     <i class="bi bi-trash"></i> Remover
                                 </button>
                             </div>
@@ -116,11 +127,17 @@
 
                             <div class="campo">
                                 <label>Quantidade utilizada (gramas)</label>
-                                <input type="number" data-campo-quantidade min="0.01" step="0.01"
-                                       placeholder="Ex.: 25.50" required>
+                                <input type="number"
+                                       data-campo-quantidade
+                                       min="0.01"
+                                       step="0.01"
+                                       placeholder="Ex.: 25.50"
+                                       required>
                             </div>
 
-                            <button type="button" class="botao botao-principal" data-confirmar-filamento>
+                            <button type="button"
+                                    class="botao botao-principal"
+                                    data-confirmar-filamento>
                                 <i class="bi bi-check-lg"></i> Confirmar filamento
                             </button>
                         </div>
@@ -140,7 +157,10 @@
 
                                 <div class="filamento-calculo-cabecalho">
                                     <strong th:text="|Filamento ${stat.index + 1}|">Filamento 1</strong>
-                                    <button type="button" class="botao-remover-filamento" data-remover-filamento>
+
+                                    <button type="button"
+                                            class="botao-remover-filamento"
+                                            data-remover-filamento>
                                         <i class="bi bi-trash"></i> Remover
                                     </button>
                                 </div>
@@ -148,7 +168,8 @@
                                 <div class="campo">
                                     <label>Filamento</label>
                                     <select th:field="*{filamentos[__${stat.index}__].filamentoId}"
-                                            data-campo-filamento required>
+                                            data-campo-filamento
+                                            required>
                                         <option value="">Selecione um filamento</option>
                                         <option th:each="filamento : ${filamentos}"
                                                 th:value="${filamento.id}"
@@ -164,11 +185,16 @@
                                     <label>Quantidade utilizada (gramas)</label>
                                     <input type="number"
                                            th:field="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"
-                                           data-campo-quantidade min="0.01" step="0.01"
-                                           placeholder="Ex.: 25.50" required>
+                                           data-campo-quantidade
+                                           min="0.01"
+                                           step="0.01"
+                                           placeholder="Ex.: 25.50"
+                                           required>
                                 </div>
 
-                                <button type="button" class="botao botao-principal" data-confirmar-filamento>
+                                <button type="button"
+                                        class="botao botao-principal"
+                                        data-confirmar-filamento>
                                     <i class="bi bi-check-lg"></i> Confirmar filamento
                                 </button>
                             </div>
@@ -191,6 +217,8 @@
                     </div>
                 </section>
 
+                <!-- ETAPA 02: IMPRESSÃO -->
+
                 <section class="conteudo-etapa" data-conteudo="2">
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 02</span>
@@ -208,15 +236,23 @@
                             </option>
                             <option value="" data-acao="cadastrar-impressora">+ Cadastrar nova impressora</option>
                         </select>
-                        <div class="erro-campo" th:if="${#fields.hasErrors('impressoraId')}" th:errors="*{impressoraId}"></div>
+                        <div class="erro-campo"
+                             th:if="${#fields.hasErrors('impressoraId')}"
+                             th:errors="*{impressoraId}"></div>
                     </div>
 
                     <div class="campo">
                         <label for="tempoImpressaoMinutos">Tempo de impressão (minutos)</label>
-                        <input type="number" id="tempoImpressaoMinutos"
-                               th:field="*{tempoImpressaoMinutos}" min="1" step="1" required>
+                        <input type="number"
+                               id="tempoImpressaoMinutos"
+                               th:field="*{tempoImpressaoMinutos}"
+                               min="1"
+                               step="1"
+                               required>
                         <small>Informe o tempo total estimado da impressão em minutos.</small>
-                        <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
+                        <div class="erro-campo"
+                             th:if="${#fields.hasErrors('tempoImpressaoMinutos')}"
+                             th:errors="*{tempoImpressaoMinutos}"></div>
                     </div>
 
                     <div class="formulario-acoes">
@@ -229,6 +265,8 @@
                     </div>
                 </section>
 
+                <!-- ETAPA 03: EMBALAGEM -->
+
                 <section class="conteudo-etapa" data-conteudo="3">
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 03</span>
@@ -236,12 +274,14 @@
                         <p>Confira como o custo da embalagem será considerado neste cálculo.</p>
                     </div>
 
-                    <div class="aviso-info" th:if="${configuracao != null and configuracao.embalagemFixa}">
+                    <div class="aviso-info"
+                         th:if="${configuracao != null and configuracao.embalagemFixa}">
                         <i class="bi bi-info-circle"></i>
                         A configuração utiliza um custo fixo de embalagem.
                     </div>
 
-                    <div class="campo" th:if="${configuracao == null or configuracao.embalagemFixa != true}">
+                    <div class="campo"
+                         th:if="${configuracao == null or configuracao.embalagemFixa != true}">
                         <label for="embalagemId">Embalagem</label>
                         <select id="embalagemId" th:field="*{embalagemId}">
                             <option value="">Selecione uma embalagem</option>
@@ -256,7 +296,7 @@
                     <div class="resumo-revisao">
                         <h3>Antes de continuar</h3>
                         <p>Confira os dados da impressão e os custos que serão considerados no cálculo.</p>
-                        <p>Na próxima etapa, você poderá escolher o markup aplicado ao custo total para obter o preço sugerido.</p>
+                        <p>Na próxima etapa, você poderá definir o markup e as condições de venda.</p>
                     </div>
 
                     <div class="formulario-acoes">
@@ -269,32 +309,215 @@
                     </div>
                 </section>
 
+                <!-- ETAPA 04: MARKUP E PLATAFORMAS -->
+
                 <section class="conteudo-etapa" data-conteudo="4">
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 04</span>
-                        <h2>Markup</h2>
-                        <p>Escolha o percentual de acréscimo que deseja aplicar sobre o custo total desta impressão.</p>
+                        <h2>Venda e markup</h2>
+                        <p>Defina o markup e, se desejar, informe onde a peça será vendida.</p>
                     </div>
 
-                    <div class="campo">
-                        <label for="markupPercentual">Markup (%)</label>
-                        <select id="markupPercentual" th:field="*{markupPercentual}" required>
-                            <option value="">Selecione o markup</option>
-                            <option value="30">30%</option>
-                            <option value="40">40%</option>
-                            <option value="50">50%</option>
-                        </select>
+                    <div class="detalhes-calculo">
+                        <h3>Markup</h3>
 
-                        <small>
-                            O markup será aplicado sobre o custo total de produção.
-                            Você poderá escolher um percentual diferente em cada cálculo.
-                        </small>
+                        <div th:if="${configuracao != null and configuracao.markupFixo}">
+                            <input type="hidden" th:field="*{markupPercentual}">
+                            <p>
+                                Markup configurado:
+                                <strong th:text="${configuracao.markupPercentual + '%'}">30%</strong>
+                            </p>
+                        </div>
+
+                        <div th:unless="${configuracao != null and configuracao.markupFixo}"
+                             class="campo">
+
+                            <div class="campo">
+                                <span class="rotulo" id="rotuloMarkup">Escolha o markup</span>
+
+                                <div class="markup-opcoes" role="radiogroup" aria-labelledby="rotuloMarkup">
+
+                                    <label class="markup-opcao">
+                                        <input type="radio" th:field="*{markupPercentual}" value="30" required>
+
+                                        <span class="markup-quadrado"><strong>30%</strong><small>Markup</small></span>
+                                    </label>
+
+                                    <label class="markup-opcao">
+                                        <input type="radio" th:field="*{markupPercentual}" value="40">
+                                        <span class="markup-quadrado"><strong>40%</strong><small>Markup</small></span>
+                                    </label>
+
+                                    <label class="markup-opcao">
+                                        <input type="radio" th:field="*{markupPercentual}" value="50">
+
+                                        <span class="markup-quadrado"><strong>50%</strong><small>Markup</small></span>
+                                    </label>
+                                </div>
+
+                                <small>O percentual será aplicado sobre o custo total de produção.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detalhes-calculo">
+                        <h3>Plataforma de venda</h3>
+
+                        <div class="campo">
+                            <label for="plataformaVenda">Onde deseja vender?</label>
+                            <select id="plataformaVenda" th:field="*{plataformaVenda}">
+                                <option value="NENHUMA">Não utilizar plataforma</option>
+                                <option value="SHOPEE">Shopee</option>
+                                <option value="TIKTOK">TikTok Shop</option>
+                                <option value="MERCADO_LIVRE">Mercado Livre</option>
+                            </select>
+                        </div>
+
+                        <div id="camposPlataforma"
+                             th:if="${configuracao != null and configuracao.formularioAvancado}">
+
+                            <div class="campo">
+                                <label for="percentualImposto">Imposto (%)</label>
+                                <input type="number"
+                                       id="percentualImposto"
+                                       th:field="*{percentualImposto}"
+                                       min="0"
+                                       step="0.01"
+                                       placeholder="0">
+                                <small>Informe o percentual de imposto, se houver.</small>
+                            </div>
+
+                            <div class="campo">
+                                <label for="freteVendedor">Frete pago pelo vendedor (R$)</label>
+                                <input type="number"
+                                       id="freteVendedor"
+                                       th:field="*{freteVendedor}"
+                                       min="0"
+                                       step="0.01"
+                                       placeholder="0,00">
+                            </div>
+                        </div>
+
+                        <div id="camposPlataformaSimples"
+                             th:unless="${configuracao != null and configuracao.formularioAvancado}">
+                            <input type="hidden" th:field="*{percentualImposto}" value="0">
+                            <input type="hidden" th:field="*{freteVendedor}" value="0">
+                        </div>
+
+                        <!-- SHOPEE -->
+
+                        <div class="plataforma-opcoes" data-opcoes-plataforma="SHOPEE" hidden>
+                            <h4>Shopee</h4>
+
+                            <p class="aviso-info"
+                               th:unless="${configuracao != null and configuracao.formularioAvancado}">
+                                O cálculo simples considera CPF, menos de 450 pedidos nos últimos 90 dias e não adiciona a taxa extra de R$ 3,00.
+                            </p>
+
+                            <div th:if="${configuracao != null and configuracao.formularioAvancado}">
+                                <div class="campo">
+                                    <label for="tipoPessoaShopee">Tipo de cadastro</label>
+                                    <select id="tipoPessoaShopee" th:field="*{tipoPessoaShopee}">
+                                        <option value="CPF">CPF</option>
+                                        <option value="CNPJ">CNPJ</option>
+                                    </select>
+                                </div>
+
+                                <label class="configuracao-opcao">
+                                    <span>Mais de 450 pedidos nos últimos 90 dias?</span>
+                                    <input type="checkbox" th:field="*{mais450PedidosShopee}">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- TIKTOK SHOP -->
+
+                        <div class="plataforma-opcoes" data-opcoes-plataforma="TIKTOK" hidden>
+                            <h4>TikTok Shop</h4>
+
+                            <label class="configuracao-opcao">
+                                <span>Participa do programa de frete grátis?</span>
+                                <input type="checkbox" th:field="*{freteGratisTikTok}">
+                            </label>
+
+                            <div th:if="${configuracao != null and configuracao.formularioAvancado}">
+                                <div class="campo">
+                                    <label for="percentualAfiliado">Comissão de afiliado (%)</label>
+                                    <input type="number"
+                                           id="percentualAfiliado"
+                                           th:field="*{percentualAfiliado}"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0">
+                                </div>
+
+                                <label class="configuracao-opcao">
+                                    <span>Estou na isenção de comissão para novos vendedores (60 dias)?</span>
+                                    <input type="checkbox" th:field="*{isencaoComissaoTikTok}">
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- MERCADO LIVRE -->
+
+                        <div class="plataforma-opcoes" data-opcoes-plataforma="MERCADO_LIVRE" hidden>
+                            <h4>Mercado Livre</h4>
+
+                            <div class="campo">
+                                <label for="tipoAnuncio">Tipo de anúncio</label>
+                                <select id="tipoAnuncio" th:field="*{tipoAnuncio}">
+                                    <option value="CLASSICO">Clássico</option>
+                                    <option value="PREMIUM">Premium</option>
+                                </select>
+                            </div>
+
+                            <div th:if="${configuracao == null or configuracao.formularioAvancado != true}">
+                                <div class="campo">
+                                    <label for="faixaPesoPacote">Peso do pacote</label>
+                                    <select id="faixaPesoPacote" th:field="*{faixaPesoPacote}">
+                                        <option value="">Selecione o peso</option>
+                                        <option value="ATE_300G">Até 300 g</option>
+                                        <option value="DE_300G_500G">300 g a 500 g</option>
+                                        <option value="DE_500G_1KG">500 g a 1 kg</option>
+                                        <option value="DE_1KG_1_5KG">1 kg a 1,5 kg</option>
+                                        <option value="DE_1_5KG_2KG">1,5 kg a 2 kg</option>
+                                        <option value="DE_2KG_3KG">2 kg a 3 kg</option>
+                                        <option value="DE_3KG_4KG">3 kg a 4 kg</option>
+                                        <option value="DE_4KG_5KG">4 kg a 5 kg</option>
+                                    </select>
+                                </div>
+                                <small>O frete será calculado automaticamente conforme o peso e o preço final.</small>
+                            </div>
+
+                            <div th:if="${configuracao != null and configuracao.formularioAvancado}">
+                                <div class="campo">
+                                    <label for="percentualComissaoPlataforma">Comissão do anúncio (%)</label>
+                                    <input type="number"
+                                           id="percentualComissaoPlataforma"
+                                           th:field="*{percentualComissaoPlataforma}"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="Ex.: 12">
+                                    <small>Clássico: 10% a 14%. Premium: 15% a 19%.</small>
+                                </div>
+
+                                <div class="campo">
+                                    <label for="custoAdicionalPlataforma">Custo adicional por unidade (R$)</label>
+                                    <input type="number"
+                                           id="custoAdicionalPlataforma"
+                                           th:field="*{custoAdicionalPlataforma}"
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="resumo-revisao">
                         <h3>Como o preço será calculado?</h3>
                         <p>Primeiro, somamos os custos de filamento, energia e embalagem.</p>
-                        <p>Depois, aplicamos o percentual escolhido para calcular o preço de venda sugerido.</p>
+                        <p>Depois, aplicamos o markup e consideramos as taxas e os custos da plataforma selecionada.</p>
                     </div>
 
                     <div class="formulario-acoes">
@@ -310,6 +533,24 @@
         </div>
     </section>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const plataforma = document.getElementById("plataformaVenda");
+        const blocos = document.querySelectorAll("[data-opcoes-plataforma]");
+
+        function atualizarPlataforma() {
+            const selecionada = plataforma.value;
+
+            blocos.forEach(bloco => {
+                bloco.hidden = bloco.dataset.opcoesPlataforma !== selecionada;
+            });
+        }
+
+        plataforma.addEventListener("change", atualizarPlataforma);
+        atualizarPlataforma();
+    });
+</script>
 
 <script th:src="@{/js/calculoHistorico.js}" defer></script>
 <script th:src="@{/js/filamentosCalculo.js}" defer></script>

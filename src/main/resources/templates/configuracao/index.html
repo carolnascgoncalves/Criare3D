@@ -1,16 +1,15 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 
 <head th:replace="~{fragmentos :: cabecalho('Configurações')}"></head>
 
 <body>
-
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
     <section class="pagina-intro">
         <div>
+            <span class="texto-apoio">CRIARE 3D</span>
             <h1>Configurações</h1>
             <p>Personalize os valores utilizados nos cálculos do Criare 3D.</p>
         </div>
@@ -24,15 +23,64 @@
           method="post"
           class="configuracao-formulario">
 
+        <!-- MARKUP -->
         <section class="cartao configuracao-cartao">
             <div class="cartao-cabecalho">
                 <div class="configuracao-titulo">
                     <div class="configuracao-icone">
-                        <i class="bi bi-calculator"></i>
+                        <i class="bi bi-percent"></i>
+                    </div>
+                    <div>
+                        <h2>Markup</h2>
+                        <p>Defina como o percentual de lucro será aplicado aos custos.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="configuracao-conteudo">
+                <label class="configuracao-opcao" for="markupFixo">
+                    <div>
+                        <strong>Utilizar markup fixo</strong>
+                        <small>O mesmo percentual será aplicado automaticamente em todos os cálculos.</small>
+                    </div>
+                    <input type="checkbox"
+                           id="markupFixo"
+                           th:field="*{markupFixo}">
+                </label>
+
+                <div class="campo"
+                     id="campoMarkup"
+                     th:classappend="${configuracao.markupFixo} ? '' : ' campo-oculto'">
+                    <label for="markupPercentual">Markup fixo (%)</label>
+                    <input type="number"
+                           id="markupPercentual"
+                           th:field="*{markupPercentual}"
+                           min="0"
+                           step="0.01"
+                           placeholder="Ex.: 30">
+                    <small>Percentual acrescentado sobre o custo total da peça.</small>
+                    <span class="mensagem-erro"
+                          th:if="${#fields.hasErrors('markupPercentual')}"
+                          th:errors="*{markupPercentual}"></span>
+                </div>
+
+                <p class="aviso-info" id="avisoMarkupVariavel">
+                    <i class="bi bi-info-circle"></i>
+                    Com o markup variável, você poderá escolher entre 30%, 40% e 50% durante o cálculo.
+                </p>
+            </div>
+        </section>
+
+        <!-- ENERGIA -->
+        <section class="cartao configuracao-cartao">
+            <div class="cartao-cabecalho">
+                <div class="configuracao-titulo">
+                    <div class="configuracao-icone">
+                        <i class="bi bi-lightning-charge"></i>
                     </div>
                     <div>
                         <h2>Energia</h2>
-                        <p>Defina o valor utilizado para calcular o consumo de energia das peças.</p>
+                        <p>Configure o valor utilizado para calcular o consumo elétrico.</p>
                     </div>
                 </div>
             </div>
@@ -55,6 +103,7 @@
             </div>
         </section>
 
+        <!-- EMBALAGEM -->
         <section class="cartao configuracao-cartao">
             <div class="cartao-cabecalho">
                 <div class="configuracao-titulo">
@@ -97,6 +146,42 @@
             </div>
         </section>
 
+        <!-- FORMULÁRIO AVANÇADO -->
+        <section class="cartao configuracao-cartao">
+            <div class="cartao-cabecalho">
+                <div class="configuracao-titulo">
+                    <div class="configuracao-icone">
+                        <i class="bi bi-toggles"></i>
+                    </div>
+                    <div>
+                        <h2>Formulário avançado</h2>
+                        <p>Escolha o nível de detalhamento das informações de venda.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="configuracao-conteudo">
+                <label class="configuracao-opcao" for="formularioAvancado">
+                    <div>
+                        <strong>Ativar formulário avançado</strong>
+                        <small>
+                            Exibe perguntas adicionais sobre comissões, condições de venda
+                            e taxas específicas de cada plataforma.
+                        </small>
+                    </div>
+                    <input type="checkbox"
+                           id="formularioAvancado"
+                           th:field="*{formularioAvancado}">
+                </label>
+
+                <p class="aviso-info">
+                    <i class="bi bi-info-circle"></i>
+                    Desativado: formulário simples, com as condições padrão das plataformas.
+                    Ativado: permite informar condições adicionais da sua conta.
+                </p>
+            </div>
+        </section>
+
         <div class="configuracao-acoes">
             <button type="submit" class="botao-menu">
                 <i class="bi bi-check-lg"></i>
@@ -108,25 +193,40 @@
             <i class="bi bi-check-circle"></i>
             Configurações salvas com sucesso!
         </p>
-
     </form>
 </main>
 
 <script>
+    const markupFixo = document.getElementById("markupFixo");
+    const campoMarkup = document.getElementById("campoMarkup");
+    const markupPercentual = document.getElementById("markupPercentual");
+    const avisoMarkupVariavel = document.getElementById("avisoMarkupVariavel");
+
     const embalagemFixa = document.getElementById("embalagemFixa");
     const campoCustoEmbalagem = document.getElementById("campoCustoEmbalagem");
     const custoEmbalagem = document.getElementById("custoEmbalagemFixa");
 
-    function atualizarCampoEmbalagem() {
-        campoCustoEmbalagem.classList.toggle("campo-oculto", !embalagemFixa.checked);
+    function atualizarMarkup() {
+        campoMarkup.classList.toggle("campo-oculto", !markupFixo.checked);
+        avisoMarkupVariavel.hidden = markupFixo.checked;
+        markupPercentual.required = markupFixo.checked;
+    }
+
+    function atualizarEmbalagem() {
+        campoCustoEmbalagem.classList.toggle(
+            "campo-oculto",
+            !embalagemFixa.checked
+        );
         custoEmbalagem.required = embalagemFixa.checked;
     }
 
-    embalagemFixa.addEventListener("change", atualizarCampoEmbalagem);
-    atualizarCampoEmbalagem();
+    markupFixo.addEventListener("change", atualizarMarkup);
+    embalagemFixa.addEventListener("change", atualizarEmbalagem);
+
+    atualizarMarkup();
+    atualizarEmbalagem();
 </script>
 
 <div th:replace="~{fragmentos :: bootstrap-script}"></div>
-
 </body>
 </html>
