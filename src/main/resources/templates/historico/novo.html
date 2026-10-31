@@ -54,9 +54,13 @@
             <form th:action="@{/historico/calcular}"
                   th:object="${calculo}"
                   method="post"
+                  enctype="multipart/form-data"
                   class="formulario"
                   id="formCalculo"
                   novalidate>
+
+                <input type="hidden" th:field="*{fotoPecaBase64}" id="fotoPecaBase64">
+                <input type="hidden" th:field="*{fotoPecaContentType}" id="fotoPecaContentType">
 
                 <!-- ETAPA 01: MATERIAIS -->
 
@@ -208,6 +212,47 @@
                             <small id="totalPrevistoResumo">de 0 g previstos</small>
                             <p id="statusConsumoResumo"></p>
                         </div>
+                    </div>
+
+                    <div class="campo campo-foto-peca">
+                        <label>Foto da peça (opcional)</label>
+
+                        <div class="foto-peca-controle">
+                            <label for="fotoPeca" class="foto-peca-selecao" id="fotoPecaSelecao">
+                                <i class="bi bi-camera"></i>
+                                <span>Adicionar foto</span>
+                                <i class="bi bi-plus-lg foto-peca-mais"></i>
+                            </label>
+
+                            <input type="file"
+                                   id="fotoPeca"
+                                   name="fotoPeca"
+                                   accept="image/png,image/jpeg,image/webp"
+                                   hidden>
+
+                            <div class="foto-peca-preview"
+                                 id="fotoPecaPreview"
+                                 th:classappend="${fotoPecaPreview != null ? ' visivel' : ''}">
+                                <img id="fotoPecaMiniatura"
+                                     th:src="${fotoPecaPreview}"
+                                     alt="Pré-visualização da foto da peça">
+
+                                <div class="foto-peca-preview-info">
+                                    <strong>Foto selecionada</strong>
+                                    <small>Você pode trocar ou remover a imagem.</small>
+                                </div>
+
+                                <button type="button"
+                                        class="foto-peca-remover"
+                                        id="removerFotoPeca"
+                                        title="Remover foto"
+                                        aria-label="Remover foto">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <small>Adicione uma imagem para identificar esta peça no histórico. Máximo de 3 MB.</small>
                     </div>
 
                     <div class="formulario-acoes">

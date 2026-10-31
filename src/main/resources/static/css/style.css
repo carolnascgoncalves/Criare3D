@@ -1129,3 +1129,47 @@ input[type="color"]:focus {
     outline: none;
     border-color: var(--destaque);
 }
+.paginacao-historico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 24px 16px 8px;
+}
+
+.paginacao-historico a,
+.paginacao-historico span.seta-desabilitada {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    font-size: 18px;
+    text-decoration: none;
+}
+
+.paginacao-historico a {
+    color: #492e1e;
+    background-color: #f5e6dc;
+    transition: 0.2s;
+}
+
+.paginacao-historico a:hover {
+    background-color: #ead2c2;
+}
+
+.paginacao-historico span.seta-desabilitada {
+    color: #b8aaa1;
+    background-color: #f5f2ef;
+    cursor: not-allowed;
+}
+
+.paginacao-info {
+    color: #6f625a;
+    font-size: 14px;
+}
+
+.paginacao-info strong {
+    color: #492e1e;
+}

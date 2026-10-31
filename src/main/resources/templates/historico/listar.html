@@ -33,7 +33,7 @@
             </div>
 
             <span class="contador-historicos"
-                  th:text="${#lists.size(historicos) + ' registros'}">
+                  th:text="${pagina.totalElements + ' registros'}">
                 0 registros
             </span>
         </div>
@@ -68,9 +68,16 @@
                     <tr th:each="historico : ${historicos}">
                         <td>
                             <div class="peca-historico">
-                                <span class="peca-historico-icone">
-                                    <i class="bi bi-box"></i>
+                                <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
+                                     class="peca-historico-foto"
+                                     th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
+                                     th:alt="|Foto de ${historico.nomePeca}|">
+
+                                <span class="peca-historico-icone"
+                                      th:unless="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}">
+                                    <i class="bi bi-image"></i>
                                 </span>
+
                                 <strong th:text="${historico.nomePeca}">Nome da peça</strong>
                             </div>
                         </td>
@@ -116,6 +123,38 @@
                     </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div class="paginacao-historico"
+                 th:if="${pagina.totalPages > 1}">
+
+                <a th:if="${pagina.hasPrevious()}"
+                   th:href="@{/historico/listar(page=${pagina.number - 1})}"
+                   title="Página anterior"
+                   aria-label="Página anterior">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+
+                <span class="seta-desabilitada" th:unless="${pagina.hasPrevious()}">
+                    <i class="bi bi-chevron-left"></i>
+                </span>
+
+                <span class="paginacao-info">
+                    Página <strong th:text="${pagina.number + 1}">1</strong>
+                    de <strong th:text="${pagina.totalPages}">2</strong>
+                </span>
+
+                <a th:if="${pagina.hasNext()}"
+                   th:href="@{/historico/listar(page=${pagina.number + 1})}"
+                   title="Próxima página"
+                   aria-label="Próxima página">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+
+                <span class="seta-desabilitada" th:unless="${pagina.hasNext()}">
+                    <i class="bi bi-chevron-right"></i>
+                </span>
+
             </div>
         </div>
     </section>

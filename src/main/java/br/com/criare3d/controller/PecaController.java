@@ -2,11 +2,13 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.PecaRequest;
 import br.com.criare3d.dto.PecaResponse;
+import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -30,9 +32,15 @@ public class PecaController {
     private CalculoHistoricoService calculoHistoricoService;
 
     @GetMapping("/peca/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+
         ModelAndView mv = new ModelAndView("peca/listar");
-        mv.addObject("pecas", pecaService.fetchAll(pageable).getContent());
+
+        Page<Peca> pagina = pecaService.fetchAll(pageable);
+
+        mv.addObject("pecas", pagina.getContent());
+        mv.addObject("pagina", pagina);
+
         return mv;
     }
 

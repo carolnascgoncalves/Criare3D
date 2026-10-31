@@ -29,6 +29,11 @@
 
         <div class="formulario-conteudo">
             <div class="resumo-peca">
+                <img th:if="${fotoPecaPreview != null}"
+                     th:src="${fotoPecaPreview}"
+                     alt="Foto da peça calculada"
+                     class="resultado-foto-peca">
+
                 <span class="texto-apoio">PEÇA CALCULADA</span>
                 <h2 th:text="${resultado.nomePeca}">Nome da peça</h2>
                 <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
@@ -184,6 +189,9 @@
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
 
+                    <input type="hidden" th:field="*{fotoPecaBase64}">
+                    <input type="hidden" th:field="*{fotoPecaContentType}">
+
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"
                                th:name="|filamentos[${stat.index}].filamentoId|"
@@ -221,6 +229,9 @@
 
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
+
+                    <input type="hidden" th:field="*{fotoPecaBase64}">
+                    <input type="hidden" th:field="*{fotoPecaContentType}">
 
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"

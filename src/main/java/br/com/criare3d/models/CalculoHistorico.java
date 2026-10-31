@@ -28,6 +28,12 @@ public class CalculoHistorico {
     @Column(name = "nomePeca_hist", nullable = false, length = 150)
     private @Getter @Setter String nomePeca;
 
+    @Column(name = "fotoPeca_hist", columnDefinition = "TEXT")
+    private @Getter @Setter String fotoPecaBase64;
+
+    @Column(name = "tipoFotoPeca_hist", length = 30)
+    private @Getter @Setter String fotoPecaContentType;
+
     @NotBlank(message = "O nome do filamento é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomeFil_hist", nullable = false, length = 150)

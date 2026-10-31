@@ -178,4 +178,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
     mostrarEtapa(1);
+
+    // Pré-visualização da foto opcional da peça.
+    const fotoInput = document.getElementById("fotoPeca");
+    const fotoPreview = document.getElementById("fotoPecaPreview");
+    const fotoMiniatura = document.getElementById("fotoPecaMiniatura");
+    const removerFoto = document.getElementById("removerFotoPeca");
+    const fotoBase64 = document.getElementById("fotoPecaBase64");
+    const fotoContentType = document.getElementById("fotoPecaContentType");
+
+    function mostrarFoto(src) {
+        if (!fotoPreview || !fotoMiniatura) return;
+
+        fotoMiniatura.src = src;
+        fotoPreview.classList.add("visivel");
+    }
+
+    function limparFoto() {
+        if (fotoInput) fotoInput.value = "";
+        if (fotoBase64) fotoBase64.value = "";
+        if (fotoContentType) fotoContentType.value = "";
+
+        if (fotoPreview) fotoPreview.classList.remove("visivel");
+        if (fotoMiniatura) fotoMiniatura.removeAttribute("src");
+    }
+
+    if (fotoInput) {
+        fotoInput.addEventListener("change", () => {
+            const arquivo = fotoInput.files[0];
+
+            if (!arquivo) return;
+
+            const formatosPermitidos = ["image/jpeg", "image/png", "image/webp"];
+
+            if (!formatosPermitidos.includes(arquivo.type)) {
+                alert("Selecione uma imagem JPG, PNG ou WEBP.");
+                limparFoto();
+                return;
+            }
+
+            if (arquivo.size > 3 * 1024 * 1024) {
+                alert("A foto deve ter no máximo 3 MB.");
+                limparFoto();
+                return;
+            }
+
+            // Ao escolher uma nova imagem, substitui a anterior.
+            if (fotoBase64) fotoBase64.value = "";
+            if (fotoContentType) fotoContentType.value = "";
+
+            const leitor = new FileReader();
+
+            leitor.onload = evento => mostrarFoto(evento.target.result);
+            leitor.readAsDataURL(arquivo);
+        });
+    }
+
+    removerFoto?.addEventListener("click", limparFoto);
+
+    // Ao voltar da tela de resultado para editar, mantém a miniatura salva no formulário.
+    if (fotoBase64?.value && fotoContentType?.value) {
+        mostrarFoto(`data:${fotoContentType.value};base64,${fotoBase64.value}`);
+    }
 });

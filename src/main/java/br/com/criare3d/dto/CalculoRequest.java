@@ -27,6 +27,10 @@ public class CalculoRequest {
 
     private BigDecimal quantidadeFilamentoGramas;
 
+    private String fotoPecaBase64;
+
+    private String fotoPecaContentType;
+
     @NotNull(message = "A impressora é obrigatória")
     private UUID impressoraId;
 
@@ -52,19 +56,14 @@ public class CalculoRequest {
 
     private BigDecimal freteVendedor = BigDecimal.ZERO;
 
-    // Shopee
     private boolean taxaCpfShopee;
     private String tipoPessoaShopee = "CPF";
     private boolean mais450PedidosShopee;
 
-    // TikTok Shop
     private boolean freteGratisTikTok;
     private BigDecimal percentualAfiliado = BigDecimal.ZERO;
     private boolean isencaoComissaoTikTok;
 
-    // Mercado Livre: ATE_300G, DE_300G_500G, DE_500G_1KG,
-    // DE_1KG_1_5KG, DE_1_5KG_2KG, DE_2KG_3KG,
-    // DE_3KG_4KG, DE_4KG_5KG
     private String faixaPesoPacote;
 
     public static CalculoHistorico toEntity(CalculoRequest request) {

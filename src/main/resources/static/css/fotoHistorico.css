@@ -1,0 +1,148 @@
+/* FOTO OPCIONAL DA PEÇA NO CADASTRO DO CÁLCULO */
+
+.campo-foto-peca {
+    margin-top: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--borda);
+}
+
+.foto-peca-controle {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.foto-peca-selecao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 112px;
+    height: 76px;
+    margin: 0;
+    border: 1px dashed #c9ad9b;
+    border-radius: 10px;
+    background: #fffaf6;
+    color: var(--marrom-claro);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.foto-peca-selecao:hover {
+    border-color: var(--destaque);
+    background: #fff0eb;
+    color: var(--marrom);
+}
+
+.foto-peca-selecao > i:first-child {
+    font-size: 1.2rem;
+}
+
+.foto-peca-mais {
+    font-size: 0.8rem;
+}
+
+.foto-peca-preview {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.foto-peca-preview.visivel {
+    display: flex;
+}
+
+.foto-peca-preview img {
+    width: 76px;
+    height: 76px;
+    flex-shrink: 0;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--fundo);
+}
+
+.foto-peca-preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.foto-peca-preview-info strong {
+    color: var(--marrom);
+    font-size: 0.9rem;
+}
+
+.foto-peca-preview-info small {
+    color: var(--marrom-claro);
+    font-size: 0.78rem;
+}
+
+.foto-peca-remover {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid #e7c8c0;
+    border-radius: 9px;
+    background: #fff0eb;
+    color: #8a3427;
+    cursor: pointer;
+}
+
+.foto-peca-remover:hover {
+    background: #a23c37;
+    color: #ffffff;
+}
+
+/* FOTO NA TELA DE RESULTADO */
+
+.resultado-foto-peca {
+    display: block;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 18px;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    object-fit: cover;
+}
+
+/* MINIATURA NA LISTAGEM DO HISTÓRICO */
+
+.peca-historico-foto,
+.peca-historico-icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 76px;
+    height: 76px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    object-fit: cover;
+    background: var(--fundo);
+    color: var(--marrom);
+    font-size: 1.5rem;
+}
+
+.peca-historico {
+    gap: 14px;
+}
+
+@media (max-width: 650px) {
+    .foto-peca-controle {
+        align-items: flex-start;
+    }
+
+    .peca-historico-foto,
+    .peca-historico-icone {
+        width: 62px;
+        height: 62px;
+    }
+}

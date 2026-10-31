@@ -39,7 +39,7 @@
             </div>
 
             <span class="contador"
-                  th:text="${#lists.size(embalagens)} + ' itens'">
+                  th:text="${pagina.totalElements} + ' itens'">
                 0 itens
             </span>
         </div>
@@ -96,6 +96,37 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
+            <a th:if="${pagina.hasPrevious()}"
+               th:href="@{/embalagem/listar(page=${pagina.number - 1})}"
+               class="paginacao-seta"
+               aria-label="Página anterior">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+
+            <span th:unless="${pagina.hasPrevious()}"
+                  class="paginacao-seta desabilitada">
+                <i class="bi bi-chevron-left"></i>
+            </span>
+
+            <span class="paginacao-info">
+                Página <strong th:text="${pagina.number + 1}">1</strong>
+                de <strong th:text="${pagina.totalPages}">1</strong>
+            </span>
+
+            <a th:if="${pagina.hasNext()}"
+               th:href="@{/embalagem/listar(page=${pagina.number + 1})}"
+               class="paginacao-seta"
+               aria-label="Próxima página">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+
+            <span th:unless="${pagina.hasNext()}"
+                  class="paginacao-seta desabilitada">
+                <i class="bi bi-chevron-right"></i>
+            </span>
         </div>
 
         <div class="estado-vazio"

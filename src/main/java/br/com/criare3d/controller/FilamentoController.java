@@ -3,10 +3,13 @@ package br.com.criare3d.controller;
 import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.FilamentoResponse;
 import br.com.criare3d.dto.FilamentoDadosRequest;
+import br.com.criare3d.models.Embalagem;
+import br.com.criare3d.models.Filamento;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -27,14 +30,19 @@ public class FilamentoController {
     private CalculoHistoricoService calculoHistoricoService;
 
     @GetMapping("/filamento/listar")
-    public ModelAndView fetchAll(
-            @PageableDefault(page = 0, size = 10, sort = "nome",
-                    direction = Sort.Direction.ASC) Pageable pageable) {
+    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("filamento/listar");
-        mv.addObject("filamentos", filamentoService.fetchAll(pageable).getContent());
+
+        Page<Filamento> pagina = filamentoService.fetchAll(pageable);
+
+        mv.addObject("filamentos", pagina.getContent());
+        mv.addObject("pagina", pagina);
+
         return mv;
     }
+
+
 
     @GetMapping("/filamento/novo")
     public ModelAndView retornarPaginaCadastro() {
