@@ -313,3 +313,34 @@
         flex-basis: calc(100% - 40px);
     }
 }
+/* CONTRASTE DO NOME DA PEÇA */
+
+.detalhes-titulo-peca {
+    color: #492e1e !important;
+}
+
+/* DESTAQUE DO LUCRO LÍQUIDO */
+
+.detalhes-preco-lucro {
+    background: #e4f4e5 !important;
+    border-color: #b7dfbc !important;
+}
+
+.detalhes-preco .detalhes-preco-lucro strong {
+    color: #245b35;
+}
+
+.detalhes-cartao-cabecalho > div:first-child {
+    background-color: #f5e6dc;
+    padding: 14px 18px;
+    border-radius: 12px;
+}
+.detalhes-identificacao-peca {
+    background-color: #f5e6dc !important;
+    padding: 18px 22px;
+    border-radius: 12px;
+}
+
+.detalhes-identificacao-peca .detalhes-titulo-peca {
+    color: #492e1e !important;
+}

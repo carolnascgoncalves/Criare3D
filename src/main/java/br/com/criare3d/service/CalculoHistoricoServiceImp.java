@@ -270,11 +270,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         BigDecimal imposto = percentual(request.getPercentualImposto());
         BigDecimal frete = valor(request.getFreteVendedor());
 
-        BigDecimal adicional = avancado
+        BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma)
                 ? valor(request.getCustoAdicionalPlataforma())
                 : ZERO;
 
-        BigDecimal afiliado = avancado
+        BigDecimal afiliado = avancado &&
+                ("TIKTOK".equals(plataforma) || "TIKTOK_SHOP".equals(plataforma))
                 ? percentual(request.getPercentualAfiliado())
                 : ZERO;
 
@@ -331,10 +332,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         frete.add(adicional),
                         mais450
                 );
-
-                if (precoVenda.compareTo(new BigDecimal("9.00")) < 0) {
-                    historico.setPlataformaVenda("SHOPEE");
-                }
             }
 
             case "TIKTOK", "TIKTOK_SHOP" -> {

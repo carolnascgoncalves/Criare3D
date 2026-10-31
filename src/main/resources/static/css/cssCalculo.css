@@ -1009,3 +1009,16 @@
         font-size: 0.75rem;
     }
 }
+
+/* CONSUMO ABAIXO DO PREVISTO */
+
+#statusConsumoResumo.consumo-abaixo {
+    color: #854d0e;
+    background-color: #fef3c7;
+}
+
+/* ETAPA 04 - ESPAÇAMENTO */
+
+#formCalculo .conteudo-etapa[data-conteudo="4"] .detalhes-calculo + .detalhes-calculo {
+    margin-top: 12px;
+}

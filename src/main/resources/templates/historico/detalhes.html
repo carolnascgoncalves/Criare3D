@@ -18,9 +18,9 @@
 
     <section class="detalhes-cartao">
         <div class="detalhes-cartao-cabecalho">
-            <div>
+            <div class="detalhes-identificacao-peca">
                 <span class="detalhes-etiqueta">PEÇA</span>
-                <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
+                <h2 class="detalhes-titulo-peca" th:text="${historico.nomePeca}">Nome da peça</h2>
             </div>
             <div class="detalhes-data">
                 <span>Data do cálculo</span>
@@ -161,7 +161,6 @@
             <!-- DADOS DA PLATAFORMA -->
 
             <section class="detalhes-secao"
-                     style="margin-top: 32px;"
                      th:if="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA'}">
 
                 <h3>Dados da venda</h3>
@@ -295,7 +294,7 @@
                     </strong>
                 </div>
 
-                <section class="detalhes-preco" style="margin-top: 20px; gap: 20px;">
+                <section class="detalhes-preco detalhes-preco-venda">
                     <div class="detalhes-preco-final">
                         <span>Preço de venda recomendado</span>
                         <strong th:text="${historico.precoVendaPlataforma != null ? 'R$ ' + #numbers.formatDecimal(historico.precoVendaPlataforma, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
@@ -303,7 +302,7 @@
                         </strong>
                     </div>
 
-                    <div class="detalhes-preco-final">
+                    <div class="detalhes-preco-final detalhes-preco-lucro">
                         <span>Lucro líquido estimado</span>
                         <strong th:text="${historico.lucroLiquido != null ? 'R$ ' + #numbers.formatDecimal(historico.lucroLiquido, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                             R$ 0,00

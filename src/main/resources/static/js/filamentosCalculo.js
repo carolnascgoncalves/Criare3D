@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
@@ -17,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return `${Number(valor).toLocaleString("pt-BR", {
             maximumFractionDigits: 2
         })} g`;
+    }
+
+    function formatarPercentual(valor) {
+        return `${Number(valor.toFixed(1)).toLocaleString("pt-BR")}%`;
     }
 
     function obterPrevisto() {
@@ -125,7 +128,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const cartao = document.createElement("div");
             cartao.className = "resumo-consumo-filamento";
 
-            // Soma o consumo do filamento atual com todos os anteriores.
             const consumoAcumulado = confirmados
                 .slice(0, indice + 1)
                 .reduce((total, item) => total + item.gramas, 0);
@@ -162,8 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const valor = document.createElement("strong");
             valor.className = "resumo-consumo-medidor-valor";
-
-            // O numerador é acumulado; o previsto original não muda.
             valor.textContent = `${formatarGramas(consumoAcumulado)} / ${formatarGramas(previsto)}`;
 
             const barra = document.createElement("div");
@@ -174,7 +174,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let larguraUsada = 0;
 
-            // Mantém as cores anteriores mais claras e a cor atual original.
             const segmentos = [
                 filamento,
                 ...confirmados.slice(0, indice).reverse()
@@ -199,12 +198,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const percentual = document.createElement("p");
             percentual.className = "resumo-consumo-percentual";
 
-            const porcentagemAcumulada = previsto > 0
-                ? consumoAcumulado / previsto * 100
+            const porcentagemIndividual = totalAcumulado > 0
+                ? filamento.gramas / totalAcumulado * 100
                 : 0;
 
             percentual.textContent =
-                `${Number(porcentagemAcumulada.toFixed(1)).toLocaleString("pt-BR")}% do previsto`;
+                `${formatarPercentual(porcentagemIndividual)} do total de filamentos`;
 
             topoMedidor.appendChild(valor);
             medidor.append(topoMedidor, barra, percentual);
@@ -247,19 +246,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         totalFilamentoResumo.textContent = formatarGramas(totalAcumulado);
-        totalPrevistoResumo.textContent = `de ${formatarGramas(previsto)} previstos`;
+
+        const percentualTotal = totalAcumulado > 0
+            ? previsto / totalAcumulado * 100
+            : 0;
+
+        totalPrevistoResumo.textContent =
+            `de ${formatarGramas(previsto)} previstos - ${formatarPercentual(percentualTotal)} do total`;
 
         const status = document.getElementById("statusConsumoResumo");
 
         if (status) {
-            const dentroDoPrevisto = totalAcumulado <= previsto;
+            let classeStatus;
+            let mensagem;
 
-            status.textContent = dentroDoPrevisto
-                ? "✓ Quantidade dentro do previsto"
-                : "⚠ Quantidade acima do previsto";
+            if (totalAcumulado < previsto) {
+                classeStatus = "consumo-abaixo";
+                mensagem = "Quantidade abaixo do previsto";
+            } else if (totalAcumulado > previsto) {
+                classeStatus = "consumo-acima";
+                mensagem = "Quantidade acima do previsto";
+            } else {
+                classeStatus = "consumo-dentro";
+                mensagem = "Quantidade dentro do previsto";
+            }
 
-            status.classList.toggle("consumo-dentro", dentroDoPrevisto);
-            status.classList.toggle("consumo-acima", !dentroDoPrevisto);
+            status.textContent = mensagem;
+            status.classList.remove("consumo-dentro", "consumo-acima", "consumo-abaixo");
+            status.classList.add(classeStatus);
         }
     }
 

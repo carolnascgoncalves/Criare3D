@@ -314,7 +314,7 @@
                 <section class="conteudo-etapa" data-conteudo="4">
                     <div class="etapa-intro">
                         <span class="texto-apoio">ETAPA 04</span>
-                        <h2>Venda e markup</h2>
+                        <h2>Venda e Markup</h2>
                         <p>Defina o markup e, se desejar, informe onde a peça será vendida.</p>
                     </div>
 
@@ -323,10 +323,12 @@
 
                         <div th:if="${configuracao != null and configuracao.markupFixo}">
                             <input type="hidden" th:field="*{markupPercentual}">
-                            <p>
+
+                            <div class="aviso-info">
+                                <i class="bi bi-info-circle"></i>
                                 Markup configurado:
-                                <strong th:text="${configuracao.markupPercentual + '%'}">30%</strong>
-                            </p>
+                                <strong th:text="${configuracao.markupPercentual + '%'}">35%</strong>
+                            </div>
                         </div>
 
                         <div th:unless="${configuracao != null and configuracao.markupFixo}"
@@ -409,10 +411,11 @@
                         <div class="plataforma-opcoes" data-opcoes-plataforma="SHOPEE" hidden>
                             <h4>Shopee</h4>
 
-                            <p class="aviso-info"
-                               th:unless="${configuracao != null and configuracao.formularioAvancado}">
+                            <div class="aviso-info"
+                                 th:unless="${configuracao != null and configuracao.formularioAvancado}">
+                                <i class="bi bi-info-circle"></i>
                                 O cálculo simples considera CPF, menos de 450 pedidos nos últimos 90 dias e não adiciona a taxa extra de R$ 3,00.
-                            </p>
+                            </div>
 
                             <div th:if="${configuracao != null and configuracao.formularioAvancado}">
                                 <div class="campo">
@@ -552,6 +555,7 @@
     });
 </script>
 
+<script th:src="@{/js/calculoEtapas.js}" defer></script>
 <script th:src="@{/js/calculoHistorico.js}" defer></script>
 <script th:src="@{/js/filamentosCalculo.js}" defer></script>
 </body>
