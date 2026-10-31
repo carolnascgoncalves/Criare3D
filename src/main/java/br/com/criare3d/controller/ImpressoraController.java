@@ -3,6 +3,7 @@ package br.com.criare3d.controller;
 import br.com.criare3d.dto.*;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Impressora;
+import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import jakarta.validation.Valid;
@@ -27,15 +28,21 @@ public class ImpressoraController {
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
 
+    @Autowired
+    private CatalogoBuscaService catalogoBuscaService;
+
     @GetMapping("/impressora/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("impressora/listar");
 
-        Page<Impressora> pagina = impressoraService.fetchAll(pageable);
+        Page<Impressora> pagina = busca.isBlank()
+                ? impressoraService.fetchAll(pageable)
+                : catalogoBuscaService.buscarImpressoras(busca.trim(), pageable);
 
         mv.addObject("impressoras", pagina.getContent());
         mv.addObject("pagina", pagina);
+        mv.addObject("busca", busca);
 
         return mv;
     }

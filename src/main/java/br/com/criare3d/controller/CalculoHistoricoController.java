@@ -2,8 +2,10 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
+import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.service.CalculoHistoricoServiceImp;
+import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,19 +15,21 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.math.BigDecimal;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Base64;
 import java.util.UUID;
-import br.com.criare3d.dto.ItemCalculoRequest;
 
 @Controller
 public class CalculoHistoricoController {
+
+    @Autowired
+    private CatalogoBuscaService catalogoBuscaService;
 
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
@@ -49,13 +53,19 @@ public class CalculoHistoricoController {
     private ConfiguracaoService configuracaoService;
 
     @GetMapping("/historico/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 5, sort = "dataCalculo", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @PageableDefault(page = 0, size = 5, sort = "dataCalculo", direction = Sort.Direction.DESC) Pageable pageable) {
+
         ModelAndView mv = new ModelAndView("historico/listar");
 
-        Page<CalculoHistorico> pagina = calculoHistoricoService.fetchAll(pageable);
+        Page<CalculoHistorico> pagina = busca.isBlank()
+                ? calculoHistoricoService.fetchAll(pageable)
+                : catalogoBuscaService.buscarHistorico(busca.trim(), pageable);
 
         mv.addObject("historicos", pagina.getContent());
         mv.addObject("pagina", pagina);
+        mv.addObject("busca", busca);
 
         return mv;
     }
@@ -85,8 +95,8 @@ public class CalculoHistoricoController {
     public ModelAndView calcular(
             @Valid @ModelAttribute("calculo") CalculoRequest request,
             BindingResult bd,
-            @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca
-    ) {
+            @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca) {
+
         try {
             aplicarFoto(request, fotoPeca);
 
@@ -104,21 +114,20 @@ public class CalculoHistoricoController {
             mv.addObject("calculo", request);
             mv.addObject("resultado", CalculoResponse.toDto(calculo));
             adicionarPreviewFoto(mv, request);
+
             return mv;
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | IOException e) {
             ModelAndView mv = new ModelAndView("historico/novo");
             mv.addObject("calculo", request);
-            mv.addObject("erro", e.getMessage());
+
+            mv.addObject("erro", e instanceof IOException
+                    ? "Não foi possível processar a foto. Tente selecionar a imagem novamente."
+                    : e.getMessage());
+
             adicionarPreviewFoto(mv, request);
             carregarDadosFormulario(mv);
-            return mv;
-        } catch (IOException e) {
-            ModelAndView mv = new ModelAndView("historico/novo");
-            mv.addObject("calculo", request);
-            mv.addObject("erro", "Não foi possível processar a foto. Tente selecionar a imagem novamente.");
-            adicionarPreviewFoto(mv, request);
-            carregarDadosFormulario(mv);
+
             return mv;
         }
     }
@@ -126,14 +135,19 @@ public class CalculoHistoricoController {
     @PostMapping("/historico/editar")
     public ModelAndView editar(@ModelAttribute("calculo") CalculoRequest request) {
         ModelAndView mv = new ModelAndView("historico/novo");
+
         mv.addObject("calculo", request);
         adicionarPreviewFoto(mv, request);
         carregarDadosFormulario(mv);
+
         return mv;
     }
 
     @PostMapping("/historico/salvar")
-    public ModelAndView salvar(@Valid @ModelAttribute("calculo") CalculoRequest request, BindingResult bd) {
+    public ModelAndView salvar(
+            @Valid @ModelAttribute("calculo") CalculoRequest request,
+            BindingResult bd) {
+
         ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
 
@@ -145,15 +159,19 @@ public class CalculoHistoricoController {
 
         try {
             CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
+
             calculo.setFotoPecaBase64(request.getFotoPecaBase64());
             calculo.setFotoPecaContentType(request.getFotoPecaContentType());
+
             calculoHistoricoService.create(calculo);
 
             return new ModelAndView("redirect:/historico/listar");
+
         } catch (IllegalArgumentException e) {
             mv.addObject("erro", e.getMessage());
             adicionarPreviewFoto(mv, request);
             carregarDadosFormulario(mv);
+
             return mv;
         }
     }
@@ -185,10 +203,15 @@ public class CalculoHistoricoController {
                         || contentType.equals("image/png")
                         || contentType.equals("image/webp")
         )) {
-            throw new IllegalArgumentException("Formato inválido. Envie uma imagem JPG, PNG ou WEBP.");
+            throw new IllegalArgumentException(
+                    "Formato inválido. Envie uma imagem JPG, PNG ou WEBP."
+            );
         }
 
-        request.setFotoPecaBase64(Base64.getEncoder().encodeToString(fotoPeca.getBytes()));
+        request.setFotoPecaBase64(
+                Base64.getEncoder().encodeToString(fotoPeca.getBytes())
+        );
+
         request.setFotoPecaContentType(contentType);
     }
 
@@ -196,9 +219,11 @@ public class CalculoHistoricoController {
         if (request.getFotoPecaBase64() != null
                 && !request.getFotoPecaBase64().isBlank()
                 && request.getFotoPecaContentType() != null) {
+
             mv.addObject(
                     "fotoPecaPreview",
-                    "data:" + request.getFotoPecaContentType() + ";base64," + request.getFotoPecaBase64()
+                    "data:" + request.getFotoPecaContentType()
+                            + ";base64," + request.getFotoPecaBase64()
             );
         }
     }
@@ -220,6 +245,7 @@ public class CalculoHistoricoController {
         }
 
         return new ModelAndView(
-                "redirect:/historico/listar?sucesso=historicoRemovido");
+                "redirect:/historico/listar?sucesso=historicoRemovido"
+        );
     }
 }

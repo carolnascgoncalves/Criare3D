@@ -1,7 +1,8 @@
-
 package br.com.criare3d.repository;
 
 import br.com.criare3d.models.CalculoHistorico;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,6 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
+
+    Page<CalculoHistorico> findByNomePecaContainingIgnoreCase(String nomePeca, Pageable pageable);
+
     long countByEmbalagem_Id(UUID embalagemId);
 
     long countByImpressora_Id(UUID impressoraId);

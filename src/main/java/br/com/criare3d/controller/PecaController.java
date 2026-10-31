@@ -4,6 +4,7 @@ import br.com.criare3d.dto.PecaRequest;
 import br.com.criare3d.dto.PecaResponse;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Peca;
+import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
 import jakarta.validation.Valid;
@@ -14,10 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
@@ -31,15 +29,21 @@ public class PecaController {
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
 
+    @Autowired
+    private CatalogoBuscaService catalogoBuscaService;
+
     @GetMapping("/peca/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("peca/listar");
 
-        Page<Peca> pagina = pecaService.fetchAll(pageable);
+        Page<Peca> pagina = busca.isBlank()
+                ? pecaService.fetchAll(pageable)
+                : catalogoBuscaService.buscarPecas(busca.trim(), pageable);
 
         mv.addObject("pecas", pagina.getContent());
         mv.addObject("pagina", pagina);
+        mv.addObject("busca", busca);
 
         return mv;
     }

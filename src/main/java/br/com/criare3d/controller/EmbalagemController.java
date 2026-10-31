@@ -4,6 +4,7 @@ import br.com.criare3d.dto.EmbalagemRequest;
 import br.com.criare3d.dto.EmbalagemResponse;
 import br.com.criare3d.dto.EmbalagemDadosRequest;
 import br.com.criare3d.models.Embalagem;
+import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import jakarta.validation.Valid;
@@ -27,16 +28,22 @@ public class EmbalagemController {
 
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
-    
+
+    @Autowired
+    private CatalogoBuscaService catalogoBuscaService;
+
     @GetMapping("/embalagem/listar")
-    public ModelAndView fetchAll(@PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("embalagem/listar");
 
-        Page<Embalagem> pagina = embalagemService.fetchAll(pageable);
+        Page<Embalagem> pagina = busca.isBlank()
+                ? embalagemService.fetchAll(pageable)
+                : catalogoBuscaService.buscarEmbalagens(busca.trim(), pageable);
 
         mv.addObject("embalagens", pagina.getContent());
         mv.addObject("pagina", pagina);
+        mv.addObject("busca", busca);
 
         return mv;
     }
