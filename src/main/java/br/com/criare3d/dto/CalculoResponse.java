@@ -53,12 +53,7 @@ public class CalculoResponse {
     private Boolean taxaCpfShopee;
     private Boolean freteGratisTikTok;
     private BigDecimal percentualAfiliado;
-
-    private String tipoPessoaShopee;
-    private Boolean mais450PedidosShopee;
-    private Boolean isencaoComissaoTikTok;
     private String faixaPesoPacote;
-    private Boolean formularioAvancado;
 
     private BigDecimal precoVendaPlataforma;
     private BigDecimal taxasPlataforma;
@@ -93,12 +88,9 @@ public class CalculoResponse {
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())
                 .itensFilamento(itens)
-                .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
-                .tipoPessoaShopee(calculo.getTipoPessoaShopee())
-                .mais450PedidosShopee(calculo.getMais450PedidosShopee())
-                .isencaoComissaoTikTok(calculo.getIsencaoComissaoTikTok())
-                .faixaPesoPacote(calculo.getFaixaPesoPacote())
-                .formularioAvancado(calculo.getFormularioAvancado())
+                .lucroEstimado(calculo.getPrecoSugerido()
+                        .subtract(calculo.getCustoTotal()))
+
                 .plataformaVenda(calculo.getPlataformaVenda())
                 .tipoAnuncio(calculo.getTipoAnuncio())
                 .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())
@@ -108,6 +100,7 @@ public class CalculoResponse {
                 .taxaCpfShopee(calculo.getTaxaCpfShopee())
                 .freteGratisTikTok(calculo.getFreteGratisTikTok())
                 .percentualAfiliado(calculo.getPercentualAfiliado())
+                .faixaPesoPacote(calculo.getFaixaPesoPacote())
                 .precoVendaPlataforma(calculo.getPrecoVendaPlataforma())
                 .taxasPlataforma(calculo.getTaxasPlataforma())
                 .lucroLiquido(calculo.getLucroLiquido())

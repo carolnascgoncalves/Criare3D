@@ -34,8 +34,6 @@
                 <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
             </div>
 
-            <!-- CUSTOS DE PRODUÇÃO -->
-
             <div class="resultado-grade">
                 <div class="resultado-item">
                     <span>Custo do filamento</span>
@@ -58,8 +56,6 @@
                 </div>
             </div>
 
-            <!-- PREÇO COM MARKUP -->
-
             <div class="preco-sugerido">
                 <span>Preço sugerido antes das taxas da plataforma</span>
                 <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
@@ -72,8 +68,6 @@
                     Lucro estimado: R$ 0,00
                 </small>
             </div>
-
-            <!-- DADOS DA PLATAFORMA -->
 
             <section class="detalhes-calculo"
                      th:if="${resultado.plataformaVenda != null and resultado.plataformaVenda != 'NENHUMA'}">
@@ -89,48 +83,46 @@
 
                 <div class="detalhe-linha" th:if="${resultado.tipoAnuncio != null}">
                     <span>Tipo de anúncio</span>
-                    <strong th:text="${resultado.tipoAnuncio}">Clássico</strong>
+                    <strong th:text="${resultado.tipoAnuncio == 'CLASSICO' ? 'Clássico' : 'Premium'}">
+                        Clássico
+                    </strong>
                 </div>
 
-                <div class="detalhe-linha"
-                     th:if="${resultado.tipoPessoaShopee != null}">
-                    <span>Cadastro Shopee</span>
-                    <strong th:text="${resultado.tipoPessoaShopee}">CPF</strong>
+                <div class="detalhe-linha">
+                    <span>Comissão da plataforma</span>
+                    <strong th:text="${resultado.percentualComissaoPlataforma != null ? #numbers.formatDecimal(resultado.percentualComissaoPlataforma, 1, 'COMMA', 2, 'POINT') + '%' : 'Não informada'}">
+                        12,00%
+                    </strong>
                 </div>
 
-                <div class="detalhe-linha"
-                     th:if="${resultado.mais450PedidosShopee == true}">
-                    <span>Mais de 450 pedidos nos últimos 90 dias</span>
-                    <strong>Sim</strong>
-                </div>
-
-                <div class="detalhe-linha"
-                     th:if="${resultado.faixaPesoPacote != null}">
+                <div class="detalhe-linha" th:if="${resultado.faixaPesoPacote != null}">
                     <span>Peso do pacote</span>
-                    <strong th:text="${resultado.faixaPesoPacote}">Até 300 g</strong>
+                    <strong th:text="${resultado.faixaPesoPacote == 'ATE_300G' ? 'Até 300 g' :
+                        resultado.faixaPesoPacote == 'DE_300G_500G' ? 'De 300 g a 500 g' :
+                        resultado.faixaPesoPacote == 'DE_500G_1KG' ? 'De 500 g a 1 kg' :
+                        resultado.faixaPesoPacote == 'DE_1KG_1_5KG' ? 'De 1 kg a 1,5 kg' :
+                        resultado.faixaPesoPacote == 'DE_1_5KG_2KG' ? 'De 1,5 kg a 2 kg' :
+                        resultado.faixaPesoPacote == 'DE_2KG_3KG' ? 'De 2 kg a 3 kg' :
+                        resultado.faixaPesoPacote == 'DE_3KG_4KG' ? 'De 3 kg a 4 kg' :
+                        resultado.faixaPesoPacote == 'DE_4KG_5KG' ? 'De 4 kg a 5 kg' :
+                        resultado.faixaPesoPacote}">
+                        De 300 g a 500 g
+                    </strong>
                 </div>
 
                 <div class="detalhe-linha"
-                     th:if="${resultado.freteGratisTikTok == true}">
-                    <span>Programa de frete grátis TikTok</span>
-                    <strong>Ativado</strong>
-                </div>
-
-                <div class="detalhe-linha"
-                     th:if="${resultado.isencaoComissaoTikTok == true}">
-                    <span>Isenção de comissão TikTok</span>
-                    <strong>Ativada</strong>
-                </div>
-
-                <div class="detalhe-linha"
-                     th:if="${resultado.percentualAfiliado != null and resultado.percentualAfiliado.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                    <span>Comissão de afiliado</span>
-                    <strong th:text="${#numbers.formatDecimal(resultado.percentualAfiliado, 1, 'COMMA', 2, 'POINT') + '%'}">10%</strong>
+                     th:if="${resultado.percentualImposto != null and resultado.percentualImposto.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                    <span>Imposto</span>
+                    <strong th:text="${#numbers.formatDecimal(resultado.percentualImposto, 1, 'COMMA', 2, 'POINT') + '%'}">
+                        6%
+                    </strong>
                 </div>
 
                 <div class="detalhe-linha">
                     <span>Total de taxas e custos da venda</span>
-                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.taxasPlataforma, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.taxasPlataforma, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 0,00
+                    </strong>
                 </div>
 
                 <div class="preco-sugerido">
@@ -138,18 +130,16 @@
                     <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoVendaPlataforma, 1, 'POINT', 2, 'COMMA')}">
                         R$ 0,00
                     </strong>
-                    <small>Valor calculado para cobrir os custos de produção, markup e taxas da plataforma.</small>
+                    <small>Valor calculado para cobrir os custos de produção, markup e taxas informadas.</small>
                 </div>
 
-                <div class="resultado-item resultado-total">
+                <div class="resultado-item resultado-total" style="margin-top: 20px;">
                     <span>Lucro líquido estimado</span>
                     <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.lucroLiquido, 1, 'POINT', 2, 'COMMA')}">
                         R$ 0,00
                     </strong>
                 </div>
             </section>
-
-            <!-- FILAMENTOS UTILIZADOS -->
 
             <div class="detalhes-calculo">
                 <h3>Filamentos utilizados</h3>
@@ -189,14 +179,9 @@
                 </div>
             </div>
 
-            <!-- AÇÕES -->
-
             <div class="acoes-resultado">
 
-                <form th:action="@{/historico/salvar}"
-                      th:object="${calculo}"
-                      method="post">
-
+                <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
 
                     <th:block th:each="item, stat : *{filamentos}">
@@ -221,10 +206,11 @@
                     <input type="hidden" th:field="*{percentualImposto}">
                     <input type="hidden" th:field="*{freteVendedor}">
                     <input type="hidden" th:field="*{taxaCpfShopee}">
-                    <input type="hidden" th:field="*{tipoPessoaShopee}">
-                    <input type="hidden" th:field="*{mais450PedidosShopee}">
                     <input type="hidden" th:field="*{freteGratisTikTok}">
                     <input type="hidden" th:field="*{percentualAfiliado}">
+
+                    <input type="hidden" th:field="*{tipoPessoaShopee}">
+                    <input type="hidden" th:field="*{mais450PedidosShopee}">
                     <input type="hidden" th:field="*{isencaoComissaoTikTok}">
                     <input type="hidden" th:field="*{faixaPesoPacote}">
 
@@ -233,10 +219,7 @@
                     </button>
                 </form>
 
-                <form th:action="@{/historico/editar}"
-                      th:object="${calculo}"
-                      method="post">
-
+                <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
 
                     <th:block th:each="item, stat : *{filamentos}">
@@ -261,10 +244,11 @@
                     <input type="hidden" th:field="*{percentualImposto}">
                     <input type="hidden" th:field="*{freteVendedor}">
                     <input type="hidden" th:field="*{taxaCpfShopee}">
-                    <input type="hidden" th:field="*{tipoPessoaShopee}">
-                    <input type="hidden" th:field="*{mais450PedidosShopee}">
                     <input type="hidden" th:field="*{freteGratisTikTok}">
                     <input type="hidden" th:field="*{percentualAfiliado}">
+
+                    <input type="hidden" th:field="*{tipoPessoaShopee}">
+                    <input type="hidden" th:field="*{mais450PedidosShopee}">
                     <input type="hidden" th:field="*{isencaoComissaoTikTok}">
                     <input type="hidden" th:field="*{faixaPesoPacote}">
 
@@ -273,9 +257,7 @@
                     </button>
                 </form>
 
-                <a th:href="@{/historico/novo}" class="botao botao-secundario">
-                    Novo cálculo
-                </a>
+                <a th:href="@{/historico/novo}" class="botao botao-secundario">Novo cálculo</a>
             </div>
         </div>
     </section>

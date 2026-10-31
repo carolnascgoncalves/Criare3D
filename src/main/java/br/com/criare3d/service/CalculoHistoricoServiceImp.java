@@ -450,15 +450,27 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         historico.setPlataformaVenda(plataforma);
         historico.setTipoAnuncio(tipoAnuncio);
-        historico.setPercentualComissaoPlataforma(
-                "MERCADO_LIVRE".equals(plataforma)
-                        ? ("CLASSICO".equals(tipoAnuncio) && !avancado
-                        ? new BigDecimal("14.00")
-                        : "PREMIUM".equals(tipoAnuncio) && !avancado
-                        ? new BigDecimal("19.00")
-                        : comissaoInformada)
-                        : comissaoInformada
-        );
+        BigDecimal comissaoExibida = switch (plataforma) {
+            case "SHOPEE" -> precoVenda.compareTo(new BigDecimal("79.99")) <= 0
+                    ? new BigDecimal("20.00")
+                    : new BigDecimal("14.00");
+
+            case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok
+                    ? ZERO
+                    : precoVenda.compareTo(new BigDecimal("50.00")) < 0
+                    ? new BigDecimal("10.00")
+                    : new BigDecimal("6.00");
+
+            case "MERCADO_LIVRE" -> avancado
+                    ? comissaoInformada
+                    : "PREMIUM".equals(tipoAnuncio)
+                    ? new BigDecimal("19.00")
+                    : new BigDecimal("14.00");
+
+            default -> ZERO;
+        };
+
+        historico.setPercentualComissaoPlataforma(comissaoExibida);
 
         historico.setCustoAdicionalPlataforma(adicional);
         historico.setPercentualImposto(imposto);
@@ -714,22 +726,16 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     ) {
         int coluna;
 
-        if (preco.compareTo(new BigDecimal("19.00")) >= 0
-                && preco.compareTo(new BigDecimal("48.99")) <= 0) {
+        if (preco.compareTo(new BigDecimal("48.99")) <= 0) {
             coluna = 0;
-        } else if (preco.compareTo(new BigDecimal("49.00")) >= 0
-                && preco.compareTo(new BigDecimal("78.99")) <= 0) {
+        } else if (preco.compareTo(new BigDecimal("78.99")) <= 0) {
             coluna = 1;
-        } else if (preco.compareTo(new BigDecimal("79.00")) >= 0
-                && preco.compareTo(new BigDecimal("99.99")) <= 0) {
+        } else if (preco.compareTo(new BigDecimal("99.99")) <= 0) {
             coluna = 2;
-        } else if (preco.compareTo(new BigDecimal("100.00")) >= 0
-                && preco.compareTo(new BigDecimal("119.99")) <= 0) {
+        } else if (preco.compareTo(new BigDecimal("119.99")) <= 0) {
             coluna = 3;
         } else {
-            throw new IllegalArgumentException(
-                    "Faixa de preço do Mercado Livre ainda não configurada."
-            );
+            throw new IllegalArgumentException("Faixa de preço do Mercado Livre ainda não configurada.");
         }
 
         BigDecimal[][] tabela = {
@@ -833,4 +839,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public boolean existsById(UUID id) {
         return calculoHistoricoRepository.existsById(id);
     }
+
+
 }
