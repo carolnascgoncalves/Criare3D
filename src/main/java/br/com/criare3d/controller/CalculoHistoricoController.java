@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -55,17 +57,23 @@ public class CalculoHistoricoController {
     @GetMapping("/historico/listar")
     public ModelAndView fetchAll(
             @RequestParam(name = "busca", defaultValue = "") String busca,
-            @PageableDefault(page = 0, size = 5, sort = "dataCalculo", direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestParam(name = "data", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @PageableDefault(page = 0, size = 5, sort = "dataCalculo", direction = Sort.Direction.DESC)
+            Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("historico/listar");
 
-        Page<CalculoHistorico> pagina = busca.isBlank()
-                ? calculoHistoricoService.fetchAll(pageable)
-                : catalogoBuscaService.buscarHistorico(busca.trim(), pageable);
+        Page<CalculoHistorico> pagina = catalogoBuscaService.buscarHistorico(
+                busca.trim(),
+                data,
+                pageable
+        );
 
         mv.addObject("historicos", pagina.getContent());
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
+        mv.addObject("data", data);
 
         return mv;
     }

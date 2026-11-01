@@ -44,16 +44,19 @@
             </span>
         </div>
 
-        <form th:action="@{/peca/listar}" method="get" class="busca-listagem">
-            <div class="busca-listagem-campo">
+        <form th:action="@{/peca/listar}" method="get" class="busca-filamentos">
+            <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
                 <input type="search" name="busca" th:value="${busca}"
                        placeholder="Pesquisar pelo nome da peça..."
                        aria-label="Pesquisar pelo nome da peça">
             </div>
-            <button type="submit" class="botao botao-secundario">Pesquisar</button>
+
+            <button type="submit" class="botao botao-principal">Pesquisar</button>
+
             <a th:if="${busca != null and !busca.isBlank()}"
-               th:href="@{/peca/listar}" class="botao-limpar-busca">Limpar</a>
+               th:href="@{/peca/listar}"
+               class="botao botao-secundario">Limpar</a>
         </form>
 
         <div class="tabela-container"

@@ -344,3 +344,13 @@
 .detalhes-identificacao-peca .detalhes-titulo-peca {
     color: #492e1e !important;
 }
+/* LUCRO LÍQUIDO NO RESULTADO DO CÁLCULO */
+
+.resultado-item.resultado-lucro-liquido {
+    background: #e4f4e5 !important;
+    border-color: #b7dfbc !important;
+}
+
+.resultado-item.resultado-lucro-liquido strong {
+    color: #245b35;
+}

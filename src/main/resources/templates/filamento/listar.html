@@ -44,16 +44,18 @@
             </span>
         </div>
 
-        <form th:action="@{/filamento/listar}" method="get" class="busca-listagem">
-            <div class="busca-listagem-campo">
+        <form th:action="@{/filamento/listar}" method="get" class="busca-filamentos">
+            <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
-                <input type="search" name="busca" th:value="${busca}"
-                       placeholder="Pesquisar pelo nome do filamento..."
-                       aria-label="Pesquisar pelo nome do filamento">
+                <input type="text"
+                       name="busca"
+                       th:value="${busca}"
+                       placeholder="Buscar por nome ou cor..."
+                       aria-label="Buscar filamentos por nome ou cor">
             </div>
-            <button type="submit" class="botao botao-secundario">Pesquisar</button>
-            <a th:if="${busca != null and !busca.isBlank()}"
-               th:href="@{/filamento/listar}" class="botao-limpar-busca">Limpar</a>
+
+            <button type="submit" class="botao botao-principal">Pesquisar</button>
+            <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/filamento/listar}" class="botao botao-limpar-busca">Limpar</a>
         </form>
 
         <div class="tabela-container"
@@ -144,12 +146,18 @@
             </span>
         </div>
 
-        <div class="estado-vazio"
-             th:if="${#lists.isEmpty(filamentos) and busca != null and !busca.isBlank()}">
-            <i class="bi bi-search"></i>
-            <h3>Nenhum resultado encontrado</h3>
-            <p>Não encontramos filamentos com esse nome. Tente outra pesquisa.</p>
+        <div class="estado-vazio" th:if="${#lists.isEmpty(filamentos) and busca != null and !#strings.isEmpty(busca)}">
+            <span class="estado-vazio-icone"><i class="bi bi-search"></i></span>
+            <h3>Nenhum filamento encontrado</h3>
+            <p th:text="${'Não encontramos filamentos para ' + busca + '. Tente pesquisar por outro nome ou cor.'}">Nenhum resultado para a busca.</p>
             <a th:href="@{/filamento/listar}" class="botao botao-secundario">Limpar pesquisa</a>
+        </div>
+
+        <div class="estado-vazio" th:if="${#lists.isEmpty(filamentos) and (busca == null or #strings.isEmpty(busca))}">
+            <span class="estado-vazio-icone"><i class="bi bi-palette"></i></span>
+            <h3>Nenhum filamento cadastrado</h3>
+            <p>Cadastre seu primeiro filamento para organizar seus materiais.</p>
+            <a th:href="@{/filamento/novo}" class="botao botao-principal">Cadastrar filamento</a>
         </div>
     </section>
 </main>

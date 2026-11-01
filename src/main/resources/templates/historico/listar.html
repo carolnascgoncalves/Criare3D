@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 
@@ -38,8 +39,9 @@
             </span>
         </div>
 
-        <form th:action="@{/historico/listar}" method="get" class="busca-listagem">
-            <div class="busca-listagem-campo">
+        <form th:action="@{/historico/listar}" method="get" class="busca-filamentos">
+
+            <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
                 <input type="search"
                        name="busca"
@@ -48,30 +50,63 @@
                        aria-label="Pesquisar pelo nome da peça">
             </div>
 
-            <button type="submit" class="botao botao-secundario">
+            <div class="busca-listagem-data">
+                <i class="bi bi-calendar3"></i>
+                <input type="date"
+                       name="data"
+                       th:value="${data}"
+                       title="Filtrar cálculos por data"
+                       aria-label="Filtrar cálculos por data">
+            </div>
+
+            <button type="submit" class="botao botao-principal">
                 Pesquisar
             </button>
 
-            <a th:if="${busca != null and !busca.isBlank()}"
+            <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
                th:href="@{/historico/listar}"
-               class="botao-limpar-busca">
+               class="botao botao-secundario">
                 Limpar
             </a>
         </form>
 
         <div class="historico-conteudo">
+
             <div class="historico-vazio"
-                 th:if="${#lists.isEmpty(historicos) and busca != null and !busca.isBlank()}">
+                 th:if="${#lists.isEmpty(historicos)}">
 
                 <div class="historico-vazio-icone">
-                    <i class="bi bi-search"></i>
+                    <i class="bi bi-search"
+                       th:if="${(busca != null and !busca.isBlank()) or data != null}"></i>
+
+                    <i class="bi bi-calendar-x"
+                       th:unless="${(busca != null and !busca.isBlank()) or data != null}"></i>
                 </div>
 
                 <h3>Nenhum cálculo encontrado</h3>
-                <p>Não encontramos peças com esse nome. Tente pesquisar novamente.</p>
 
-                <a th:href="@{/historico/listar}" class="botao botao-secundario">
-                    Limpar pesquisa
+                <p th:if="${data != null and busca != null and !busca.isBlank()}">
+                    Não encontramos cálculos com esse nome nessa data.
+                    Tente alterar os filtros.
+                </p>
+
+                <p th:if="${data != null and (busca == null or busca.isBlank())}">
+                    Não existem cálculos registrados nessa data.
+                    Experimente selecionar outro dia.
+                </p>
+
+                <p th:if="${data == null and busca != null and !busca.isBlank()}">
+                    Não encontramos peças com esse nome. Tente pesquisar novamente.
+                </p>
+
+                <p th:if="${data == null and (busca == null or busca.isBlank())}">
+                    Nenhum cálculo foi registrado ainda.
+                </p>
+
+                <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
+                   th:href="@{/historico/listar}"
+                   class="botao botao-secundario">
+                    Limpar filtros
                 </a>
             </div>
 
@@ -96,7 +131,11 @@
                                      th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
                                      th:alt="|Foto de ${historico.nomePeca}|">
 
-                                <span class="peca-historico-icone" th:unless="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"><i class="bi bi-image"></i></span>
+                                <span class="peca-historico-icone"
+                                      th:unless="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}">
+                                    <i class="bi bi-image"></i>
+                                </span>
+
                                 <strong th:text="${historico.nomePeca}">Nome da peça</strong>
                             </div>
                         </td>
@@ -148,7 +187,7 @@
                  th:if="${pagina.totalPages > 1}">
 
                 <a th:if="${pagina.hasPrevious()}"
-                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca})}"
+                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data})}"
                    title="Página anterior"
                    aria-label="Página anterior">
                     <i class="bi bi-chevron-left"></i>
@@ -164,7 +203,7 @@
                 </span>
 
                 <a th:if="${pagina.hasNext()}"
-                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca})}"
+                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data})}"
                    title="Próxima página"
                    aria-label="Próxima página">
                     <i class="bi bi-chevron-right"></i>

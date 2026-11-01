@@ -1,7 +1,6 @@
 package br.com.criare3d.service.interfaces;
 
 import br.com.criare3d.models.Filamento;
-import br.com.criare3d.models.Impressora;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -13,6 +12,7 @@ public interface FilamentoService {
     Optional<Filamento> update(UUID id, Filamento filamento);
     void delete(UUID id);
     Page<Filamento> fetchAll(Pageable pageable);
+    Page<Filamento> fetchAll(Pageable pageable, String busca);
     Optional<Filamento> fetchById(UUID id);
     boolean existsById(UUID id);
 }

@@ -7,12 +7,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
 
     Page<CalculoHistorico> findByNomePecaContainingIgnoreCase(String nomePeca, Pageable pageable);
+
+    Page<CalculoHistorico> findByDataCalculoGreaterThanEqualAndDataCalculoLessThan(LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
+
+    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThan(String nomePeca, LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
 
     long countByEmbalagem_Id(UUID embalagemId);
 

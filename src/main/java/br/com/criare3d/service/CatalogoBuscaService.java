@@ -6,6 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @Service
 public class CatalogoBuscaService {
 
@@ -44,7 +47,26 @@ public class CatalogoBuscaService {
         return embalagemRepository.findByNomeContainingIgnoreCase(nome, pageable);
     }
 
-    public Page<CalculoHistorico> buscarHistorico(String nome, Pageable pageable) {
-        return calculoHistoricoRepository.findByNomePecaContainingIgnoreCase(nome, pageable);
+    public Page<CalculoHistorico> buscarHistorico(String nome, LocalDate data, Pageable pageable) {
+
+        boolean temNome = nome != null && !nome.isBlank();
+
+        if (data == null && !temNome) {
+            return calculoHistoricoRepository.findAll(pageable);
+        }
+
+        if (data == null) {
+            return calculoHistoricoRepository.findByNomePecaContainingIgnoreCase(nome.trim(), pageable);
+        }
+
+        LocalDateTime inicio = data.atStartOfDay();
+        LocalDateTime fim = data.plusDays(1).atStartOfDay();
+
+        if (!temNome) {
+            return calculoHistoricoRepository.findByDataCalculoGreaterThanEqualAndDataCalculoLessThan(
+                    inicio, fim, pageable);
+        }
+
+        return calculoHistoricoRepository.findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThan(nome.trim(), inicio, fim, pageable);
     }
 }

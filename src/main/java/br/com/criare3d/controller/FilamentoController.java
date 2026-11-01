@@ -3,9 +3,7 @@ package br.com.criare3d.controller;
 import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.FilamentoResponse;
 import br.com.criare3d.dto.FilamentoDadosRequest;
-import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.models.Filamento;
-import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import jakarta.validation.Valid;
@@ -30,21 +28,18 @@ public class FilamentoController {
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
 
-    @Autowired
-    private CatalogoBuscaService catalogoBuscaService;
-
     @GetMapping("/filamento/listar")
-    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(
+            @RequestParam(name = "busca", required = false) String busca,
+            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("filamento/listar");
 
-        Page<Filamento> pagina = busca.isBlank()
-                ? filamentoService.fetchAll(pageable)
-                : catalogoBuscaService.buscarFilamentos(busca.trim(), pageable);
+        Page<Filamento> pagina = filamentoService.fetchAll(pageable, busca);
 
         mv.addObject("filamentos", pagina.getContent());
         mv.addObject("pagina", pagina);
-        mv.addObject("busca", busca);
+        mv.addObject("busca", busca == null ? "" : busca);
 
         return mv;
     }

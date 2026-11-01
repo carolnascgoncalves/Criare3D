@@ -152,7 +152,8 @@
                     <small>Valor calculado para cobrir os custos de produção, markup e taxas informadas.</small>
                 </div>
 
-                <div class="resultado-item resultado-total" style="margin-top: 20px;">
+                <div class="resultado-item resultado-total resultado-lucro-liquido detalhes-preco-lucro"
+                     style="margin-top: 20px;">
                     <span>Lucro líquido estimado</span>
                     <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.lucroLiquido, 1, 'POINT', 2, 'COMMA')}">
                         R$ 0,00

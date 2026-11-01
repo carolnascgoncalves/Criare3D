@@ -1173,3 +1173,225 @@ input[type="color"]:focus {
 .paginacao-info strong {
     color: #492e1e;
 }
+
+/* BUSCA DE FILAMENTOS */
+
+.busca-filamentos {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 22px 0;
+}
+
+.busca-filamentos-campo {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.busca-filamentos-campo i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    color: var(--marrom-claro);
+    transform: translateY(-50%);
+}
+
+.busca-filamentos-campo input {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 46px;
+    box-sizing: border-box;
+    border-radius: 9px;
+}
+
+.busca-filamentos-campo input:focus {
+    border-color: var(--destaque);
+    outline: 3px solid rgba(233, 166, 149, 0.2);
+}
+
+@media (max-width: 600px) {
+    .busca-filamentos {
+        align-items: stretch;
+        flex-wrap: wrap;
+    }
+
+    .busca-filamentos-campo {
+        flex-basis: 100%;
+    }
+
+    .busca-filamentos > button,
+    .busca-filamentos > a {
+        flex: 1;
+    }
+}
+
+/* FILTRO POR DATA NO HISTÓRICO */
+.busca-listagem-data {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 170px;
+}
+
+.busca-listagem-data i {
+    position: absolute;
+    left: 13px;
+    color: var(--marrom-claro);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.busca-listagem-data input {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px 10px 38px;
+    border: 1px solid var(--borda);
+    border-radius: 9px;
+    background: #fffaf6;
+    color: var(--marrom);
+    font: inherit;
+}
+
+.busca-listagem-data input:focus {
+    border-color: var(--destaque);
+    outline: 3px solid rgba(233, 166, 149, 0.2);
+}
+
+@media (max-width: 600px) {
+    .busca-listagem-data {
+        flex: 1 1 100%;
+    }
+}
+
+/* AJUSTE DA BUSCA DE FILAMENTOS */
+.busca-filamentos {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+}
+
+.busca-filamentos-campo {
+    flex: 1;
+    min-width: 0;
+}
+
+.busca-filamentos-campo input {
+    display: block;
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    border-radius: 9px;
+}
+
+.busca-filamentos button {
+    white-space: nowrap;
+}
+
+.busca-filamentos .botao-limpar-busca,
+.busca-filamentos .botao-secundario {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.busca-filamentos .botao-limpar-busca:hover,
+.busca-filamentos .botao-secundario:hover {
+    background: transparent;
+    border-color: transparent;
+}
+
+@media (max-width: 600px) {
+    .busca-filamentos {
+        flex-wrap: wrap;
+    }
+
+    .busca-filamentos-campo {
+        flex-basis: 100%;
+    }
+}
+/* BUSCA DE FILAMENTOS */
+
+.busca-filamentos {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin: 22px 0;
+}
+
+.busca-filamentos-campo {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.busca-filamentos-campo i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    color: var(--marrom-claro);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.busca-filamentos-campo input {
+    display: block;
+    width: 100%;
+    max-width: none;
+    min-height: 46px;
+    margin: 0;
+    padding: 11px 14px 11px 42px;
+    border: 1px solid var(--borda);
+    border-radius: 9px;
+    background: #fffaf6;
+    color: var(--marrom);
+    font: inherit;
+    box-sizing: border-box;
+}
+
+.busca-filamentos-campo input:focus {
+    border-color: var(--destaque);
+    outline: 3px solid rgba(233, 166, 149, 0.2);
+}
+
+.busca-filamentos .botao-principal {
+    flex-shrink: 0;
+    min-height: 46px;
+    padding: 12px 20px;
+    background: var(--destaque);
+    color: var(--marrom);
+    white-space: nowrap;
+}
+
+.busca-filamentos .botao-limpar-busca {
+    flex-shrink: 0;
+    padding: 12px 10px;
+    border: none;
+    background: transparent;
+    color: var(--marrom-claro);
+    white-space: nowrap;
+}
+
+.busca-filamentos .botao-limpar-busca:hover {
+    background: transparent;
+    color: var(--marrom);
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .busca-filamentos {
+        flex-wrap: wrap;
+    }
+
+    .busca-filamentos-campo {
+        flex-basis: 100%;
+    }
+
+    .busca-filamentos .botao-principal,
+    .busca-filamentos .botao-limpar-busca {
+        flex: 1;
+    }
+}
