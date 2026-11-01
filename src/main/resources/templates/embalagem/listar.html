@@ -44,6 +44,18 @@
             </span>
         </div>
 
+        <form th:action="@{/embalagem/listar}" method="get" class="busca-listagem">
+            <div class="busca-listagem-campo">
+                <i class="bi bi-search"></i>
+                <input type="search" name="busca" th:value="${busca}"
+                       placeholder="Pesquisar pelo nome da embalagem..."
+                       aria-label="Pesquisar pelo nome da embalagem">
+            </div>
+            <button type="submit" class="botao botao-secundario">Pesquisar</button>
+            <a th:if="${busca != null and !busca.isBlank()}"
+               th:href="@{/embalagem/listar}" class="botao-limpar-busca">Limpar</a>
+        </form>
+
         <div class="tabela-container"
              th:if="${!#lists.isEmpty(embalagens)}">
             <table class="tabela">
@@ -100,7 +112,7 @@
 
         <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
             <a th:if="${pagina.hasPrevious()}"
-               th:href="@{/embalagem/listar(page=${pagina.number - 1})}"
+               th:href="@{/embalagem/listar(page=${pagina.number - 1}, busca=${busca})}"
                class="paginacao-seta"
                aria-label="Página anterior">
                 <i class="bi bi-chevron-left"></i>
@@ -117,7 +129,7 @@
             </span>
 
             <a th:if="${pagina.hasNext()}"
-               th:href="@{/embalagem/listar(page=${pagina.number + 1})}"
+               th:href="@{/embalagem/listar(page=${pagina.number + 1}, busca=${busca})}"
                class="paginacao-seta"
                aria-label="Próxima página">
                 <i class="bi bi-chevron-right"></i>
@@ -130,15 +142,11 @@
         </div>
 
         <div class="estado-vazio"
-             th:if="${#lists.isEmpty(embalagens)}">
-            <span class="estado-vazio-icone">
-                <i class="bi bi-inbox"></i>
-            </span>
-            <h3>Nenhuma embalagem por aqui</h3>
-            <p>Cadastre sua primeira embalagem para organizar os custos do seu catálogo.</p>
-            <a th:href="@{/embalagem/novo}" class="botao botao-principal">
-                Cadastrar primeira embalagem
-            </a>
+             th:if="${#lists.isEmpty(embalagens) and busca != null and !busca.isBlank()}">
+            <i class="bi bi-search"></i>
+            <h3>Nenhum resultado encontrado</h3>
+            <p>Não encontramos embalagens com esse nome. Tente outra pesquisa.</p>
+            <a th:href="@{/embalagem/listar}" class="botao botao-secundario">Limpar pesquisa</a>
         </div>
     </section>
 </main>

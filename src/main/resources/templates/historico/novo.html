@@ -295,9 +295,21 @@
                                step="1"
                                required>
                         <small>Informe o tempo total estimado da impressão em minutos.</small>
-                        <div class="erro-campo"
-                             th:if="${#fields.hasErrors('tempoImpressaoMinutos')}"
-                             th:errors="*{tempoImpressaoMinutos}"></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
+                    </div>
+
+                    <div id="resumoTempoImpressao" class="resumo-tempo-impressao" hidden>
+                        <div class="resumo-tempo-impressao-cabecalho">
+                            <span class="texto-apoio">COMPARAÇÃO COM O CADASTRO DA PEÇA</span>
+                            <strong id="statusTempoImpressao" class="consumo-dentro">
+                                Tempo dentro do esperado
+                            </strong>
+                        </div>
+
+                        <div class="resumo-tempo-impressao-valores">
+                            <span>Tempo informado:<strong id="tempoInformadoResumo">0 min</strong></span>
+                            <span>Tempo previsto:<strong id="tempoPrevistoResumo">0 min</strong></span>
+                        </div>
                     </div>
 
                     <div class="formulario-acoes">

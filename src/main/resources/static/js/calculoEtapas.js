@@ -30,6 +30,23 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Permite voltar diretamente para qualquer etapa pelo indicador superior.
+    etapas.forEach(etapa => {
+        etapa.setAttribute("role", "button");
+        etapa.setAttribute("tabindex", "0");
+
+        etapa.addEventListener("click", () => {
+            mostrarEtapa(Number(etapa.dataset.etapa));
+        });
+
+        etapa.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                mostrarEtapa(Number(etapa.dataset.etapa));
+            }
+        });
+    });
+
     function validarEtapa() {
         const conteudo = document.querySelector(`[data-conteudo="${etapaAtual}"]`);
 
@@ -82,7 +99,54 @@ document.addEventListener("DOMContentLoaded", () => {
         document.dispatchEvent(new Event("pecaSelecionada"));
     }
 
-    pecaSelect.addEventListener("change", preencherDadosPeca);
+    // Comparação entre o tempo cadastrado na peça e o tempo informado.
+    const resumoTempo = document.getElementById("resumoTempoImpressao");
+    const statusTempo = document.getElementById("statusTempoImpressao");
+    const tempoInformadoResumo = document.getElementById("tempoInformadoResumo");
+    const tempoPrevistoResumo = document.getElementById("tempoPrevistoResumo");
+
+    function atualizarResumoTempo() {
+        if (!resumoTempo || !statusTempo || !tempoInput || !pecaSelect) return;
+
+        const opcao = pecaSelect.selectedOptions[0];
+        const previsto = Number(opcao?.dataset.tempo) || 0;
+        const informado = Number(tempoInput.value) || 0;
+
+        if (!pecaSelect.value || previsto <= 0 || informado <= 0) {
+            resumoTempo.hidden = true;
+            return;
+        }
+
+        resumoTempo.hidden = false;
+        tempoInformadoResumo.textContent = `${informado} min`;
+        tempoPrevistoResumo.textContent = `${previsto} min`;
+
+        let classe;
+        let mensagem;
+
+        if (informado < previsto) {
+            classe = "consumo-abaixo";
+            mensagem = "Tempo abaixo do esperado";
+        } else if (informado > previsto) {
+            classe = "consumo-acima";
+            mensagem = "Tempo acima do esperado";
+        } else {
+            classe = "consumo-dentro";
+            mensagem = "Tempo dentro do esperado";
+        }
+
+        statusTempo.textContent = mensagem;
+        statusTempo.classList.remove("consumo-dentro", "consumo-acima", "consumo-abaixo");
+        statusTempo.classList.add(classe);
+    }
+
+    pecaSelect.addEventListener("change", () => {
+        preencherDadosPeca();
+        atualizarResumoTempo();
+    });
+
+    tempoInput?.addEventListener("input", atualizarResumoTempo);
+    atualizarResumoTempo();
 
     function configurarCadastroRapido(idSelect, rota) {
         const select = document.getElementById(idSelect);
@@ -176,68 +240,71 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
-    mostrarEtapa(1);
-
-    // Pré-visualização da foto opcional da peça.
+    // Foto opcional: a miniatura substitui o botão de adicionar enquanto houver imagem.
     const fotoInput = document.getElementById("fotoPeca");
+    const fotoControle = document.getElementById("fotoPecaControle");
     const fotoPreview = document.getElementById("fotoPecaPreview");
     const fotoMiniatura = document.getElementById("fotoPecaMiniatura");
     const removerFoto = document.getElementById("removerFotoPeca");
     const fotoBase64 = document.getElementById("fotoPecaBase64");
     const fotoContentType = document.getElementById("fotoPecaContentType");
 
-    function mostrarFoto(src) {
-        if (!fotoPreview || !fotoMiniatura) return;
-
-        fotoMiniatura.src = src;
-        fotoPreview.classList.add("visivel");
-    }
-
     function limparFoto() {
         if (fotoInput) fotoInput.value = "";
         if (fotoBase64) fotoBase64.value = "";
         if (fotoContentType) fotoContentType.value = "";
 
-        if (fotoPreview) fotoPreview.classList.remove("visivel");
+        fotoControle?.classList.remove("com-foto");
+        fotoPreview?.classList.remove("visivel");
+
         if (fotoMiniatura) fotoMiniatura.removeAttribute("src");
     }
 
-    if (fotoInput) {
-        fotoInput.addEventListener("change", () => {
-            const arquivo = fotoInput.files[0];
+    function mostrarFoto(src) {
+        if (!src || !fotoMiniatura) return;
 
-            if (!arquivo) return;
-
-            const formatosPermitidos = ["image/jpeg", "image/png", "image/webp"];
-
-            if (!formatosPermitidos.includes(arquivo.type)) {
-                alert("Selecione uma imagem JPG, PNG ou WEBP.");
-                limparFoto();
-                return;
-            }
-
-            if (arquivo.size > 3 * 1024 * 1024) {
-                alert("A foto deve ter no máximo 3 MB.");
-                limparFoto();
-                return;
-            }
-
-            // Ao escolher uma nova imagem, substitui a anterior.
-            if (fotoBase64) fotoBase64.value = "";
-            if (fotoContentType) fotoContentType.value = "";
-
-            const leitor = new FileReader();
-
-            leitor.onload = evento => mostrarFoto(evento.target.result);
-            leitor.readAsDataURL(arquivo);
-        });
+        fotoMiniatura.src = src;
+        fotoPreview?.classList.add("visivel");
+        fotoControle?.classList.add("com-foto");
     }
+
+    fotoInput?.addEventListener("change", () => {
+        const arquivo = fotoInput.files[0];
+
+        if (!arquivo) return;
+
+        if (fotoBase64) fotoBase64.value = "";
+        if (fotoContentType) fotoContentType.value = "";
+
+        const formatos = ["image/jpeg", "image/png", "image/webp"];
+
+        if (!formatos.includes(arquivo.type)) {
+            alert("Selecione uma imagem JPG, PNG ou WEBP.");
+            limparFoto();
+            return;
+        }
+
+        if (arquivo.size > 3 * 1024 * 1024) {
+            alert("A foto deve ter no máximo 3 MB.");
+            limparFoto();
+            return;
+        }
+
+        const leitor = new FileReader();
+
+        leitor.onload = evento => {
+            mostrarFoto(evento.target.result);
+        };
+
+        leitor.readAsDataURL(arquivo);
+    });
 
     removerFoto?.addEventListener("click", limparFoto);
 
-    // Ao voltar da tela de resultado para editar, mantém a miniatura salva no formulário.
     if (fotoBase64?.value && fotoContentType?.value) {
         mostrarFoto(`data:${fotoContentType.value};base64,${fotoBase64.value}`);
     }
+
+    // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
+    mostrarEtapa(1);
 });

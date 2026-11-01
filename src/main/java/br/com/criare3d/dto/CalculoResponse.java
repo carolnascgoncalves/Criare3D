@@ -39,6 +39,9 @@ public class CalculoResponse {
     private BigDecimal precoSugerido;
     private LocalDateTime dataCalculo;
 
+    private String fotoPecaBase64;
+    private String fotoPecaContentType;
+
     private List<ItemCalculoResponse> itensFilamento;
 
     private BigDecimal lucroEstimado;
@@ -88,9 +91,9 @@ public class CalculoResponse {
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())
                 .itensFilamento(itens)
-                .lucroEstimado(calculo.getPrecoSugerido()
-                        .subtract(calculo.getCustoTotal()))
-
+                .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
+                .fotoPecaBase64(calculo.getFotoPecaBase64())
+                .fotoPecaContentType(calculo.getFotoPecaContentType())
                 .plataformaVenda(calculo.getPlataformaVenda())
                 .tipoAnuncio(calculo.getTipoAnuncio())
                 .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())

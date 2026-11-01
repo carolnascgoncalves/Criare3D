@@ -20,7 +20,12 @@
         <div class="detalhes-cartao-cabecalho">
             <div class="detalhes-identificacao-peca">
                 <span class="detalhes-etiqueta">PEÇA</span>
-                <h2 class="detalhes-titulo-peca" th:text="${historico.nomePeca}">Nome da peça</h2>
+                <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
+
+                <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
+                     th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
+                     alt="Foto da peça"
+                     class="detalhes-foto-peca">
             </div>
             <div class="detalhes-data">
                 <span>Data do cálculo</span>
