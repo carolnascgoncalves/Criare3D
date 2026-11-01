@@ -3,6 +3,46 @@
 
 <head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const botaoAbrir = document.getElementById("abrirFotoPeca");
+        const modal = document.getElementById("modalFotoPeca");
+        const botaoFechar = document.getElementById("fecharFotoPeca");
+
+        if (!botaoAbrir || !modal || !botaoFechar) {
+            return;
+        }
+
+        function abrirModal() {
+            modal.hidden = false;
+            document.body.style.overflow = "hidden";
+        }
+
+        function fecharModal() {
+            modal.hidden = true;
+            document.body.style.overflow = "";
+        }
+
+        botaoAbrir.addEventListener("click", abrirModal);
+
+        botaoFechar.addEventListener("click", fecharModal);
+
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
+                fecharModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !modal.hidden) {
+                fecharModal();
+            }
+        });
+
+    });
+</script>
+
 <body>
 
 <div th:replace="~{fragmentos :: menu}"></div>
@@ -18,21 +58,28 @@
 
     <section class="detalhes-cartao">
         <div class="detalhes-cartao-cabecalho">
-            <div class="detalhes-identificacao-peca">
-                <span class="detalhes-etiqueta">PEÇA</span>
-                <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
 
-                <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
-                     th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
-                     alt="Foto da peça"
-                     class="detalhes-foto-peca">
+            <div class="detalhes-identificacao-peca">
+
+                <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}" aria-label="Ampliar foto da peça">
+                    <img th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|" alt="Foto da peça" class="detalhes-foto-peca">
+                    <span class="detalhes-foto-lupa"><i class="bi bi-search"></i></span>
+                </button>
+
+                <div class="detalhes-identificacao-texto">
+                    <span class="detalhes-etiqueta">PEÇA</span>
+                    <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
+                </div>
+
             </div>
+
             <div class="detalhes-data">
                 <span>Data do cálculo</span>
                 <strong th:text="${historico.dataCalculo != null ? #temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm') : 'Não informada'}">
                     26/10/2026 às 14h30
                 </strong>
             </div>
+
         </div>
 
         <div class="detalhes-conteudo">
@@ -165,8 +212,7 @@
 
             <!-- DADOS DA PLATAFORMA -->
 
-            <section class="detalhes-secao"
-                     th:if="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA'}">
+            <section class="detalhes-secao detalhes-secao-venda" th:if="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA'}">
 
                 <h3>Dados da venda</h3>
 
@@ -320,6 +366,25 @@
 
     <div class="detalhes-acoes">
         <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+    </div>
+
+    <!-- MODAL DA FOTO DA PEÇA -->
+    <div class="detalhes-modal-foto"
+         id="modalFotoPeca"
+         th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
+         hidden>
+
+        <button type="button"
+                class="detalhes-modal-fechar"
+                id="fecharFotoPeca"
+                aria-label="Fechar imagem">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <img th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
+             alt="Foto ampliada da peça"
+             class="detalhes-modal-imagem">
+
     </div>
 </main>
 

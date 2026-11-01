@@ -644,3 +644,187 @@ input[type="search"] {
         font-size: 1.25rem;
     }
 }
+
+
+/* ========================================
+   DETALHES - IDENTIFICAÇÃO E FOTO AMPLIADA
+======================================== */
+
+.detalhes-cartao-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.detalhes-identificacao-peca {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-width: 0;
+}
+
+.detalhes-identificacao-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.detalhes-identificacao-texto h2 {
+    margin: 0;
+}
+
+/* FOTO CLICÁVEL */
+
+.detalhes-foto-abrir {
+    position: relative;
+    display: block;
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: #fffaf6;
+    cursor: zoom-in;
+}
+
+.detalhes-foto-peca {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    object-fit: cover;
+    transition: transform 0.25s ease;
+}
+
+.detalhes-foto-lupa {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(48, 32, 24, 0.42);
+    color: white;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.detalhes-foto-abrir:hover .detalhes-foto-lupa {
+    opacity: 1;
+}
+
+.detalhes-foto-abrir:hover .detalhes-foto-peca {
+    transform: scale(1.06);
+}
+
+.detalhes-foto-abrir:focus-visible {
+    outline: 3px solid var(--destaque);
+    outline-offset: 3px;
+}
+
+/* ESPAÇAMENTO DOS DADOS DA VENDA */
+
+.detalhes-secao-venda {
+    margin-top: 36px;
+}
+
+/* MODAL DA FOTO */
+
+.detalhes-modal-foto {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: rgba(30, 22, 18, 0.82);
+    backdrop-filter: blur(4px);
+}
+
+.detalhes-modal-foto[hidden] {
+    display: none;
+}
+
+.detalhes-modal-imagem {
+    display: block;
+    max-width: min(90vw, 1000px);
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #fffaf6;
+    box-shadow: 0 12px 50px rgba(0, 0, 0, 0.3);
+}
+
+.detalhes-modal-fechar {
+    position: absolute;
+    top: 24px;
+    right: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.detalhes-modal-fechar:hover {
+    background: white;
+    color: var(--marrom);
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 650px) {
+    .detalhes-cartao-cabecalho {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .detalhes-identificacao-peca {
+        gap: 14px;
+    }
+
+    .detalhes-foto-abrir {
+        width: 95px;
+        height: 95px;
+    }
+
+    .detalhes-secao-venda {
+        margin-top: 28px;
+    }
+
+    .detalhes-modal-foto {
+        padding: 20px;
+    }
+
+    .detalhes-modal-fechar {
+        top: 14px;
+        right: 14px;
+    }
+}
+
+.detalhes-cartao-cabecalho {
+    background: #EEDCCB;
+    padding: 16px 20px;
+}
+.detalhes-identificacao-peca,
+.detalhes-identificacao-texto,
+.detalhes-identificacao-texto h2,
+.detalhes-identificacao-texto .detalhes-etiqueta {
+    background: transparent !important;
+}
+
+.detalhes-foto-abrir {
+    background: transparent;
+}
