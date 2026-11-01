@@ -20,60 +20,74 @@
     </section>
 
     <section class="cartao">
-        <div class="cartao-cabecalho">
-            <div>
-                <h2>Cálculo concluído!</h2>
-                <p>Confira os valores antes de salvar no histórico.</p>
-            </div>
-        </div>
-
         <div class="formulario-conteudo">
-            <div class="resumo-peca">
-                <img th:if="${fotoPecaPreview != null}"
-                     th:src="${fotoPecaPreview}"
-                     alt="Foto da peça calculada"
-                     class="resultado-foto-peca">
 
-                <span class="texto-apoio">PEÇA CALCULADA</span>
-                <h2 th:text="${resultado.nomePeca}">Nome da peça</h2>
-                <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
+            <!-- RESUMO PRINCIPAL DA PEÇA -->
+            <!-- RESUMO PRINCIPAL DA PEÇA -->
+            <div class="resultado-resumo-layout">
+
+                <!-- IDENTIFICAÇÃO DA PEÇA -->
+                <div class="resumo-peca-identificacao">
+                    <span class="texto-apoio">PEÇA CALCULADA</span>
+                    <h2 th:text="${resultado.nomePeca}">Nome da peça</h2>
+                    <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
+                </div>
+
+                <!-- FOTO E QUATRO BLOCOS DE CUSTOS -->
+                <div class="resultado-conteudo-layout">
+
+                    <div class="resumo-peca">
+                        <img th:if="${fotoPecaPreview != null}"
+                             th:src="${fotoPecaPreview}"
+                             alt="Foto da peça calculada"
+                             class="resultado-foto-peca">
+                    </div>
+
+                    <div class="resultado-grade">
+
+                        <div class="resultado-item">
+                            <span>Custo do filamento</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoFilamento, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item">
+                            <span>Custo de energia</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEnergia, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item">
+                            <span>Custo da embalagem</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEmbalagem, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item resultado-total">
+                            <span>Custo total de produção</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- PREÇO SUGERIDO -->
+                <div class="preco-sugerido">
+                    <span>Preço sugerido antes das taxas da plataforma</span>
+
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 0,00
+                    </strong>
+
+                    <small th:text="${'Markup aplicado: ' + resultado.markupPercentual + '%'}">
+                        Markup aplicado: 30%
+                    </small>
+
+                    <small th:text="${'Lucro estimado antes das taxas: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
+                        Lucro estimado: R$ 0,00
+                    </small>
+                </div>
+
             </div>
 
-            <div class="resultado-grade">
-                <div class="resultado-item">
-                    <span>Custo do filamento</span>
-                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoFilamento, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-                </div>
-
-                <div class="resultado-item">
-                    <span>Custo de energia</span>
-                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEnergia, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-                </div>
-
-                <div class="resultado-item">
-                    <span>Custo da embalagem</span>
-                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEmbalagem, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-                </div>
-
-                <div class="resultado-item resultado-total">
-                    <span>Custo total de produção</span>
-                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-                </div>
-            </div>
-
-            <div class="preco-sugerido">
-                <span>Preço sugerido antes das taxas da plataforma</span>
-                <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
-                    R$ 0,00
-                </strong>
-                <small th:text="${'Markup aplicado: ' + resultado.markupPercentual + '%'}">
-                    Markup aplicado: 30%
-                </small>
-                <small th:text="${'Lucro estimado antes das taxas: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
-                    Lucro estimado: R$ 0,00
-                </small>
-            </div>
-
+            <!-- DETALHES DA PLATAFORMA -->
             <section class="detalhes-calculo"
                      th:if="${resultado.plataformaVenda != null and resultado.plataformaVenda != 'NENHUMA'}">
 
@@ -146,6 +160,7 @@
                 </div>
             </section>
 
+            <!-- FILAMENTOS UTILIZADOS -->
             <div class="detalhes-calculo">
                 <h3>Filamentos utilizados</h3>
 
@@ -184,11 +199,11 @@
                 </div>
             </div>
 
+            <!-- AÇÕES -->
             <div class="acoes-resultado">
 
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-
                     <input type="hidden" th:field="*{fotoPecaBase64}">
                     <input type="hidden" th:field="*{fotoPecaContentType}">
 
@@ -229,7 +244,6 @@
 
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-
                     <input type="hidden" th:field="*{fotoPecaBase64}">
                     <input type="hidden" th:field="*{fotoPecaContentType}">
 
@@ -270,6 +284,7 @@
 
                 <a th:href="@{/historico/novo}" class="botao botao-secundario">Novo cálculo</a>
             </div>
+
         </div>
     </section>
 </main>
