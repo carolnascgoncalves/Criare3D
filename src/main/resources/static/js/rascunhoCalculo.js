@@ -1,18 +1,12 @@
 
-const CHAVE_RASCUNHO = "rascunhoCriare3D";
+(() => {
+    const CHAVE_RASCUNHO = "rascunhoCriare3D";
 
-function inicializarRascunhoCalculo() {
-    const formulario = document.getElementById("formCalculo");
+    let formularioInicializado = null;
 
-    if (document.getElementById("paginaResultado")) {
-        sessionStorage.removeItem(CHAVE_RASCUNHO);
-        return;
+    function obterFormulario() {
+        return document.getElementById("formCalculo");
     }
-
-    if (!formulario) return;
-
-    const listaFilamentos = document.getElementById("listaFilamentos");
-    const modeloFilamento = document.getElementById("modeloFilamento");
 
     function obterEtapaAtual() {
         const etapa = document.querySelector("[data-conteudo].ativa");
@@ -20,6 +14,10 @@ function inicializarRascunhoCalculo() {
     }
 
     function salvarRascunho() {
+        const formulario = obterFormulario();
+
+        if (!formulario) return;
+
         const campos = {};
 
         [...formulario.elements].forEach(campo => {
@@ -40,27 +38,35 @@ function inicializarRascunhoCalculo() {
             campos[campo.name] = campo.value;
         });
 
+        const listaFilamentos = document.getElementById("listaFilamentos");
+
         const filamentos = listaFilamentos
             ? [...listaFilamentos.querySelectorAll("[data-filamento-item]")].map(item => ({
-                filamentoId: item.querySelector("[data-campo-filamento]").value,
-                quantidade: item.querySelector("[data-campo-quantidade]").value,
+                filamentoId: item.querySelector("[data-campo-filamento]")?.value || "",
+                quantidade: item.querySelector("[data-campo-quantidade]")?.value || "",
                 confirmado: item.dataset.confirmado === "true"
             }))
             : [];
 
-        const rascunho = {
+        sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify({
             campos,
             filamentos,
             etapa: obterEtapaAtual()
-        };
-
-        sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(rascunho));
+        }));
     }
 
     window.salvarRascunhoCalculo = salvarRascunho;
 
-    function restaurarCampos(campos) {
+    function restaurarCampos(campos, cadastroPecaNova) {
+        const formulario = obterFormulario();
+
         Object.entries(campos || {}).forEach(([nome, valor]) => {
+            // Uma peça recém-cadastrada deve substituir a seleção anterior.
+            if (cadastroPecaNova && nome === "pecaId") return;
+
+            // O tempo deve vir do cadastro da peça recém-criada.
+            if (cadastroPecaNova && nome === "tempoImpressaoMinutos") return;
+
             const campo = formulario.elements.namedItem(nome);
 
             if (!campo) return;
@@ -84,23 +90,28 @@ function inicializarRascunhoCalculo() {
             campo.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        const tempoSalvo = campos?.tempoImpressaoMinutos;
-        const tempo = document.getElementById("tempoImpressaoMinutos");
+        // Os eventos de mudança podem preencher o tempo automaticamente.
+        // Quando não é uma peça nova, mantemos o tempo que estava no rascunho.
+        if (!cadastroPecaNova) {
+            const tempo = document.getElementById("tempoImpressaoMinutos");
 
-        if (tempo && tempoSalvo !== undefined) {
-            tempo.value = tempoSalvo;
+            if (tempo && campos?.tempoImpressaoMinutos !== undefined) {
+                tempo.value = campos.tempoImpressaoMinutos;
+                tempo.dispatchEvent(new Event("input", { bubbles: true }));
+            }
         }
     }
 
     function restaurarFilamentos(filamentos) {
-        if (!listaFilamentos || !modeloFilamento || !Array.isArray(filamentos)) {
-            return;
-        }
+        const lista = document.getElementById("listaFilamentos");
+        const modelo = document.getElementById("modeloFilamento");
 
-        listaFilamentos.replaceChildren();
+        if (!lista || !modelo || !Array.isArray(filamentos)) return;
+
+        lista.replaceChildren();
 
         filamentos.forEach((dados, indice) => {
-            const item = modeloFilamento.content.firstElementChild.cloneNode(true);
+            const item = modelo.content.firstElementChild.cloneNode(true);
 
             const select = item.querySelector("[data-campo-filamento]");
             const quantidade = item.querySelector("[data-campo-quantidade]");
@@ -116,16 +127,34 @@ function inicializarRascunhoCalculo() {
             quantidade.id = `quantidadeFilamentoGramas${indice}`;
             quantidade.value = dados.quantidade || "";
 
-            listaFilamentos.appendChild(item);
+            lista.appendChild(item);
         });
 
-        listaFilamentos.querySelectorAll("[data-campo-filamento]").forEach(campo => {
+        lista.querySelectorAll("[data-campo-filamento]").forEach(campo => {
             campo.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        listaFilamentos.querySelectorAll("[data-campo-quantidade]").forEach(campo => {
+        lista.querySelectorAll("[data-campo-quantidade]").forEach(campo => {
             campo.dispatchEvent(new Event("input", { bubbles: true }));
         });
+    }
+
+    function restaurarFoto() {
+        const base64 = document.getElementById("fotoPecaBase64")?.value;
+        const contentType = document.getElementById("fotoPecaContentType")?.value;
+
+        if (!base64 || !contentType) return;
+
+        const miniatura = document.getElementById("fotoPecaMiniatura");
+        const preview = document.getElementById("fotoPecaPreview");
+        const controle = document.getElementById("fotoPecaControle");
+
+        if (miniatura) {
+            miniatura.src = `data:${contentType};base64,${base64}`;
+        }
+
+        preview?.classList.add("visivel");
+        controle?.classList.add("com-foto");
     }
 
     function aplicarCadastrosRecentes() {
@@ -136,16 +165,10 @@ function inicializarRascunhoCalculo() {
 
         if (pecaCriada) {
             const select = document.getElementById("pecaId");
-            const tempo = document.getElementById("tempoImpressaoMinutos");
-            const tempoSalvo = tempo?.value;
 
             if (select) {
                 select.value = pecaCriada;
                 select.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-
-            if (tempo && tempoSalvo) {
-                tempo.value = tempoSalvo;
             }
         }
 
@@ -154,6 +177,7 @@ function inicializarRascunhoCalculo() {
 
             if (select) {
                 select.value = impressoraCriada;
+                select.dispatchEvent(new Event("change", { bubbles: true }));
             }
         }
 
@@ -162,91 +186,123 @@ function inicializarRascunhoCalculo() {
 
             if (select) {
                 select.value = embalagemCriada;
-            }
-        }
-
-        if (filamentoCriado && listaFilamentos) {
-            const itens = [...listaFilamentos.querySelectorAll("[data-filamento-item]")];
-
-            const item = itens.find(elemento =>
-                !elemento.querySelector("[data-campo-filamento]").value
-            ) || itens[itens.length - 1];
-
-            if (item) {
-                const select = item.querySelector("[data-campo-filamento]");
-
-                select.value = filamentoCriado;
-                item.hidden = false;
-                item.dataset.confirmado = "false";
-
                 select.dispatchEvent(new Event("change", { bubbles: true }));
             }
         }
-    }
 
-    const parametros = new URLSearchParams(window.location.search);
+        if (filamentoCriado) {
+            const lista = document.getElementById("listaFilamentos");
+            const modelo = document.getElementById("modeloFilamento");
 
-    // Mantém a possibilidade de iniciar um cálculo realmente novo.
-    if (parametros.has("novo")) {
-        sessionStorage.removeItem(CHAVE_RASCUNHO);
-    }
+            if (!lista || !modelo) return;
 
-    const rascunhoSalvo = sessionStorage.getItem(CHAVE_RASCUNHO);
+            let item = [...lista.querySelectorAll("[data-filamento-item]")]
+                .find(elemento =>
+                    !elemento.querySelector("[data-campo-filamento]").value &&
+                    elemento.dataset.confirmado !== "true"
+                );
 
-    if (rascunhoSalvo) {
-        try {
-            const rascunho = JSON.parse(rascunhoSalvo);
-
-            restaurarCampos(rascunho.campos);
-            restaurarFilamentos(rascunho.filamentos);
-
-            const fotoBase64 = document.getElementById("fotoPecaBase64")?.value;
-            const fotoContentType = document.getElementById("fotoPecaContentType")?.value;
-
-            if (fotoBase64 && fotoContentType) {
-                const miniatura = document.getElementById("fotoPecaMiniatura");
-                const preview = document.getElementById("fotoPecaPreview");
-                const controle = document.getElementById("fotoPecaControle");
-
-                if (miniatura) {
-                    miniatura.src = `data:${fotoContentType};base64,${fotoBase64}`;
-                }
-
-                preview?.classList.add("visivel");
-                controle?.classList.add("com-foto");
+            if (!item) {
+                item = modelo.content.firstElementChild.cloneNode(true);
+                lista.appendChild(item);
             }
 
-            formulario.dispatchEvent(new CustomEvent("rascunhoCalculoRestaurado", {
-                detail: { etapa: rascunho.etapa || 1 }
-            }));
-        } catch (erro) {
-            console.error("Não foi possível restaurar o rascunho:", erro);
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            const select = item.querySelector("[data-campo-filamento]");
+
+            item.hidden = false;
+            item.dataset.confirmado = "false";
+            select.value = filamentoCriado;
+
+            select.dispatchEvent(new Event("change", { bubbles: true }));
         }
     }
 
-    aplicarCadastrosRecentes();
+    function configurarBotaoRefazer() {
+        const botao = document.getElementById("refazerCalculo");
 
-    formulario.addEventListener("input", salvarRascunho);
-    formulario.addEventListener("change", salvarRascunho);
-    formulario.addEventListener("submit", salvarRascunho);
+        if (!botao || botao.dataset.configurado === "true") return;
 
-    // Salva também quando a pessoa troca de etapa.
-    formulario.addEventListener("click", event => {
-        if (event.target.closest("[data-etapa], [data-proximo], [data-anterior]")) {
-            requestAnimationFrame(salvarRascunho);
+        botao.dataset.configurado = "true";
+
+        botao.addEventListener("click", () => {
+            const confirmar = window.confirm(
+                "Tem certeza de que deseja refazer tudo?\n\nTodos os dados preenchidos neste cálculo serão apagados."
+            );
+
+            if (!confirmar) return;
+
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
+
+            const destino = "/historico/novo?novo=true";
+
+            if (window.Turbo) {
+                window.Turbo.visit(destino);
+            } else {
+                window.location.href = destino;
+            }
+        });
+    }
+
+    function inicializarRascunhoCalculo() {
+        // O resultado de um cálculo concluído não deve manter o rascunho.
+        if (document.getElementById("paginaResultado")) {
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            return;
         }
-    });
 
-    // Salva antes de navegar pelo Turbo.
+        const formulario = obterFormulario();
+
+        if (!formulario || formulario === formularioInicializado) return;
+
+        formularioInicializado = formulario;
+
+        const parametros = new URLSearchParams(window.location.search);
+        const cadastroPecaNova = parametros.has("pecaCriada");
+
+        if (parametros.has("novo")) {
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
+        }
+
+        const salvo = sessionStorage.getItem(CHAVE_RASCUNHO);
+
+        if (salvo) {
+            try {
+                const rascunho = JSON.parse(salvo);
+
+                restaurarCampos(rascunho.campos, cadastroPecaNova);
+                restaurarFilamentos(rascunho.filamentos);
+                restaurarFoto();
+
+                formulario.dispatchEvent(new CustomEvent("rascunhoCalculoRestaurado", {
+                    detail: { etapa: rascunho.etapa || 1 }
+                }));
+            } catch (erro) {
+                console.error("Não foi possível restaurar o rascunho:", erro);
+                sessionStorage.removeItem(CHAVE_RASCUNHO);
+            }
+        }
+
+        aplicarCadastrosRecentes();
+        configurarBotaoRefazer();
+
+        formulario.addEventListener("input", salvarRascunho);
+        formulario.addEventListener("change", salvarRascunho);
+        formulario.addEventListener("submit", salvarRascunho);
+
+        formulario.addEventListener("click", event => {
+            if (event.target.closest("[data-etapa], [data-proximo], [data-anterior]")) {
+                requestAnimationFrame(salvarRascunho);
+            }
+        });
+
+        salvarRascunho();
+    }
+
+    // Eventos globais registrados uma única vez.
     document.addEventListener("turbo:before-visit", salvarRascunho);
     document.addEventListener("turbo:before-cache", salvarRascunho);
-
-    // Também cobre navegações tradicionais do navegador.
     window.addEventListener("pagehide", salvarRascunho);
 
-    salvarRascunho();
-}
-
-document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);
-document.addEventListener("turbo:load", inicializarRascunhoCalculo);
+    document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);
+    document.addEventListener("turbo:load", inicializarRascunhoCalculo);
+})();
