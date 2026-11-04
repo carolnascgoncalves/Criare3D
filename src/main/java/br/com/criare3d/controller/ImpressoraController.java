@@ -94,7 +94,7 @@ public class ImpressoraController {
                 .orElseGet(() -> new ModelAndView("redirect:/impressora/listar"));
     }
 
-    @GetMapping("/impressora/remover/{id}")
+    @PostMapping("/impressora/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!impressoraService.existsById(id)) {
             return new ModelAndView("redirect:/impressora/listar");

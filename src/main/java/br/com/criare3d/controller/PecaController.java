@@ -93,7 +93,7 @@ public class PecaController {
     }
 
 
-    @GetMapping("/peca/remover/{id}")
+    @PostMapping("/peca/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!pecaService.existsById(id)) {
             return new ModelAndView("redirect:/peca/listar");

@@ -116,7 +116,7 @@ public class EmbalagemController {
         return new ModelAndView("redirect:/embalagem/listar");
     }
 
-    @GetMapping("/embalagem/remover/{id}")
+    @PostMapping("/embalagem/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!embalagemService.existsById(id)) {
             return new ModelAndView("redirect:/embalagem/listar");

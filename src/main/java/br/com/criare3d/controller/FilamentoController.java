@@ -112,7 +112,7 @@ public class FilamentoController {
         return new ModelAndView("redirect:/filamento/listar");
     }
 
-    @GetMapping("/filamento/remover/{id}")
+    @PostMapping("/filamento/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!filamentoService.existsById(id)) {
             return new ModelAndView("redirect:/filamento/listar");
