@@ -59,6 +59,8 @@
                   id="formCalculo"
                   novalidate>
 
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
                 <input type="hidden" th:field="*{fotoPecaBase64}" id="fotoPecaBase64">
                 <input type="hidden" th:field="*{fotoPecaContentType}" id="fotoPecaContentType">
 
@@ -271,7 +273,6 @@
                                 id="refazerCalculo">
                             <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
                         </button>
-
 
                     </div>
                 </section>

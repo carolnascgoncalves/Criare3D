@@ -2,7 +2,7 @@
 (() => {
     const CHAVE_RASCUNHO = "rascunhoCriare3D";
 
-    let formularioInicializado = null;
+    let botaoRefazerConfigurado = false;
 
     function obterFormulario() {
         return document.getElementById("formCalculo");
@@ -218,28 +218,25 @@
     }
 
     function configurarBotaoRefazer() {
-        const botao = document.getElementById("refazerCalculo");
+        if (botaoRefazerConfigurado) return;
 
-        if (!botao || botao.dataset.configurado === "true") return;
+        botaoRefazerConfigurado = true;
 
-        botao.dataset.configurado = "true";
+        document.addEventListener("click", event => {
+            const botao = event.target.closest("#refazerCalculo");
 
-        botao.addEventListener("click", () => {
+            if (!botao) return;
+
             const confirmar = window.confirm(
-                "Tem certeza de que deseja refazer tudo?\n\nTodos os dados preenchidos neste cálculo serão apagados."
+                "Tem certeza de que deseja refazer tudo?\n\n" +
+                "Todos os dados preenchidos neste cálculo serão apagados."
             );
 
             if (!confirmar) return;
 
             sessionStorage.removeItem(CHAVE_RASCUNHO);
 
-            const destino = "/historico/novo?novo=true";
-
-            if (window.Turbo) {
-                window.Turbo.visit(destino);
-            } else {
-                window.location.href = destino;
-            }
+            window.location.assign("/historico/novo?novo=true");
         });
     }
 

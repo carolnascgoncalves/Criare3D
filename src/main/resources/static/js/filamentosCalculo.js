@@ -198,12 +198,9 @@ document.addEventListener("turbo:load", () => {
             const percentual = document.createElement("p");
             percentual.className = "resumo-consumo-percentual";
 
-            const porcentagemIndividual = totalAcumulado > 0
-                ? filamento.gramas / totalAcumulado * 100
-                : 0;
+            const porcentagemIndividual = previsto > 0 ? filamento.gramas / previsto * 100 : 0;
 
-            percentual.textContent =
-                `${formatarPercentual(porcentagemIndividual)} do total de filamentos`;
+            percentual.textContent = `${formatarPercentual(porcentagemIndividual)} do consumo previsto`;
 
             topoMedidor.appendChild(valor);
             medidor.append(topoMedidor, barra, percentual);
@@ -247,12 +244,9 @@ document.addEventListener("turbo:load", () => {
 
         totalFilamentoResumo.textContent = formatarGramas(totalAcumulado);
 
-        const percentualTotal = totalAcumulado > 0
-            ? previsto / totalAcumulado * 100
-            : 0;
+        const percentualTotal = previsto > 0 ? totalAcumulado / previsto * 100 : 0;
 
-        totalPrevistoResumo.textContent =
-            `de ${formatarGramas(previsto)} previstos - ${formatarPercentual(percentualTotal)} do total`;
+        totalPrevistoResumo.textContent = `de ${formatarGramas(previsto)} previstos - ${formatarPercentual(percentualTotal)} do total`;
 
         const status = document.getElementById("statusConsumoResumo");
 
