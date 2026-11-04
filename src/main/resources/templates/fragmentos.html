@@ -21,7 +21,10 @@
         <meta name="turbo-cache-control" content="no-cache">
 
         <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js"></script>
+
         <script th:src="@{/js/placeholders.js}" defer></script>
+        <script th:src="@{/js/calculoEtapas.js}" defer></script>
+        <script th:src="@{/js/filamentosCalculo.js}" defer></script>
     </head>
 
     <body>
@@ -40,7 +43,6 @@
             <a th:href="@{/impressora/listar}" class="menu-link">Impressoras</a>
             <a th:href="@{/embalagem/listar}" class="menu-link">Embalagens</a>
             <a th:href="@{/historico/listar}" class="menu-link">Histórico</a>
-            <a th:href="@{/configuracao}" class="menu-link">Configurações</a>
 
             <a sec:authorize="hasRole('ADMIN')"
                th:href="@{/usuarios/listar}"
@@ -50,6 +52,7 @@
                 <i class="bi bi-calculator"></i>
                 Calcular peça
             </a>
+
         </div>
 
         <div class="menu-acoes">
@@ -61,6 +64,13 @@
                     Sair
                 </button>
             </form>
+
+            <a th:href="@{/configuracao}"
+               class="menu-link menu-configuracoes"
+               aria-label="Configurações"
+               title="Configurações">
+                <i class="bi bi-gear-fill"></i>
+            </a>
         </div>
     </nav>
 

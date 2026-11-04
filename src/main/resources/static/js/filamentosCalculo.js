@@ -365,7 +365,7 @@ document.addEventListener("turbo:load", () => {
         const opcao = select.selectedOptions[0];
 
         if (opcao?.dataset.acao === "cadastrar-filamento") {
-            window.location.href = "/filamento/novo";
+            Turbo.visit("/filamento/novo");
             return;
         }
 
@@ -382,4 +382,4 @@ document.addEventListener("turbo:load", () => {
     pecaId?.addEventListener("pecaSelecionada", atualizarTudo);
 
     atualizarTudo();
-}, { once: true });
+});

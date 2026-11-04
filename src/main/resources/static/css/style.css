@@ -1396,3 +1396,9 @@ input[type="color"]:focus {
         flex: 1;
     }
 }
+
+/* ALINHAMENTO DOS CABEÇALHOS DAS PÁGINAS */
+
+.pagina-intro {
+    min-height: 100px;
+}

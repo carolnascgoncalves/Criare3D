@@ -157,7 +157,11 @@ document.addEventListener("turbo:load", () => {
             const opcao = select.selectedOptions[0];
 
             if (opcao?.dataset.acao?.startsWith("cadastrar-")) {
-                window.location.href = rota;
+                if (window.Turbo) {
+                    Turbo.visit(rota);
+                } else {
+                    Turbo.visit(rota);
+                }
             }
         });
     }
@@ -307,4 +311,4 @@ document.addEventListener("turbo:load", () => {
 
     // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
     mostrarEtapa(1);
-}, { once: true });
+});

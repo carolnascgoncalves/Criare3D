@@ -217,7 +217,7 @@
                     <div class="campo campo-foto-peca">
                         <label>Foto da peça (opcional)</label>
 
-                        <div class="foto-peca-controle">
+                        <div class="foto-peca-controle" id="fotoPecaControle">
                             <label for="fotoPeca" class="foto-peca-selecao" id="fotoPecaSelecao">
                                 <i class="bi bi-camera"></i>
                                 <span>Adicionar foto</span>
@@ -593,27 +593,5 @@
         </div>
     </section>
 </main>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const plataforma = document.getElementById("plataformaVenda");
-        const blocos = document.querySelectorAll("[data-opcoes-plataforma]");
-
-        function atualizarPlataforma() {
-            const selecionada = plataforma.value;
-
-            blocos.forEach(bloco => {
-                bloco.hidden = bloco.dataset.opcoesPlataforma !== selecionada;
-            });
-        }
-
-        plataforma.addEventListener("change", atualizarPlataforma);
-        atualizarPlataforma();
-    });
-</script>
-
-<script th:src="@{/js/calculoEtapas.js}" defer></script>
-<script th:src="@{/js/calculoHistorico.js}" defer></script>
-<script th:src="@{/js/filamentosCalculo.js}" defer></script>
 </body>
 </html>
