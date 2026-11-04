@@ -2,7 +2,7 @@
 (() => {
     const CHAVE_RASCUNHO = "rascunhoCriare3D";
 
-    let botaoRefazerConfigurado = false;
+    let formularioInicializado = null;
 
     function obterFormulario() {
         return document.getElementById("formCalculo");
@@ -21,7 +21,15 @@
         const campos = {};
 
         [...formulario.elements].forEach(campo => {
-            if (!campo.name || campo.name.startsWith("filamentos[")) return;
+            if (
+                !campo.name ||
+                campo.name.startsWith("filamentos[") ||
+                campo.type === "file" ||
+                campo.type === "submit" ||
+                campo.type === "button"
+            ) {
+                return;
+            }
 
             if (campo.type === "radio") {
                 if (campo.checked) {
@@ -61,15 +69,16 @@
         const formulario = obterFormulario();
 
         Object.entries(campos || {}).forEach(([nome, valor]) => {
-            // Uma peça recém-cadastrada deve substituir a seleção anterior.
-            if (cadastroPecaNova && nome === "pecaId") return;
-
-            // O tempo deve vir do cadastro da peça recém-criada.
-            if (cadastroPecaNova && nome === "tempoImpressaoMinutos") return;
+            if (cadastroPecaNova && (
+                nome === "pecaId" ||
+                nome === "tempoImpressaoMinutos"
+            )) {
+                return;
+            }
 
             const campo = formulario.elements.namedItem(nome);
 
-            if (!campo) return;
+            if (!campo || campo.type === "file") return;
 
             if (campo instanceof RadioNodeList) {
                 [...campo].forEach(opcao => {
@@ -90,8 +99,6 @@
             campo.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        // Os eventos de mudança podem preencher o tempo automaticamente.
-        // Quando não é uma peça nova, mantemos o tempo que estava no rascunho.
         if (!cadastroPecaNova) {
             const tempo = document.getElementById("tempoImpressaoMinutos");
 
@@ -110,7 +117,11 @@
 
         lista.replaceChildren();
 
-        filamentos.forEach((dados, indice) => {
+        const dadosFilamentos = filamentos.length > 0
+            ? filamentos
+            : [{ filamentoId: "", quantidade: "", confirmado: false }];
+
+        dadosFilamentos.forEach((dados, indice) => {
             const item = modelo.content.firstElementChild.cloneNode(true);
 
             const select = item.querySelector("[data-campo-filamento]");
@@ -165,9 +176,18 @@
 
         if (pecaCriada) {
             const select = document.getElementById("pecaId");
+            const tempo = document.getElementById("tempoImpressaoMinutos");
 
             if (select) {
                 select.value = pecaCriada;
+
+                const opcao = select.selectedOptions[0];
+
+                if (tempo) {
+                    tempo.value = opcao?.dataset.tempo || "";
+                    tempo.dispatchEvent(new Event("input", { bubbles: true }));
+                }
+
                 select.dispatchEvent(new Event("change", { bubbles: true }));
             }
         }
@@ -204,6 +224,21 @@
 
             if (!item) {
                 item = modelo.content.firstElementChild.cloneNode(true);
+
+                item.dataset.confirmado = "false";
+                item.hidden = false;
+
+                const indice = lista.querySelectorAll("[data-filamento-item]").length;
+
+                const select = item.querySelector("[data-campo-filamento]");
+                const quantidade = item.querySelector("[data-campo-quantidade]");
+
+                select.name = `filamentos[${indice}].filamentoId`;
+                select.id = `filamentoId${indice}`;
+
+                quantidade.name = `filamentos[${indice}].quantidadeFilamentoGramas`;
+                quantidade.id = `quantidadeFilamentoGramas${indice}`;
+
                 lista.appendChild(item);
             }
 
@@ -218,14 +253,12 @@
     }
 
     function configurarBotaoRefazer() {
-        if (botaoRefazerConfigurado) return;
-
-        botaoRefazerConfigurado = true;
-
         document.addEventListener("click", event => {
-            const botao = event.target.closest("#refazerCalculo");
+            const botao = event.target.closest?.("#refazerCalculo");
 
             if (!botao) return;
+
+            event.preventDefault();
 
             const confirmar = window.confirm(
                 "Tem certeza de que deseja refazer tudo?\n\n" +
@@ -241,7 +274,6 @@
     }
 
     function inicializarRascunhoCalculo() {
-        // O resultado de um cálculo concluído não deve manter o rascunho.
         if (document.getElementById("paginaResultado")) {
             sessionStorage.removeItem(CHAVE_RASCUNHO);
             return;
@@ -270,17 +302,19 @@
                 restaurarFilamentos(rascunho.filamentos);
                 restaurarFoto();
 
+                aplicarCadastrosRecentes();
+
                 formulario.dispatchEvent(new CustomEvent("rascunhoCalculoRestaurado", {
                     detail: { etapa: rascunho.etapa || 1 }
                 }));
+
             } catch (erro) {
                 console.error("Não foi possível restaurar o rascunho:", erro);
                 sessionStorage.removeItem(CHAVE_RASCUNHO);
             }
+        } else {
+            aplicarCadastrosRecentes();
         }
-
-        aplicarCadastrosRecentes();
-        configurarBotaoRefazer();
 
         formulario.addEventListener("input", salvarRascunho);
         formulario.addEventListener("change", salvarRascunho);
@@ -295,10 +329,12 @@
         salvarRascunho();
     }
 
-    // Eventos globais registrados uma única vez.
+    // Salva antes de navegar, inclusive para os cadastros rápidos.
     document.addEventListener("turbo:before-visit", salvarRascunho);
     document.addEventListener("turbo:before-cache", salvarRascunho);
     window.addEventListener("pagehide", salvarRascunho);
+
+    configurarBotaoRefazer();
 
     document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);
     document.addEventListener("turbo:load", inicializarRascunhoCalculo);

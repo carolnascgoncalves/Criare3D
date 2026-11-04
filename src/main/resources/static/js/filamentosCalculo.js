@@ -1,4 +1,6 @@
-document.addEventListener("turbo:load", () => {
+let listaFilamentosInicializada = null;
+
+function inicializarFilamentosCalculo() {
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
     const adicionarFilamento = document.getElementById("adicionarFilamento");
@@ -10,8 +12,9 @@ document.addEventListener("turbo:load", () => {
     const totalFilamentoResumo = document.getElementById("totalFilamentoResumo");
     const totalPrevistoResumo = document.getElementById("totalPrevistoResumo");
 
-    if (!listaFilamentos || !modeloFilamento) return;
+    if (!listaFilamentos || !modeloFilamento || listaFilamentos === listaFilamentosInicializada) {return;}
 
+    listaFilamentosInicializada = listaFilamentos;
     function formatarGramas(valor) {
         return `${Number(valor).toLocaleString("pt-BR", {
             maximumFractionDigits: 2
@@ -372,7 +375,7 @@ document.addEventListener("turbo:load", () => {
             return;
         }
 
-        atualizarResumo();
+        atualizarTudo();
     });
 
     listaFilamentos.addEventListener("input", event => {
@@ -385,4 +388,7 @@ document.addEventListener("turbo:load", () => {
     pecaId?.addEventListener("pecaSelecionada", atualizarTudo);
 
     atualizarTudo();
-});
+}
+
+document.addEventListener("DOMContentLoaded", inicializarFilamentosCalculo);
+document.addEventListener("turbo:load", inicializarFilamentosCalculo);

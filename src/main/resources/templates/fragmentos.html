@@ -22,13 +22,15 @@
 
     <meta name="turbo-cache-control" content="no-cache">
 
+    <!-- Token CSRF também no cabeçalho das requisições do Turbo -->
+    <meta name="csrf-token" th:content="${_csrf.token}">
+
     <script defer src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.js"></script>
 
     <script th:src="@{/js/placeholders.js(v=1)}" defer></script>
-    <script th:src="@{/js/calculoEtapas.js(v=1)}" defer></script>
-    <script th:src="@{/js/filamentosCalculo.js(v=1)}" defer></script>
-    <script th:src="@{/js/filamentosCalculo.js(v=3)}" defer></script>
-    <script th:src="@{/js/rascunhoCalculo.js(v=3)}" defer></script>
+    <script th:src="@{/js/calculoEtapas.js(v=2)}" defer></script>
+    <script th:src="@{/js/filamentosCalculo.js(v=4)}" defer></script>
+    <script th:src="@{/js/rascunhoCalculo.js(v=4)}" defer></script>
 </head>
 
 <body>
@@ -51,7 +53,7 @@
            th:href="@{/usuarios/listar}"
            class="menu-link">Usuários</a>
 
-        <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
+        <a th:href="@{/historico/novo(novo=true)}" class="botao-menu menu-calcular">
             <i class="bi bi-calculator"></i>
             Calcular peça
         </a>

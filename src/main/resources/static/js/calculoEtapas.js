@@ -1,7 +1,11 @@
-document.addEventListener("turbo:load", () => {
+let formularioEtapasInicializado = null;
+
+function inicializarCalculoEtapas() {
     const formulario = document.getElementById("formCalculo");
 
-    if (!formulario) return;
+    if (!formulario || formulario === formularioEtapasInicializado) return;
+
+    formularioEtapasInicializado = formulario;
 
     const etapas = document.querySelectorAll("[data-etapa]");
     const conteudos = document.querySelectorAll("[data-conteudo]");
@@ -335,4 +339,7 @@ document.addEventListener("turbo:load", () => {
     });
 
     mostrarEtapa(1);
-});
+}
+
+document.addEventListener("DOMContentLoaded", inicializarCalculoEtapas);
+document.addEventListener("turbo:load", inicializarCalculoEtapas);
