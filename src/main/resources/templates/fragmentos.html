@@ -39,7 +39,14 @@
             <a th:href="@{/historico/listar}" class="menu-link">Histórico</a>
             <a th:href="@{/configuracao}" class="menu-link">Configurações</a>
 
-            <a sec:authorize="hasRole('ADMIN')" th:href="@{/usuarios/listar}" class="menu-link">Usuários</a>
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/usuarios/listar}"
+               class="menu-link">Usuários</a>
+
+            <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
+                <i class="bi bi-calculator"></i>
+                Calcular peça
+            </a>
         </div>
 
         <div class="menu-acoes">
@@ -47,11 +54,10 @@
 
             <form th:action="@{/logout}" method="post">
                 <button type="submit" class="botao-sair">
-                    <i class="bi bi-box-arrow-right"></i>Sair
+                    <i class="bi bi-box-arrow-right"></i>
+                    Sair
                 </button>
             </form>
-
-            <a th:href="@{/historico/novo}" class="botao-menu">Calcular peça</a>
         </div>
     </nav>
 
