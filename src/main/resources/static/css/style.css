@@ -442,7 +442,7 @@ a {
 .coluna-acoes {
     width: 1%;
     white-space: nowrap;
-    text-align: right !important;
+    text-align: right;
 }
 
 .acoes {

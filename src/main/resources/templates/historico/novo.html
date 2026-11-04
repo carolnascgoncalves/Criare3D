@@ -262,12 +262,15 @@
                         <small>Adicione uma imagem para identificar esta peça no histórico. Máximo de 3 MB.</small>
                     </div>
 
-                    <div class="formulario-acoes" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-
-                        <button type="button" class="botao botao-principal" data-proximo>
-                            Próxima etapa <i class="bi bi-arrow-right"></i>
+                    <div class="formulario-acoes">
+                        <div class="acoes-etapa">
+                            <button type="button" class="botao botao-principal" data-proximo>
+                                Próxima etapa <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="botao botao-secundario" data-refazer-calculo>
+                            <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
                         </button>
-
                     </div>
                 </section>
 
@@ -322,11 +325,16 @@
                     </div>
 
                     <div class="formulario-acoes">
-                        <button type="button" class="botao botao-secundario" data-anterior>
-                            <i class="bi bi-arrow-left"></i> Voltar
-                        </button>
-                        <button type="button" class="botao botao-principal" data-proximo>
-                            Próxima etapa <i class="bi bi-arrow-right"></i>
+                        <div class="acoes-etapa">
+                            <button type="button" class="botao botao-secundario" data-anterior>
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </button>
+                            <button type="button" class="botao botao-principal" data-proximo>
+                                Próxima etapa <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="botao botao-secundario" data-refazer-calculo>
+                            <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
                         </button>
                     </div>
                 </section>
@@ -366,11 +374,16 @@
                     </div>
 
                     <div class="formulario-acoes">
-                        <button type="button" class="botao botao-secundario" data-anterior>
-                            <i class="bi bi-arrow-left"></i> Voltar
-                        </button>
-                        <button type="button" class="botao botao-principal" data-proximo>
-                            Próxima etapa <i class="bi bi-arrow-right"></i>
+                        <div class="acoes-etapa">
+                            <button type="button" class="botao botao-secundario" data-anterior>
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </button>
+                            <button type="button" class="botao botao-principal" data-proximo>
+                                Próxima etapa <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="botao botao-secundario" data-refazer-calculo>
+                            <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
                         </button>
                     </div>
                 </section>
@@ -590,23 +603,20 @@
                     </div>
 
                     <div class="formulario-acoes">
-                        <button type="button" class="botao botao-secundario" data-anterior>
-                            <i class="bi bi-arrow-left"></i> Voltar
-                        </button>
-                        <button type="submit" class="botao botao-principal">
-                            <i class="bi bi-calculator"></i> Calcular custos
+                        <div class="acoes-etapa">
+                            <button type="button" class="botao botao-secundario" data-anterior>
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </button>
+                            <button type="submit" class="botao botao-principal">
+                                <i class="bi bi-calculator"></i> Calcular custos
+                            </button>
+                        </div>
+                        <button type="button" class="botao botao-secundario" data-refazer-calculo>
+                            <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
                         </button>
                     </div>
 
                 </section>
-
-                <div class="acoes-refazer-calculo">
-                    <button type="button"
-                            class="botao botao-secundario"
-                            id="refazerCalculo">
-                        <i class="bi bi-arrow-counterclockwise"></i> Refazer tudo
-                    </button>
-                </div>
             </form>
         </div>
     </section>

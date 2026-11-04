@@ -254,7 +254,7 @@
 
     function configurarBotaoRefazer() {
         document.addEventListener("click", event => {
-            const botao = event.target.closest?.("#refazerCalculo");
+            const botao = event.target.closest?.("[data-refazer-calculo]");
 
             if (!botao) return;
 
