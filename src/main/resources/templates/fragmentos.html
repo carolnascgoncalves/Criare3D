@@ -25,6 +25,8 @@
         <script th:src="@{/js/placeholders.js}" defer></script>
         <script th:src="@{/js/calculoEtapas.js}" defer></script>
         <script th:src="@{/js/filamentosCalculo.js}" defer></script>
+        <script th:src="@{/js/configuracao.js}" defer></script>
+        <script th:src="@{/js/rascunhoCalculo.js}" defer></script>
     </head>
 
     <body>
@@ -48,7 +50,7 @@
                th:href="@{/usuarios/listar}"
                class="menu-link">Usuários</a>
 
-            <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
+            <a th:href="@{/historico/novo(novo=true)}" class="botao-menu menu-calcular">
                 <i class="bi bi-calculator"></i>
                 Calcular peça
             </a>

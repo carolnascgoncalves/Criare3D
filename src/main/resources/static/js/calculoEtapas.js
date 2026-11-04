@@ -156,12 +156,18 @@ document.addEventListener("turbo:load", () => {
         select.addEventListener("change", () => {
             const opcao = select.selectedOptions[0];
 
-            if (opcao?.dataset.acao?.startsWith("cadastrar-")) {
-                if (window.Turbo) {
-                    Turbo.visit(rota);
-                } else {
-                    Turbo.visit(rota);
-                }
+            if (!opcao?.dataset.acao?.startsWith("cadastrar-")) {
+                return;
+            }
+
+            window.salvarRascunhoCalculo?.();
+
+            const destino = `${rota}?origem=calculo`;
+
+            if (window.Turbo) {
+                window.Turbo.visit(destino);
+            } else {
+                window.location.href = destino;
             }
         });
     }
@@ -297,7 +303,21 @@ document.addEventListener("turbo:load", () => {
         const leitor = new FileReader();
 
         leitor.onload = evento => {
-            mostrarFoto(evento.target.result);
+            const resultado = evento.target.result;
+
+            mostrarFoto(resultado);
+
+            const partes = resultado.split(",");
+
+            if (fotoBase64) {
+                fotoBase64.value = partes[1] || "";
+            }
+
+            if (fotoContentType) {
+                fotoContentType.value = arquivo.type;
+            }
+
+            window.salvarRascunhoCalculo?.();
         };
 
         leitor.readAsDataURL(arquivo);
@@ -309,6 +329,10 @@ document.addEventListener("turbo:load", () => {
         mostrarFoto(`data:${fotoContentType.value};base64,${fotoBase64.value}`);
     }
 
-    // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
+
+    formulario.addEventListener("rascunhoCalculoRestaurado", evento => {
+        mostrarEtapa(evento.detail.etapa || 1);
+    });
+
     mostrarEtapa(1);
 });

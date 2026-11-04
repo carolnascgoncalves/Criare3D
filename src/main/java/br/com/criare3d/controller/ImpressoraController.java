@@ -48,25 +48,28 @@ public class ImpressoraController {
     }
 
     @GetMapping("/impressora/novo")
-    public ModelAndView retornarPaginaCadastro() {
+    public ModelAndView retornarPaginaCadastro(@RequestParam(defaultValue = "") String origem) {
         ModelAndView mv = new ModelAndView("impressora/novo");
         mv.addObject("impressora", new ImpressoraRequest());
+        mv.addObject("origem", origem);
+
         return mv;
     }
 
     @PostMapping("/impressora/cadastrar")
-    public ModelAndView create(
-            @Valid @ModelAttribute("impressora") ImpressoraRequest request,
-            BindingResult bd) {
-
+    public ModelAndView create(@Valid @ModelAttribute("impressora") ImpressoraRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("impressora/novo");
             mv.addObject("impressora", request);
+            mv.addObject("origem", origem);
             return mv;
         }
 
-        Impressora entidade = ImpressoraRequest.toEntity(request);
-        impressoraService.create(entidade);
+        Impressora entidade = impressoraService.create(ImpressoraRequest.toEntity(request));
+
+        if ("calculo".equals(origem)) {
+            return new ModelAndView("redirect:/historico/novo?impressoraCriada=" + entidade.getId());
+        }
 
         return new ModelAndView("redirect:/impressora/listar");
     }

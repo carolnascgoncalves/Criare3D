@@ -28,19 +28,18 @@
                   method="post"
                   class="formulario">
 
+                <input type="hidden" name="origem" th:value="${origem}">
 
-                    <div class="campo">
-                        <label for="nome">Nome do filamento</label>
-                        <input type="text"
-                               id="nome"
-                               th:field="*{nome}"
-                               minlength="2"
-                               maxlength="150"
-                               required>
-                        <span class="erro-campo"
-                              th:if="${#fields.hasErrors('nome')}"
-                              th:errors="*{nome}"></span>
-                    </div>
+                <div class="campo">
+                    <label for="nome">Nome do filamento</label>
+                    <input type="text"
+                           id="nome"
+                           th:field="*{nome}"
+                           minlength="2"
+                           maxlength="150"
+                           required>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></span>
+                </div>
 
 
                 <div class="campo">

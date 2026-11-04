@@ -35,6 +35,8 @@
                   method="post"
                   class="formulario">
 
+                <input type="hidden" name="origem" th:value="${origem}">
+
                 <div class="campo">
                     <label for="nome">Nome da impressora</label>
                     <input type="text" id="nome" th:field="*{nome}">

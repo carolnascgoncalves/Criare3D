@@ -6,7 +6,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
+<main class="pagina" id="paginaResultado">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
@@ -283,7 +283,7 @@
                     </button>
                 </form>
 
-                <a th:href="@{/historico/novo}" class="botao botao-secundario">Novo cálculo</a>
+                <a th:href="@{/historico/novo(novo=true)}" class="botao botao-secundario">Novo cálculo</a>
             </div>
 
         </div>

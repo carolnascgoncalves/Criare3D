@@ -45,24 +45,30 @@ public class FilamentoController {
     }
 
     @GetMapping("/filamento/novo")
-    public ModelAndView retornarPaginaCadastro() {
+    public ModelAndView retornarPaginaCadastro(@RequestParam(defaultValue = "") String origem) {
         ModelAndView mv = new ModelAndView("filamento/novo");
         mv.addObject("filamento", new FilamentoRequest());
+        mv.addObject("origem", origem);
+
         return mv;
     }
 
     @PostMapping("/filamento/cadastrar")
-    public ModelAndView create(
-            @Valid @ModelAttribute("filamento") FilamentoRequest request,
-            BindingResult bd) {
+    public ModelAndView create(@Valid @ModelAttribute("filamento") FilamentoRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("filamento/novo");
             mv.addObject("filamento", request);
+            mv.addObject("origem", origem);
             return mv;
         }
 
-        filamentoService.create(FilamentoRequest.toEntity(request));
+        Filamento entidade = filamentoService.create(FilamentoRequest.toEntity(request));
+
+        if ("calculo".equals(origem)) {
+            return new ModelAndView("redirect:/historico/novo?filamentoCriado=" + entidade.getId());
+        }
+
         return new ModelAndView("redirect:/filamento/listar");
     }
 

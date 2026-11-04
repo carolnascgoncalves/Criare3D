@@ -196,37 +196,6 @@
     </form>
 </main>
 
-<script>
-    const markupFixo = document.getElementById("markupFixo");
-    const campoMarkup = document.getElementById("campoMarkup");
-    const markupPercentual = document.getElementById("markupPercentual");
-    const avisoMarkupVariavel = document.getElementById("avisoMarkupVariavel");
-
-    const embalagemFixa = document.getElementById("embalagemFixa");
-    const campoCustoEmbalagem = document.getElementById("campoCustoEmbalagem");
-    const custoEmbalagem = document.getElementById("custoEmbalagemFixa");
-
-    function atualizarMarkup() {
-        campoMarkup.classList.toggle("campo-oculto", !markupFixo.checked);
-        avisoMarkupVariavel.hidden = markupFixo.checked;
-        markupPercentual.required = markupFixo.checked;
-    }
-
-    function atualizarEmbalagem() {
-        campoCustoEmbalagem.classList.toggle(
-            "campo-oculto",
-            !embalagemFixa.checked
-        );
-        custoEmbalagem.required = embalagemFixa.checked;
-    }
-
-    markupFixo.addEventListener("change", atualizarMarkup);
-    embalagemFixa.addEventListener("change", atualizarEmbalagem);
-
-    atualizarMarkup();
-    atualizarEmbalagem();
-</script>
-
 <div th:replace="~{fragmentos :: bootstrap-script}"></div>
 </body>
 </html>

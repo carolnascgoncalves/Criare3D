@@ -49,22 +49,28 @@ public class PecaController {
     }
 
     @GetMapping("/peca/novo")
-    public ModelAndView retornarPaginaCadastro() {
+    public ModelAndView retornarPaginaCadastro(@RequestParam(defaultValue = "") String origem) {
         ModelAndView mv = new ModelAndView("peca/novo");
         mv.addObject("peca", new PecaRequest());
+        mv.addObject("origem", origem);
+
         return mv;
     }
 
     @PostMapping("/peca/cadastrar")
-    public ModelAndView create(@Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd) {
+    public ModelAndView create(@Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("peca/novo");
             mv.addObject("peca", request);
+            mv.addObject("origem", origem);
             return mv;
         }
 
-        Peca entidade = PecaRequest.toEntity(request);
-        pecaService.create(entidade);
+        Peca entidade = pecaService.create(PecaRequest.toEntity(request));
+
+        if ("calculo".equals(origem)) {
+            return new ModelAndView("redirect:/historico/novo?pecaCriada=" + entidade.getId());
+        }
 
         return new ModelAndView("redirect:/peca/listar");
     }

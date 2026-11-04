@@ -49,24 +49,29 @@ public class EmbalagemController {
     }
 
     @GetMapping("/embalagem/novo")
-    public ModelAndView retornarPaginaCadastro() {
+    public ModelAndView retornarPaginaCadastro(@RequestParam(defaultValue = "") String origem) {
         ModelAndView mv = new ModelAndView("embalagem/novo");
         mv.addObject("embalagem", new EmbalagemRequest());
+        mv.addObject("origem", origem);
+
         return mv;
     }
 
     @PostMapping("/embalagem/cadastrar")
-    public ModelAndView create(
-            @Valid @ModelAttribute("embalagem") EmbalagemRequest request,
-            BindingResult bd) {
-
+    public ModelAndView create(@Valid @ModelAttribute("embalagem") EmbalagemRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("embalagem/novo");
             mv.addObject("embalagem", request);
+            mv.addObject("origem", origem);
             return mv;
         }
 
-        embalagemService.create(EmbalagemRequest.toEntity(request));
+        Embalagem entidade = embalagemService.create(EmbalagemRequest.toEntity(request));
+
+        if ("calculo".equals(origem)) {
+            return new ModelAndView("redirect:/historico/novo?embalagemCriada=" + entidade.getId());
+        }
+
         return new ModelAndView("redirect:/embalagem/listar");
     }
 

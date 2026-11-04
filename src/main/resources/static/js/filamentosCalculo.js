@@ -365,7 +365,16 @@ document.addEventListener("turbo:load", () => {
         const opcao = select.selectedOptions[0];
 
         if (opcao?.dataset.acao === "cadastrar-filamento") {
-            Turbo.visit("/filamento/novo");
+            window.salvarRascunhoCalculo?.();
+
+            const destino = "/filamento/novo?origem=calculo";
+
+            if (window.Turbo) {
+                window.Turbo.visit(destino);
+            } else {
+                window.location.href = destino;
+            }
+
             return;
         }
 

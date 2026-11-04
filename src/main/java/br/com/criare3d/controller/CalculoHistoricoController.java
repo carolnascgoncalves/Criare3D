@@ -7,6 +7,7 @@ import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.service.CalculoHistoricoServiceImp;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +26,17 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.UUID;
-import br.com.criare3d.service.CalculoHistoricoServiceImp;
 
 @Controller
 public class CalculoHistoricoController {
+
+    private static final String RESULTADO_CALCULO = "resultadoCalculo";
+    private static final String REQUEST_CALCULO = "requestCalculo";
+    private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
 
     @Autowired
     private CatalogoBuscaService catalogoBuscaService;
@@ -60,8 +67,8 @@ public class CalculoHistoricoController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "data", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            @PageableDefault(page = 0, size = 5, sort = "dataCalculo", direction = Sort.Direction.DESC)
-            Pageable pageable) {
+            @PageableDefault(page = 0, size = 5, sort = "dataCalculo",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("historico/listar");
 
@@ -80,37 +87,85 @@ public class CalculoHistoricoController {
     }
 
     @GetMapping("/historico/novo")
-    public ModelAndView retornarPaginaCadastro() {
+    public ModelAndView retornarPaginaCadastro(
+            @RequestParam(required = false) UUID pecaCriada,
+            @RequestParam(required = false) UUID filamentoCriado,
+            @RequestParam(required = false) UUID impressoraCriada,
+            @RequestParam(required = false) UUID embalagemCriada,
+            @RequestParam(defaultValue = "false") boolean editar,
+            @RequestParam(defaultValue = "false") boolean novo,
+            HttpSession session) {
+
+        if (novo) {
+            session.removeAttribute(REQUEST_CALCULO);
+            session.removeAttribute(RESULTADO_CALCULO);
+            session.removeAttribute(CALCULO_PARA_EDITAR);
+        }
+
         ModelAndView mv = new ModelAndView("historico/novo");
 
-        CalculoRequest request = new CalculoRequest();
-        request.getFilamentos().add(new ItemCalculoRequest());
+        CalculoRequest request;
 
-        var configuracao = configuracaoService.buscarOuCriarConfiguracao();
-
-        if (Boolean.TRUE.equals(configuracao.getMarkupFixo())) {
-            request.setMarkupPercentual(configuracao.getMarkupPercentual());
+        if (editar && session.getAttribute(CALCULO_PARA_EDITAR) != null) {
+            request = (CalculoRequest) session.getAttribute(CALCULO_PARA_EDITAR);
+            session.removeAttribute(CALCULO_PARA_EDITAR);
         } else {
-            request.setMarkupPercentual(new BigDecimal("30.00"));
+            request = new CalculoRequest();
+
+            var configuracao = configuracaoService.buscarOuCriarConfiguracao();
+
+            if (Boolean.TRUE.equals(configuracao.getMarkupFixo())) {
+                request.setMarkupPercentual(configuracao.getMarkupPercentual());
+            } else {
+                request.setMarkupPercentual(new BigDecimal("30.00"));
+            }
+        }
+
+        if (request.getFilamentos() == null || request.getFilamentos().isEmpty()) {
+            request.getFilamentos().add(new ItemCalculoRequest());
+        }
+
+        if (pecaCriada != null) {
+            request.setPecaId(pecaCriada);
+        }
+
+        if (impressoraCriada != null) {
+            request.setImpressoraId(impressoraCriada);
+        }
+
+        if (embalagemCriada != null) {
+            request.setEmbalagemId(embalagemCriada);
         }
 
         mv.addObject("calculo", request);
+        mv.addObject("pecaCriada", pecaCriada);
+        mv.addObject("filamentoCriado", filamentoCriado);
+        mv.addObject("impressoraCriada", impressoraCriada);
+        mv.addObject("embalagemCriada", embalagemCriada);
+
+        adicionarPreviewFoto(mv, request);
         carregarDadosFormulario(mv);
 
         return mv;
     }
 
+    /*
+     * O cálculo agora segue o padrão POST -> GET.
+     * O resultado fica na sessão e o POST responde com HTTP 303.
+     */
     @PostMapping("/historico/calcular")
-    public ModelAndView calcular(
+    public Object calcular(
             @Valid @ModelAttribute("calculo") CalculoRequest request,
             BindingResult bd,
-            @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca) {
+            @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca,
+            HttpSession session) {
 
         try {
             aplicarFoto(request, fotoPeca);
 
             if (bd.hasErrors()) {
                 ModelAndView mv = new ModelAndView("historico/novo");
+                mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
                 mv.addObject("calculo", request);
                 adicionarPreviewFoto(mv, request);
                 carregarDadosFormulario(mv);
@@ -119,15 +174,20 @@ public class CalculoHistoricoController {
 
             CalculoHistorico calculo = calculoHistoricoService.calcular(request);
 
-            ModelAndView mv = new ModelAndView("historico/resultado");
-            mv.addObject("calculo", request);
-            mv.addObject("resultado", CalculoResponse.toDto(calculo));
-            adicionarPreviewFoto(mv, request);
+            session.setAttribute(REQUEST_CALCULO, request);
+            session.setAttribute(
+                    RESULTADO_CALCULO,
+                    CalculoResponse.toDto(calculo)
+            );
 
-            return mv;
+            return ResponseEntity
+                    .status(HttpStatus.SEE_OTHER)
+                    .location(URI.create("/historico/resultado"))
+                    .build();
 
         } catch (IllegalArgumentException | IOException e) {
             ModelAndView mv = new ModelAndView("historico/novo");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("calculo", request);
 
             mv.addObject("erro", e instanceof IOException
@@ -141,26 +201,51 @@ public class CalculoHistoricoController {
         }
     }
 
-    @PostMapping("/historico/editar")
-    public ModelAndView editar(@ModelAttribute("calculo") CalculoRequest request) {
-        ModelAndView mv = new ModelAndView("historico/novo");
+    @GetMapping("/historico/resultado")
+    public ModelAndView resultado(HttpSession session) {
 
+        CalculoRequest request =
+                (CalculoRequest) session.getAttribute(REQUEST_CALCULO);
+
+        CalculoResponse resultado =
+                (CalculoResponse) session.getAttribute(RESULTADO_CALCULO);
+
+        if (request == null || resultado == null) {
+            return new ModelAndView("redirect:/historico/novo?novo=true");
+        }
+
+        ModelAndView mv = new ModelAndView("historico/resultado");
         mv.addObject("calculo", request);
+        mv.addObject("resultado", resultado);
         adicionarPreviewFoto(mv, request);
-        carregarDadosFormulario(mv);
 
         return mv;
+    }
+
+    @PostMapping("/historico/editar")
+    public ResponseEntity<Void> editar(
+            @ModelAttribute("calculo") CalculoRequest request,
+            HttpSession session) {
+
+        session.setAttribute(CALCULO_PARA_EDITAR, request);
+
+        return ResponseEntity
+                .status(HttpStatus.SEE_OTHER)
+                .location(URI.create("/historico/novo?editar=true"))
+                .build();
     }
 
     @PostMapping("/historico/salvar")
     public ModelAndView salvar(
             @Valid @ModelAttribute("calculo") CalculoRequest request,
-            BindingResult bd) {
+            BindingResult bd,
+            HttpSession session) {
 
         ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
 
         if (bd.hasErrors()) {
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             adicionarPreviewFoto(mv, request);
             carregarDadosFormulario(mv);
             return mv;
@@ -174,9 +259,13 @@ public class CalculoHistoricoController {
 
             calculoHistoricoService.create(calculo);
 
+            session.removeAttribute(REQUEST_CALCULO);
+            session.removeAttribute(RESULTADO_CALCULO);
+
             return new ModelAndView("redirect:/historico/listar");
 
         } catch (IllegalArgumentException e) {
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("erro", e.getMessage());
             adicionarPreviewFoto(mv, request);
             carregarDadosFormulario(mv);
@@ -196,7 +285,9 @@ public class CalculoHistoricoController {
                 .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
     }
 
-    private void aplicarFoto(CalculoRequest request, MultipartFile fotoPeca) throws IOException {
+    private void aplicarFoto(CalculoRequest request, MultipartFile fotoPeca)
+            throws IOException {
+
         if (fotoPeca == null || fotoPeca.isEmpty()) {
             return;
         }

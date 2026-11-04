@@ -1014,3 +1014,69 @@ input[type="search"] {
     padding: 0;
     font-size: 18px;
 }
+/* PADRONIZAÇÃO DOS CABEÇALHOS DAS LISTAGENS */
+
+.pagina-intro {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.pagina-intro > div {
+    min-width: 0;
+}
+
+.pagina-intro > a {
+    flex-shrink: 0;
+}
+
+@media (max-width: 650px) {
+    .pagina-intro {
+        align-items: flex-start;
+        flex-direction: column;
+        min-height: auto;
+        gap: 16px;
+    }
+}
+
+/* PADRONIZAÇÃO DOS CABEÇALHOS DAS LISTAGENS */
+
+.pagina-intro {
+    min-height: 132px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.pagina-intro > div:first-child {
+    min-width: 0;
+}
+
+.pagina-intro > a {
+    flex-shrink: 0;
+}
+
+.pagina-intro h1 {
+    margin-bottom: 8px;
+}
+
+.pagina-intro p {
+    margin-bottom: 0;
+}
+
+@media (max-width: 650px) {
+    .pagina-intro {
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+/* GARANTE QUE CAMPOS OCULTOS NÃO SEJAM EXIBIDOS */
+[hidden] {
+    display: none !important;
+}
