@@ -1,4 +1,5 @@
-document.addEventListener("turbo:load", () => {
+
+function inicializarConfiguracoes() {
     const markupFixo = document.getElementById("markupFixo");
     const campoMarkup = document.getElementById("campoMarkup");
     const markupPercentual = document.getElementById("markupPercentual");
@@ -8,32 +9,35 @@ document.addEventListener("turbo:load", () => {
     const campoCustoEmbalagem = document.getElementById("campoCustoEmbalagem");
     const custoEmbalagem = document.getElementById("custoEmbalagemFixa");
 
-    if (
-        !markupFixo ||
-        !campoMarkup ||
-        !markupPercentual ||
-        !avisoMarkupVariavel ||
-        !embalagemFixa ||
-        !campoCustoEmbalagem ||
-        !custoEmbalagem
-    ) {
-        return;
+    if (markupFixo && campoMarkup && markupPercentual && avisoMarkupVariavel) {
+        function atualizarMarkup() {
+            const ativo = markupFixo.checked;
+
+            campoMarkup.hidden = !ativo;
+            campoMarkup.classList.toggle("campo-oculto", !ativo);
+
+            avisoMarkupVariavel.hidden = ativo;
+            markupPercentual.required = ativo;
+        }
+
+        markupFixo.addEventListener("change", atualizarMarkup);
+        atualizarMarkup();
     }
 
-    function atualizarMarkup() {
-        campoMarkup.hidden = !markupFixo.checked;
-        avisoMarkupVariavel.hidden = markupFixo.checked;
-        markupPercentual.required = markupFixo.checked;
+    if (embalagemFixa && campoCustoEmbalagem && custoEmbalagem) {
+        function atualizarEmbalagem() {
+            const ativo = embalagemFixa.checked;
+
+            campoCustoEmbalagem.hidden = !ativo;
+            campoCustoEmbalagem.classList.toggle("campo-oculto", !ativo);
+
+            custoEmbalagem.required = ativo;
+        }
+
+        embalagemFixa.addEventListener("change", atualizarEmbalagem);
+        atualizarEmbalagem();
     }
+}
 
-    function atualizarEmbalagem() {
-        campoCustoEmbalagem.hidden = !embalagemFixa.checked;
-        custoEmbalagem.required = embalagemFixa.checked;
-    }
-
-    markupFixo.addEventListener("change", atualizarMarkup);
-    embalagemFixa.addEventListener("change", atualizarEmbalagem);
-
-    atualizarMarkup();
-    atualizarEmbalagem();
-});
+document.addEventListener("DOMContentLoaded", inicializarConfiguracoes);
+document.addEventListener("turbo:load", inicializarConfiguracoes);

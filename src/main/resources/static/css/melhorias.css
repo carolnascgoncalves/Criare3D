@@ -1080,3 +1080,66 @@ input[type="search"] {
 [hidden] {
     display: none !important;
 }
+
+
+/* ========================================
+   PADRONIZAÇÃO DOS CABEÇALHOS DAS LISTAGENS
+======================================== */
+
+.pagina-intro {
+    min-height: 145px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.pagina-intro > div:first-child {
+    min-width: 0;
+}
+
+.pagina-intro > a {
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+.pagina-intro .texto-apoio {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.pagina-intro h1 {
+    margin: 8px 0;
+}
+
+.pagina-intro p {
+    margin: 0;
+}
+
+/* Mesmo espaço para o título e a descrição do cartão */
+
+.cartao > .cartao-cabecalho {
+    min-height: 100px;
+    box-sizing: border-box;
+}
+
+/* Padroniza a altura da área de pesquisa */
+
+.cartao > form.busca-filamentos {
+    min-height: 46px;
+    box-sizing: content-box;
+}
+
+@media (max-width: 650px) {
+    .pagina-intro {
+        min-height: auto;
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .cartao > .cartao-cabecalho {
+        min-height: auto;
+    }
+}
