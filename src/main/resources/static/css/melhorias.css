@@ -1143,3 +1143,30 @@ input[type="search"] {
         min-height: auto;
     }
 }
+
+/* Mantém o campo Modelo da impressora no padrão visual do Criare 3D */
+#modelo {
+    background-color: #fffdfb !important;
+    color: var(--marrom) !important;
+    border: 1px solid var(--borda);
+}
+
+#modelo:focus {
+    background-color: #fffdfb !important;
+    border-color: var(--destaque);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(233, 166, 149, 0.2);
+}
+
+#modelo:-webkit-autofill,
+#modelo:-webkit-autofill:hover,
+#modelo:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #fffdfb inset !important;
+    -webkit-text-fill-color: var(--marrom) !important;
+}
+
+.acoes-refazer-calculo {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+}
