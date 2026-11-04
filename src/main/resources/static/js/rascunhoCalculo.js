@@ -1,15 +1,16 @@
-document.addEventListener("turbo:load", () => {
+
+const CHAVE_RASCUNHO = "rascunhoCriare3D";
+
+function inicializarRascunhoCalculo() {
     const formulario = document.getElementById("formCalculo");
 
-    // Ao chegar ao resultado, o cálculo já foi concluído.
     if (document.getElementById("paginaResultado")) {
-        sessionStorage.removeItem("rascunhoCriare3D");
+        sessionStorage.removeItem(CHAVE_RASCUNHO);
         return;
     }
 
     if (!formulario) return;
 
-    const chaveRascunho = "rascunhoCriare3D";
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
 
@@ -39,12 +40,13 @@ document.addEventListener("turbo:load", () => {
             campos[campo.name] = campo.value;
         });
 
-        const filamentos = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
-            .map(item => ({
+        const filamentos = listaFilamentos
+            ? [...listaFilamentos.querySelectorAll("[data-filamento-item]")].map(item => ({
                 filamentoId: item.querySelector("[data-campo-filamento]").value,
                 quantidade: item.querySelector("[data-campo-quantidade]").value,
                 confirmado: item.dataset.confirmado === "true"
-            }));
+            }))
+            : [];
 
         const rascunho = {
             campos,
@@ -52,7 +54,7 @@ document.addEventListener("turbo:load", () => {
             etapa: obterEtapaAtual()
         };
 
-        sessionStorage.setItem(chaveRascunho, JSON.stringify(rascunho));
+        sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify(rascunho));
     }
 
     window.salvarRascunhoCalculo = salvarRascunho;
@@ -82,13 +84,11 @@ document.addEventListener("turbo:load", () => {
             campo.dispatchEvent(new Event("change", { bubbles: true }));
         });
 
-        // A mudança da peça pode preencher o tempo cadastrado.
-        // Recuperamos o tempo que a pessoa realmente havia informado.
         const tempoSalvo = campos?.tempoImpressaoMinutos;
+        const tempo = document.getElementById("tempoImpressaoMinutos");
 
-        if (tempoSalvo !== undefined) {
-            const tempo = document.getElementById("tempoImpressaoMinutos");
-            if (tempo) tempo.value = tempoSalvo;
+        if (tempo && tempoSalvo !== undefined) {
+            tempo.value = tempoSalvo;
         }
     }
 
@@ -136,20 +136,33 @@ document.addEventListener("turbo:load", () => {
 
         if (pecaCriada) {
             const select = document.getElementById("pecaId");
+            const tempo = document.getElementById("tempoImpressaoMinutos");
+            const tempoSalvo = tempo?.value;
+
             if (select) {
                 select.value = pecaCriada;
                 select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+
+            if (tempo && tempoSalvo) {
+                tempo.value = tempoSalvo;
             }
         }
 
         if (impressoraCriada) {
             const select = document.getElementById("impressoraId");
-            if (select) select.value = impressoraCriada;
+
+            if (select) {
+                select.value = impressoraCriada;
+            }
         }
 
         if (embalagemCriada) {
             const select = document.getElementById("embalagemId");
-            if (select) select.value = embalagemCriada;
+
+            if (select) {
+                select.value = embalagemCriada;
+            }
         }
 
         if (filamentoCriado && listaFilamentos) {
@@ -161,9 +174,11 @@ document.addEventListener("turbo:load", () => {
 
             if (item) {
                 const select = item.querySelector("[data-campo-filamento]");
+
                 select.value = filamentoCriado;
                 item.hidden = false;
                 item.dataset.confirmado = "false";
+
                 select.dispatchEvent(new Event("change", { bubbles: true }));
             }
         }
@@ -171,11 +186,12 @@ document.addEventListener("turbo:load", () => {
 
     const parametros = new URLSearchParams(window.location.search);
 
+    // Mantém a possibilidade de iniciar um cálculo realmente novo.
     if (parametros.has("novo")) {
-        sessionStorage.removeItem(chaveRascunho);
+        sessionStorage.removeItem(CHAVE_RASCUNHO);
     }
 
-    const rascunhoSalvo = sessionStorage.getItem(chaveRascunho);
+    const rascunhoSalvo = sessionStorage.getItem(CHAVE_RASCUNHO);
 
     if (rascunhoSalvo) {
         try {
@@ -205,7 +221,7 @@ document.addEventListener("turbo:load", () => {
             }));
         } catch (erro) {
             console.error("Não foi possível restaurar o rascunho:", erro);
-            sessionStorage.removeItem(chaveRascunho);
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
         }
     }
 
@@ -215,5 +231,22 @@ document.addEventListener("turbo:load", () => {
     formulario.addEventListener("change", salvarRascunho);
     formulario.addEventListener("submit", salvarRascunho);
 
+    // Salva também quando a pessoa troca de etapa.
+    formulario.addEventListener("click", event => {
+        if (event.target.closest("[data-etapa], [data-proximo], [data-anterior]")) {
+            requestAnimationFrame(salvarRascunho);
+        }
+    });
+
+    // Salva antes de navegar pelo Turbo.
+    document.addEventListener("turbo:before-visit", salvarRascunho);
+    document.addEventListener("turbo:before-cache", salvarRascunho);
+
+    // Também cobre navegações tradicionais do navegador.
     window.addEventListener("pagehide", salvarRascunho);
-});
+
+    salvarRascunho();
+}
+
+document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);
+document.addEventListener("turbo:load", inicializarRascunhoCalculo);
