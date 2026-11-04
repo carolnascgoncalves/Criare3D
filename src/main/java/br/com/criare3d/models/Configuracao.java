@@ -40,4 +40,8 @@ public class Configuracao {
     @Column(name = "formulario_avancado_conf", nullable = false)
     @Builder.Default
     private @Getter @Setter Boolean formularioAvancado = false;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private @Getter @Setter Usuario usuario;
 }

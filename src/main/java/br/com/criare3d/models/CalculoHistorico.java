@@ -177,4 +177,8 @@ public class CalculoHistorico {
     )
     @Builder.Default
     private @Getter @Setter List<ItemCalculoHistorico> itensFilamento = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private @Getter @Setter Usuario usuario;
 }

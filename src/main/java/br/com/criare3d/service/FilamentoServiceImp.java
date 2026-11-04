@@ -9,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -19,60 +18,63 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class FilamentoServiceImp implements FilamentoService {
 
     @Autowired
     private FilamentoRepository filamentoRepository;
 
+    @Autowired
+    private UsuarioLogadoService usuarioLogadoService;
+
     @Override
     public Filamento create(Filamento filamento) {
+        filamento.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
         return filamentoRepository.save(filamento);
     }
 
     @Override
     public Optional<Filamento> update(UUID id, Filamento patch) {
-        return filamentoRepository.findById(id)
-                .map(existing -> {
-                    if (patch.getNome() != null)
-                        existing.setNome(patch.getNome());
+        return fetchById(id).map(existing -> {
+            if (patch.getNome() != null)
+                existing.setNome(patch.getNome());
 
-                    if (patch.getCor() != null)
-                        existing.setCor(patch.getCor());
+            if (patch.getCor() != null)
+                existing.setCor(patch.getCor());
 
-                    if (patch.getCodigoCor() != null)
-                        existing.setCodigoCor(patch.getCodigoCor());
+            if (patch.getCodigoCor() != null)
+                existing.setCodigoCor(patch.getCodigoCor());
 
-                    if (patch.getMarca() != null)
-                        existing.setMarca(patch.getMarca());
+            if (patch.getMarca() != null)
+                existing.setMarca(patch.getMarca());
 
-                    if (patch.getPesoRoloGramas() != null)
-                        existing.setPesoRoloGramas(patch.getPesoRoloGramas());
+            if (patch.getPesoRoloGramas() != null)
+                existing.setPesoRoloGramas(patch.getPesoRoloGramas());
 
-                    if (patch.getPrecoRolo() != null)
-                        existing.setPrecoRolo(patch.getPrecoRolo());
+            if (patch.getPrecoRolo() != null)
+                existing.setPrecoRolo(patch.getPrecoRolo());
 
-                    return filamentoRepository.save(existing);
-                });
-    }
-
-    @Override
-    public void delete(UUID id) {
-        filamentoRepository.findById(id).ifPresent(entidade -> {
-            filamentoRepository.delete(entidade);
+            return filamentoRepository.save(existing);
         });
     }
 
     @Override
+    public void delete(UUID id) {
+        fetchById(id).ifPresent(filamentoRepository::delete);
+    }
+
+    @Override
     public Page<Filamento> fetchAll(Pageable pageable) {
-        return filamentoRepository.findAll(pageable);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return filamentoRepository.findAllByUsuario_Id(usuarioId, pageable);
     }
 
     @Override
     public Page<Filamento> fetchAll(Pageable pageable, String busca) {
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
         if (busca == null || busca.isBlank()) {
-            return filamentoRepository.findAll(pageable);
+            return filamentoRepository.findAllByUsuario_Id(usuarioId, pageable);
         }
 
         String[] termos = busca.trim()
@@ -80,42 +82,43 @@ public class FilamentoServiceImp implements FilamentoService {
                 .split("\\s+");
 
         Specification<Filamento> especificacao = (root, query, criteriaBuilder) -> {
-
             List<Predicate> filtros = new ArrayList<>();
 
-            for (String termo : termos) {
+            filtros.add(criteriaBuilder.equal(
+                    root.get("usuario").get("id"), usuarioId
+            ));
 
+            for (String termo : termos) {
                 String padrao = "%" + termo + "%";
 
                 Predicate correspondeNome = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("nome")), padrao);
+                        criteriaBuilder.lower(root.get("nome")), padrao
+                );
 
                 Predicate correspondeCor = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("cor")), padrao);
+                        criteriaBuilder.lower(root.get("cor")), padrao
+                );
 
                 filtros.add(criteriaBuilder.or(
-                        correspondeNome,
-                        correspondeCor
+                        correspondeNome, correspondeCor
                 ));
             }
 
-            return criteriaBuilder.and(
-                    filtros.toArray(new Predicate[0])
-            );
+            return criteriaBuilder.and(filtros.toArray(new Predicate[0]));
         };
 
         return filamentoRepository.findAll(especificacao, pageable);
     }
 
     @Override
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public Optional<Filamento> fetchById(UUID id) {
-        return filamentoRepository.findById(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return filamentoRepository.findByIdAndUsuario_Id(id, usuarioId);
     }
 
     @Override
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public boolean existsById(UUID id) {
-        return filamentoRepository.existsById(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return filamentoRepository.existsByIdAndUsuario_Id(id, usuarioId);
     }
 }

@@ -6,8 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
+import java.util.Optional;
 import java.util.UUID;
 
-public interface FilamentoRepository extends JpaRepository<Filamento, UUID>, JpaSpecificationExecutor<Filamento> {
-    Page<Filamento> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+public interface FilamentoRepository extends
+        JpaRepository<Filamento, UUID>,
+        JpaSpecificationExecutor<Filamento> {
+
+    Page<Filamento> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
+
+    Page<Filamento> findByNomeContainingIgnoreCaseAndUsuario_Id(String nome, UUID usuarioId, Pageable pageable);
+
+    Optional<Filamento> findByIdAndUsuario_Id(UUID id, UUID usuarioId);
+
+    boolean existsByIdAndUsuario_Id(UUID id, UUID usuarioId);
 }

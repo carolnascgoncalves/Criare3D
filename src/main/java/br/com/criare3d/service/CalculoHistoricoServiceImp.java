@@ -42,34 +42,55 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     @Autowired
     private ConfiguracaoService configuracaoService;
 
+    @Autowired
+    private UsuarioLogadoService usuarioLogadoService;
+
     @Override
     public long contarPorFilamento(UUID filamentoId) {
-        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(
+                filamentoId, usuarioId
+        );
     }
 
     @Override
     public long contarPorEmbalagem(UUID embalagemId) {
-        return calculoHistoricoRepository.countByEmbalagem_Id(embalagemId);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.countByEmbalagem_IdAndUsuario_Id(
+                embalagemId, usuarioId
+        );
     }
 
     @Override
     public long contarPorImpressora(UUID impressoraId) {
-        return calculoHistoricoRepository.countByImpressora_Id(impressoraId);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.countByImpressora_IdAndUsuario_Id(
+                impressoraId, usuarioId
+        );
     }
 
     @Override
     public long contarPorPeca(UUID pecaId) {
-        return calculoHistoricoRepository.countByPeca_Id(pecaId);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.countByPeca_IdAndUsuario_Id(
+                pecaId, usuarioId
+        );
     }
 
     @Override
     public CalculoHistorico create(CalculoHistorico calculoHistorico) {
+        calculoHistorico.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
+
         return calculoHistoricoRepository.save(calculoHistorico);
     }
 
     @Override
     public void delete(UUID id) {
-        calculoHistoricoRepository.deleteById(id);
+        fetchById(id).ifPresent(calculoHistoricoRepository::delete);
     }
 
     public CalculoHistorico calcular(CalculoRequest request) {
@@ -824,17 +845,29 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public org.springframework.data.domain.Page<CalculoHistorico> fetchAll(
             org.springframework.data.domain.Pageable pageable
     ) {
-        return calculoHistoricoRepository.findAll(pageable);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.findAllByUsuario_Id(
+                usuarioId, pageable
+        );
     }
 
     @Override
     public java.util.Optional<CalculoHistorico> fetchById(UUID id) {
-        return calculoHistoricoRepository.buscarPorIdComItens(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.buscarPorIdComItens(
+                id, usuarioId
+        );
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return calculoHistoricoRepository.existsById(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return calculoHistoricoRepository.existsByIdAndUsuario_Id(
+                id, usuarioId
+        );
     }
 
 

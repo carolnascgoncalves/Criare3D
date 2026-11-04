@@ -37,4 +37,8 @@ public class Impressora {
 
     @OneToMany(mappedBy = "impressora")
     private Set<CalculoHistorico> historicos;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private @Getter @Setter Usuario usuario;
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -15,14 +14,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     @Autowired
     private ConfiguracaoRepository configuracaoRepository;
 
+    @Autowired
+    private UsuarioLogadoService usuarioLogadoService;
+
     @Override
     public Configuracao create(Configuracao configuracao) {
+        configuracao.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
+
         if (configuracao.getEmbalagemFixa() == null) {
             configuracao.setEmbalagemFixa(false);
         }
@@ -40,7 +44,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     @Override
     public Optional<Configuracao> update(UUID id, Configuracao configuracao) {
-        return configuracaoRepository.findById(id).map(atual -> {
+        return fetchById(id).map(atual -> {
             if (configuracao.getMarkupPercentual() != null) {
                 atual.setMarkupPercentual(configuracao.getMarkupPercentual());
             }
@@ -71,25 +75,29 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     @Override
     public Page<Configuracao> fetchAll(Pageable pageable) {
-        return configuracaoRepository.findAll(pageable);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return configuracaoRepository.findAllByUsuario_Id(usuarioId, pageable);
     }
 
     @Override
     public Optional<Configuracao> fetchById(UUID id) {
-        return configuracaoRepository.findById(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return configuracaoRepository.findByIdAndUsuario_Id(id, usuarioId);
     }
 
     @Override
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public boolean existsById(UUID id) {
-        return configuracaoRepository.existsById(id);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return configuracaoRepository.existsByIdAndUsuario_Id(id, usuarioId);
     }
 
     @Override
     public Optional<Configuracao> buscarConfiguracao() {
-        return configuracaoRepository.findAll()
-                .stream()
-                .findFirst();
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+
+        return configuracaoRepository.findFirstByUsuario_Id(usuarioId);
     }
 
     @Override
@@ -97,6 +105,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         return buscarConfiguracao().orElseGet(() -> {
             Configuracao configuracao = new Configuracao();
 
+            configuracao.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
             configuracao.setMarkupPercentual(BigDecimal.ZERO);
             configuracao.setMarkupFixo(false);
             configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);

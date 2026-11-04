@@ -13,30 +13,51 @@ import java.util.UUID;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
 
-    Page<CalculoHistorico> findByNomePecaContainingIgnoreCase(String nomePeca, Pageable pageable);
+    Page<CalculoHistorico> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
 
-    Page<CalculoHistorico> findByDataCalculoGreaterThanEqualAndDataCalculoLessThan(LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
+    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndUsuario_Id(
+            String nomePeca, UUID usuarioId, Pageable pageable
+    );
 
-    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThan(String nomePeca, LocalDateTime inicio, LocalDateTime fim, Pageable pageable);
+    Page<CalculoHistorico> findByDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
+            LocalDateTime inicio, LocalDateTime fim, UUID usuarioId, Pageable pageable
+    );
 
-    long countByEmbalagem_Id(UUID embalagemId);
+    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
+            String nomePeca, LocalDateTime inicio, LocalDateTime fim,
+            UUID usuarioId, Pageable pageable
+    );
 
-    long countByImpressora_Id(UUID impressoraId);
+    long countByEmbalagem_IdAndUsuario_Id(UUID embalagemId, UUID usuarioId);
 
-    long countByPeca_Id(UUID pecaId);
+    long countByImpressora_IdAndUsuario_Id(UUID impressoraId, UUID usuarioId);
+
+    long countByPeca_IdAndUsuario_Id(UUID pecaId, UUID usuarioId);
 
     @Query("""
-    SELECT DISTINCT c
-    FROM CalculoHistorico c
-    LEFT JOIN FETCH c.itensFilamento
-    WHERE c.id = :id
-    """)
-    Optional<CalculoHistorico> buscarPorIdComItens(@Param("id") UUID id);
+        SELECT DISTINCT c
+        FROM CalculoHistorico c
+        LEFT JOIN FETCH c.itensFilamento
+        WHERE c.id = :id
+        AND c.usuario.id = :usuarioId
+        """)
+    Optional<CalculoHistorico> buscarPorIdComItens(
+            @Param("id") UUID id,
+            @Param("usuarioId") UUID usuarioId
+    );
 
     @Query("""
-    SELECT COUNT(i)
-    FROM ItemCalculoHistorico i
-    WHERE i.filamento.id = :filamentoId
-    """)
-    long contarUsosDosItensPorFilamento(@Param("filamentoId") UUID filamentoId);
+        SELECT COUNT(i)
+        FROM ItemCalculoHistorico i
+        WHERE i.filamento.id = :filamentoId
+        AND i.calculoHistorico.usuario.id = :usuarioId
+        """)
+    long contarUsosDosItensPorFilamento(
+            @Param("filamentoId") UUID filamentoId,
+            @Param("usuarioId") UUID usuarioId
+    );
+
+    Optional<CalculoHistorico> findByIdAndUsuario_Id(UUID id, UUID usuarioId);
+
+    boolean existsByIdAndUsuario_Id(UUID id, UUID usuarioId);
 }
