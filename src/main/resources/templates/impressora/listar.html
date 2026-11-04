@@ -153,6 +153,18 @@
             <p>Não encontramos impressoras com esse nome. Tente outra pesquisa.</p>
             <a th:href="@{/impressora/listar}" class="botao botao-secundario">Limpar pesquisa</a>
         </div>
+
+        <div class="estado-vazio"
+             th:if="${#lists.isEmpty(impressoras) and (busca == null or busca.isBlank())}">
+            <span class="estado-vazio-icone">
+                <i class="bi bi-printer"></i>
+            </span>
+            <h3>Nenhuma impressora cadastrada</h3>
+            <p>Cadastre sua primeira impressora para utilizá-la nos cálculos.</p>
+            <a th:href="@{/impressora/novo}" class="botao botao-principal">
+                Cadastrar impressora
+            </a>
+        </div>
     </section>
 </main>
 

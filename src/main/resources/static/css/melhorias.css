@@ -835,10 +835,18 @@ input[type="search"] {
 ======================================== */
 
 .menu-principal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    width: 100%;
+
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
-    gap: 24px;
+    gap: 20px;
+
     padding-left: 32px;
     padding-right: 32px;
     flex-wrap: nowrap;
@@ -847,19 +855,24 @@ input[type="search"] {
 /* LOGO */
 
 .marca {
+    justify-self: start;
     flex-shrink: 0;
     white-space: nowrap;
 }
 
-/* LINKS CENTRALIZADOS */
+/* LINKS PRINCIPAIS */
 
 .menu-links {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-wrap: nowrap;
+    justify-self: center;
+
     min-width: 0;
+    max-width: 100%;
     gap: 9px;
+
+    flex-wrap: nowrap;
     overflow-x: auto;
     scrollbar-width: none;
 }
@@ -881,11 +894,13 @@ input[type="search"] {
     align-items: center;
     justify-content: center;
     gap: 7px;
+
     flex-shrink: 0;
     padding: 11px 14px;
+    margin-left: 5px;
+
     white-space: nowrap;
     font-size: 14px;
-    margin-left: 5px;
 }
 
 /* ÁREA DO USUÁRIO */
@@ -894,6 +909,8 @@ input[type="search"] {
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    justify-self: end;
+
     flex-wrap: nowrap;
     flex-shrink: 0;
     gap: 12px;
@@ -911,11 +928,14 @@ input[type="search"] {
     display: inline-flex;
     align-items: center;
     gap: 7px;
+
     padding: 9px 13px;
     border: 1px solid rgba(245, 231, 218, 0.2);
     border-radius: 9px;
+
     background: rgba(245, 231, 218, 0.10);
     color: var(--fundo);
+
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
@@ -928,14 +948,18 @@ input[type="search"] {
     align-items: center;
     justify-content: center;
     gap: 7px;
+
     padding: 12px 16px;
     border: none;
     border-radius: 8px;
+
     background: var(--fundo);
     color: var(--marrom);
+
     font-size: 14px;
     font-weight: bold;
     white-space: nowrap;
+
     cursor: pointer;
     transition: background .2s, color .2s;
 }
@@ -950,16 +974,51 @@ input[type="search"] {
 @media (max-width: 1100px) {
     .menu-principal {
         display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
-        overflow-x: auto;
+        gap: 8px 16px;
+        padding: 10px 20px;
+        overflow: visible;
     }
 
-    .menu-links {
-        flex: 0 0 auto;
-        justify-content: flex-start;
+    .marca {
+        order: 1;
     }
 
     .menu-acoes {
-        flex: 0 0 auto;
+        order: 2;
+        margin-left: auto;
+    }
+
+    .menu-links {
+        order: 3;
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+    }
+
+    .menu-link {
+        flex-shrink: 0;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

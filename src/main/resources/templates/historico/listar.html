@@ -153,11 +153,14 @@
 
                         <td>
                             <span class="valor-preco"
-                                  th:text="${'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
+                                  th:text="${'R$ ' + #numbers.formatDecimal(
+                                      historico.precoVendaPlataforma != null
+                                          ? historico.precoVendaPlataforma
+                                          : historico.precoSugerido,
+                                      1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </span>
                         </td>
-
                         <td class="coluna-acoes">
                             <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
                                class="botao-acao"

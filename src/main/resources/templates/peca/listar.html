@@ -147,6 +147,18 @@
             <p>Não encontramos peças com esse nome. Tente outra pesquisa.</p>
             <a th:href="@{/peca/listar}" class="botao botao-secundario">Limpar pesquisa</a>
         </div>
+
+        <div class="estado-vazio"
+             th:if="${#lists.isEmpty(pecas) and (busca == null or busca.isBlank())}">
+            <span class="estado-vazio-icone">
+                <i class="bi bi-box"></i>
+            </span>
+            <h3>Nenhuma peça cadastrada</h3>
+            <p>Cadastre sua primeira peça para começar a realizar cálculos de impressão.</p>
+            <a th:href="@{/peca/novo}" class="botao botao-principal">
+                Cadastrar peça
+            </a>
+        </div>
     </section>
 </main>
 
