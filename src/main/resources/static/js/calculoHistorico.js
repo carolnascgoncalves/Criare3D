@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
     const formulario = document.getElementById("formCalculo");
 
     if (!formulario) return;
@@ -157,4 +157,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
     mostrarEtapa(1);
-});
+}, { once: true });

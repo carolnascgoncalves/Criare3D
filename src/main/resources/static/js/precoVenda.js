@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
     const plataforma = document.getElementById("plataformaVenda");
 
     const infoShopee = document.getElementById("infoShopee");
@@ -45,4 +45,4 @@ document.addEventListener("DOMContentLoaded", () => {
     tipoAnuncio?.addEventListener("change", atualizarTipoAnuncio);
 
     atualizarPlataforma();
-});
+}, { once: true });

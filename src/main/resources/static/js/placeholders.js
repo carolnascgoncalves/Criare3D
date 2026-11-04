@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
     const exemplos = {
         "Nome da peça": "Ex.: Dragão articulado",
         "Nome da impressora": "Ex.: Impressora principal",

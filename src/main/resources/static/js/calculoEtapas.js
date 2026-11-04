@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
     const formulario = document.getElementById("formCalculo");
 
     if (!formulario) return;
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!opcao || !opcao.value || opcao.dataset.acao) {
             if (tempoInput) tempoInput.value = "";
-            document.dispatchEvent(new Event("pecaSelecionada"));
+            pecaSelect.dispatchEvent(new Event("pecaSelecionada"));
             return;
         }
 
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
             tempoInput.value = opcao.dataset.tempo || "";
         }
 
-        document.dispatchEvent(new Event("pecaSelecionada"));
+        pecaSelect.dispatchEvent(new Event("pecaSelecionada"));
     }
 
     // Comparação entre o tempo cadastrado na peça e o tempo informado.
@@ -307,4 +307,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Começa pela primeira etapa, preservando os valores que o HTML renderizou.
     mostrarEtapa(1);
-});
+}, { once: true });

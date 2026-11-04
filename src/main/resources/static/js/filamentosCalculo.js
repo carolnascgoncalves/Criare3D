@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {
     const listaFilamentos = document.getElementById("listaFilamentos");
     const modeloFilamento = document.getElementById("modeloFilamento");
     const adicionarFilamento = document.getElementById("adicionarFilamento");
@@ -379,7 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     pecaId?.addEventListener("change", atualizarTudo);
-    document.addEventListener("pecaSelecionada", atualizarTudo);
+    pecaId?.addEventListener("pecaSelecionada", atualizarTudo);
 
     atualizarTudo();
-});
+}, { once: true });
