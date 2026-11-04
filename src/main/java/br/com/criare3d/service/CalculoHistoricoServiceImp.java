@@ -15,7 +15,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.UUID;
-
+import org.springframework.beans.factory.annotation.Autowired;
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
@@ -93,6 +93,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         fetchById(id).ifPresent(calculoHistoricoRepository::delete);
     }
 
+    @Override
     public CalculoHistorico calcular(CalculoRequest request) {
 
         Peca peca = pecaService.fetchById(request.getPecaId())
@@ -284,25 +285,16 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     ) {
         boolean avancado = Boolean.TRUE.equals(configuracao.getFormularioAvancado());
 
-        String plataforma = request.getPlataformaVenda() == null
-                ? "NENHUMA"
-                : request.getPlataformaVenda().toUpperCase();
+        String plataforma = request.getPlataformaVenda() == null ? "NENHUMA" : request.getPlataformaVenda().name();
 
         BigDecimal imposto = percentual(request.getPercentualImposto());
         BigDecimal frete = valor(request.getFreteVendedor());
 
-        BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma)
-                ? valor(request.getCustoAdicionalPlataforma())
-                : ZERO;
+        BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
 
-        BigDecimal afiliado = avancado &&
-                ("TIKTOK".equals(plataforma) || "TIKTOK_SHOP".equals(plataforma))
-                ? percentual(request.getPercentualAfiliado())
-                : ZERO;
+        BigDecimal afiliado = avancado && ("TIKTOK".equals(plataforma) || "TIKTOK_SHOP".equals(plataforma)) ? percentual(request.getPercentualAfiliado()) : ZERO;
 
-        BigDecimal comissaoInformada = percentual(
-                request.getPercentualComissaoPlataforma()
-        );
+        BigDecimal comissaoInformada = percentual(request.getPercentualComissaoPlataforma());
 
         validarNaoNegativo(imposto, "O imposto não pode ser negativo");
         validarNaoNegativo(frete, "O frete do vendedor não pode ser negativo");
@@ -324,9 +316,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         switch (plataforma) {
             case "SHOPEE" -> {
-                tipoPessoa = avancado
-                        ? request.getTipoPessoaShopee()
-                        : "CPF";
+                tipoPessoa = avancado ? request.getTipoPessoaShopee() : "CPF";
 
                 if (tipoPessoa == null) {
                     tipoPessoa = "CPF";
@@ -334,25 +324,13 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
                 tipoPessoa = tipoPessoa.toUpperCase();
 
-                mais450 = avancado
-                        && "CPF".equals(tipoPessoa)
-                        && request.isMais450PedidosShopee();
+                mais450 = avancado && "CPF".equals(tipoPessoa) && request.isMais450PedidosShopee();
 
                 taxaCpf = mais450;
 
-                precoVenda = calcularPrecoShopee(
-                        base,
-                        frete.add(adicional),
-                        imposto,
-                        mais450
-                );
+                precoVenda = calcularPrecoShopee(base, frete.add(adicional), imposto, mais450);
 
-                taxasVenda = calcularTaxasShopee(
-                        precoVenda,
-                        imposto,
-                        frete.add(adicional),
-                        mais450
-                );
+                taxasVenda = calcularTaxasShopee(precoVenda, imposto, frete.add(adicional), mais450);
             }
 
             case "TIKTOK", "TIKTOK_SHOP" -> {
@@ -361,97 +339,52 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
                 BigDecimal comissaoAfiliado = avancado ? afiliado : ZERO;
 
-                precoVenda = calcularPrecoTikTok(
-                        base,
-                        frete.add(adicional),
-                        imposto,
-                        comissaoAfiliado,
-                        freteGratis,
-                        isencaoTikTok
-                );
+                precoVenda = calcularPrecoTikTok(base, frete.add(adicional), imposto, comissaoAfiliado, freteGratis, isencaoTikTok);
 
-                taxasVenda = calcularTaxasTikTok(
-                        precoVenda,
-                        imposto,
-                        comissaoAfiliado,
-                        freteGratis,
-                        frete.add(adicional),
-                        isencaoTikTok
-                );
+                taxasVenda = calcularTaxasTikTok(precoVenda, imposto, comissaoAfiliado, freteGratis, frete.add(adicional), isencaoTikTok);
             }
 
             case "MERCADO_LIVRE" -> {
-                tipoAnuncio = request.getTipoAnuncio() == null
-                        ? "CLASSICO"
-                        : request.getTipoAnuncio().toUpperCase();
+                tipoAnuncio = request.getTipoAnuncio() == null ? "CLASSICO" : request.getTipoAnuncio().toUpperCase();
 
                 BigDecimal comissao;
 
                 if (avancado) {
                     comissao = comissaoInformada;
 
-                    if ("CLASSICO".equals(tipoAnuncio)
-                            && (comissao.compareTo(new BigDecimal("10")) < 0
-                            || comissao.compareTo(new BigDecimal("14")) > 0)) {
-                        throw new IllegalArgumentException(
-                                "No anúncio Clássico, informe uma comissão entre 10% e 14%"
-                        );
+                    if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("10")) < 0 || comissao.compareTo(new BigDecimal("14")) > 0)) {
+                        throw new IllegalArgumentException("No anúncio Clássico, informe uma comissão entre 10% e 14%");
                     }
 
-                    if ("PREMIUM".equals(tipoAnuncio)
-                            && (comissao.compareTo(new BigDecimal("15")) < 0
-                            || comissao.compareTo(new BigDecimal("19")) > 0)) {
-                        throw new IllegalArgumentException(
-                                "No anúncio Premium, informe uma comissão entre 15% e 19%"
-                        );
+                    if ("PREMIUM".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("15")) < 0 || comissao.compareTo(new BigDecimal("19")) > 0)) {
+                        throw new IllegalArgumentException("No anúncio Premium, informe uma comissão entre 15% e 19%");
                     }
 
-                    if (!"CLASSICO".equals(tipoAnuncio)
-                            && !"PREMIUM".equals(tipoAnuncio)) {
+                    if (!"CLASSICO".equals(tipoAnuncio) && !"PREMIUM".equals(tipoAnuncio)) {
                         throw new IllegalArgumentException("Selecione o tipo de anúncio");
                     }
 
                     BigDecimal percentualTotal = comissao.add(imposto);
                     BigDecimal fixos = frete.add(adicional);
 
-                    precoVenda = calcularPrecoComTaxas(
-                            base, fixos, percentualTotal
-                    );
+                    precoVenda = calcularPrecoComTaxas(base, fixos, percentualTotal);
 
-                    taxasVenda = calcularTaxasPercentuais(
-                            precoVenda, percentualTotal, fixos
-                    );
+                    taxasVenda = calcularTaxasPercentuais(precoVenda, percentualTotal, fixos);
 
                 } else {
-                    comissao = "PREMIUM".equals(tipoAnuncio)
-                            ? new BigDecimal("19.00")
-                            : new BigDecimal("14.00");
+                    comissao = "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
 
                     faixaPeso = request.getFaixaPesoPacote();
 
                     if (faixaPeso == null || faixaPeso.isBlank()) {
-                        throw new IllegalArgumentException(
-                                "Selecione o peso do pacote para o Mercado Livre"
-                        );
+                        throw new IllegalArgumentException("Selecione o peso do pacote para o Mercado Livre");
                     }
 
-                    precoVenda = calcularPrecoMercadoLivreSimples(
-                            base,
-                            frete,
-                            imposto,
-                            comissao,
-                            faixaPeso
-                    );
+                    precoVenda = calcularPrecoMercadoLivreSimples(base, frete, imposto, comissao, faixaPeso);
 
-                    BigDecimal freteMercadoLivre = buscarFreteMercadoLivre(
-                            faixaPeso, precoVenda
-                    );
+                    BigDecimal freteMercadoLivre = buscarFreteMercadoLivre(faixaPeso, precoVenda);
 
-                    taxasVenda = calcularTaxasPercentuais(
-                            precoVenda,
-                            comissao.add(imposto),
-                            frete.add(freteMercadoLivre)
-                    );
+                    taxasVenda = calcularTaxasPercentuais(precoVenda, comissao.add(imposto), frete.add(freteMercadoLivre));
                 }
 
                 historico.setTipoAnuncio(tipoAnuncio);
@@ -469,21 +402,11 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setPlataformaVenda(plataforma);
         historico.setTipoAnuncio(tipoAnuncio);
         BigDecimal comissaoExibida = switch (plataforma) {
-            case "SHOPEE" -> precoVenda.compareTo(new BigDecimal("79.99")) <= 0
-                    ? new BigDecimal("20.00")
-                    : new BigDecimal("14.00");
+            case "SHOPEE" -> precoVenda.compareTo(new BigDecimal("79.99")) <= 0 ? new BigDecimal("20.00") : new BigDecimal("14.00");
 
-            case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok
-                    ? ZERO
-                    : precoVenda.compareTo(new BigDecimal("50.00")) < 0
-                    ? new BigDecimal("10.00")
-                    : new BigDecimal("6.00");
+            case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok ? ZERO : precoVenda.compareTo(new BigDecimal("50.00")) < 0 ? new BigDecimal("10.00") : new BigDecimal("6.00");
 
-            case "MERCADO_LIVRE" -> avancado
-                    ? comissaoInformada
-                    : "PREMIUM".equals(tipoAnuncio)
-                    ? new BigDecimal("19.00")
-                    : new BigDecimal("14.00");
+            case "MERCADO_LIVRE" -> avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
 
             default -> ZERO;
         };

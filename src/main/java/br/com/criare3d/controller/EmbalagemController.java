@@ -33,7 +33,7 @@ public class EmbalagemController {
     private CatalogoBuscaService catalogoBuscaService;
 
     @GetMapping("/embalagem/listar")
-    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("embalagem/listar");
 

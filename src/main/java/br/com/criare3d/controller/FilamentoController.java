@@ -31,7 +31,7 @@ public class FilamentoController {
     @GetMapping("/filamento/listar")
     public ModelAndView fetchAll(
             @RequestParam(name = "busca", required = false) String busca,
-            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.DESC) Pageable pageable) {
+            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
 
         ModelAndView mv = new ModelAndView("filamento/listar");
 

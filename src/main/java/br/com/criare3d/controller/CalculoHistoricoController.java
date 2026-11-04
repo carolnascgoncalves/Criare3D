@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Base64;
 import java.util.UUID;
+import br.com.criare3d.service.CalculoHistoricoServiceImp;
 
 @Controller
 public class CalculoHistoricoController {
@@ -116,7 +117,7 @@ public class CalculoHistoricoController {
                 return mv;
             }
 
-            CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
+            CalculoHistorico calculo = calculoHistoricoService.calcular(request);
 
             ModelAndView mv = new ModelAndView("historico/resultado");
             mv.addObject("calculo", request);

@@ -1,6 +1,7 @@
 
 package br.com.criare3d.models;
 
+import br.com.criare3d.models.enums.Perfil;
 import jakarta.persistence.*;
 import lombok.*;
 

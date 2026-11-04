@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import br.com.criare3d.models.enums.PlataformaVenda;
 
 @Getter
 @Setter
@@ -44,7 +45,7 @@ public class CalculoRequest {
     @DecimalMin(value = "0.0", message = "O markup não pode ser negativo")
     private BigDecimal markupPercentual;
 
-    private String plataformaVenda = "NENHUMA";
+    private PlataformaVenda plataformaVenda = PlataformaVenda.NENHUMA;
 
     private String tipoAnuncio = "CLASSICO";
 

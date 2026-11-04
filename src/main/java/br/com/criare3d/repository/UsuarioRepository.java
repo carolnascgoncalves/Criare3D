@@ -1,7 +1,7 @@
 
 package br.com.criare3d.repository;
 
-import br.com.criare3d.models.Perfil;
+import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.models.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 import java.util.UUID;
+import br.com.criare3d.dto.CalculoRequest;
 
 public interface CalculoHistoricoService {
     CalculoHistorico create(CalculoHistorico calculoHistorico);
@@ -18,4 +19,5 @@ public interface CalculoHistoricoService {
     long contarPorImpressora(UUID impressoraId);
     long contarPorPeca(UUID pecaId);
     void delete(UUID id);
+    CalculoHistorico calcular(CalculoRequest request);
 }
