@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Cadastrar usuário')}"></head>
+
+<body>
+
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina">
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">ADMINISTRAÇÃO</span>
+            <h1>Cadastrar usuário</h1>
+            <p>Adicione uma nova pessoa ao Criare 3D.</p>
+        </div>
+
+        <a th:href="@{/usuarios/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar
+        </a>
+    </section>
+
+    <section class="cartao">
+
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Dados de acesso</h2>
+                <p>Preencha as informações para criar a conta.</p>
+            </div>
+        </div>
+
+        <div class="formulario-conteudo">
+
+            <form th:action="@{/usuarios/cadastrar}"
+                  th:object="${usuario}"
+                  method="post"
+                  class="formulario">
+
+                <div class="campo">
+                    <label for="email">E-mail</label>
+                    <input type="email"
+                           id="email"
+                           th:field="*{email}"
+                           placeholder="usuario@email.com"
+                           required>
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('email')}"
+                         th:errors="*{email}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="password">Senha</label>
+                    <input type="password"
+                           id="password"
+                           th:field="*{password}"
+                           placeholder="Mínimo de 8 caracteres"
+                           required>
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('password')}"
+                         th:errors="*{password}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="confirmarPassword">Confirmar senha</label>
+                    <input type="password"
+                           id="confirmarPassword"
+                           th:field="*{confirmarPassword}"
+                           placeholder="Digite a senha novamente"
+                           required>
+
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('confirmarPassword')}"
+                         th:errors="*{confirmarPassword}"></div>
+                </div>
+
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-person-plus"></i> Cadastrar usuário
+                    </button>
+
+                    <a th:href="@{/usuarios/listar}"
+                       class="botao botao-secundario">
+                        Cancelar
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

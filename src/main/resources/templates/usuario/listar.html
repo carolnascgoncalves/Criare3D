@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Usuários cadastrados')}"></head>
+
+<body>
+
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina">
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">ADMINISTRAÇÃO</span>
+            <h1>Usuários cadastrados</h1>
+            <p>Gerencie as contas que possuem acesso ao Criare 3D.</p>
+        </div>
+
+        <a th:href="@{/usuarios/novo}" class="botao botao-principal">
+            <i class="bi bi-person-plus"></i> Novo usuário
+        </a>
+    </section>
+
+    <div th:if="${param.sucesso}" class="alert alert-success">
+        Usuário cadastrado com sucesso!
+    </div>
+
+    <section class="cartao">
+
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Contas do sistema</h2>
+                <p>Confira os usuários e seus respectivos perfis.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                <tr>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="usuario : ${usuarios}">
+                    <td th:text="${usuario.email}">email@exemplo.com</td>
+
+                    <td>
+                        <span th:if="${usuario.perfil.name() == 'ADMIN'}"
+                              class="badge text-bg-dark">
+                            Administrador
+                        </span>
+
+                        <span th:if="${usuario.perfil.name() == 'USER'}"
+                              class="badge text-bg-secondary">
+                            Usuário
+                        </span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(usuarios)}">
+                    <td colspan="2" class="text-center py-4">
+                        Nenhum usuário cadastrado.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>
