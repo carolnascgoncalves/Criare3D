@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Minha conta')}"></head>
+
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEU PERFIL</span>
+            <h1>Minha conta</h1>
+            <p>Consulte seus dados de acesso e cuide da segurança da sua conta.</p>
+        </div>
+        <div class="icone-peca">
+            <i class="bi bi-person-circle"></i>
+        </div>
+    </section>
+
+    <section class="cartao configuracao-cartao conta-cartao">
+        <div class="cartao-cabecalho">
+            <div class="configuracao-titulo">
+                <div class="configuracao-icone"><i class="bi bi-person"></i></div>
+                <div>
+                    <h2>Dados do usuário</h2>
+                    <p>Este é o e-mail usado para entrar no Criare 3D.</p>
+                </div>
+            </div>
+        </div>
+        <div class="conta-conteudo">
+            <div class="campo conta-email">
+                <label for="emailConta">E-mail</label>
+                <input id="emailConta" type="email" th:value="${email}" readonly>
+            </div>
+        </div>
+    </section>
+
+    <section class="cartao configuracao-cartao conta-cartao">
+        <div class="cartao-cabecalho">
+            <div class="configuracao-titulo">
+                <div class="configuracao-icone"><i class="bi bi-shield-lock"></i></div>
+                <div>
+                    <h2>Segurança da conta</h2>
+                    <p>Atualize a senha usada para entrar no Criare 3D.</p>
+                </div>
+            </div>
+        </div>
+        <div class="conta-acoes">
+            <a th:href="@{/senha}" class="botao botao-secundario">
+                <i class="bi bi-key"></i> Alterar senha
+            </a>
+        </div>
+    </section>
+</main>
+</body>
+</html>

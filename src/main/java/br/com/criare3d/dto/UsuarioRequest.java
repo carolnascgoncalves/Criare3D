@@ -17,7 +17,7 @@ public class UsuarioRequest {
     private String email;
 
     @NotBlank(message = "Informe a senha.")
-    @Size(min = 8, message = "A senha deve possuir pelo menos 8 caracteres.")
+    @Size(min = 12, message = "A senha deve possuir pelo menos 12 caracteres.")
     private String password;
 
     @NotBlank(message = "Confirme a senha.")

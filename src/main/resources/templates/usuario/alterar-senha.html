@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Alterar senha')}"></head>
+
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SUA CONTA</span>
+            <h1>Alterar senha</h1>
+            <p>Confirme sua senha atual e escolha uma nova senha.</p>
+        </div>
+    </section>
+
+    <div class="alerta-sucesso mensagem-senha-alterada" th:if="${senhaAlterada}">
+        Senha alterada com sucesso.
+    </div>
+
+    <section class="cartao">
+        <div class="formulario-conteudo">
+            <form th:action="@{/senha}" th:object="${alterarSenha}"
+                  method="post" class="formulario" novalidate>
+                <div class="campo">
+                    <label for="senhaAtual">Senha atual</label>
+                    <input type="password" id="senhaAtual" th:field="*{senhaAtual}"
+                           autocomplete="current-password" required>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('senhaAtual')}"
+                         th:errors="*{senhaAtual}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="novaSenha">Nova senha</label>
+                    <input type="password" id="novaSenha" th:field="*{novaSenha}"
+                           autocomplete="new-password" minlength="12" required>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('novaSenha')}"
+                         th:errors="*{novaSenha}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="confirmarNovaSenha">Confirmar nova senha</label>
+                    <input type="password" id="confirmarNovaSenha"
+                           th:field="*{confirmarNovaSenha}"
+                           autocomplete="new-password" required>
+                    <div class="erro-campo"
+                         th:if="${#fields.hasErrors('confirmarNovaSenha')}"
+                         th:errors="*{confirmarNovaSenha}"></div>
+                </div>
+
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal">
+                        <i class="bi bi-key"></i> Salvar nova senha
+                    </button>
+                    <a th:href="@{/}" class="botao botao-secundario">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

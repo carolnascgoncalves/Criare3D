@@ -96,7 +96,9 @@ Para construir a imagem:
 docker build -t criare3d .
 ```
 
-O projeto usa atualmente `spring.jpa.hibernate.ddl-auto=update`. Mantenha backup do banco antes de alterações estruturais importantes. Os testes com H2 não substituem a validação manual do fluxo completo com PostgreSQL.
+O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A coluna legada `peca.preco_emb_peca` do banco local é preservada.
+
+Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes usam H2 com Flyway desativado e não substituem a validação das migrações em PostgreSQL.
 
 ## Checklist antes de publicar
 

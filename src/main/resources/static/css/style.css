@@ -1024,6 +1024,38 @@ tr:nth-child(even) {
     text-align: right;
 }
 
+.conta-cartao + .conta-cartao {
+    margin-top: 24px;
+}
+
+.conta-conteudo {
+    padding: 24px 28px 28px;
+}
+
+.conta-email {
+    max-width: 560px;
+}
+
+.conta-email input[readonly] {
+    background: var(--fundo);
+    color: var(--marrom);
+}
+
+.conta-acoes {
+    display: flex;
+    padding: 0 28px 28px;
+}
+
+.alerta-sucesso.mensagem-senha-alterada {
+    border-color: #a5c9a5;
+    background: #eaf5e8;
+    color: #315d34;
+}
+
+.menu-perfil {
+    font-size: 1.15rem;
+}
+
 @media (max-width: 700px) {
     .configuracao-conteudo {
         grid-template-columns: 1fr;
