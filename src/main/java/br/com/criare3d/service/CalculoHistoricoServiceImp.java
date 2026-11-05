@@ -123,13 +123,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             throw new IllegalArgumentException("O tempo de impressão deve ser maior que zero");
         }
 
-        BigDecimal markup;
-
-        if (Boolean.TRUE.equals(configuracao.getMarkupFixo())) {
-            markup = configuracao.getMarkupPercentual();
-        } else {
-            markup = request.getMarkupPercentual();
-        }
+        BigDecimal markup = request.getMarkupPercentual();
 
         if (markup == null || markup.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Selecione um markup válido");
