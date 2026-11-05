@@ -304,11 +304,7 @@ public class CalculoHistoricoController {
         return linhas;
     }
 
-    /*
-     * Cria uma cópia dos dados do cálculo.
-     * Assim, a comparação não altera a plataforma nem os dados
-     * que serão utilizados para salvar o cálculo original.
-     */
+
     private CalculoRequest copiarParaComparacao(CalculoRequest original) {
 
         CalculoRequest copia = new CalculoRequest();
@@ -355,10 +351,81 @@ public class CalculoHistoricoController {
         copia.setPercentualAfiliado(original.getPercentualAfiliado());
         copia.setIsencaoComissaoTikTok(original.isIsencaoComissaoTikTok());
 
-        copia.setFaixaPesoPacote(original.getFaixaPesoPacote());
+        String faixaPeso = original.getFaixaPesoPacote();
+
+        if (faixaPeso == null || faixaPeso.isBlank()) {
+            faixaPeso = estimarFaixaPesoPacote(original);
+        }
+
+        copia.setFaixaPesoPacote(faixaPeso);
 
         return copia;
     }
+
+    private String estimarFaixaPesoPacote(CalculoRequest request) {
+
+        BigDecimal pesoImpressao = BigDecimal.ZERO;
+
+        if (request.getFilamentos() != null) {
+            for (ItemCalculoRequest item : request.getFilamentos()) {
+
+                if (item.getQuantidadeFilamentoGramas() != null) {
+                    pesoImpressao = pesoImpressao.add(
+                            item.getQuantidadeFilamentoGramas()
+                    );
+                }
+            }
+        }
+
+        if (pesoImpressao.compareTo(BigDecimal.ZERO) == 0
+                && request.getQuantidadeFilamentoGramas() != null) {
+
+            pesoImpressao = request.getQuantidadeFilamentoGramas();
+        }
+
+        // Margem estimada para a embalagem.
+        BigDecimal pesoEstimado = pesoImpressao.add(
+                new BigDecimal("100")
+        );
+
+        if (pesoEstimado.compareTo(new BigDecimal("300")) <= 0) {
+            return "ATE_300G";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("500")) <= 0) {
+            return "DE_300G_500G";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("1000")) <= 0) {
+            return "DE_500G_1KG";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("1500")) <= 0) {
+            return "DE_1KG_1_5KG";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("2000")) <= 0) {
+            return "DE_1_5KG_2KG";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("3000")) <= 0) {
+            return "DE_2KG_3KG";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("4000")) <= 0) {
+            return "DE_3KG_4KG";
+        }
+
+        if (pesoEstimado.compareTo(new BigDecimal("5000")) <= 0) {
+            return "DE_4KG_5KG";
+        }
+
+        throw new IllegalArgumentException(
+                "O peso estimado do pacote ultrapassa 5 kg. "
+                        + "Não foi possível calcular o frete do Mercado Livre."
+        );
+    }
+
 
     @PostMapping("/historico/editar")
     public ResponseEntity<Void> editar(

@@ -1462,3 +1462,54 @@ input[type="color"]:focus {
     color: var(--marrom-claro);
     font-style: italic;
 }
+
+/* ========================================
+   CABEÇALHO DOS DETALHES DO HISTÓRICO
+======================================== */
+
+.detalhes-cartao-cabecalho {
+    background: #e9c6b6;
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--borda);
+}
+
+.detalhes-identificacao-peca,
+.detalhes-identificacao-texto,
+.detalhes-identificacao-texto h2,
+.detalhes-identificacao-texto .detalhes-etiqueta {
+    background: transparent;
+}
+
+/* ========================================
+   COMPARATIVO DE PLATAFORMAS
+   AJUSTES VISUAIS
+======================================== */
+
+.tabela-comparador thead th {
+    background: #f0d8ca;
+    color: var(--marrom);
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-bottom: 2px solid var(--destaque);
+}
+
+.tabela-comparador td {
+    color: var(--marrom);
+}
+
+.comparador-etiqueta {
+    background: #f5e7da;
+    color: var(--marrom);
+    font-weight: 700;
+}
+
+.comparador-etiqueta-melhor {
+    background: var(--destaque);
+    color: var(--marrom);
+    font-weight: 800;
+}
+
+.comparador-aviso {
+    color: var(--marrom);
+    font-weight: 500;
+}
