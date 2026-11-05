@@ -2,9 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Peca;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,10 +18,12 @@ public class PecaDadosRequest {
 
     @NotNull(message = "A quantidade de filamento utilizado na peca é obrigatorio")
     @Column(name="qntFil_peca",nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "A quantidade não pode ser negativa.")
     private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
 
     @NotNull(message = "O Tempo de impressão da peca é obrigatorio")
     @Column(name= "tmp_peca",nullable = false)
+    @PositiveOrZero(message = "O tempo deve ser maior ou igual a zero.")
     private @Getter @Setter Long tempoImpressaoMinutos;
 
     public static PecaDadosRequest toDto(final Peca peca){

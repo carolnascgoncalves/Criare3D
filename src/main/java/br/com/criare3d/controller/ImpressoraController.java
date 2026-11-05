@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 @Controller
 public class ImpressoraController {
@@ -60,6 +61,7 @@ public class ImpressoraController {
     public ModelAndView create(@Valid @ModelAttribute("impressora") ImpressoraRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("impressora/novo");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("impressora", request);
             mv.addObject("origem", origem);
             return mv;
@@ -128,6 +130,7 @@ public class ImpressoraController {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("impressora/edicao");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("impressora", request);
             mv.addObject("id", id);
             return mv;

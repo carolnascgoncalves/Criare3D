@@ -2,9 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Filamento;
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -23,19 +21,23 @@ public class FilamentoRequest {
     @Column(name= "cor_fil", nullable = false, length = 80)
     private @Getter @Setter String cor;
 
+    @NotBlank(message = "Selecione uma cor.")
+    @Pattern(regexp = "^#[0-9A-Fa-f]{6}$", message = "Selecione uma cor válida.")
     @Column(name = "codigo_cor_fil", length = 7)
     private @Getter @Setter String codigoCor;
 
-    @Size(min = 0, max = 150, message = "A marca do filamento deve ter entre 2 à 150 caracteres")
+    @Size(max = 150, message = "A marca deve ter no máximo 150 caracteres.")
     @Column(name= "marca_fil", length = 150)
     private @Getter @Setter String marca;
 
     @NotNull(message = "O peso do rolo comprado do filamento é obrigatorio")
     @Column(name="pesoRolo_fil", precision = 10, scale = 2)
+    @DecimalMin(value = "0.01", message = "O peso deve ser maior que zero.")
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
     @NotNull(message = "O preco do filamento do filamento é obrigatorio")
     @Column(name="precoRolo_fil", precision = 10, scale = 2)
+    @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
     private @Getter @Setter BigDecimal precoRolo;
 
     public static FilamentoRequest toDto(Filamento filamento){

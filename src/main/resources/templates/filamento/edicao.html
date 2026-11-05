@@ -26,7 +26,8 @@
             <form th:action="@{/filamento/atualizar/{id}(id=${id})}"
                   th:object="${filamento}"
                   method="post"
-                  class="formulario formulario-filamento">
+                  class="formulario formulario-filamento"
+                  novalidate>
 
 
                     <div class="campo">
@@ -61,18 +62,19 @@
                                id="codigoCor"
                                th:field="*{codigoCor}"
                                required>
+                        <div class="erro-campo"
+                             th:if="${#fields.hasErrors('codigoCor')}"
+                             th:errors="*{codigoCor}">
+                        </div>
                         <small>Você pode alterar a tonalidade do filamento.</small>
                     </div>
-
 
                     <div class="campo">
                         <label for="marca">Marca</label>
                         <input type="text"
                                id="marca"
                                th:field="*{marca}"
-                               minlength="0"
-                               maxlength="150"
-                               required>
+                               maxlength="150">
                         <span class="erro-campo"
                               th:if="${#fields.hasErrors('marca')}"
                               th:errors="*{marca}"></span>

@@ -89,6 +89,8 @@
                                              data-tempo=${peca.tempoImpressaoMinutos}">
                             </option>
                             <option value="" data-acao="cadastrar-peca">+ Cadastrar nova peça</option>
+
+
                         </select>
                         <small>Os dados de consumo e tempo podem ser preenchidos com base no cadastro da peça.</small>
                         <div class="erro-campo"
@@ -190,6 +192,10 @@
                                         </option>
                                         <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
                                     </select>
+
+                                    <div class="erro-campo"
+                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].filamentoId')}"
+                                         th:errors="*{filamentos[__${stat.index}__].filamentoId}"></div>
                                 </div>
 
                                 <div class="campo">
@@ -201,6 +207,10 @@
                                            step="0.01"
                                            placeholder="Ex.: 25.50"
                                            required>
+
+                                    <div class="erro-campo"
+                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].quantidadeFilamentoGramas')}"
+                                         th:errors="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"></div>
                                 </div>
 
                                 <button type="button"
@@ -365,6 +375,10 @@
                             </option>
                             <option value="" data-acao="cadastrar-embalagem">+ Cadastrar nova embalagem</option>
                         </select>
+
+                        <div class="erro-campo"
+                             th:if="${#fields.hasErrors('embalagemId')}"
+                             th:errors="*{embalagemId}"></div>
                     </div>
 
                     <div class="resumo-revisao">
@@ -436,7 +450,12 @@
                                     </label>
                                 </div>
 
+                                <div class="erro-campo"
+                                     th:if="${#fields.hasErrors('markupPercentual')}"
+                                     th:errors="*{markupPercentual}"></div>
+
                                 <small>O percentual será aplicado sobre o custo total de produção.</small>
+
                             </div>
                         </div>
                     </div>

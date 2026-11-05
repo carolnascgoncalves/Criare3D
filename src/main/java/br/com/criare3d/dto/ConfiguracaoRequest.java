@@ -1,6 +1,7 @@
 package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Configuracao;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,16 +13,19 @@ import java.math.BigDecimal;
 public class ConfiguracaoRequest {
 
     @NotNull(message = "O markup é obrigatório")
+    @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
     private BigDecimal markupPercentual;
 
     private Boolean markupFixo = false;
 
     @NotNull(message = "A tarifa de energia é obrigatória")
+    @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
     private BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "Informe se utilizará embalagem fixa")
     private Boolean embalagemFixa;
 
+    @DecimalMin(value = "0.0", message = "O custo não pode ser negativo.")
     private BigDecimal custoEmbalagemFixa;
 
     private Boolean formularioAvancado = false;

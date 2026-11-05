@@ -2,6 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Embalagem;
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -20,6 +21,7 @@ public class EmbalagemRequest {
 
     @NotNull(message="O custo unitário da embalagem é obrigatorio")
     @Column(name="custoUni_emb", nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.01", message = "O custo deve ser maior que zero.")
     private @Getter @Setter BigDecimal custoUnitario;
 
     public static EmbalagemRequest toDto(Embalagem embalagem){

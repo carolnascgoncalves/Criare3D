@@ -2,6 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Impressora;
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -25,6 +26,7 @@ public class ImpressoraDadosRequest {
 
     @NotNull(message = "A potencia da impressora é obrigatória")
     @Column(name="potencia_imp", nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "A potência não pode ser negativa.")
     private @Getter @Setter BigDecimal potenciaWatts;
 
     public static Impressora toEntity(ImpressoraDadosRequest dto){

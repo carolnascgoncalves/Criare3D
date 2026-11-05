@@ -31,7 +31,8 @@
             <form th:action="@{/embalagem/atualizar/{id}(id=${id})}"
                   th:object="${embalagem}"
                   method="post"
-                  class="formulario">
+                  class="formulario"
+                  novalidate>
 
                 <div class="campo">
                     <label for="nome">Nome da embalagem</label>

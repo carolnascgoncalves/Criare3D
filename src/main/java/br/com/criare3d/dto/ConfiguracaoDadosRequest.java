@@ -2,6 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.Configuracao;
 import jakarta.persistence.Column;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -13,16 +14,19 @@ import java.math.BigDecimal;
 public class ConfiguracaoDadosRequest {
     @NotNull(message = "A porcentagem de markup da configuracao é obrigatoria")
     @Column(name="markup_conf",nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
     private @Getter @Setter BigDecimal markupPercentual;
 
     @NotNull(message = "A tarifa de energia da configuracao é obrigatoria")
-    @Column(name="qntFil_peca",nullable = false, precision = 10, scale = 2)
+    @Column(name="tarEner_conf",nullable = false, precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
     private @Getter @Setter BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "A embalagemFixa é obrigatoria")
     @Column(name="embFixa_conf", nullable = false)
     private @Getter @Setter Boolean embalagemFixa;
 
+    @DecimalMin(value = "0.0", message = "O custo não pode ser negativo.")
     @Column(name="custoEmbFixa_conf", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal custoEmbalagemFixa;
 

@@ -49,20 +49,26 @@ public class CalculoRequest {
 
     private String tipoAnuncio = "CLASSICO";
 
+    @DecimalMin(value = "0.0", message = "A comissão não pode ser negativa.")
     private BigDecimal percentualComissaoPlataforma = BigDecimal.ZERO;
 
+    @DecimalMin(value = "0.0", message = "O custo adicional não pode ser negativo.")
     private BigDecimal custoAdicionalPlataforma = BigDecimal.ZERO;
 
+    @DecimalMin(value = "0.0", message = "O imposto não pode ser negativo.")
     private BigDecimal percentualImposto = BigDecimal.ZERO;
 
+    @DecimalMin(value = "0.0", message = "O frete não pode ser negativo.")
     private BigDecimal freteVendedor = BigDecimal.ZERO;
+
+    @DecimalMin(value = "0.0", message = "O percentual do afiliado não pode ser negativo.")
+    private BigDecimal percentualAfiliado = BigDecimal.ZERO;
 
     private boolean taxaCpfShopee;
     private String tipoPessoaShopee = "CPF";
     private boolean mais450PedidosShopee;
 
     private boolean freteGratisTikTok;
-    private BigDecimal percentualAfiliado = BigDecimal.ZERO;
     private boolean isencaoComissaoTikTok;
 
     private String faixaPesoPacote;

@@ -33,7 +33,8 @@
             <form th:action="@{/peca/cadastrar}"
                   th:object="${peca}"
                   method="post"
-                  class="formulario">
+                  class="formulario"
+                  novalidate>
                 <input type="hidden" name="origem" th:value="${origem}">
 
                 <div class="campo">

@@ -50,7 +50,7 @@ function inicializarCalculoEtapas() {
         if (!campo) return;
 
         requestAnimationFrame(() => {
-            campo.reportValidity();
+            window.validacaoInline?.validar(campo);
             campo.focus();
         });
     }

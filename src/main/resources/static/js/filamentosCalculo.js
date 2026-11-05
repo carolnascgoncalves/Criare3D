@@ -309,13 +309,13 @@ function inicializarFilamentosCalculo() {
             const quantidade = item.querySelector("[data-campo-quantidade]");
 
             if (!select.checkValidity()) {
-                select.reportValidity();
+                window.validacaoInline?.validar(select);
                 select.focus();
                 return;
             }
 
             if (!quantidade.checkValidity()) {
-                quantidade.reportValidity();
+                window.validacaoInline?.validar(quantidade);
                 quantidade.focus();
                 return;
             }

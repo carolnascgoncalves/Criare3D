@@ -36,7 +36,8 @@
             <form th:action="@{/usuarios/cadastrar}"
                   th:object="${usuario}"
                   method="post"
-                  class="formulario">
+                  class="formulario"
+                  novalidate>
 
                 <div class="campo">
                     <label for="email">E-mail</label>

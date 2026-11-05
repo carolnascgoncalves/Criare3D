@@ -33,7 +33,8 @@
             <form th:action="@{/impressora/atualizar/{id}(id=${id})}"
                   th:object="${impressora}"
                   method="post"
-                  class="formulario">
+                  class="formulario"
+                  novalidate>
 
                 <div class="campo">
                     <label for="nome">Nome da impressora</label>

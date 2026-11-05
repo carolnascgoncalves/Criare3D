@@ -31,7 +31,8 @@
             <form th:action="@{/embalagem/cadastrar}"
                   th:object="${embalagem}"
                   method="post"
-                  class="formulario">
+                  class="formulario"
+                  novalidate>
 
                 <input type="hidden" name="origem" th:value="${origem}">
 
