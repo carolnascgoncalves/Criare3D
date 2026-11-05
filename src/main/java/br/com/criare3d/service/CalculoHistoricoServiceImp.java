@@ -278,7 +278,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         String plataforma = request.getPlataformaVenda() == null ? "NENHUMA" : request.getPlataformaVenda().name();
 
         BigDecimal imposto = percentual(request.getPercentualImposto());
-        BigDecimal frete = valor(request.getFreteVendedor());
+        BigDecimal frete = obterFreteVendedor(request, avancado, plataforma);
 
         BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
 
@@ -337,7 +337,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             case "MERCADO_LIVRE" -> {
                 tipoAnuncio = request.getTipoAnuncio() == null ? "CLASSICO" : request.getTipoAnuncio().toUpperCase();
 
-                BigDecimal comissao;
+                BigDecimal comissao = null;
 
                 if (avancado) {
                     comissao = comissaoInformada;
@@ -361,20 +361,55 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
                     taxasVenda = calcularTaxasPercentuais(precoVenda, percentualTotal, fixos);
 
+                } else if (request.isFreteMercadoLivreManualNecessario()) {
+                    faixaPeso = null;
+                    comissao = "PREMIUM".equals(tipoAnuncio)
+                            ? new BigDecimal("19.00")
+                            : new BigDecimal("14.00");
+
+                    BigDecimal percentualTotal = comissao.add(imposto);
+
+                    precoVenda = calcularPrecoComTaxas(
+                            base,
+                            frete,
+                            percentualTotal
+                    );
+
+                    taxasVenda = calcularTaxasPercentuais(
+                            precoVenda,
+                            percentualTotal,
+                            frete
+                    );
+
                 } else {
-                    comissao = "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
+                    comissao = "PREMIUM".equals(tipoAnuncio)
+                            ? new BigDecimal("19.00")
+                            : new BigDecimal("14.00");
 
                     faixaPeso = request.getFaixaPesoPacote();
 
                     if (faixaPeso == null || faixaPeso.isBlank()) {
-                        throw new IllegalArgumentException("Selecione o peso do pacote para o Mercado Livre");
+                        throw new IllegalArgumentException(
+                                "Selecione o peso do pacote para o Mercado Livre"
+                        );
                     }
 
-                    precoVenda = calcularPrecoMercadoLivreSimples(base, frete, imposto, comissao, faixaPeso);
+                    precoVenda = calcularPrecoMercadoLivreSimples(
+                            base,
+                            frete,
+                            imposto,
+                            comissao,
+                            faixaPeso
+                    );
 
-                    BigDecimal freteMercadoLivre = buscarFreteMercadoLivre(faixaPeso, precoVenda);
+                    BigDecimal freteMercadoLivre =
+                            buscarFreteMercadoLivre(faixaPeso, precoVenda);
 
-                    taxasVenda = calcularTaxasPercentuais(precoVenda, comissao.add(imposto), frete.add(freteMercadoLivre));
+                    taxasVenda = calcularTaxasPercentuais(
+                            precoVenda,
+                            comissao.add(imposto),
+                            frete.add(freteMercadoLivre)
+                    );
                 }
 
                 historico.setTipoAnuncio(tipoAnuncio);
@@ -473,7 +508,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         String plataforma = plataformaEnum == null ? "NENHUMA" : plataformaEnum.name();
 
         BigDecimal imposto = percentual(request.getPercentualImposto());
-        BigDecimal frete = valor(request.getFreteVendedor());
+        BigDecimal frete = obterFreteVendedor(request, avancado, plataforma);
 
         BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
 
@@ -534,7 +569,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             case "MERCADO_LIVRE" -> {
                 tipoAnuncio = request.getTipoAnuncio() == null ? "CLASSICO" : request.getTipoAnuncio().toUpperCase();
 
-                BigDecimal comissao;
+                BigDecimal comissao = null;
 
                 if (avancado) {
                     comissao = comissaoInformada;
@@ -554,18 +589,39 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
                     taxas = calcularTaxasPercentuais(precoVenda, comissao.add(imposto), frete.add(adicional));
 
+                } else if (request.isFreteMercadoLivreManualNecessario()) {
+                    faixaPeso = null;
+                    comissao = "PREMIUM".equals(tipoAnuncio)
+                            ? new BigDecimal("19.00")
+                            : new BigDecimal("14.00");
+
+                    taxas = calcularTaxasPercentuais(
+                            precoVenda,
+                            comissao.add(imposto),
+                            frete
+                    );
+
                 } else {
-                    comissao = "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
+                    comissao = "PREMIUM".equals(tipoAnuncio)
+                            ? new BigDecimal("19.00")
+                            : new BigDecimal("14.00");
 
                     faixaPeso = request.getFaixaPesoPacote();
 
                     if (faixaPeso == null || faixaPeso.isBlank()) {
-                        throw new IllegalArgumentException("Selecione o peso do pacote para o Mercado Livre");
+                        throw new IllegalArgumentException(
+                                "Selecione o peso do pacote para o Mercado Livre"
+                        );
                     }
 
-                    BigDecimal freteMercadoLivre = buscarFreteMercadoLivre(faixaPeso, precoVenda);
+                    BigDecimal freteMercadoLivre =
+                            buscarFreteMercadoLivre(faixaPeso, precoVenda);
 
-                    taxas = calcularTaxasPercentuais(precoVenda, comissao.add(imposto), frete.add(freteMercadoLivre));
+                    taxas = calcularTaxasPercentuais(
+                            precoVenda,
+                            comissao.add(imposto),
+                            frete.add(freteMercadoLivre)
+                    );
                 }
 
                 comissaoExibida = avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
@@ -845,7 +901,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         } else if (preco.compareTo(new BigDecimal("119.99")) <= 0) {
             coluna = 3;
         } else {
-            throw new IllegalArgumentException("Faixa de preço do Mercado Livre ainda não configurada.");
+            throw new IllegalArgumentException(
+                    "O preço calculado passou de R$ 119,99. Informe o frete manualmente."
+            );
         }
 
         BigDecimal[][] tabela = {
@@ -903,17 +961,24 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .divide(denominador, 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal calcularTaxasPercentuais(
-            BigDecimal preco,
-            BigDecimal percentual,
-            BigDecimal fixos
-    ) {
-        return moeda(
-                preco.multiply(percentual)
-                        .divide(CEM, 8, RoundingMode.HALF_UP)
-                        .add(fixos)
-        );
+    private BigDecimal calcularTaxasPercentuais(BigDecimal preco, BigDecimal percentual, BigDecimal fixos) {
+        return moeda(preco.multiply(percentual).divide(CEM, 8, RoundingMode.HALF_UP).add(fixos));
     }
+
+    private BigDecimal obterFreteVendedor(CalculoRequest request, boolean avancado, String plataforma) {
+        if (!avancado && "MERCADO_LIVRE".equals(plataforma) && request.isFreteMercadoLivreManualNecessario()) {
+            BigDecimal freteManual = request.getFreteMercadoLivreManual();
+
+            if (freteManual == null) {
+                throw new IllegalArgumentException("Informe o custo de envio que ficará por sua conta.");
+            }
+
+            return valor(freteManual);
+        }
+
+        return valor(request.getFreteVendedor());
+    }
+
 
     private BigDecimal percentual(BigDecimal valor) {
         return valor == null ? ZERO : valor;

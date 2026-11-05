@@ -292,7 +292,18 @@
             sessionStorage.removeItem(CHAVE_RASCUNHO);
         }
 
-        const salvo = sessionStorage.getItem(CHAVE_RASCUNHO);
+        const respostaCalculoComErro =
+            document.getElementById("respostaCalculoComErro")?.value === "true";
+
+        // Em uma resposta de erro, os valores do servidor são os mais recentes.
+        // Não substituí-los por um rascunho antigo do sessionStorage.
+        if (respostaCalculoComErro) {
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
+        }
+
+        const salvo = respostaCalculoComErro
+            ? null
+            : sessionStorage.getItem(CHAVE_RASCUNHO);
 
         if (salvo) {
             try {

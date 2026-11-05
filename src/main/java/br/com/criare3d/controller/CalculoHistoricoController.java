@@ -170,10 +170,20 @@ public class CalculoHistoricoController {
         try {
             aplicarFoto(request, fotoPeca);
 
+            if (request.isFreteMercadoLivreManualNecessario()
+                    && request.getFreteMercadoLivreManual() == null) {
+                bd.rejectValue(
+                        "freteMercadoLivreManual",
+                        "freteMercadoLivreManual.obrigatorio",
+                        "Informe o custo de envio que ficará por sua conta."
+                );
+            }
+
             if (bd.hasErrors()) {
                 ModelAndView mv = new ModelAndView("historico/novo");
                 mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
                 mv.addObject("calculo", request);
+                mv.addObject("respostaCalculoComErro", true);
                 adicionarPreviewFoto(mv, request);
                 carregarDadosFormulario(mv);
                 return mv;
@@ -193,13 +203,25 @@ public class CalculoHistoricoController {
                     .build();
 
         } catch (IllegalArgumentException | IOException e) {
+            boolean precisaFreteManual = e instanceof IllegalArgumentException
+                    && e.getMessage() != null
+                    && e.getMessage().toLowerCase(java.util.Locale.ROOT)
+                    .contains("informe o frete manualmente");
+
+            if (precisaFreteManual) {
+                request.setFreteMercadoLivreManualNecessario(true);
+            }
+
             ModelAndView mv = new ModelAndView("historico/novo");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("calculo", request);
+            mv.addObject("respostaCalculoComErro", true);
 
-            mv.addObject("erro", e instanceof IOException
-                    ? "Não foi possível processar a foto. Tente selecionar a imagem novamente."
-                    : e.getMessage());
+            if (!precisaFreteManual) {
+                mv.addObject("erro", e instanceof IOException
+                        ? "Não foi possível processar a foto. Tente selecionar a imagem novamente."
+                        : e.getMessage());
+            }
 
             adicionarPreviewFoto(mv, request);
             carregarDadosFormulario(mv);
@@ -400,6 +422,9 @@ public class CalculoHistoricoController {
         copia.setFreteGratisTikTok(original.isFreteGratisTikTok());
         copia.setPercentualAfiliado(original.getPercentualAfiliado());
         copia.setIsencaoComissaoTikTok(original.isIsencaoComissaoTikTok());
+
+        copia.setFreteMercadoLivreManual(original.getFreteMercadoLivreManual());
+        copia.setFreteMercadoLivreManualNecessario(original.isFreteMercadoLivreManualNecessario());
 
         String faixaPeso = original.getFaixaPesoPacote();
 

@@ -57,6 +57,8 @@
                   enctype="multipart/form-data"
                   class="formulario"
                   id="formCalculo"
+                  data-turbo="false"
+                  th:attr="data-tarifa-energia=${configuracao.tarifaEnergiaKwh}, data-embalagem-fixa=${configuracao.embalagemFixa}, data-custo-embalagem-fixa=${configuracao.custoEmbalagemFixa}, data-markup-fixo=${configuracao.markupFixo}, data-markup-configurado=${configuracao.markupPercentual}"
                   novalidate>
 
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
@@ -68,6 +70,10 @@
                 <input type="hidden" id="filamentoCriado" th:value="${filamentoCriado}">
                 <input type="hidden" id="impressoraCriada" th:value="${impressoraCriada}">
                 <input type="hidden" id="embalagemCriada" th:value="${embalagemCriada}">
+                <input type="hidden" th:field="*{freteMercadoLivreManualNecessario}">
+                <input type="hidden"
+                       id="respostaCalculoComErro"
+                       th:value="${respostaCalculoComErro ?: false}">
 
                 <!-- ETAPA 01: MATERIAIS -->
 
@@ -111,6 +117,53 @@
                                 <i class="bi bi-plus-lg"></i> Adicionar filamento
                             </button>
                         </div>
+
+                        <div id="listaFilamentos">
+                            <div class="filamento-calculo-item"
+                                 data-filamento-item
+                                 th:each="item, stat : *{filamentos}"
+                                 th:attr="data-confirmado=${item.filamentoId != null and item.quantidadeFilamentoGramas != null}"
+                                 th:hidden="${item.filamentoId != null and item.quantidadeFilamentoGramas != null}">
+
+                                <div class="filamento-calculo-cabecalho">
+                                    <strong th:text="|Filamento ${stat.index + 1}|">Filamento 1</strong>
+                                    <button type="button" class="botao-remover-filamento" data-remover-filamento>
+                                        <i class="bi bi-trash"></i> Remover
+                                    </button>
+                                </div>
+
+                                <div class="campo">
+                                    <label>Filamento</label>
+                                    <select th:field="*{filamentos[__${stat.index}__].filamentoId}"
+                                            data-campo-filamento required>
+                                        <option value="">Selecione um filamento</option>
+                                        <option th:each="filamento : ${filamentos}"
+                                                th:value="${filamento.id}"
+                                                th:text="|${filamento.nome} - ${filamento.cor}|"
+                                                th:attr="data-cor=${filamento.cor}, data-codigo-cor=${filamento.codigoCor}, data-preco-rolo=${filamento.precoRolo}, data-peso-rolo=${filamento.pesoRoloGramas}"></option>
+                                        <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
+                                    </select>
+                                    <div class="erro-campo"
+                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].filamentoId')}"
+                                         th:errors="*{filamentos[__${stat.index}__].filamentoId}"></div>
+                                </div>
+
+                                <div class="campo">
+                                    <label>Quantidade utilizada (gramas)</label>
+                                    <input type="number"
+                                           th:field="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"
+                                           data-campo-quantidade min="0.01" step="0.01"
+                                           placeholder="Ex.: 25.50" required>
+                                    <div class="erro-campo"
+                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].quantidadeFilamentoGramas')}"
+                                         th:errors="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"></div>
+                                </div>
+
+                                <button type="button" class="botao botao-principal" data-confirmar-filamento>
+                                    <i class="bi bi-check-lg"></i> Confirmar filamento
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <template id="modeloFilamento">
@@ -132,7 +185,9 @@
                                             th:value="${filamento.id}"
                                             th:text="|${filamento.nome} - ${filamento.cor}|"
                                             th:attr="data-cor=${filamento.cor},
-                                                     data-codigo-cor=${filamento.codigoCor}">
+                                                     data-codigo-cor=${filamento.codigoCor},
+                                                     data-preco-rolo=${filamento.precoRolo},
+                                                     data-peso-rolo=${filamento.pesoRoloGramas}">
                                     </option>
                                     <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
                                 </select>
@@ -160,66 +215,6 @@
                         <span class="texto-apoio">PEÇA SELECIONADA</span>
                         <h3 id="nomePecaResumo">Peça</h3>
                         <p id="consumoPrevistoResumo">Consumo previsto: 0 g</p>
-
-                        <div id="listaFilamentos">
-                            <div class="filamento-calculo-item"
-                                 data-filamento-item
-                                 th:each="item, stat : *{filamentos}"
-                                 th:attr="data-confirmado=${item.filamentoId != null and item.quantidadeFilamentoGramas != null}"
-                                 th:hidden="${item.filamentoId != null and item.quantidadeFilamentoGramas != null}">
-
-                                <div class="filamento-calculo-cabecalho">
-                                    <strong th:text="|Filamento ${stat.index + 1}|">Filamento 1</strong>
-
-                                    <button type="button"
-                                            class="botao-remover-filamento"
-                                            data-remover-filamento>
-                                        <i class="bi bi-trash"></i> Remover
-                                    </button>
-                                </div>
-
-                                <div class="campo">
-                                    <label>Filamento</label>
-                                    <select th:field="*{filamentos[__${stat.index}__].filamentoId}"
-                                            data-campo-filamento
-                                            required>
-                                        <option value="">Selecione um filamento</option>
-                                        <option th:each="filamento : ${filamentos}"
-                                                th:value="${filamento.id}"
-                                                th:text="|${filamento.nome} - ${filamento.cor}|"
-                                                th:attr="data-cor=${filamento.cor},
-                                                         data-codigo-cor=${filamento.codigoCor}">
-                                        </option>
-                                        <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
-                                    </select>
-
-                                    <div class="erro-campo"
-                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].filamentoId')}"
-                                         th:errors="*{filamentos[__${stat.index}__].filamentoId}"></div>
-                                </div>
-
-                                <div class="campo">
-                                    <label>Quantidade utilizada (gramas)</label>
-                                    <input type="number"
-                                           th:field="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"
-                                           data-campo-quantidade
-                                           min="0.01"
-                                           step="0.01"
-                                           placeholder="Ex.: 25.50"
-                                           required>
-
-                                    <div class="erro-campo"
-                                         th:if="${#fields.hasErrors('filamentos[' + stat.index + '].quantidadeFilamentoGramas')}"
-                                         th:errors="*{filamentos[__${stat.index}__].quantidadeFilamentoGramas}"></div>
-                                </div>
-
-                                <button type="button"
-                                        class="botao botao-principal"
-                                        data-confirmar-filamento>
-                                    <i class="bi bi-check-lg"></i> Confirmar filamento
-                                </button>
-                            </div>
-                        </div>
 
                         <div id="listaResumoConsumo"></div>
 
@@ -299,7 +294,8 @@
                             <option value="">Selecione uma impressora</option>
                             <option th:each="impressora : ${impressoras}"
                                     th:value="${impressora.id}"
-                                    th:text="${impressora.nome}">
+                                    th:text="${impressora.nome}"
+                                    th:attr="data-potencia=${impressora.potenciaWatts}">
                             </option>
                             <option value="" data-acao="cadastrar-impressora">+ Cadastrar nova impressora</option>
                         </select>
@@ -371,7 +367,8 @@
                             <option value="">Selecione uma embalagem</option>
                             <option th:each="embalagem : ${embalagens}"
                                     th:value="${embalagem.id}"
-                                    th:text="${embalagem.nome}">
+                                    th:text="${embalagem.nome}"
+                                    th:attr="data-custo=${embalagem.custoUnitario}">
                             </option>
                             <option value="" data-acao="cadastrar-embalagem">+ Cadastrar nova embalagem</option>
                         </select>
@@ -573,21 +570,56 @@
                             </div>
 
                             <div th:if="${configuracao == null or configuracao.formularioAvancado != true}">
-                                <div class="campo">
-                                    <label for="faixaPesoPacote">Peso do pacote</label>
-                                    <select id="faixaPesoPacote" th:field="*{faixaPesoPacote}">
-                                        <option value="">Selecione o peso</option>
-                                        <option value="ATE_300G">Até 300 g</option>
-                                        <option value="DE_300G_500G">300 g a 500 g</option>
-                                        <option value="DE_500G_1KG">500 g a 1 kg</option>
-                                        <option value="DE_1KG_1_5KG">1 kg a 1,5 kg</option>
-                                        <option value="DE_1_5KG_2KG">1,5 kg a 2 kg</option>
-                                        <option value="DE_2KG_3KG">2 kg a 3 kg</option>
-                                        <option value="DE_3KG_4KG">3 kg a 4 kg</option>
-                                        <option value="DE_4KG_5KG">4 kg a 5 kg</option>
-                                    </select>
+
+                                <div id="freteMercadoLivreAutomatico"
+                                     th:attr="hidden=${calculo.freteMercadoLivreManualNecessario}">
+                                    <div class="campo">
+                                        <label for="faixaPesoPacote">Peso do pacote</label>
+                                        <select id="faixaPesoPacote" th:field="*{faixaPesoPacote}">
+                                            <option value="">Selecione o peso</option>
+                                            <option value="ATE_300G">Até 300 g</option>
+                                            <option value="DE_300G_500G">300 g a 500 g</option>
+                                            <option value="DE_500G_1KG">500 g a 1 kg</option>
+                                            <option value="DE_1KG_1_5KG">1 kg a 1,5 kg</option>
+                                            <option value="DE_1_5KG_2KG">1,5 kg a 2 kg</option>
+                                            <option value="DE_2KG_3KG">2 kg a 3 kg</option>
+                                            <option value="DE_3KG_4KG">3 kg a 4 kg</option>
+                                            <option value="DE_4KG_5KG">4 kg a 5 kg</option>
+                                        </select>
+                                    </div>
+
+                                    <small>O frete é estimado automaticamente conforme o peso e o preço final.</small>
                                 </div>
-                                <small>O frete será calculado automaticamente conforme o peso e o preço final.</small>
+
+                                <div id="freteMercadoLivreManualBloco"
+                                     th:attr="hidden=${!calculo.freteMercadoLivreManualNecessario}">
+
+
+                                    <div class="campo">
+                                        <label for="freteMercadoLivreManual">
+                                            Custo de envio por unidade (R$)
+                                        </label>
+                                        <input type="number"
+                                               id="freteMercadoLivreManual"
+                                               th:field="*{freteMercadoLivreManual}"
+                                               min="0"
+                                               step="0.01"
+                                               placeholder="Ex.: 15,00"
+                                               required
+                                               th:attr="disabled=${!calculo.freteMercadoLivreManualNecessario}">
+
+                                        <div class="erro-campo"
+                                             th:if="${#fields.hasErrors('freteMercadoLivreManual')}"
+                                             th:errors="*{freteMercadoLivreManual}"></div>
+                                    </div>
+
+                                    <div class="aviso-info">
+                                        <i class="bi bi-info-circle"></i>
+                                        O preço calculado passou de R$ 119,99, limite da faixa de frete automático.
+                                        Informe o custo de envio que ficará por sua conta. Você encontra esse valor
+                                        no simulador de custos do Mercado Livre.
+                                    </div>
+                                </div>
                             </div>
 
                             <div th:if="${configuracao != null and configuracao.formularioAvancado}">

@@ -73,6 +73,11 @@ public class CalculoRequest {
 
     private String faixaPesoPacote;
 
+    @DecimalMin(value = "0.0", message = "O custo de envio não pode ser negativo.")
+    private BigDecimal freteMercadoLivreManual;
+
+    private boolean freteMercadoLivreManualNecessario;
+
     public static CalculoHistorico toEntity(CalculoRequest request) {
         return CalculoHistorico.builder()
                 .quantidadeFilamentoGramas(request.getQuantidadeFilamentoGramas())
