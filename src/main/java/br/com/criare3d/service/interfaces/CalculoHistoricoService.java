@@ -5,6 +5,7 @@ import br.com.criare3d.models.CalculoHistorico;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 import br.com.criare3d.dto.CalculoRequest;
@@ -20,4 +21,5 @@ public interface CalculoHistoricoService {
     long contarPorPeca(UUID pecaId);
     void delete(UUID id);
     CalculoHistorico calcular(CalculoRequest request);
+    CalculoHistorico calcularComPrecoFixo(CalculoRequest request, BigDecimal precoVenda);
 }

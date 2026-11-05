@@ -209,8 +209,11 @@ public class CalculoHistoricoController {
     }
 
     @GetMapping("/historico/resultado")
-    public ModelAndView resultado(HttpSession session) {
-
+    public ModelAndView resultado(
+            HttpSession session,
+            @RequestParam(defaultValue = "LUCRO_DESEJADO") String modoComparacao,
+            @RequestParam(required = false) BigDecimal precoVendaFixo
+    ) {
         CalculoRequest request =
                 (CalculoRequest) session.getAttribute(REQUEST_CALCULO);
 
@@ -221,12 +224,21 @@ public class CalculoHistoricoController {
             return new ModelAndView("redirect:/historico/novo?novo=true");
         }
 
+        if (!"PRECO_FIXO".equals(modoComparacao)) {
+            modoComparacao = "LUCRO_DESEJADO";
+        }
+
         ModelAndView mv = new ModelAndView("historico/resultado");
+
         mv.addObject("calculo", request);
         mv.addObject("resultado", resultado);
+        mv.addObject("modoComparacao", modoComparacao);
+        mv.addObject("precoVendaFixo", precoVendaFixo);
 
-        // Novo: comparação entre as plataformas.
-        mv.addObject("comparacoes", compararPlataformas(request));
+        mv.addObject(
+                "comparacoes",
+                compararPlataformas(request, modoComparacao, precoVendaFixo)
+        );
 
         adicionarPreviewFoto(mv, request);
 
@@ -238,8 +250,11 @@ public class CalculoHistoricoController {
      * Se alguma delas precisar de uma informação que não foi fornecida,
      * o motivo aparece como aviso somente naquela linha.
      */
-    private List<ComparacaoPlataforma> compararPlataformas(CalculoRequest base) {
-
+    private List<ComparacaoPlataforma> compararPlataformas(
+            CalculoRequest base,
+            String modoComparacao,
+            BigDecimal precoVendaFixo
+    ) {
         record Opcao(PlataformaVenda plataforma, String nome) {}
 
         List<Opcao> opcoes = List.of(
@@ -247,6 +262,8 @@ public class CalculoHistoricoController {
                 new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
                 new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre")
         );
+
+        boolean precoFixo = "PRECO_FIXO".equals(modoComparacao);
 
         List<ComparacaoPlataforma> linhas = new ArrayList<>();
 
@@ -265,11 +282,29 @@ public class CalculoHistoricoController {
                     ))
             );
 
+            if (precoFixo && (precoVendaFixo == null
+                    || precoVendaFixo.compareTo(BigDecimal.ZERO) <= 0)) {
+
+                linha.setAviso("Informe um preço de venda maior que zero.");
+
+                linhas.add(linha);
+                continue;
+            }
+
             try {
                 CalculoRequest copia = copiarParaComparacao(base);
                 copia.setPlataformaVenda(opcao.plataforma());
 
-                CalculoHistorico calculo = calculoHistoricoService.calcular(copia);
+                CalculoHistorico calculo;
+
+                if (precoFixo) {
+                    calculo = calculoHistoricoService.calcularComPrecoFixo(
+                            copia,
+                            precoVendaFixo
+                    );
+                } else {
+                    calculo = calculoHistoricoService.calcular(copia);
+                }
 
                 BigDecimal preco = calculo.getPrecoVendaPlataforma();
                 BigDecimal lucro = calculo.getLucroLiquido();
@@ -295,11 +330,26 @@ public class CalculoHistoricoController {
             linhas.add(linha);
         }
 
-        linhas.stream()
-                .filter(ComparacaoPlataforma::isCalculada)
-                .filter(l -> l.getLucro() != null)
-                .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
-                .ifPresent(l -> l.setMelhor(true));
+        if (precoFixo) {
+            linhas.stream()
+                    .filter(ComparacaoPlataforma::isCalculada)
+                    .filter(l -> l.getLucro() != null)
+                    .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
+                    .ifPresent(l -> {
+                        l.setMelhor(true);
+                        l.setEtiquetaMelhor("maior lucro");
+                    });
+
+        } else {
+            linhas.stream()
+                    .filter(ComparacaoPlataforma::isCalculada)
+                    .filter(l -> l.getPrecoVenda() != null)
+                    .min(Comparator.comparing(ComparacaoPlataforma::getPrecoVenda))
+                    .ifPresent(l -> {
+                        l.setMelhor(true);
+                        l.setEtiquetaMelhor("menor preço");
+                    });
+        }
 
         return linhas;
     }

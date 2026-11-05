@@ -1,4 +1,3 @@
-
 package br.com.criare3d.dto;
 
 import lombok.Getter;
@@ -19,6 +18,7 @@ public class ComparacaoPlataforma {
     private String aviso;
     private boolean melhor;
     private boolean selecionada;
+    private String etiquetaMelhor;
 
     public boolean isCalculada() {
         return aviso == null && precoVenda != null;

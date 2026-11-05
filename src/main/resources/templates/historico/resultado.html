@@ -210,17 +210,66 @@
             </div>
 
             <!-- COMPARAÇÃO ENTRE PLATAFORMAS -->
+            <!-- COMPARAÇÃO ENTRE PLATAFORMAS -->
             <section class="detalhes-calculo" th:if="${comparacoes != null}">
 
                 <h3>Onde vale mais a pena vender?</h3>
 
-                <p class="comparador-intro">
-                    Mesmo custo e mesmo markup, calculados em cada plataforma.
-                    Compare o lucro líquido e a margem.
+                <p class="comparador-intro"
+                   th:text="${modoComparacao == 'PRECO_FIXO'
+            ? 'Compare quanto sobra de lucro quando você cobra o mesmo preço em todas as plataformas.'
+            : 'Compare quanto precisa cobrar em cada plataforma para manter o lucro desejado.'}">
+                    Compare as condições de venda nas plataformas.
                 </p>
+
+                <form th:action="@{/historico/resultado}"
+                      method="get"
+                      class="comparador-controles"
+                      id="formComparador"
+                      data-turbo="false">
+
+                    <div class="comparador-campo comparador-campo-modo">
+                        <label for="modoComparacao">Como deseja comparar?</label>
+
+                        <select id="modoComparacao" name="modoComparacao">
+                            <option value="LUCRO_DESEJADO"
+                                    th:selected="${modoComparacao != 'PRECO_FIXO'}">
+                                Manter o lucro desejado
+                            </option>
+
+                            <option value="PRECO_FIXO"
+                                    th:selected="${modoComparacao == 'PRECO_FIXO'}">
+                                Comparar com preço fixo
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="comparador-campo comparador-campo-preco"
+                         id="campoPrecoFixo"
+                         th:hidden="${modoComparacao != 'PRECO_FIXO'}">
+
+                        <label for="precoVendaFixo">Preço de venda</label>
+
+                        <input type="number"
+                               id="precoVendaFixo"
+                               name="precoVendaFixo"
+                               min="0.01"
+                               step="0.01"
+                               placeholder="Ex.: 40,00"
+                               th:value="${precoVendaFixo}">
+                    </div>
+
+                    <button type="submit"
+                            class="botao botao-principal comparador-botao">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Atualizar comparação
+                    </button>
+
+                </form>
 
                 <div class="tabela-responsiva">
                     <table class="tabela-comparador">
+
                         <thead>
                         <tr>
                             <th>Plataforma</th>
@@ -240,13 +289,14 @@
 
                                 <span class="comparador-etiqueta"
                                       th:if="${linha.selecionada}">
-                                    escolhida
-                                </span>
+                        escolhida
+                    </span>
 
                                 <span class="comparador-etiqueta comparador-etiqueta-melhor"
-                                      th:if="${linha.melhor}">
-                                    maior lucro
-                                </span>
+                                      th:if="${linha.melhor}"
+                                      th:text="${linha.etiquetaMelhor}">
+                        melhor resultado
+                    </span>
                             </td>
 
                             <td th:if="${linha.calculada}"
@@ -278,6 +328,7 @@
 
                         </tr>
                         </tbody>
+
                     </table>
                 </div>
 
@@ -285,6 +336,7 @@
                     Estimativa com as taxas cadastradas no sistema.
                     Confira as condições atuais da sua conta em cada plataforma.
                 </small>
+
             </section>
 
             <!-- AÇÕES -->
@@ -379,5 +431,55 @@
         </div>
     </section>
 </main>
+
+<script>
+    (function () {
+        const chaveScrollComparador = "criare3dScrollComparador";
+
+        const modo = document.getElementById("modoComparacao");
+        const campoPreco = document.getElementById("campoPrecoFixo");
+        const preco = document.getElementById("precoVendaFixo");
+        const formulario = document.getElementById("formComparador");
+
+        // Exibe o preço somente no modo de preço fixo.
+        function atualizarCampoPreco() {
+            if (!modo || !campoPreco || !preco) return;
+
+            const precoFixo = modo.value === "PRECO_FIXO";
+
+            campoPreco.hidden = !precoFixo;
+            preco.required = precoFixo;
+        }
+
+        if (modo) {
+            modo.addEventListener("change", atualizarCampoPreco);
+            atualizarCampoPreco();
+        }
+
+        // Guarda a posição antes de atualizar a comparação.
+        if (formulario) {
+            formulario.addEventListener("submit", function () {
+                sessionStorage.setItem(
+                    chaveScrollComparador,
+                    String(window.scrollY)
+                );
+            });
+        }
+
+        // Restaura a posição depois que a página carregar.
+        window.addEventListener("pageshow", function () {
+            const posicao = sessionStorage.getItem(chaveScrollComparador);
+
+            if (posicao !== null) {
+                sessionStorage.removeItem(chaveScrollComparador);
+
+                requestAnimationFrame(function () {
+                    window.scrollTo(0, Number(posicao));
+                });
+            }
+        });
+    })();
+</script>
+
 </body>
 </html>

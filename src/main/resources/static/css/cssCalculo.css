@@ -2886,3 +2886,64 @@ a:focus-visible {
     font-size: 13px;
     line-height: 1.5;
 }
+
+/* ========================================
+   CONTROLES DA COMPARAÇÃO DE PLATAFORMAS
+======================================== */
+
+.comparador-controles {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(180px, 0.7fr) auto;
+    align-items: end;
+    gap: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: #fffaf6;
+}
+
+.comparador-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.comparador-campo label {
+    color: var(--marrom);
+    font-weight: 600;
+    margin: 0;
+}
+
+.comparador-campo select,
+.comparador-campo input {
+    width: 100%;
+    min-width: 0;
+}
+
+.comparador-botao {
+    min-height: 44px;
+    white-space: nowrap;
+}
+
+@media (max-width: 850px) {
+    .comparador-controles {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .comparador-botao {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+}
+
+@media (max-width: 550px) {
+    .comparador-controles {
+        grid-template-columns: 1fr;
+    }
+
+    .comparador-botao {
+        grid-column: auto;
+    }
+}
