@@ -1357,17 +1357,6 @@
     color: #245b35;
 }
 
-.detalhes-cartao-cabecalho > div:first-child {
-    background-color: #f5e6dc;
-    padding: 14px 18px;
-    border-radius: 12px;
-}
-.detalhes-identificacao-peca {
-    background-color: #f5e6dc;
-    padding: 18px 22px;
-    border-radius: 12px;
-}
-
 .detalhes-identificacao-peca .detalhes-titulo-peca {
     color: #492e1e;
 }
@@ -2138,8 +2127,8 @@ input[type="search"] {
 
 .detalhes-modal-imagem {
     display: block;
-    max-width: min(90vw, 1000px);
-    max-height: 85vh;
+    max-width: min(76vw, 760px);
+    max-height: 75vh;
     object-fit: contain;
     border-radius: 12px;
     background: #fffaf6;
