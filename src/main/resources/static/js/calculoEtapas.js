@@ -24,7 +24,7 @@ function inicializarCalculoEtapas() {
         window.salvarRascunhoCalculo?.();
     }
 
-    function mostrarEtapa(numero) {
+    function mostrarEtapa(numero, salvar = true) {
         etapaAtual = numero;
 
         etapas.forEach(etapa => {
@@ -41,7 +41,9 @@ function inicializarCalculoEtapas() {
             );
         });
 
-        salvarRascunho();
+        if (salvar) {
+            salvarRascunho();
+        }
     }
 
     function focarCampo(campo) {
@@ -459,7 +461,7 @@ function inicializarCalculoEtapas() {
         mostrarEtapa(evento.detail.etapa || 1);
     });
 
-    mostrarEtapa(1);
+    mostrarEtapa(1, false);
 }
 
 document.addEventListener("DOMContentLoaded", inicializarCalculoEtapas);
