@@ -10,6 +10,7 @@ import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CalculoHistoricoServiceImp;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
+import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -37,9 +39,21 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 
 @Controller
 public class CalculoHistoricoController {
+
+    private static final Map<String, Sort> ORDENACOES_HISTORICO = Map.ofEntries(
+            Map.entry("nomeAsc", Sort.by(Sort.Direction.ASC, "nomePeca")),
+            Map.entry("nomeDesc", Sort.by(Sort.Direction.DESC, "nomePeca")),
+            Map.entry("dataAsc", Sort.by(Sort.Direction.ASC, "dataCalculo")),
+            Map.entry("dataDesc", Sort.by(Sort.Direction.DESC, "dataCalculo")),
+            Map.entry("custoAsc", Sort.by(Sort.Direction.ASC, "custoTotal")),
+            Map.entry("custoDesc", Sort.by(Sort.Direction.DESC, "custoTotal")),
+            Map.entry("precoAsc", JpaSort.unsafe(Sort.Direction.ASC, "coalesce(precoVendaPlataforma, precoSugerido)")),
+            Map.entry("precoDesc", JpaSort.unsafe(Sort.Direction.DESC, "coalesce(precoVendaPlataforma, precoSugerido)"))
+    );
 
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
@@ -74,8 +88,11 @@ public class CalculoHistoricoController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "data", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            @PageableDefault(page = 0, size = 5, sort = "dataCalculo",
-                    direction = Sort.Direction.DESC) Pageable pageable) {
+            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
+            @PageableDefault(page = 0, size = 5) Pageable pageable) {
+
+        ordem = OrdenacaoPaginada.validarOrdem(ordem, "dataDesc", ORDENACOES_HISTORICO);
+        pageable = OrdenacaoPaginada.aplicar(pageable, ordem, ORDENACOES_HISTORICO);
 
         ModelAndView mv = new ModelAndView("historico/listar");
 
@@ -89,6 +106,7 @@ public class CalculoHistoricoController {
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
         mv.addObject("data", data);
+        mv.addObject("ordem", ordem);
 
         return mv;
     }

@@ -3,46 +3,6 @@
 
 <head th:replace="~{fragmentos :: cabecalho('Detalhes do Cálculo')}"></head>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-
-        const botaoAbrir = document.getElementById("abrirFotoPeca");
-        const modal = document.getElementById("modalFotoPeca");
-        const botaoFechar = document.getElementById("fecharFotoPeca");
-
-        if (!botaoAbrir || !modal || !botaoFechar) {
-            return;
-        }
-
-        function abrirModal() {
-            modal.hidden = false;
-            document.body.style.overflow = "hidden";
-        }
-
-        function fecharModal() {
-            modal.hidden = true;
-            document.body.style.overflow = "";
-        }
-
-        botaoAbrir.addEventListener("click", abrirModal);
-
-        botaoFechar.addEventListener("click", fecharModal);
-
-        modal.addEventListener("click", function (event) {
-            if (event.target === modal) {
-                fecharModal();
-            }
-        });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape" && !modal.hidden) {
-                fecharModal();
-            }
-        });
-
-    });
-</script>
-
 <body>
 
 <div th:replace="~{fragmentos :: menu}"></div>

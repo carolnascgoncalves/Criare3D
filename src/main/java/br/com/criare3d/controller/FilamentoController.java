@@ -7,6 +7,7 @@ import br.com.criare3d.dto.FilamentoDadosRequest;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
+import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,9 +21,17 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
+import java.util.Map;
 
 @Controller
 public class FilamentoController {
+
+    private static final Map<String, Sort> ORDENACOES = Map.of(
+            "nomeAsc", Sort.by(Sort.Direction.ASC, "nome"),
+            "nomeDesc", Sort.by(Sort.Direction.DESC, "nome"),
+            "corAsc", Sort.by(Sort.Direction.ASC, "cor"),
+            "corDesc", Sort.by(Sort.Direction.DESC, "cor")
+    );
 
     @Autowired
     private FilamentoService filamentoService;
@@ -33,7 +42,11 @@ public class FilamentoController {
     @GetMapping("/filamento/listar")
     public ModelAndView fetchAll(
             @RequestParam(name = "busca", required = false) String busca,
-            @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+
+        ordem = OrdenacaoPaginada.validarOrdem(ordem, "nomeAsc", ORDENACOES);
+        pageable = OrdenacaoPaginada.aplicar(pageable, ordem, ORDENACOES);
 
         ModelAndView mv = new ModelAndView("filamento/listar");
 
@@ -42,6 +55,7 @@ public class FilamentoController {
         mv.addObject("filamentos", pagina.getContent());
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca == null ? "" : busca);
+        mv.addObject("ordem", ordem);
 
         return mv;
     }

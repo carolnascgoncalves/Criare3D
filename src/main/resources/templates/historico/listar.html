@@ -63,8 +63,25 @@
                 Pesquisar
             </button>
 
+            <details class="controle-ordenacao">
+                <summary aria-label="Opções de ordenação" title="Ordenar histórico"><i class="bi bi-sort-down"></i></summary>
+                <div class="painel-ordenacao">
+                    <label for="ordem-historico">Ordenar por</label>
+                    <select id="ordem-historico" name="ordem">
+                        <option value="dataDesc" th:selected="${ordem == 'dataDesc'}">Mais recente</option>
+                        <option value="dataAsc" th:selected="${ordem == 'dataAsc'}">Mais antiga</option>
+                        <option value="nomeAsc" th:selected="${ordem == 'nomeAsc'}">Peça (A–Z)</option>
+                        <option value="nomeDesc" th:selected="${ordem == 'nomeDesc'}">Peça (Z–A)</option>
+                        <option value="custoAsc" th:selected="${ordem == 'custoAsc'}">Menor custo total</option>
+                        <option value="custoDesc" th:selected="${ordem == 'custoDesc'}">Maior custo total</option>
+                        <option value="precoAsc" th:selected="${ordem == 'precoAsc'}">Menor preço exibido</option>
+                        <option value="precoDesc" th:selected="${ordem == 'precoDesc'}">Maior preço exibido</option>
+                    </select>
+                    <button type="submit" class="botao botao-secundario">Aplicar</button>
+                </div>
+            </details>
             <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
-               th:href="@{/historico/listar}"
+               th:href="@{/historico/listar(ordem=${ordem})}"
                class="botao botao-secundario">
                 Limpar
             </a>
@@ -104,7 +121,7 @@
                 </p>
 
                 <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
-                   th:href="@{/historico/listar}"
+                   th:href="@{/historico/listar(ordem=${ordem})}"
                    class="botao botao-secundario">
                     Limpar filtros
                 </a>
@@ -192,7 +209,7 @@
                  th:if="${pagina.totalPages > 1}">
 
                 <a th:if="${pagina.hasPrevious()}"
-                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data})}"
+                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem})}"
                    title="Página anterior"
                    aria-label="Página anterior">
                     <i class="bi bi-chevron-left"></i>
@@ -208,7 +225,7 @@
                 </span>
 
                 <a th:if="${pagina.hasNext()}"
-                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data})}"
+                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem})}"
                    title="Próxima página"
                    aria-label="Próxima página">
                     <i class="bi bi-chevron-right"></i>

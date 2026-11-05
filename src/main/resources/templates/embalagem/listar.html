@@ -54,8 +54,21 @@
 
             <button type="submit" class="botao botao-principal">Pesquisar</button>
 
+            <details class="controle-ordenacao">
+                <summary aria-label="Opções de ordenação" title="Ordenar embalagens"><i class="bi bi-sort-down"></i></summary>
+                <div class="painel-ordenacao">
+                    <label for="ordem-embalagens">Ordenar por</label>
+                    <select id="ordem-embalagens" name="ordem">
+                        <option value="nomeAsc" th:selected="${ordem == 'nomeAsc'}">Nome (A–Z)</option>
+                        <option value="nomeDesc" th:selected="${ordem == 'nomeDesc'}">Nome (Z–A)</option>
+                        <option value="custoAsc" th:selected="${ordem == 'custoAsc'}">Menor custo</option>
+                        <option value="custoDesc" th:selected="${ordem == 'custoDesc'}">Maior custo</option>
+                    </select>
+                    <button type="submit" class="botao botao-secundario">Aplicar</button>
+                </div>
+            </details>
             <a th:if="${busca != null and !busca.isBlank()}"
-               th:href="@{/embalagem/listar}"
+               th:href="@{/embalagem/listar(ordem=${ordem})}"
                class="botao botao-secundario">Limpar</a>
         </form>
 
@@ -115,7 +128,7 @@
 
         <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
             <a th:if="${pagina.hasPrevious()}"
-               th:href="@{/embalagem/listar(page=${pagina.number - 1}, busca=${busca})}"
+               th:href="@{/embalagem/listar(page=${pagina.number - 1}, busca=${busca}, ordem=${ordem})}"
                class="paginacao-seta"
                aria-label="Página anterior">
                 <i class="bi bi-chevron-left"></i>
@@ -132,7 +145,7 @@
             </span>
 
             <a th:if="${pagina.hasNext()}"
-               th:href="@{/embalagem/listar(page=${pagina.number + 1}, busca=${busca})}"
+               th:href="@{/embalagem/listar(page=${pagina.number + 1}, busca=${busca}, ordem=${ordem})}"
                class="paginacao-seta"
                aria-label="Próxima página">
                 <i class="bi bi-chevron-right"></i>
@@ -149,7 +162,7 @@
             <i class="bi bi-search"></i>
             <h3>Nenhum resultado encontrado</h3>
             <p>Não encontramos embalagens com esse nome. Tente outra pesquisa.</p>
-            <a th:href="@{/embalagem/listar}" class="botao botao-secundario">Limpar pesquisa</a>
+            <a th:href="@{/embalagem/listar(ordem=${ordem})}" class="botao botao-secundario">Limpar pesquisa</a>
         </div>
 
         <div class="estado-vazio"

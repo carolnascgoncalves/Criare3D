@@ -55,7 +55,20 @@
             </div>
 
             <button type="submit" class="botao botao-principal">Pesquisar</button>
-            <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/filamento/listar}" class="botao botao-limpar-busca">Limpar</a>
+            <details class="controle-ordenacao">
+                <summary aria-label="Opções de ordenação" title="Ordenar filamentos"><i class="bi bi-sort-down"></i></summary>
+                <div class="painel-ordenacao">
+                    <label for="ordem-filamentos">Ordenar por</label>
+                    <select id="ordem-filamentos" name="ordem">
+                        <option value="nomeAsc" th:selected="${ordem == 'nomeAsc'}">Nome (A–Z)</option>
+                        <option value="nomeDesc" th:selected="${ordem == 'nomeDesc'}">Nome (Z–A)</option>
+                        <option value="corAsc" th:selected="${ordem == 'corAsc'}">Cor (A–Z)</option>
+                        <option value="corDesc" th:selected="${ordem == 'corDesc'}">Cor (Z–A)</option>
+                    </select>
+                    <button type="submit" class="botao botao-secundario">Aplicar</button>
+                </div>
+            </details>
+            <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/filamento/listar(ordem=${ordem})}" class="botao botao-limpar-busca">Limpar</a>
         </form>
 
         <div class="tabela-container"
@@ -117,7 +130,7 @@
 
         <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
             <a th:if="${pagina.hasPrevious()}"
-               th:href="@{/filamento/listar(page=${pagina.number - 1}, busca=${busca})}"
+               th:href="@{/filamento/listar(page=${pagina.number - 1}, busca=${busca}, ordem=${ordem})}"
                class="paginacao-seta"
                aria-label="Página anterior">
                 <i class="bi bi-chevron-left"></i>
@@ -134,7 +147,7 @@
             </span>
 
             <a th:if="${pagina.hasNext()}"
-               th:href="@{/filamento/listar(page=${pagina.number + 1}, busca=${busca})}"
+               th:href="@{/filamento/listar(page=${pagina.number + 1}, busca=${busca}, ordem=${ordem})}"
                class="paginacao-seta"
                aria-label="Próxima página">
                 <i class="bi bi-chevron-right"></i>
@@ -150,7 +163,7 @@
             <span class="estado-vazio-icone"><i class="bi bi-search"></i></span>
             <h3>Nenhum filamento encontrado</h3>
             <p th:text="${'Não encontramos filamentos para ' + busca + '. Tente pesquisar por outro nome ou cor.'}">Nenhum resultado para a busca.</p>
-            <a th:href="@{/filamento/listar}" class="botao botao-secundario">Limpar pesquisa</a>
+            <a th:href="@{/filamento/listar(ordem=${ordem})}" class="botao botao-secundario">Limpar pesquisa</a>
         </div>
 
         <div class="estado-vazio" th:if="${#lists.isEmpty(filamentos) and (busca == null or #strings.isEmpty(busca))}">
