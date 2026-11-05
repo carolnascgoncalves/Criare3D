@@ -1,9 +1,12 @@
+
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
+import br.com.criare3d.dto.ComparacaoPlataforma;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CalculoHistoricoServiceImp;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
@@ -26,9 +29,13 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -150,7 +157,7 @@ public class CalculoHistoricoController {
     }
 
     /*
-     * O cálculo agora segue o padrão POST -> GET.
+     * O cálculo segue o padrão POST -> GET.
      * O resultado fica na sessão e o POST responde com HTTP 303.
      */
     @PostMapping("/historico/calcular")
@@ -217,9 +224,140 @@ public class CalculoHistoricoController {
         ModelAndView mv = new ModelAndView("historico/resultado");
         mv.addObject("calculo", request);
         mv.addObject("resultado", resultado);
+
+        // Novo: comparação entre as plataformas.
+        mv.addObject("comparacoes", compararPlataformas(request));
+
         adicionarPreviewFoto(mv, request);
 
         return mv;
+    }
+
+    /*
+     * Calcula a mesma peça nas três plataformas.
+     * Se alguma delas precisar de uma informação que não foi fornecida,
+     * o motivo aparece como aviso somente naquela linha.
+     */
+    private List<ComparacaoPlataforma> compararPlataformas(CalculoRequest base) {
+
+        record Opcao(PlataformaVenda plataforma, String nome) {}
+
+        List<Opcao> opcoes = List.of(
+                new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
+                new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
+                new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre")
+        );
+
+        List<ComparacaoPlataforma> linhas = new ArrayList<>();
+
+        for (Opcao opcao : opcoes) {
+
+            ComparacaoPlataforma linha = new ComparacaoPlataforma();
+
+            linha.setNome(opcao.nome());
+            linha.setCodigo(opcao.plataforma().name());
+
+            linha.setSelecionada(
+                    base.getPlataformaVenda() == opcao.plataforma()
+                            || (opcao.plataforma() == PlataformaVenda.TIKTOK
+                            && "TIKTOK_SHOP".equals(
+                            String.valueOf(base.getPlataformaVenda())
+                    ))
+            );
+
+            try {
+                CalculoRequest copia = copiarParaComparacao(base);
+                copia.setPlataformaVenda(opcao.plataforma());
+
+                CalculoHistorico calculo = calculoHistoricoService.calcular(copia);
+
+                BigDecimal preco = calculo.getPrecoVendaPlataforma();
+                BigDecimal lucro = calculo.getLucroLiquido();
+
+                linha.setPrecoVenda(preco);
+                linha.setTaxas(calculo.getTaxasPlataforma());
+                linha.setLucro(lucro);
+
+                if (preco != null
+                        && preco.compareTo(BigDecimal.ZERO) > 0
+                        && lucro != null) {
+
+                    linha.setMargem(
+                            lucro.multiply(new BigDecimal("100"))
+                                    .divide(preco, 1, RoundingMode.HALF_UP)
+                    );
+                }
+
+            } catch (IllegalArgumentException e) {
+                linha.setAviso(e.getMessage());
+            }
+
+            linhas.add(linha);
+        }
+
+        linhas.stream()
+                .filter(ComparacaoPlataforma::isCalculada)
+                .filter(l -> l.getLucro() != null)
+                .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
+                .ifPresent(l -> l.setMelhor(true));
+
+        return linhas;
+    }
+
+    /*
+     * Cria uma cópia dos dados do cálculo.
+     * Assim, a comparação não altera a plataforma nem os dados
+     * que serão utilizados para salvar o cálculo original.
+     */
+    private CalculoRequest copiarParaComparacao(CalculoRequest original) {
+
+        CalculoRequest copia = new CalculoRequest();
+
+        copia.setPecaId(original.getPecaId());
+        copia.setImpressoraId(original.getImpressoraId());
+        copia.setEmbalagemId(original.getEmbalagemId());
+        copia.setTempoImpressaoMinutos(original.getTempoImpressaoMinutos());
+        copia.setMarkupPercentual(original.getMarkupPercentual());
+
+        List<ItemCalculoRequest> itens = new ArrayList<>();
+
+        if (original.getFilamentos() != null) {
+            for (ItemCalculoRequest item : original.getFilamentos()) {
+
+                ItemCalculoRequest novo = new ItemCalculoRequest();
+
+                novo.setFilamentoId(item.getFilamentoId());
+                novo.setQuantidadeFilamentoGramas(
+                        item.getQuantidadeFilamentoGramas()
+                );
+
+                itens.add(novo);
+            }
+        }
+
+        copia.setFilamentos(itens);
+
+        copia.setTipoAnuncio(original.getTipoAnuncio());
+        copia.setPercentualComissaoPlataforma(
+                original.getPercentualComissaoPlataforma()
+        );
+        copia.setCustoAdicionalPlataforma(
+                original.getCustoAdicionalPlataforma()
+        );
+        copia.setPercentualImposto(original.getPercentualImposto());
+        copia.setFreteVendedor(original.getFreteVendedor());
+
+        copia.setTaxaCpfShopee(original.isTaxaCpfShopee());
+        copia.setTipoPessoaShopee(original.getTipoPessoaShopee());
+        copia.setMais450PedidosShopee(original.isMais450PedidosShopee());
+
+        copia.setFreteGratisTikTok(original.isFreteGratisTikTok());
+        copia.setPercentualAfiliado(original.getPercentualAfiliado());
+        copia.setIsencaoComissaoTikTok(original.isIsencaoComissaoTikTok());
+
+        copia.setFaixaPesoPacote(original.getFaixaPesoPacote());
+
+        return copia;
     }
 
     @PostMapping("/historico/editar")
@@ -276,6 +414,7 @@ public class CalculoHistoricoController {
 
     @GetMapping("/historico/detalhes/{id}")
     public ModelAndView fetchById(@PathVariable UUID id) {
+
         return calculoHistoricoService.fetchById(id)
                 .map(entidade -> {
                     ModelAndView mv = new ModelAndView("historico/detalhes");
@@ -316,6 +455,7 @@ public class CalculoHistoricoController {
     }
 
     private void adicionarPreviewFoto(ModelAndView mv, CalculoRequest request) {
+
         if (request.getFotoPecaBase64() != null
                 && !request.getFotoPecaBase64().isBlank()
                 && request.getFotoPecaContentType() != null) {
@@ -329,6 +469,7 @@ public class CalculoHistoricoController {
     }
 
     private void carregarDadosFormulario(ModelAndView mv) {
+
         Pageable pageable = PageRequest.of(0, 1000);
 
         mv.addObject("pecas", pecaService.fetchAll(pageable).getContent());
@@ -340,6 +481,7 @@ public class CalculoHistoricoController {
 
     @PostMapping("/historico/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
+
         if (calculoHistoricoService.existsById(id)) {
             calculoHistoricoService.delete(id);
         }

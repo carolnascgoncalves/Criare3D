@@ -1402,3 +1402,63 @@ input[type="color"]:focus {
 .pagina-intro {
     min-height: 100px;
 }
+
+
+/* ========================================
+   COMPARADOR DE PLATAFORMAS
+======================================== */
+
+.comparador-intro {
+    color: var(--marrom-claro);
+    margin-bottom: 14px;
+}
+
+.tabela-responsiva {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.tabela-comparador {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+.tabela-comparador th,
+.tabela-comparador td {
+    padding: 12px 10px;
+    border-bottom: 1px solid var(--borda);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.tabela-comparador th {
+    font-size: 13px;
+    color: var(--marrom-claro);
+}
+
+.comparador-melhor {
+    background: rgba(233, 166, 149, 0.18);
+}
+
+.comparador-etiqueta {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--borda);
+    color: var(--marrom);
+}
+
+.comparador-etiqueta-melhor {
+    background: var(--marrom);
+    color: #fff;
+}
+
+.comparador-aviso {
+    white-space: normal;
+    color: var(--marrom-claro);
+    font-style: italic;
+}

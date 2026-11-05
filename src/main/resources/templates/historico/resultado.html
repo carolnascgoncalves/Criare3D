@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 
@@ -23,24 +24,32 @@
         <div class="formulario-conteudo">
 
             <!-- RESUMO PRINCIPAL DA PEÇA -->
-            <!-- RESUMO PRINCIPAL DA PEÇA -->
             <div class="resultado-resumo-layout">
 
-                <!-- IDENTIFICAÇÃO DA PEÇA -->
                 <div class="resumo-peca-identificacao">
                     <span class="texto-apoio">PEÇA CALCULADA</span>
                     <h2 th:text="${resultado.nomePeca}">Nome da peça</h2>
                     <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
                 </div>
 
-                <!-- FOTO E QUATRO BLOCOS DE CUSTOS -->
+                <!-- FOTO E CUSTOS -->
                 <div class="resultado-conteudo-layout">
 
                     <div class="resumo-peca">
+
                         <img th:if="${fotoPecaPreview != null}"
                              th:src="${fotoPecaPreview}"
                              alt="Foto da peça calculada"
                              class="resultado-foto-peca">
+
+                        <!-- NOVO: ESTADO SEM FOTO -->
+                        <div th:unless="${fotoPecaPreview != null}"
+                             class="resultado-foto-vazia">
+                            <i class="bi bi-image"></i>
+                            <strong>Nenhuma foto adicionada</strong>
+                            <span>Você pode adicionar uma imagem ao calcular a peça.</span>
+                        </div>
+
                     </div>
 
                     <div class="resultado-grade">
@@ -87,7 +96,7 @@
 
             </div>
 
-            <!-- DETALHES DA PLATAFORMA -->
+            <!-- DETALHES DA PLATAFORMA SELECIONADA -->
             <section class="detalhes-calculo"
                      th:if="${resultado.plataformaVenda != null and resultado.plataformaVenda != 'NENHUMA'}">
 
@@ -200,6 +209,84 @@
                 </div>
             </div>
 
+            <!-- COMPARAÇÃO ENTRE PLATAFORMAS -->
+            <section class="detalhes-calculo" th:if="${comparacoes != null}">
+
+                <h3>Onde vale mais a pena vender?</h3>
+
+                <p class="comparador-intro">
+                    Mesmo custo e mesmo markup, calculados em cada plataforma.
+                    Compare o lucro líquido e a margem.
+                </p>
+
+                <div class="tabela-responsiva">
+                    <table class="tabela-comparador">
+                        <thead>
+                        <tr>
+                            <th>Plataforma</th>
+                            <th>Preço de venda</th>
+                            <th>Taxas e custos</th>
+                            <th>Lucro líquido</th>
+                            <th>Margem</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="linha : ${comparacoes}"
+                            th:classappend="${linha.melhor ? 'comparador-melhor' : ''}">
+
+                            <td>
+                                <strong th:text="${linha.nome}">Shopee</strong>
+
+                                <span class="comparador-etiqueta"
+                                      th:if="${linha.selecionada}">
+                                    escolhida
+                                </span>
+
+                                <span class="comparador-etiqueta comparador-etiqueta-melhor"
+                                      th:if="${linha.melhor}">
+                                    maior lucro
+                                </span>
+                            </td>
+
+                            <td th:if="${linha.calculada}"
+                                th:text="${'R$ ' + #numbers.formatDecimal(linha.precoVenda, 1, 'POINT', 2, 'COMMA')}">
+                                R$ 0,00
+                            </td>
+
+                            <td th:if="${linha.calculada}"
+                                th:text="${'R$ ' + #numbers.formatDecimal(linha.taxas, 1, 'POINT', 2, 'COMMA')}">
+                                R$ 0,00
+                            </td>
+
+                            <td th:if="${linha.calculada}"
+                                th:text="${'R$ ' + #numbers.formatDecimal(linha.lucro, 1, 'POINT', 2, 'COMMA')}">
+                                R$ 0,00
+                            </td>
+
+                            <td th:if="${linha.calculada}"
+                                th:text="${linha.margem != null ? #numbers.formatDecimal(linha.margem, 1, 'POINT', 1, 'COMMA') + '%' : '-'}">
+                                0%
+                            </td>
+
+                            <td th:unless="${linha.calculada}"
+                                colspan="4"
+                                class="comparador-aviso"
+                                th:text="${linha.aviso}">
+                                Não foi possível calcular.
+                            </td>
+
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <small>
+                    Estimativa com as taxas cadastradas no sistema.
+                    Confira as condições atuais da sua conta em cada plataforma.
+                </small>
+            </section>
+
             <!-- AÇÕES -->
             <div class="acoes-resultado">
 
@@ -283,7 +370,10 @@
                     </button>
                 </form>
 
-                <a th:href="@{/historico/novo(novo=true)}" class="botao botao-secundario">Novo cálculo</a>
+                <a th:href="@{/historico/novo(novo=true)}"
+                   class="botao botao-secundario">
+                    Novo cálculo
+                </a>
             </div>
 
         </div>
