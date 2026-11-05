@@ -1,3 +1,4 @@
+
 let formularioEtapasInicializado = null;
 
 function inicializarCalculoEtapas() {
@@ -11,10 +12,17 @@ function inicializarCalculoEtapas() {
     const conteudos = document.querySelectorAll("[data-conteudo]");
     const pecaSelect = document.getElementById("pecaId");
     const tempoInput = document.getElementById("tempoImpressaoMinutos");
+    const impressoraSelect = document.getElementById("impressoraId");
+    const embalagemSelect = document.getElementById("embalagemId");
+    const listaFilamentos = document.getElementById("listaFilamentos");
     const plataformaSelect = document.getElementById("plataformaVenda");
     const blocosPlataforma = document.querySelectorAll("[data-opcoes-plataforma]");
 
     let etapaAtual = 1;
+
+    function salvarRascunho() {
+        window.salvarRascunhoCalculo?.();
+    }
 
     function mostrarEtapa(numero) {
         etapaAtual = numero;
@@ -32,38 +40,42 @@ function inicializarCalculoEtapas() {
                 Number(conteudo.dataset.conteudo) === numero
             );
         });
+
+        salvarRascunho();
     }
 
-    // Permite voltar diretamente para qualquer etapa pelo indicador superior.
-    etapas.forEach(etapa => {
-        etapa.setAttribute("role", "button");
-        etapa.setAttribute("tabindex", "0");
+    function focarCampo(campo) {
+        if (!campo) return;
 
-        etapa.addEventListener("click", () => {
-            mostrarEtapa(Number(etapa.dataset.etapa));
+        requestAnimationFrame(() => {
+            campo.reportValidity();
+            campo.focus();
         });
+    }
 
-        etapa.addEventListener("keydown", event => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                mostrarEtapa(Number(etapa.dataset.etapa));
-            }
-        });
-    });
-
-    function validarEtapa() {
-        const conteudo = document.querySelector(`[data-conteudo="${etapaAtual}"]`);
+    function validarCamposDaEtapa(numero) {
+        const conteudo = document.querySelector(
+            `[data-conteudo="${numero}"]`
+        );
 
         if (!conteudo) return false;
 
-        const campos = conteudo.querySelectorAll("input:not([type='hidden']), select, textarea");
+        const campos = conteudo.querySelectorAll(
+            "input:not([type='hidden']), select, textarea"
+        );
 
         for (const campo of campos) {
-            if (campo.disabled || campo.type === "hidden" || campo.closest("[hidden]")) continue;
+            if (
+                campo.disabled ||
+                campo.type === "hidden" ||
+                campo.closest("[hidden]")
+            ) {
+                continue;
+            }
 
             if (!campo.checkValidity()) {
-                campo.reportValidity();
-                campo.focus();
+                focarCampo(campo);
+                salvarRascunho();
                 return false;
             }
         }
@@ -71,28 +83,174 @@ function inicializarCalculoEtapas() {
         return true;
     }
 
+    function validarFilamentos() {
+        if (!listaFilamentos) return false;
+
+        const itens = [
+            ...listaFilamentos.querySelectorAll("[data-filamento-item]")
+        ];
+
+        if (itens.length === 0) {
+            alert("Adicione pelo menos um filamento.");
+            return false;
+        }
+
+        let existeConfirmado = false;
+
+        for (const item of itens) {
+            if (item.dataset.confirmado === "true") {
+                existeConfirmado = true;
+                continue;
+            }
+
+            item.hidden = false;
+
+            const select = item.querySelector("[data-campo-filamento]");
+            const quantidade = item.querySelector("[data-campo-quantidade]");
+
+            if (!select.value || !select.checkValidity()) {
+                focarCampo(select);
+                salvarRascunho();
+                return false;
+            }
+
+            if (!quantidade.checkValidity()) {
+                focarCampo(quantidade);
+                salvarRascunho();
+                return false;
+            }
+
+            alert("Confirme todos os filamentos antes de avançar.");
+            item.querySelector("[data-confirmar-filamento]")?.focus();
+
+            salvarRascunho();
+            return false;
+        }
+
+        if (!existeConfirmado) {
+            const primeiroItem = itens[0];
+
+            primeiroItem.hidden = false;
+
+            const select = primeiroItem.querySelector("[data-campo-filamento]");
+            const quantidade = primeiroItem.querySelector("[data-campo-quantidade]");
+
+            if (!select.value) {
+                focarCampo(select);
+            } else if (!quantidade.checkValidity()) {
+                focarCampo(quantidade);
+            } else {
+                alert("Confirme pelo menos um filamento antes de avançar.");
+                primeiroItem.querySelector("[data-confirmar-filamento]")?.focus();
+            }
+
+            salvarRascunho();
+            return false;
+        }
+
+        return true;
+    }
+
+    function validarEtapa(numero) {
+        if (numero === 1) {
+            if (!pecaSelect?.checkValidity()) {
+                focarCampo(pecaSelect);
+                salvarRascunho();
+                return false;
+            }
+
+            return validarFilamentos();
+        }
+
+        if (numero === 2) {
+            if (!impressoraSelect?.checkValidity()) {
+                focarCampo(impressoraSelect);
+                salvarRascunho();
+                return false;
+            }
+
+            if (!tempoInput?.checkValidity()) {
+                focarCampo(tempoInput);
+                salvarRascunho();
+                return false;
+            }
+
+            return true;
+        }
+
+        if (numero === 3) {
+            // Quando a embalagem é fixa, o campo não existe e não precisa ser validado.
+            if (embalagemSelect && !embalagemSelect.checkValidity()) {
+                focarCampo(embalagemSelect);
+                salvarRascunho();
+                return false;
+            }
+
+            return true;
+        }
+
+        if (numero === 4) {
+            return validarCamposDaEtapa(4);
+        }
+
+        return true;
+    }
+
+    function navegarParaEtapa(destino) {
+        if (destino < 1 || destino > conteudos.length) return;
+
+        // Voltar para uma etapa anterior nunca exige validação.
+        if (destino <= etapaAtual) {
+            mostrarEtapa(destino);
+            return;
+        }
+
+        // Para avançar, todas as etapas anteriores precisam estar válidas.
+        for (let numero = 1; numero < destino; numero++) {
+            if (!validarEtapa(numero)) {
+                mostrarEtapa(numero);
+                return;
+            }
+        }
+
+        mostrarEtapa(destino);
+    }
+
+    // Indicadores superiores também passam pela validação.
+    etapas.forEach(etapa => {
+        etapa.setAttribute("role", "button");
+        etapa.setAttribute("tabindex", "0");
+
+        etapa.addEventListener("click", () => {
+            navegarParaEtapa(Number(etapa.dataset.etapa));
+        });
+
+        etapa.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                navegarParaEtapa(Number(etapa.dataset.etapa));
+            }
+        });
+    });
+
     document.querySelectorAll("[data-proximo]").forEach(botao => {
         botao.addEventListener("click", () => {
-            if (validarEtapa() && etapaAtual < conteudos.length) {
-                mostrarEtapa(etapaAtual + 1);
-            }
+            navegarParaEtapa(etapaAtual + 1);
         });
     });
 
     document.querySelectorAll("[data-anterior]").forEach(botao => {
         botao.addEventListener("click", () => {
-            if (etapaAtual > 1) {
-                mostrarEtapa(etapaAtual - 1);
-            }
+            navegarParaEtapa(etapaAtual - 1);
         });
     });
 
     function preencherDadosPeca() {
-        const opcao = pecaSelect.selectedOptions[0];
+        const opcao = pecaSelect?.selectedOptions[0];
 
         if (!opcao || !opcao.value || opcao.dataset.acao) {
             if (tempoInput) tempoInput.value = "";
-            pecaSelect.dispatchEvent(new Event("pecaSelecionada"));
+            pecaSelect?.dispatchEvent(new Event("pecaSelecionada"));
             return;
         }
 
@@ -140,11 +298,15 @@ function inicializarCalculoEtapas() {
         }
 
         statusTempo.textContent = mensagem;
-        statusTempo.classList.remove("consumo-dentro", "consumo-acima", "consumo-abaixo");
+        statusTempo.classList.remove(
+            "consumo-dentro",
+            "consumo-acima",
+            "consumo-abaixo"
+        );
         statusTempo.classList.add(classe);
     }
 
-    pecaSelect.addEventListener("change", () => {
+    pecaSelect?.addEventListener("change", () => {
         preencherDadosPeca();
         atualizarResumoTempo();
     });
@@ -164,7 +326,7 @@ function inicializarCalculoEtapas() {
                 return;
             }
 
-            window.salvarRascunhoCalculo?.();
+            salvarRascunho();
 
             const destino = `${rota}?origem=calculo`;
 
@@ -199,59 +361,17 @@ function inicializarCalculoEtapas() {
     plataformaSelect?.addEventListener("change", atualizarPlataforma);
     atualizarPlataforma();
 
+    // Antes de enviar o cálculo, valida todas as etapas em ordem.
     formulario.addEventListener("submit", event => {
-        const listaFilamentos = document.getElementById("listaFilamentos");
-        const itensFilamento = [...listaFilamentos.querySelectorAll("[data-filamento-item]")];
-
-        const pendente = itensFilamento.find(item => item.dataset.confirmado !== "true");
-
-        if (pendente) {
-            event.preventDefault();
-            mostrarEtapa(1);
-            pendente.hidden = false;
-
-            const select = pendente.querySelector("[data-campo-filamento]");
-            const quantidade = pendente.querySelector("[data-campo-quantidade]");
-
-            requestAnimationFrame(() => {
-                if (!select.value) {
-                    select.reportValidity();
-                    select.focus();
-                } else if (!quantidade.checkValidity()) {
-                    quantidade.reportValidity();
-                    quantidade.focus();
-                } else {
-                    alert("Confirme o filamento antes de calcular os custos.");
-                    pendente.querySelector("[data-confirmar-filamento]").focus();
-                }
-            });
-
-            return;
-        }
-
-        const conteudosOrdenados = [...conteudos].sort(
-            (a, b) => Number(a.dataset.conteudo) - Number(b.dataset.conteudo)
-        );
-
-        for (const conteudo of conteudosOrdenados) {
-            const campos = conteudo.querySelectorAll("input:not([type='hidden']), select, textarea");
-
-            for (const campo of campos) {
-                if (campo.disabled || campo.type === "hidden" || campo.closest("[hidden]")) continue;
-
-                if (!campo.checkValidity()) {
-                    event.preventDefault();
-                    mostrarEtapa(Number(conteudo.dataset.conteudo));
-
-                    requestAnimationFrame(() => {
-                        campo.reportValidity();
-                        campo.focus();
-                    });
-
-                    return;
-                }
+        for (let numero = 1; numero <= conteudos.length; numero++) {
+            if (!validarEtapa(numero)) {
+                event.preventDefault();
+                mostrarEtapa(numero);
+                return;
             }
         }
+
+        salvarRascunho();
     });
 
     // Foto opcional: a miniatura substitui o botão de adicionar enquanto houver imagem.
@@ -272,6 +392,8 @@ function inicializarCalculoEtapas() {
         fotoPreview?.classList.remove("visivel");
 
         if (fotoMiniatura) fotoMiniatura.removeAttribute("src");
+
+        salvarRascunho();
     }
 
     function mostrarFoto(src) {
@@ -321,7 +443,7 @@ function inicializarCalculoEtapas() {
                 fotoContentType.value = arquivo.type;
             }
 
-            window.salvarRascunhoCalculo?.();
+            salvarRascunho();
         };
 
         leitor.readAsDataURL(arquivo);
@@ -332,7 +454,6 @@ function inicializarCalculoEtapas() {
     if (fotoBase64?.value && fotoContentType?.value) {
         mostrarFoto(`data:${fotoContentType.value};base64,${fotoBase64.value}`);
     }
-
 
     formulario.addEventListener("rascunhoCalculoRestaurado", evento => {
         mostrarEtapa(evento.detail.etapa || 1);

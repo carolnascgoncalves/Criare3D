@@ -1,3 +1,4 @@
+
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.EmbalagemRequest;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +63,7 @@ public class EmbalagemController {
     public ModelAndView create(@Valid @ModelAttribute("embalagem") EmbalagemRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("embalagem/novo");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("embalagem", request);
             mv.addObject("origem", origem);
             return mv;
@@ -112,6 +115,7 @@ public class EmbalagemController {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("embalagem/edicao");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("embalagem", request);
             mv.addObject("id", id);
             return mv;

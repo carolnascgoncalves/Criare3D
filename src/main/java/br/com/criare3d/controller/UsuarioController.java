@@ -3,6 +3,7 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.UsuarioRequest;
 import br.com.criare3d.service.interfaces.UsuarioService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,21 +37,34 @@ public class UsuarioController {
     }
 
     @PostMapping("/cadastrar")
-    public String cadastrar(@Valid @ModelAttribute("usuario") UsuarioRequest request, BindingResult bd) {
+    public String cadastrar(
+            @Valid @ModelAttribute("usuario") UsuarioRequest request,
+            BindingResult bd,
+            HttpServletResponse response) {
+
         if (!bd.hasErrors()) {
             if (!request.getPassword().equals(request.getConfirmarPassword())) {
-                bd.rejectValue("confirmarPassword", "senha.diferente", "As senhas não coincidem.");
+                bd.rejectValue(
+                        "confirmarPassword",
+                        "senha.diferente",
+                        "As senhas não coincidem."
+                );
             }
         }
 
         if (bd.hasErrors()) {
+            response.setStatus(422);
             return "usuario/novo";
         }
 
         try {
-            usuarioService.cadastrarUsuario(request.getEmail().trim().toLowerCase(Locale.ROOT), request.getPassword());
+            usuarioService.cadastrarUsuario(
+                    request.getEmail().trim().toLowerCase(Locale.ROOT),
+                    request.getPassword()
+            );
         } catch (IllegalArgumentException e) {
             bd.rejectValue("email", "email.duplicado", e.getMessage());
+            response.setStatus(422);
             return "usuario/novo";
         }
 

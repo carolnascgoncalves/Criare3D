@@ -1,3 +1,4 @@
+
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.PecaRequest;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +63,7 @@ public class PecaController {
     public ModelAndView create(@Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("peca/novo");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("peca", request);
             mv.addObject("origem", origem);
             return mv;
@@ -98,7 +101,6 @@ public class PecaController {
                 .orElseGet(() -> new ModelAndView("redirect:/peca/listar"));
     }
 
-
     @PostMapping("/peca/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!pecaService.existsById(id)) {
@@ -127,6 +129,7 @@ public class PecaController {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("peca/edicao");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("peca", request);
             mv.addObject("id", id);
             return mv;

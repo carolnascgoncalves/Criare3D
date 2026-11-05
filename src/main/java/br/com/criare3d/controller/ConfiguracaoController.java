@@ -1,3 +1,4 @@
+
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.ConfiguracaoRequest;
@@ -5,6 +6,7 @@ import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +39,7 @@ public class ConfiguracaoController {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("configuracao/index");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("configuracao", request);
             return mv;
         }

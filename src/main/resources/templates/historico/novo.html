@@ -357,7 +357,7 @@
                     <div class="campo"
                          th:if="${configuracao == null or configuracao.embalagemFixa != true}">
                         <label for="embalagemId">Embalagem</label>
-                        <select id="embalagemId" th:field="*{embalagemId}">
+                        <select id="embalagemId" th:field="*{embalagemId}" required>
                             <option value="">Selecione uma embalagem</option>
                             <option th:each="embalagem : ${embalagens}"
                                     th:value="${embalagem.id}"
