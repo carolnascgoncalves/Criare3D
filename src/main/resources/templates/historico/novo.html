@@ -571,6 +571,16 @@
 
                             <div th:if="${configuracao == null or configuracao.formularioAvancado != true}">
 
+                                <div class="aviso-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    No modo simples, usamos a comissão máxima padrão: 14% no Clássico e 19% no Premium.
+                                    O frete automático é uma estimativa por preço e peso; o valor real também pode variar
+                                    conforme as dimensões do pacote, a modalidade, a região e as condições da conta.
+                                    Para conferir o valor exato, use o
+                                    <a href="https://www.mercadolivre.com.br/simulador-de-custos"
+                                       target="_blank" rel="noopener noreferrer">simulador de custos do Mercado Livre</a>.
+                                </div>
+
                                 <div id="freteMercadoLivreAutomatico"
                                      th:attr="hidden=${calculo.freteMercadoLivreManualNecessario}">
                                     <div class="campo">
@@ -588,7 +598,6 @@
                                         </select>
                                     </div>
 
-                                    <small>O frete é estimado automaticamente conforme o peso e o preço final.</small>
                                 </div>
 
                                 <div id="freteMercadoLivreManualBloco"

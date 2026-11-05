@@ -128,7 +128,9 @@
                             <div class="peca-historico">
                                 <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
                                      class="peca-historico-foto"
-                                     th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
+                                     th:src="@{/historico/{id}/foto(id=${historico.id})}"
+                                     loading="lazy"
+                                     decoding="async"
                                      th:alt="|Foto de ${historico.nomePeca}|">
 
                                 <span class="peca-historico-icone"

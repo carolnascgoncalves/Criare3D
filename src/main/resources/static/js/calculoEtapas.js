@@ -430,22 +430,48 @@ function inicializarCalculoEtapas() {
 
         const leitor = new FileReader();
 
+        leitor.onerror = () => {
+            alert("Não foi possível abrir essa foto. Tente escolher outra.");
+            limparFoto();
+        };
+
         leitor.onload = evento => {
-            const resultado = evento.target.result;
+            const imagem = new Image();
 
-            mostrarFoto(resultado);
+            imagem.onerror = () => {
+                alert("Não foi possível abrir essa foto. Tente escolher outra.");
+                limparFoto();
+            };
 
-            const partes = resultado.split(",");
+            imagem.onload = () => {
+                const limite = 1000;
+                const escala = Math.min(1, limite / Math.max(imagem.width, imagem.height));
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1, Math.round(imagem.width * escala));
+                canvas.height = Math.max(1, Math.round(imagem.height * escala));
 
-            if (fotoBase64) {
-                fotoBase64.value = partes[1] || "";
-            }
+                const contexto = canvas.getContext("2d");
+                if (!contexto) {
+                    alert("Não foi possível preparar essa foto. Tente outra imagem.");
+                    limparFoto();
+                    return;
+                }
 
-            if (fotoContentType) {
-                fotoContentType.value = arquivo.type;
-            }
+                // JPEG não preserva transparência; usar fundo branco evita áreas pretas.
+                contexto.fillStyle = "#fff";
+                contexto.fillRect(0, 0, canvas.width, canvas.height);
+                contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
 
-            salvarRascunho();
+                const resultado = canvas.toDataURL("image/jpeg", 0.82);
+                mostrarFoto(resultado);
+
+                if (fotoBase64) fotoBase64.value = resultado.split(",")[1] || "";
+                if (fotoContentType) fotoContentType.value = "image/jpeg";
+
+                salvarRascunho();
+            };
+
+            imagem.src = evento.target.result;
         };
 
         leitor.readAsDataURL(arquivo);

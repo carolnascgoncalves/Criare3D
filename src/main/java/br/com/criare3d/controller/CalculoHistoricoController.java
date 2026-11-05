@@ -566,6 +566,28 @@ public class CalculoHistoricoController {
                 .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
     }
 
+    @GetMapping("/historico/{id}/foto")
+    @ResponseBody
+    public ResponseEntity<byte[]> buscarFoto(@PathVariable UUID id) {
+        return calculoHistoricoService.fetchById(id)
+                .filter(calculo -> calculo.getFotoPecaBase64() != null
+                        && !calculo.getFotoPecaBase64().isBlank())
+                .map(calculo -> {
+                    String tipo = calculo.getFotoPecaContentType();
+                    if (!"image/jpeg".equals(tipo)
+                            && !"image/png".equals(tipo)
+                            && !"image/webp".equals(tipo)) {
+                        tipo = "image/jpeg";
+                    }
+
+                    return ResponseEntity.ok()
+                            .header("Cache-Control", "private, max-age=3600")
+                            .contentType(org.springframework.http.MediaType.parseMediaType(tipo))
+                            .body(Base64.getDecoder().decode(calculo.getFotoPecaBase64()));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     private void aplicarFoto(CalculoRequest request, MultipartFile fotoPeca)
             throws IOException {
 

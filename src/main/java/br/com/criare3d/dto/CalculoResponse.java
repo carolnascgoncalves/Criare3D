@@ -57,6 +57,7 @@ public class CalculoResponse {
     private Boolean freteGratisTikTok;
     private BigDecimal percentualAfiliado;
     private String faixaPesoPacote;
+    private Boolean formularioAvancado;
 
     private BigDecimal precoVendaPlataforma;
     private BigDecimal taxasPlataforma;
@@ -104,6 +105,7 @@ public class CalculoResponse {
                 .freteGratisTikTok(calculo.getFreteGratisTikTok())
                 .percentualAfiliado(calculo.getPercentualAfiliado())
                 .faixaPesoPacote(calculo.getFaixaPesoPacote())
+                .formularioAvancado(calculo.getFormularioAvancado())
                 .precoVendaPlataforma(calculo.getPrecoVendaPlataforma())
                 .taxasPlataforma(calculo.getTaxasPlataforma())
                 .lucroLiquido(calculo.getLucroLiquido())

@@ -102,6 +102,15 @@
 
                 <h3>Preço de venda na plataforma</h3>
 
+                <div class="aviso-info"
+                     th:if="${resultado.plataformaVenda == 'MERCADO_LIVRE' and resultado.formularioAvancado != true}">
+                    <i class="bi bi-info-circle"></i>
+                    A comissão usa o teto padrão (14% no Clássico ou 19% no Premium). O frete automático é estimado;
+                    o valor real pode variar conforme as dimensões do pacote, a modalidade, a região e as condições da conta.
+                    Confirme no <a href="https://www.mercadolivre.com.br/simulador-de-custos"
+                                   target="_blank" rel="noopener noreferrer">simulador de custos do Mercado Livre</a>.
+                </div>
+
                 <div class="detalhe-linha">
                     <span>Plataforma</span>
                     <strong th:text="${resultado.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (resultado.plataformaVenda == 'TIKTOK' or resultado.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')}">
@@ -135,6 +144,14 @@
                         resultado.faixaPesoPacote == 'DE_4KG_5KG' ? 'De 4 kg a 5 kg' :
                         resultado.faixaPesoPacote}">
                         De 300 g a 500 g
+                    </strong>
+                </div>
+
+                <div class="detalhe-linha"
+                     th:if="${calculo.freteMercadoLivreManualNecessario}">
+                    <span>Custo de envio informado</span>
+                    <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.freteVendedor, 1, 'POINT', 2, 'COMMA')}">
+                        R$ 15,00
                     </strong>
                 </div>
 

@@ -62,7 +62,7 @@
             <div class="detalhes-identificacao-peca">
 
                 <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}" aria-label="Ampliar foto da peça">
-                    <img th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|" alt="Foto da peça" class="detalhes-foto-peca">
+                    <img th:src="@{/historico/{id}/foto(id=${historico.id})}" alt="Foto da peça" class="detalhes-foto-peca" decoding="async">
                     <span class="detalhes-foto-lupa"><i class="bi bi-search"></i></span>
                 </button>
 
@@ -215,6 +215,15 @@
             <section class="detalhes-secao detalhes-secao-venda" th:if="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA'}">
 
                 <h3>Dados da venda</h3>
+
+                <div class="aviso-info"
+                     th:if="${historico.plataformaVenda == 'MERCADO_LIVRE' and historico.formularioAvancado != true}">
+                    <i class="bi bi-info-circle"></i>
+                    A comissão usa o teto padrão (14% no Clássico ou 19% no Premium). O frete automático é estimado;
+                    o valor real pode variar conforme as dimensões do pacote, a modalidade, a região e as condições da conta.
+                    Confirme no <a href="https://www.mercadolivre.com.br/simulador-de-custos"
+                                   target="_blank" rel="noopener noreferrer">simulador de custos do Mercado Livre</a>.
+                </div>
 
                 <div class="detalhes-custo">
                     <div class="detalhes-custo-info">
@@ -381,9 +390,11 @@
             <i class="bi bi-x-lg"></i>
         </button>
 
-        <img th:src="|data:${historico.fotoPecaContentType};base64,${historico.fotoPecaBase64}|"
+        <img th:src="@{/historico/{id}/foto(id=${historico.id})}"
              alt="Foto ampliada da peça"
-             class="detalhes-modal-imagem">
+             class="detalhes-modal-imagem"
+             loading="lazy"
+             decoding="async">
 
     </div>
 </main>
