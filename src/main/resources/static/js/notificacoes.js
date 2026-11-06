@@ -43,9 +43,18 @@
             linha.dataset.destaqueAgendado = 'true';
 
             window.setTimeout(() => {
-                linha.classList.remove('item-exclusao-falhou');
-                delete linha.dataset.destaqueAgendado;
-            }, 1500);
+                linha.classList.add('item-exclusao-falhou-ocultando');
+
+                window.setTimeout(() => {
+                    linha.classList.remove(
+                        'item-exclusao-falhou',
+                        'item-exclusao-falhou-ocultando'
+                    );
+
+                    delete linha.dataset.destaqueAgendado;
+                }, 400);
+
+            }, 2200);
         });
     }
 

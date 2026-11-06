@@ -80,8 +80,14 @@
                   onsubmit="return confirm('Excluir as impressoras selecionadas? Equipamentos vinculados a cálculos ou manutenção serão mantidos.');">
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
-                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
-                    <i class="bi bi-trash3"></i> Excluir selecionadas
+                <button type="submit"
+                        class="botao botao-secundario"
+                        data-excluir-selecionados
+                        title="Excluir selecionados"
+                        aria-label="Excluir selecionados"
+                        hidden
+                        disabled>
+                    <i class="bi bi-trash3"></i>
                 </button>
             </form>
         </div>

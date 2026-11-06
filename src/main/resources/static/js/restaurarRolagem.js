@@ -1,43 +1,57 @@
+
 (() => {
-    const chaveOrigem = "criare3d:origem-listagem";
-    const chaveRolagemPost = "criare3d:rolagem-post";
-    const chaveRolagemPaginacao = "criare3d:rolagem-paginacao";
+    const CHAVE_ROLAGEM = "criare3d:rolagem-navegacao";
+    const CHAVE_ORIGEM = "criare3d:origem-listagem";
+    const VALIDADE = 20000;
 
-    const validadePost = 30000;
+    function caminho(url) {
+        const destino = new URL(url, window.location.origin);
+        return destino.pathname + destino.search;
+    }
 
-    function salvarOrigem(url) {
+    function salvarRolagem(destino = null, y = window.scrollY) {
         try {
-            sessionStorage.setItem(chaveOrigem, JSON.stringify({
-                url: url,
-                y: window.scrollY
+            sessionStorage.setItem(CHAVE_ROLAGEM, JSON.stringify({
+                destino: destino ? caminho(destino) : null,
+                y,
+                criadoEm: Date.now()
             }));
         } catch {
             // A navegação continua funcionando sem sessionStorage.
         }
     }
 
-    function lerOrigem() {
+    function lerEstado(chave) {
         try {
-            const salvo = sessionStorage.getItem(chaveOrigem);
-            if (!salvo) return null;
-
-            return JSON.parse(salvo);
+            const valor = sessionStorage.getItem(chave);
+            return valor ? JSON.parse(valor) : null;
         } catch {
-            sessionStorage.removeItem(chaveOrigem);
+            sessionStorage.removeItem(chave);
             return null;
         }
     }
 
-    function paginaEhDetalhes(caminho) {
-        return caminho.includes("/detalhes/")
-            || /^\/filamento\/[^/]+\/historico$/.test(caminho);
+    function salvarOrigemDetalhes(url) {
+        try {
+            sessionStorage.setItem(CHAVE_ORIGEM, JSON.stringify({
+                url: caminho(url),
+                y: window.scrollY
+            }));
+        } catch {
+            // Não interrompe a navegação.
+        }
     }
 
-    function atualizarLinksDeVolta() {
-        const estado = lerOrigem();
+    function ehDetalhes(caminhoAtual) {
+        return caminhoAtual.includes("/detalhes/")
+            || /^\/filamento\/[^/]+\/historico$/.test(caminhoAtual);
+    }
 
-        if (!estado || !estado.url) return;
-        if (!paginaEhDetalhes(window.location.pathname)) return;
+    function atualizarLinksVoltar() {
+        const origem = lerEstado(CHAVE_ORIGEM);
+
+        if (!origem || !origem.url) return;
+        if (!ehDetalhes(window.location.pathname)) return;
 
         document.querySelectorAll("main.pagina a[href]").forEach(link => {
             const destino = new URL(link.href, window.location.origin);
@@ -52,103 +66,54 @@
                 );
 
             if (ehVoltar) {
-                link.href = estado.url;
+                link.href = origem.url;
             }
         });
     }
 
-    function restaurarOrigem() {
-        const estado = lerOrigem();
-        if (!estado || !estado.url) return;
+    function restaurarRolagem() {
+        let estado = lerEstado(CHAVE_ROLAGEM);
 
-        const urlAtual = window.location.pathname + window.location.search;
-        const urlSalva = new URL(estado.url, window.location.origin);
-        const caminhoSalvo = urlSalva.pathname + urlSalva.search;
+        if (estado && Date.now() - estado.criadoEm > VALIDADE) {
+            sessionStorage.removeItem(CHAVE_ROLAGEM);
+            estado = null;
+        }
 
-        if (urlAtual !== caminhoSalvo) return;
+        if (estado?.destino && estado.destino !== caminho(window.location.href)) {
+            return;
+        }
 
-        sessionStorage.removeItem(chaveOrigem);
+        if (!estado) {
+            const origem = lerEstado(CHAVE_ORIGEM);
+
+            if (origem && origem.url === caminho(window.location.href)) {
+                estado = {
+                    y: origem.y
+                };
+
+                sessionStorage.removeItem(CHAVE_ORIGEM);
+            }
+        }
+
+        if (!estado) return;
+
+        sessionStorage.removeItem(CHAVE_ROLAGEM);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                window.scrollTo(0, Number(estado.y) || 0);
+                window.scrollTo({
+                    top: Number(estado.y) || 0,
+                    left: 0,
+                    behavior: "instant"
+                });
+
+                const origem = lerEstado(CHAVE_ORIGEM);
+
+                if (origem && origem.url === caminho(window.location.href)) {
+                    sessionStorage.removeItem(CHAVE_ORIGEM);
+                }
             });
         });
-    }
-
-    function salvarRolagemPost() {
-        try {
-            sessionStorage.setItem(chaveRolagemPost, JSON.stringify({
-                y: window.scrollY,
-                criadoEm: Date.now()
-            }));
-        } catch {
-            // Não interrompe o envio do formulário.
-        }
-    }
-
-    function restaurarRolagemPost() {
-        try {
-            const salvo = sessionStorage.getItem(chaveRolagemPost);
-            if (!salvo) return;
-
-            const estado = JSON.parse(salvo);
-
-            if (!estado || Date.now() - estado.criadoEm > validadePost) {
-                sessionStorage.removeItem(chaveRolagemPost);
-                return;
-            }
-
-            sessionStorage.removeItem(chaveRolagemPost);
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, estado.y);
-                });
-            });
-        } catch {
-            sessionStorage.removeItem(chaveRolagemPost);
-        }
-    }
-
-    function salvarRolagemPaginacao(destino) {
-        try {
-            sessionStorage.setItem(chaveRolagemPaginacao, JSON.stringify({
-                url: destino.pathname + destino.search,
-                y: window.scrollY,
-                criadoEm: Date.now()
-            }));
-        } catch {
-            // A paginação continua funcionando sem sessionStorage.
-        }
-    }
-
-    function restaurarRolagemPaginacao() {
-        try {
-            const salvo = sessionStorage.getItem(chaveRolagemPaginacao);
-            if (!salvo) return;
-
-            const estado = JSON.parse(salvo);
-
-            if (!estado || Date.now() - estado.criadoEm > validadePost) {
-                sessionStorage.removeItem(chaveRolagemPaginacao);
-                return;
-            }
-
-            const urlAtual = window.location.pathname + window.location.search;
-
-            if (urlAtual !== estado.url) return;
-
-            sessionStorage.removeItem(chaveRolagemPaginacao);
-
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, Number(estado.y) || 0);
-                });
-            });
-        } catch {
-            sessionStorage.removeItem(chaveRolagemPaginacao);
-        }
     }
 
     document.addEventListener("click", event => {
@@ -165,28 +130,39 @@
         }
 
         const link = event.target.closest("a[href]");
+
         if (!link || !link.closest("main.pagina")) return;
+        if (link.target && link.target !== "_self") return;
+        if (link.hasAttribute("download")) return;
 
         const destino = new URL(link.href, window.location.origin);
 
         if (destino.origin !== window.location.origin) return;
 
-        if (link.closest(".paginacao-historico")) {
-            salvarRolagemPaginacao(destino);
+        if (
+            destino.pathname === window.location.pathname
+            && destino.search === window.location.search
+            && destino.hash
+        ) {
             return;
         }
 
-        const caminho = destino.pathname;
-
         const abrindoDetalhes =
-            caminho.includes("/detalhes/")
-            || /^\/filamento\/[^/]+\/historico$/.test(caminho);
+            destino.pathname.includes("/detalhes/")
+            || /^\/filamento\/[^/]+\/historico$/.test(destino.pathname);
 
         if (abrindoDetalhes) {
-            salvarOrigem(
-                window.location.pathname + window.location.search
-            );
+            salvarOrigemDetalhes(window.location.href);
         }
+
+        let posicao = window.scrollY;
+        const origem = lerEstado(CHAVE_ORIGEM);
+
+        if (origem && origem.url === caminho(destino)) {
+            posicao = origem.y;
+        }
+
+        salvarRolagem(destino, posicao);
     }, true);
 
     document.addEventListener("submit", event => {
@@ -194,23 +170,39 @@
 
         if (!(formulario instanceof HTMLFormElement)) return;
         if (formulario.id === "formCalculo") return;
-        if ((formulario.method || "get").toLowerCase() !== "post") return;
 
-        salvarRolagemPost();
+        const acao = new URL(
+            formulario.action || window.location.href,
+            window.location.origin
+        );
+
+        if (acao.origin !== window.location.origin) return;
+
+        salvarRolagem();
     }, true);
 
-    function inicializar() {
-        document.querySelectorAll(".paginacao-historico a").forEach(link => {
-            link.dataset.turbo = "false";
-        });
+    document.addEventListener("turbo:before-visit", event => {
+        const destino = event.detail?.url;
 
-        atualizarLinksDeVolta();
-        restaurarOrigem();
-        restaurarRolagemPost();
-        restaurarRolagemPaginacao();
+        if (destino) {
+            const origem = lerEstado(CHAVE_ORIGEM);
+            let posicao = window.scrollY;
+
+            if (origem && origem.url === caminho(destino)) {
+                posicao = origem.y;
+            }
+
+            salvarRolagem(destino, posicao);
+        }
+    });
+
+    function inicializar() {
+        atualizarLinksVoltar();
+        restaurarRolagem();
     }
 
     document.addEventListener("DOMContentLoaded", inicializar);
     document.addEventListener("turbo:load", inicializar);
-    window.addEventListener("pageshow", restaurarRolagemPaginacao);
+    document.addEventListener("turbo:frame-load", restaurarRolagem);
+    window.addEventListener("pageshow", restaurarRolagem);
 })();

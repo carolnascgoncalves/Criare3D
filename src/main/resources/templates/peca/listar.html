@@ -76,8 +76,14 @@
                   onsubmit="return confirm('Excluir as peças selecionadas?');">
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
-                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
-                    <i class="bi bi-trash3"></i> Excluir selecionadas
+                <button type="submit"
+                        class="botao botao-secundario"
+                        data-excluir-selecionados
+                        title="Excluir selecionados"
+                        aria-label="Excluir selecionados"
+                        hidden
+                        disabled>
+                    <i class="bi bi-trash3"></i>
                 </button>
             </form>
         </div>
