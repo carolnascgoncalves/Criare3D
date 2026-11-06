@@ -85,8 +85,15 @@ public class CatalogoBuscaService {
         LocalDateTime fim = data == null ? null : data.plusDays(1).atStartOfDay();
 
         String plataformaFiltro = plataforma == null ? "" : plataforma.trim();
+
         String produzidoFiltro = normalizarStatus(produzido);
         String vendidoFiltro = normalizarStatus(vendido);
+
+        boolean filtrarProduzido = !"TODOS".equals(produzidoFiltro);
+        boolean valorProduzido = "SIM".equals(produzidoFiltro);
+
+        boolean filtrarVendido = !"TODOS".equals(vendidoFiltro);
+        boolean valorVendido = "SIM".equals(vendidoFiltro);
 
         return calculoHistoricoRepository.buscarHistoricoFiltrado(
                 usuarioId,
@@ -95,8 +102,10 @@ public class CatalogoBuscaService {
                 inicio,
                 fim,
                 plataformaFiltro,
-                produzidoFiltro,
-                vendidoFiltro,
+                filtrarProduzido,
+                valorProduzido,
+                filtrarVendido,
+                valorVendido,
                 pageable
         );
     }

@@ -1,6 +1,8 @@
 (() => {
     const chaveOrigem = "criare3d:origem-listagem";
     const chaveRolagemPost = "criare3d:rolagem-post";
+    const chaveRolagemPaginacao = "criare3d:rolagem-paginacao";
+
     const validadePost = 30000;
 
     function salvarOrigem(url) {
@@ -109,9 +111,58 @@
         }
     }
 
+    function salvarRolagemPaginacao(destino) {
+        try {
+            sessionStorage.setItem(chaveRolagemPaginacao, JSON.stringify({
+                url: destino.pathname + destino.search,
+                y: window.scrollY,
+                criadoEm: Date.now()
+            }));
+        } catch {
+            // A paginação continua funcionando sem sessionStorage.
+        }
+    }
+
+    function restaurarRolagemPaginacao() {
+        try {
+            const salvo = sessionStorage.getItem(chaveRolagemPaginacao);
+            if (!salvo) return;
+
+            const estado = JSON.parse(salvo);
+
+            if (!estado || Date.now() - estado.criadoEm > validadePost) {
+                sessionStorage.removeItem(chaveRolagemPaginacao);
+                return;
+            }
+
+            const urlAtual = window.location.pathname + window.location.search;
+
+            if (urlAtual !== estado.url) return;
+
+            sessionStorage.removeItem(chaveRolagemPaginacao);
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, Number(estado.y) || 0);
+                });
+            });
+        } catch {
+            sessionStorage.removeItem(chaveRolagemPaginacao);
+        }
+    }
+
     document.addEventListener("click", event => {
         if (!(event.target instanceof Element)) return;
-        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+
+        if (
+            event.button !== 0
+            || event.ctrlKey
+            || event.metaKey
+            || event.shiftKey
+            || event.altKey
+        ) {
+            return;
+        }
 
         const link = event.target.closest("a[href]");
         if (!link || !link.closest("main.pagina")) return;
@@ -119,6 +170,11 @@
         const destino = new URL(link.href, window.location.origin);
 
         if (destino.origin !== window.location.origin) return;
+
+        if (link.closest(".paginacao-historico")) {
+            salvarRolagemPaginacao(destino);
+            return;
+        }
 
         const caminho = destino.pathname;
 
@@ -144,11 +200,17 @@
     }, true);
 
     function inicializar() {
+        document.querySelectorAll(".paginacao-historico a").forEach(link => {
+            link.dataset.turbo = "false";
+        });
+
         atualizarLinksDeVolta();
         restaurarOrigem();
         restaurarRolagemPost();
+        restaurarRolagemPaginacao();
     }
 
     document.addEventListener("DOMContentLoaded", inicializar);
     document.addEventListener("turbo:load", inicializar);
+    window.addEventListener("pageshow", restaurarRolagemPaginacao);
 })();

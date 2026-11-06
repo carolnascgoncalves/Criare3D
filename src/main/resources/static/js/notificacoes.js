@@ -37,23 +37,15 @@
     function destacarFalhasDeExclusao() {
         const linhas = document.querySelectorAll('.item-exclusao-falhou');
 
-        if (!linhas.length) return;
-
         linhas.forEach(linha => {
-            linha.classList.remove('item-exclusao-falhou-ocultando');
-        });
+            if (linha.dataset.destaqueAgendado === 'true') return;
 
-        const primeiraLinha = linhas[0];
+            linha.dataset.destaqueAgendado = 'true';
 
-        if (primeiraLinha.dataset.destaqueAgendado === 'true') return;
-
-        primeiraLinha.dataset.destaqueAgendado = 'true';
-
-        requestAnimationFrame(() => {
-            primeiraLinha.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
+            window.setTimeout(() => {
+                linha.classList.remove('item-exclusao-falhou');
+                delete linha.dataset.destaqueAgendado;
+            }, 1500);
         });
     }
 

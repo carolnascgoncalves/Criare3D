@@ -248,30 +248,36 @@
             </a>
         </form>
 
-        <div class="controles-selecao-listagem"
-             th:if="${!#lists.isEmpty(historicos)}">
-
-            <button type="button"
-                    class="botao botao-secundario"
-                    data-selecao-toggle
-                    data-form="form-remover-lote"
-                    aria-pressed="false">
-                <i class="bi bi-check2-square"></i> Selecionar
-            </button>
-
-            <span data-contador-selecao hidden>0 selecionado(s)</span>
-
-            <button type="submit"
-                    form="form-remover-lote"
-                    class="botao botao-secundario"
-                    data-excluir-selecionados
-                    hidden
-                    disabled>
-                <i class="bi bi-trash3"></i> Excluir selecionados
-            </button>
-        </div>
-
         <div class="historico-conteudo">
+            <div class="historico-conteudo">
+
+                <div class="controles-selecao-listagem"
+                     th:if="${!#lists.isEmpty(historicos)}">
+
+                    <button type="button"
+                            class="botao botao-secundario"
+                            data-selecao-toggle
+                            data-form="form-remover-lote"
+                            aria-pressed="false">
+                        <i class="bi bi-check2-square"></i> Selecionar
+                    </button>
+
+                    <span data-contador-selecao hidden>0 selecionado(s)</span>
+
+                    <button type="submit"
+                            form="form-remover-lote"
+                            class="botao botao-secundario"
+                            data-excluir-selecionados
+                            title="Excluir selecionados"
+                            aria-label="Excluir selecionados"
+                            hidden
+                            disabled>
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </div>
+
+                <div class="historico-vazio"
+                     th:if="${#lists.isEmpty(historicos)}">
 
             <div class="historico-vazio"
                  th:if="${#lists.isEmpty(historicos)}">
@@ -478,25 +484,27 @@
                         </td>
 
                         <td class="coluna-acoes">
-                            <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
-                               class="botao-acao"
-                               title="Ver detalhes"
-                               aria-label="Ver detalhes do cálculo">
-                                <i class="bi bi-eye"></i>
-                            </a>
+                            <div class="acoes">
+                                <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
+                                   class="botao-acao"
+                                   title="Ver detalhes"
+                                   aria-label="Ver detalhes do cálculo">
+                                    <i class="bi bi-eye"></i>
+                                </a>
 
-                            <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
-                                  method="post"
-                                  class="formulario-excluir"
-                                  onsubmit="return confirm('Tem certeza de que deseja excluir este cálculo do histórico? Esta ação não poderá ser desfeita.');">
+                                <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
+                                      method="post"
+                                      class="formulario-excluir"
+                                      onsubmit="return confirm('Tem certeza de que deseja excluir este cálculo do histórico? Esta ação não poderá ser desfeita.');">
 
-                                <button type="submit"
-                                        class="botao-acao-excluir"
-                                        title="Excluir cálculo"
-                                        aria-label="Excluir cálculo do histórico">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                                    <button type="submit"
+                                            class="botao-acao-excluir"
+                                            title="Excluir cálculo"
+                                            aria-label="Excluir cálculo do histórico">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     </tbody>
