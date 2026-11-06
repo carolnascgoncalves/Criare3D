@@ -104,53 +104,59 @@
             <section class="detalhes-secao">
                 <h3>Composição dos custos</h3>
 
-                <div class="detalhes-custo">
-                    <div class="detalhes-custo-info">
-                        <strong>Custo dos filamentos</strong>
-                        <span th:text="${historico.itensFilamento != null ? #lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)' : 'Filamentos'}">
-                            2 filamentos utilizados
-                        </span>
+                <div class="detalhes-custos-grupo">
+                    <h4>Custos da peça</h4>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Custo dos filamentos</strong>
+                            <span th:text="${historico.itensFilamento != null ? #lists.size(historico.itensFilamento) + ' filamento(s) utilizado(s)' : 'Filamentos'}">Filamentos utilizados</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">R$ 0,00</strong>
                     </div>
-
-                    <strong class="detalhes-valor"
-                            th:text="${historico.custoFilamento != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFilamento, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
-                        R$ 4,50
-                    </strong>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Custo de energia</strong>
+                            <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 2, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">R$ 0,00</strong>
+                    </div>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Embalagem</strong>
+                            <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">Embalagem</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">R$ 0,00</strong>
+                    </div>
                 </div>
 
-                <div class="detalhes-custo">
-                    <div class="detalhes-custo-info">
-                        <strong>Custo de energia</strong>
-                        <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 2, 'POINT') + '/kWh' : 'Tarifa não informada'}">
-                            Tarifa de energia
-                        </span>
+                <div class="detalhes-custos-grupo">
+                    <h4>Custos adicionais</h4>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Mão de obra</strong>
+                            <span th:text="${historico.custoMaoObra != null ? (historico.maoObraAtivada == true ? historico.tempoTrabalhoMinutos + ' min × R$ ' + #numbers.formatDecimal(historico.valorMaoObraHora, 1, 'POINT', 2, 'COMMA') + '/h' : 'Não incluída neste cálculo') : '—'}">—</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.maoObraAtivada == true and historico.custoMaoObra != null ? 'R$ ' + #numbers.formatDecimal(historico.custoMaoObra, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>
-
-                    <strong class="detalhes-valor"
-                            th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
-                        R$ 1,20
-                    </strong>
-                </div>
-
-                <div class="detalhes-custo">
-                    <div class="detalhes-custo-info">
-                        <strong>Embalagem</strong>
-                        <span th:text="${historico.nomeEmbalagem != null ? historico.nomeEmbalagem : 'Sem identificação'}">
-                            Embalagem
-                        </span>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Depreciação e manutenção</strong>
+                            <span th:text="${historico.custoDepreciacao != null ? (historico.depreciacaoAtivada == true ? 'Impressora de R$ ' + #numbers.formatDecimal(historico.valorCompraImpressora, 1, 'POINT', 2, 'COMMA') + ' em ' + #numbers.formatDecimal(historico.vidaUtilImpressoraHoras, 1, 'COMMA', 2, 'POINT') + ' h; manutenção ' + (historico.manutencaoHoraImpressora != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora, 1, 'POINT', 2, 'COMMA') + '/h' : 'R$ 0,00/h') : 'Não incluída neste cálculo') : '—'}">—</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.depreciacaoAtivada == true and historico.custoDepreciacao != null ? 'R$ ' + #numbers.formatDecimal(historico.custoDepreciacao, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>
-
-                    <strong class="detalhes-valor"
-                            th:text="${historico.custoEmbalagem != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEmbalagem, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
-                        R$ 2,00
-                    </strong>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
+                            <strong>Falhas e desperdício</strong>
+                            <span th:text="${historico.custoFalha != null ? (historico.taxaFalhaAtivada == true ? #numbers.formatDecimal(historico.percentualFalha, 1, 'COMMA', 2, 'POINT') + '% sobre filamento e energia' : 'Não incluída neste cálculo') : '—'}">—</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.taxaFalhaAtivada == true and historico.custoFalha != null ? 'R$ ' + #numbers.formatDecimal(historico.custoFalha, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
+                    </div>
                 </div>
 
                 <div class="detalhes-custo-total">
                     <span>Custo total de produção</span>
-                    <strong th:text="${historico.custoTotal != null ? 'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
-                        R$ 7,70
-                    </strong>
+                    <strong th:text="${historico.custoTotal != null ? 'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">R$ 0,00</strong>
                 </div>
             </section>
 
@@ -163,7 +169,7 @@
                 </div>
 
                 <div class="detalhes-preco-final">
-                    <span>Preço sugerido antes das taxas</span>
+                    <span th:text="${historico.plataformaVenda != null and historico.plataformaVenda != 'NENHUMA' ? 'Preço sugerido antes das taxas' : 'Preço sugerido'}">Preço sugerido</span>
                     <strong th:text="${historico.precoSugerido != null ? 'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 11,55
                     </strong>

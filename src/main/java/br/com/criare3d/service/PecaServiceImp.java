@@ -63,6 +63,7 @@ public class PecaServiceImp implements PecaService {
             if (patch.getTempoImpressaoMinutos() != null)
                 existing.setTempoImpressaoMinutos(patch.getTempoImpressaoMinutos());
 
+
             return pecaRepository.save(existing);
         });
     }

@@ -6,6 +6,7 @@ import br.com.criare3d.models.Impressora;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
+import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,9 @@ public class ImpressoraController {
 
     @Autowired
     private CatalogoBuscaService catalogoBuscaService;
+
+    @Autowired
+    private ManutencaoImpressoraService manutencaoImpressoraService;
 
     @GetMapping("/impressora/listar")
     public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
@@ -82,9 +86,46 @@ public class ImpressoraController {
                 .map(entidade -> {
                     ModelAndView mv = new ModelAndView("impressora/detalhes");
                     mv.addObject("impressora", entidade);
+                    mv.addObject("manutencoes", manutencaoImpressoraService.listar(id));
+                    mv.addObject("manutencao", new ManutencaoImpressoraRequest());
+                    mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
+                    mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
+                    mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id, entidade.getManutencaoPorHora()));
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/impressora/listar"));
+    }
+
+    @PostMapping("/impressora/{id}/manutencoes")
+    public ModelAndView registrarManutencao(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("manutencao") ManutencaoImpressoraRequest request,
+            BindingResult bd) {
+        var impressora = impressoraService.fetchById(id);
+        if (impressora.isEmpty()) return new ModelAndView("redirect:/impressora/listar");
+
+        if (bd.hasErrors()) {
+            ModelAndView mv = new ModelAndView("impressora/detalhes");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.addObject("impressora", impressora.get());
+            mv.addObject("manutencao", request);
+            mv.addObject("manutencoes", manutencaoImpressoraService.listar(id));
+            mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
+            mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
+            mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id, impressora.get().getManutencaoPorHora()));
+            return mv;
+        }
+
+        manutencaoImpressoraService.registrar(id, request);
+        return new ModelAndView("redirect:/impressora/detalhes/" + id + "?manutencao=registrada");
+    }
+
+    @PostMapping("/impressora/{impressoraId}/manutencoes/{manutencaoId}/excluir")
+    public ModelAndView excluirManutencao(
+            @PathVariable UUID impressoraId,
+            @PathVariable UUID manutencaoId) {
+        manutencaoImpressoraService.excluir(impressoraId, manutencaoId);
+        return new ModelAndView("redirect:/impressora/detalhes/" + impressoraId + "?manutencao=excluida");
     }
 
     @GetMapping("/impressora/editar/{id}")
@@ -110,6 +151,9 @@ public class ImpressoraController {
         if (quantidade > 0) {
             return new ModelAndView(
                     "redirect:/impressora/listar?erro=impressoraEmUso&quantidade=" + quantidade);
+        }
+        if (manutencaoImpressoraService.contar(id) > 0) {
+            return new ModelAndView("redirect:/impressora/listar?erro=impressoraComManutencao");
         }
 
         impressoraService.delete(id);

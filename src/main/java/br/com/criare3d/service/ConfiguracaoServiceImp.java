@@ -69,6 +69,22 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
                 atual.setFormularioAvancado(configuracao.getFormularioAvancado());
             }
 
+            if (configuracao.getMaoObraAtivada() != null) {
+                atual.setMaoObraAtivada(configuracao.getMaoObraAtivada());
+            }
+            atual.setValorMaoObraHora(configuracao.getValorMaoObraHora());
+            atual.setMaoObraTempoFixo(Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo()));
+            atual.setTempoMaoObraFixoMinutos(configuracao.getTempoMaoObraFixoMinutos() != null
+                    ? configuracao.getTempoMaoObraFixoMinutos() : 0L);
+
+            if (configuracao.getDepreciacaoAtivada() != null) {
+                atual.setDepreciacaoAtivada(configuracao.getDepreciacaoAtivada());
+            }
+            if (configuracao.getTaxaFalhaAtivada() != null) {
+                atual.setTaxaFalhaAtivada(configuracao.getTaxaFalhaAtivada());
+            }
+            atual.setPercentualFalha(configuracao.getPercentualFalha());
+
             return configuracaoRepository.save(atual);
         });
     }
@@ -112,6 +128,12 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setEmbalagemFixa(false);
             configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
             configuracao.setFormularioAvancado(false);
+            configuracao.setMaoObraAtivada(false);
+            configuracao.setMaoObraTempoFixo(false);
+            configuracao.setTempoMaoObraFixoMinutos(0L);
+            configuracao.setDepreciacaoAtivada(false);
+            configuracao.setTaxaFalhaAtivada(false);
+            configuracao.setPercentualFalha(new BigDecimal("5.00"));
 
             return configuracaoRepository.save(configuracao);
         });

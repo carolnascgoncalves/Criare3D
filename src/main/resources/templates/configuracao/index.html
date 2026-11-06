@@ -7,6 +7,9 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+    <div class="main-alerta alerta-sucesso alerta-configuracao-flutuante" role="status" th:if="${param.sucesso}">
+        <i class="bi bi-check-circle"></i> Configurações salvas com sucesso!
+    </div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
@@ -183,6 +186,99 @@
             </div>
         </section>
 
+        <!-- CUSTOS ADICIONAIS DE PRODUÇÃO -->
+        <section class="cartao configuracao-cartao" id="custosAdicionais">
+            <div class="cartao-cabecalho">
+                <div class="configuracao-titulo">
+                    <div class="configuracao-icone">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                    <div>
+                        <h2>Custos adicionais de produção</h2>
+                        <p>Ative os custos que deseja incluir automaticamente nos cálculos.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="configuracao-conteudo">
+                <label class="configuracao-opcao" for="maoObraAtivada">
+                    <div>
+                        <strong>Incluir mão de obra <span class="etiqueta-opcional">Opcional</span></strong>
+                        <small>Calcula o custo com base no tempo de trabalho manual e no valor por hora.</small>
+                    </div>
+                    <input type="checkbox" id="maoObraAtivada" th:field="*{maoObraAtivada}">
+                </label>
+
+                <div class="campo"
+                     id="campoMaoObra"
+                     th:classappend="${configuracao.maoObraAtivada} ? '' : ' campo-oculto'">
+                    <label for="valorMaoObraHora">Custo da mão de obra (R$/hora)</label>
+                    <input type="number" id="valorMaoObraHora" th:field="*{valorMaoObraHora}"
+                           min="0" step="0.01" placeholder="Ex.: 25,00">
+                    <span class="erro-campo" th:if="${#fields.hasErrors('maoObraValida')}"
+                          th:errors="*{maoObraValida}"></span>
+                </div>
+
+                <label class="configuracao-tempo-fixo" id="opcaoMaoObraTempoFixo" for="maoObraTempoFixo"
+                       th:hidden="${!configuracao.maoObraAtivada}">
+                    <input type="checkbox" id="maoObraTempoFixo" th:field="*{maoObraTempoFixo}">
+                    <span><strong>Usar um tempo fixo</strong><small>Aplicar o mesmo número de minutos em todos os cálculos</small></span>
+                </label>
+                <div class="campo campo-oculto" id="campoTempoMaoObraFixo"
+                     th:classappend="${configuracao.maoObraAtivada and configuracao.maoObraTempoFixo} ? '' : ' campo-oculto'">
+                    <label for="tempoMaoObraFixoMinutos">Tempo fixo de trabalho manual (minutos)</label>
+                    <input type="number" id="tempoMaoObraFixoMinutos" th:field="*{tempoMaoObraFixoMinutos}"
+                           min="0" step="1" placeholder="Ex.: 15">
+                    <div class="aviso-info">
+                        <i class="bi bi-info-circle"></i>
+                        Conte o tempo em que você trabalha na peça, como preparar o arquivo, trocar o rolo, retirar suportes, lixar e embalar. As horas em que a impressora trabalha sozinha não entram aqui.
+                    </div>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('tempoMaoObraFixoValido')}"
+                          th:errors="*{tempoMaoObraFixoValido}"></span>
+                </div>
+
+                <div class="separador-custos-adicionais" aria-hidden="true"></div>
+
+                <label class="configuracao-opcao" for="depreciacaoAtivada">
+                    <div>
+                        <strong>Incluir depreciação da impressora <span class="etiqueta-opcional">Opcional</span></strong>
+                        <small>Distribui o valor da impressora pelas horas de vida útil estimadas.</small>
+                    </div>
+                    <input type="checkbox" id="depreciacaoAtivada" th:field="*{depreciacaoAtivada}">
+                </label>
+
+                <div class="aviso-info" id="avisoDepreciacao"
+                     th:hidden="${!configuracao.depreciacaoAtivada}">
+                    <i class="bi bi-info-circle"></i>
+                    O custo da máquina será calculado com os dados cadastrados na impressora escolhida em cada cálculo.
+                </div>
+
+                <div class="separador-custos-adicionais" aria-hidden="true"></div>
+
+                <label class="configuracao-opcao" for="taxaFalhaAtivada">
+                    <div>
+                        <strong>Incluir margem para falhas e desperdício <span class="etiqueta-opcional">Opcional</span></strong>
+                        <small>Aplica um percentual sobre o custo do filamento e da energia.</small>
+                    </div>
+                    <input type="checkbox" id="taxaFalhaAtivada" th:field="*{taxaFalhaAtivada}">
+                </label>
+
+                <div class="campo"
+                     id="campoPercentualFalha"
+                     th:classappend="${configuracao.taxaFalhaAtivada} ? '' : ' campo-oculto'">
+                    <label for="percentualFalha">Margem para falhas (%)</label>
+                    <input type="number" id="percentualFalha" th:field="*{percentualFalha}"
+                           min="0" max="100" step="0.01" placeholder="Ex.: 5">
+                    <div class="aviso-info">
+                        <i class="bi bi-info-circle"></i>
+                        Essa margem ajuda a cobrir peças que precisam ser impressas novamente. Ela é aplicada ao filamento e à energia; a embalagem fica de fora. Se não souber o valor, pode começar com 5%.
+                    </div>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('percentualFalhaValido')}"
+                          th:errors="*{percentualFalhaValido}"></span>
+                </div>
+            </div>
+        </section>
+
         <div class="configuracao-acoes">
             <button type="submit" class="botao-menu">
                 <i class="bi bi-check-lg"></i>
@@ -190,10 +286,6 @@
             </button>
         </div>
 
-        <p class="configuracao-sucesso" th:if="${param.sucesso}">
-            <i class="bi bi-check-circle"></i>
-            Configurações salvas com sucesso!
-        </p>
     </form>
 
 </main>

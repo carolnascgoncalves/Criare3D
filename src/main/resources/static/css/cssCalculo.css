@@ -559,7 +559,7 @@
 ======================================== */
 
 @media (max-width: 650px) {
-    .etapas {
+   .etapas {
         grid-template-columns: 1fr;
         gap: 8px;
     }
@@ -2127,8 +2127,8 @@ input[type="search"] {
 
 .detalhes-modal-imagem {
     display: block;
-    max-width: min(76vw, 760px);
-    max-height: 75vh;
+    max-width: min(54vw, 540px);
+    max-height: 58vh;
     object-fit: contain;
     border-radius: 12px;
     background: #fffaf6;
@@ -2916,4 +2916,153 @@ a:focus-visible {
     .comparador-botao {
         grid-column: auto;
     }
+}
+
+
+.detalhes-custos-grupo {
+    padding: 14px 16px 4px;
+    border-radius: 12px;
+    background: #faf7f2;
+}
+
+.detalhes-custos-grupo + .detalhes-custos-grupo {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(73, 46, 30, 0.16);
+    background: #fffaf0;
+}
+
+.detalhes-custos-grupo .detalhes-custo:last-child {
+    border-bottom: 0;
+}
+
+.detalhes-custos-grupo h4 {
+    margin: 0 0 4px;
+    color: var(--marrom-claro);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.cartao-manutencao-impressora {
+    margin-top: 24px;
+}
+
+.manutencao-resumo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    padding: 22px;
+}
+
+.manutencao-resumo .detalhe-item {
+    min-width: 0;
+    padding: 14px;
+    border-radius: 10px;
+    background: var(--fundo);
+}
+
+.cartao-manutencao-impressora > .aviso-info {
+    margin: 0 22px 20px;
+}
+
+.manutencao-impressora-colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 28px;
+    padding: 0 22px 22px;
+}
+
+.manutencao-impressora-colunas h3 {
+    margin: 0 0 16px;
+    color: var(--marrom);
+    font-size: 1.05rem;
+}
+
+.manutencao-registro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(73, 46, 30, 0.1);
+}
+
+.manutencao-registro > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.manutencao-registro small {
+    color: var(--marrom-claro);
+}
+
+.manutencao-registro form {
+    margin: 0;
+}
+
+@media (max-width: 760px) {
+    .manutencao-resumo,
+    .manutencao-impressora-colunas {
+        grid-template-columns: 1fr;
+    }
+
+    .manutencao-registro {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .manutencao-registro form {
+        grid-column: 2;
+    }
+}
+
+
+.detalhes-preco:not(.detalhes-preco-venda) .detalhes-preco-final {
+    background: #e8f5e9;
+    border-color: #b7dfbc;
+}
+
+.detalhes-preco:not(.detalhes-preco-venda) .detalhes-preco-final strong {
+    color: #256b35;
+}
+
+
+.controle-plataforma > summary {
+    position: relative;
+}
+
+.controle-plataforma.filtro-plataforma-ativo > summary {
+    border-color: var(--destaque);
+    background: #fff5ed;
+}
+
+.indicador-filtro {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #8a5b3d;
+}
+
+.painel-plataforma {
+    width: min(220px, calc(100vw - 40px));
+}
+
+.painel-plataforma > strong {
+    margin-bottom: 2px;
+}
+
+.painel-plataforma > a {
+    display: block;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--marrom);
+    text-decoration: none;
+}
+
+.painel-plataforma > a:hover,
+.painel-plataforma > a.selecionada {
+    background: #f7eee6;
 }

@@ -27,10 +27,22 @@ public class CalculoResponse {
     private String nomeImpressora;
     private BigDecimal potenciaWatts;
     private Long tempoImpressaoMinutos;
+    private Long tempoTrabalhoMinutos;
     private BigDecimal tarifaEnergiaKwh;
 
     private BigDecimal custoFilamento;
     private BigDecimal custoEnergia;
+    private BigDecimal custoMaoObra;
+    private BigDecimal custoDepreciacao;
+    private BigDecimal custoFalha;
+    private Boolean maoObraAtivada;
+    private Boolean depreciacaoAtivada;
+    private Boolean taxaFalhaAtivada;
+    private BigDecimal valorMaoObraHora;
+    private BigDecimal percentualFalha;
+    private BigDecimal valorCompraImpressora;
+    private BigDecimal vidaUtilImpressoraHoras;
+    private BigDecimal manutencaoHoraImpressora;
     private String nomeEmbalagem;
     private BigDecimal custoEmbalagem;
     private BigDecimal custoTotal;
@@ -82,9 +94,21 @@ public class CalculoResponse {
                 .nomeImpressora(calculo.getNomeImpressora())
                 .potenciaWatts(calculo.getPotenciaWatts())
                 .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
+                .tempoTrabalhoMinutos(calculo.getTempoTrabalhoMinutos())
                 .tarifaEnergiaKwh(calculo.getTarifaEnergiaKwh())
                 .custoFilamento(calculo.getCustoFilamento())
                 .custoEnergia(calculo.getCustoEnergia())
+                .custoMaoObra(calculo.getCustoMaoObra())
+                .custoDepreciacao(calculo.getCustoDepreciacao())
+                .custoFalha(calculo.getCustoFalha())
+                .maoObraAtivada(calculo.getMaoObraAtivada())
+                .depreciacaoAtivada(calculo.getDepreciacaoAtivada())
+                .taxaFalhaAtivada(calculo.getTaxaFalhaAtivada())
+                .valorMaoObraHora(calculo.getValorMaoObraHora())
+                .percentualFalha(calculo.getPercentualFalha())
+                .valorCompraImpressora(calculo.getValorCompraImpressora())
+                .vidaUtilImpressoraHoras(calculo.getVidaUtilImpressoraHoras())
+                .manutencaoHoraImpressora(calculo.getManutencaoHoraImpressora())
                 .nomeEmbalagem(calculo.getNomeEmbalagem())
                 .custoEmbalagem(calculo.getCustoEmbalagem())
                 .custoTotal(calculo.getCustoTotal())

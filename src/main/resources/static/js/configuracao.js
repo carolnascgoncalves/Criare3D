@@ -35,9 +35,78 @@ function atualizarCampoEmbalagem() {
     custoEmbalagem.required = ativo;
 }
 
+function atualizarCustoOpcional(idCheckbox, idCampo, idsInputs) {
+    const checkbox = document.getElementById(idCheckbox);
+    const campo = document.getElementById(idCampo);
+
+    if (!checkbox || !campo) {
+        return;
+    }
+
+    const ativo = checkbox.checked;
+    campo.hidden = !ativo;
+    campo.classList.toggle("campo-oculto", !ativo);
+
+    if (ativo && idCheckbox === "taxaFalhaAtivada") {
+        const percentual = document.getElementById("percentualFalha");
+        if (percentual && !percentual.value) percentual.value = "5";
+    }
+
+    idsInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.required = ativo;
+        }
+    });
+}
+
+function atualizarCustosAdicionais() {
+    atualizarCustoOpcional("maoObraAtivada", "campoMaoObra", ["valorMaoObraHora"]);
+    atualizarCustoOpcional("taxaFalhaAtivada", "campoPercentualFalha", ["percentualFalha"]);
+
+    const maoObra = document.getElementById("maoObraAtivada");
+    const tempoFixo = document.getElementById("maoObraTempoFixo");
+    const opcaoTempoFixo = document.getElementById("opcaoMaoObraTempoFixo");
+    const campoTempoFixo = document.getElementById("campoTempoMaoObraFixo");
+    const inputTempoFixo = document.getElementById("tempoMaoObraFixoMinutos");
+    if (maoObra && tempoFixo && opcaoTempoFixo && campoTempoFixo) {
+        opcaoTempoFixo.hidden = !maoObra.checked;
+        const mostrarTempoFixo = maoObra.checked && tempoFixo.checked;
+        campoTempoFixo.hidden = !mostrarTempoFixo;
+        campoTempoFixo.classList.toggle("campo-oculto", !mostrarTempoFixo);
+        if (inputTempoFixo) inputTempoFixo.required = mostrarTempoFixo;
+    }
+
+    const depreciacao = document.getElementById("depreciacaoAtivada");
+    const avisoDepreciacao = document.getElementById("avisoDepreciacao");
+    if (depreciacao && avisoDepreciacao) {
+        avisoDepreciacao.hidden = !depreciacao.checked;
+    }
+}
+
 function inicializarConfiguracoes() {
     atualizarCampoMarkup();
     atualizarCampoEmbalagem();
+    atualizarCustosAdicionais();
+
+    const avisoSalvo = document.querySelector(".alerta-configuracao-flutuante");
+    if (avisoSalvo && !avisoSalvo.dataset.temTemporizador) {
+        avisoSalvo.dataset.temTemporizador = "true";
+        const menu = document.querySelector(".menu-principal");
+        const posicionarAviso = () => {
+            const alturaMenu = menu?.getBoundingClientRect().height || 76;
+            avisoSalvo.style.top = `${Math.ceil(alturaMenu + 12)}px`;
+        };
+        posicionarAviso();
+        window.addEventListener("resize", posicionarAviso, { passive: true });
+        window.setTimeout(() => {
+            avisoSalvo.classList.add("alerta-configuracao-ocultando");
+            window.setTimeout(() => {
+                avisoSalvo.remove();
+                window.removeEventListener("resize", posicionarAviso);
+            }, 350);
+        }, 1800);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", inicializarConfiguracoes);
@@ -50,5 +119,9 @@ document.addEventListener("change", event => {
 
     if (event.target.id === "embalagemFixa") {
         atualizarCampoEmbalagem();
+    }
+
+    if (["maoObraAtivada", "maoObraTempoFixo", "depreciacaoAtivada", "taxaFalhaAtivada"].includes(event.target.id)) {
+        atualizarCustosAdicionais();
     }
 });

@@ -64,6 +64,21 @@
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEnergia, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
+                        <div class="resultado-item" th:if="${resultado.maoObraAtivada == true}">
+                            <span th:text="${'Mão de obra (' + resultado.tempoTrabalhoMinutos + ' min)'}">Mão de obra</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoMaoObra, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
+                            <span th:text="${'Máquina (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Máquina</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item" th:if="${resultado.taxaFalhaAtivada == true}">
+                            <span>Falhas e desperdício</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoFalha, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
                         <div class="resultado-item">
                             <span>Custo da embalagem</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEmbalagem, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
@@ -378,6 +393,7 @@
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
                     <input type="hidden" th:field="*{markupPercentual}">
+                    <input type="hidden" th:field="*{tempoTrabalhoMinutos}">
 
                     <input type="hidden" th:field="*{plataformaVenda}">
                     <input type="hidden" th:field="*{tipoAnuncio}">
@@ -420,6 +436,7 @@
                     <input type="hidden" th:field="*{tempoImpressaoMinutos}">
                     <input type="hidden" th:field="*{embalagemId}">
                     <input type="hidden" th:field="*{markupPercentual}">
+                    <input type="hidden" th:field="*{tempoTrabalhoMinutos}">
 
                     <input type="hidden" th:field="*{plataformaVenda}">
                     <input type="hidden" th:field="*{tipoAnuncio}">

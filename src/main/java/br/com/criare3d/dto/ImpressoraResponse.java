@@ -24,12 +24,25 @@ public class ImpressoraResponse {
 
     private @Getter @Setter BigDecimal potenciaWatts;
 
+    private @Getter @Setter BigDecimal valorCompra;
+    private @Getter @Setter BigDecimal vidaUtilHoras;
+    private @Getter @Setter BigDecimal manutencaoPorHora;
+
+    public boolean isDadosDepreciacaoValidos() {
+        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null && manutencaoPorHora == null;
+        return nenhumDado || (valorCompra != null && vidaUtilHoras != null
+                && vidaUtilHoras.signum() > 0);
+    }
+
     public static ImpressoraResponse toDto(final Impressora impressora){
         return ImpressoraResponse.builder()
                 .id(impressora.getId())
                 .nome(impressora.getNome())
                 .modelo(impressora.getModelo())
                 .potenciaWatts(impressora.getPotenciaWatts())
+                .valorCompra(impressora.getValorCompra())
+                .vidaUtilHoras(impressora.getVidaUtilHoras())
+                .manutencaoPorHora(impressora.getManutencaoPorHora())
                 .build();
     }
 }

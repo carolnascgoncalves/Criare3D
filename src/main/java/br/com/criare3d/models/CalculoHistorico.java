@@ -76,6 +76,42 @@ public class CalculoHistorico {
     @Column(name = "custoEnergia_hist", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal custoEnergia;
 
+    @Column(name = "custo_mao_obra_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal custoMaoObra;
+
+    @Column(name = "custo_depreciacao_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal custoDepreciacao;
+
+    @Column(name = "custo_falha_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal custoFalha;
+
+    @Column(name = "mao_obra_ativada_hist")
+    private @Getter @Setter Boolean maoObraAtivada;
+
+    @Column(name = "valor_mao_obra_hora_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal valorMaoObraHora;
+
+    @Column(name = "depreciacao_ativada_hist")
+    private @Getter @Setter Boolean depreciacaoAtivada;
+
+    @Column(name = "tempo_trabalho_minutos_hist")
+    private @Getter @Setter Long tempoTrabalhoMinutos;
+
+    @Column(name = "valor_compra_impressora_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal valorCompraImpressora;
+
+    @Column(name = "vida_util_impressora_horas_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal vidaUtilImpressoraHoras;
+
+    @Column(name = "manutencao_hora_impressora_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal manutencaoHoraImpressora;
+
+    @Column(name = "taxa_falha_ativada_hist")
+    private @Getter @Setter Boolean taxaFalhaAtivada;
+
+    @Column(name = "percentual_falha_hist", precision = 5, scale = 2)
+    private @Getter @Setter BigDecimal percentualFalha;
+
     @NotBlank(message = "O nome da embalagem é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomeEmb_hist", nullable = false, length = 150)

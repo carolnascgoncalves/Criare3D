@@ -40,6 +40,10 @@ public class ImpressoraServiceImp implements ImpressoraService {
             if (patch.getPotenciaWatts() != null)
                 existing.setPotenciaWatts(patch.getPotenciaWatts());
 
+            existing.setValorCompra(patch.getValorCompra());
+            existing.setVidaUtilHoras(patch.getVidaUtilHoras());
+            existing.setManutencaoPorHora(patch.getManutencaoPorHora());
+
             return impressoraRepository.save(existing);
         });
     }

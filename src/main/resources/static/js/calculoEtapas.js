@@ -260,6 +260,7 @@ function inicializarCalculoEtapas() {
             tempoInput.value = opcao.dataset.tempo || "";
         }
 
+
         pecaSelect.dispatchEvent(new Event("pecaSelecionada"));
     }
 
@@ -308,8 +309,12 @@ function inicializarCalculoEtapas() {
         statusTempo.classList.add(classe);
     }
 
-    pecaSelect?.addEventListener("change", () => {
+    pecaSelect?.addEventListener("change", event => {
         preencherDadosPeca();
+        if (event.isTrusted) {
+            const tempoTrabalhoInput = document.getElementById("tempoTrabalhoMinutos");
+            if (tempoTrabalhoInput) tempoTrabalhoInput.value = "";
+        }
         atualizarResumoTempo();
     });
 

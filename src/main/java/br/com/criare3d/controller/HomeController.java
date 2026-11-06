@@ -5,6 +5,7 @@ import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
+import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -26,6 +27,9 @@ public class HomeController {
     @Autowired
     private CalculoHistoricoService calculoHistoricoService;
 
+    @Autowired
+    private ConfiguracaoService configuracaoService;
+
     @GetMapping({"/", "/home"})
     public String home(Model model) {
         PageRequest pagina = PageRequest.of(0, 1);
@@ -41,6 +45,12 @@ public class HomeController {
 
         model.addAttribute("totalCalculos",
                 calculoHistoricoService.fetchAll(pagina).getTotalElements());
+
+        boolean valorHoraConfigurado = configuracaoService.buscarConfiguracao()
+                .map(config -> Boolean.TRUE.equals(config.getMaoObraAtivada())
+                        && config.getValorMaoObraHora() != null)
+                .orElse(false);
+        model.addAttribute("valorHoraConfigurado", valorHoraConfigurado);
 
         return "index";
     }

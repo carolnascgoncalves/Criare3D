@@ -35,6 +35,11 @@ public class Peca {
     @Column(name= "tmp_peca",nullable = false)
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    // Campo legado preservado para compatibilidade; não é mais usado como padrão do cálculo.
+    @Column(name = "tempo_trabalho_minutos", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Long tempoTrabalhoMinutos = 0L;
+
     @OneToMany(mappedBy = "peca")
     private Set<CalculoHistorico> historicos;
 

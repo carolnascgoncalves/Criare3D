@@ -8,6 +8,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -31,11 +32,30 @@ public class ImpressoraRequest {
     @DecimalMin(value = "0.0", message = "A potência não pode ser negativa.")
     private @Getter @Setter BigDecimal potenciaWatts;
 
+    @DecimalMin(value = "0.0", message = "O valor de compra não pode ser negativo")
+    private @Getter @Setter BigDecimal valorCompra;
+
+    @DecimalMin(value = "0.0", message = "A vida útil não pode ser negativa")
+    private @Getter @Setter BigDecimal vidaUtilHoras;
+
+    @DecimalMin(value = "0.0", message = "A manutenção por hora não pode ser negativa")
+    private @Getter @Setter BigDecimal manutencaoPorHora;
+
+    @AssertTrue(message = "Para calcular o custo da máquina, informe o valor de compra e uma vida útil maior que zero.")
+    public boolean isDadosDepreciacaoValidos() {
+        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null && manutencaoPorHora == null;
+        return nenhumDado || (valorCompra != null && vidaUtilHoras != null
+                && vidaUtilHoras.signum() > 0);
+    }
+
     public static ImpressoraRequest toDto(final Impressora impressora){
         return ImpressoraRequest.builder()
                 .nome(impressora.getNome())
                 .modelo(impressora.getModelo())
                 .potenciaWatts(impressora.getPotenciaWatts())
+                .valorCompra(impressora.getValorCompra())
+                .vidaUtilHoras(impressora.getVidaUtilHoras())
+                .manutencaoPorHora(impressora.getManutencaoPorHora())
                 .build();
     }
 
@@ -44,6 +64,9 @@ public class ImpressoraRequest {
                 .nome(dto.getNome())
                 .modelo(dto.getModelo())
                 .potenciaWatts(dto.getPotenciaWatts())
+                .valorCompra(dto.getValorCompra())
+                .vidaUtilHoras(dto.getVidaUtilHoras())
+                .manutencaoPorHora(dto.getManutencaoPorHora())
                 .build();
     }
 }

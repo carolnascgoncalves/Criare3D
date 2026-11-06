@@ -9,6 +9,12 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+    <div class="alerta-sucesso" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'registrada'}">
+        Gasto de manutenção registrado; a estimativa por hora foi atualizada.
+    </div>
+    <div class="alerta-sucesso" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'excluida'}">
+        Gasto de manutenção removido.
+    </div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU EQUIPAMENTO</span>
@@ -49,6 +55,21 @@
                 <strong th:text="${impressora.potenciaWatts} + ' W'"></strong>
             </div>
 
+            <div class="detalhe-item">
+                <span>Valor de compra</span>
+                <strong th:text="${impressora.valorCompra != null ? 'R$ ' + #numbers.formatDecimal(impressora.valorCompra, 1, 'POINT', 2, 'COMMA') : 'Não informado'}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Vida útil estimada</span>
+                <strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 2, 'POINT') + ' horas' : 'Não informada'}"></strong>
+            </div>
+
+            <div class="detalhe-item">
+                <span>Estimativa atual de manutenção por hora</span>
+                <strong th:text="|R$ ${#numbers.formatDecimal(manutencaoPorHoraCalculada, 1, 'POINT', 2, 'COMMA')}/h|"></strong>
+            </div>
+
             <div class="formulario-acoes">
                 <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
                    class="botao botao-principal">
@@ -58,6 +79,83 @@
                 <a th:href="@{/impressora/listar}" class="botao botao-secundario">
                     Voltar para listagem
                 </a>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="cartao cartao-manutencao-impressora">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Manutenção da impressora</h2>
+                <p>Registre gastos com reparos e peças para estimar a manutenção por hora de uso.</p>
+            </div>
+        </div>
+
+        <div class="manutencao-resumo">
+            <div class="detalhe-item">
+                <span>Horas de impressão registradas</span>
+                <strong th:text="|${#numbers.formatDecimal(minutosImpressos / 60.0, 1, 'COMMA', 2, 'POINT')} h|">0,00 h</strong>
+            </div>
+            <div class="detalhe-item">
+                <span>Total de manutenção registrado</span>
+                <strong th:text="|R$ ${#numbers.formatDecimal(totalGastoManutencao, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            </div>
+            <div class="detalhe-item">
+                <span>Estimativa de manutenção por hora</span>
+                <strong th:text="|R$ ${#numbers.formatDecimal(manutencaoPorHoraCalculada, 1, 'POINT', 2, 'COMMA')}/h|">R$ 0,00/h</strong>
+            </div>
+        </div>
+
+        <p class="aviso-info" th:if="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
+            <i class="bi bi-info-circle"></i> Estimativa automática: gastos cadastrados divididos pelas horas de impressão salvas no histórico. Para uma média mais fiel, registre também gastos anteriores.
+        </p>
+        <p class="aviso-info" th:unless="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
+            <i class="bi bi-info-circle"></i> Quando houver gastos de manutenção e horas de impressão registradas, o sistema calcula a média automaticamente. Até lá, usa a estimativa manual cadastrada.
+        </p>
+
+        <div class="manutencao-impressora-colunas">
+            <form th:action="@{/impressora/{id}/manutencoes(id=${impressora.id})}"
+                  th:object="${manutencao}" method="post" class="formulario" novalidate>
+                <h3>Registrar gasto</h3>
+                <div class="campo">
+                    <label for="descricaoManutencao">Descrição</label>
+                    <input id="descricaoManutencao" type="text" th:field="*{descricao}"
+                           maxlength="150" placeholder="Ex.: troca do bico">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"></div>
+                </div>
+                <div class="campo">
+                    <label for="valorManutencao">Valor gasto (R$)</label>
+                    <input id="valorManutencao" type="number" th:field="*{valor}"
+                           min="0.01" step="0.01" placeholder="Ex.: 35,00">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('valor')}" th:errors="*{valor}"></div>
+                </div>
+                <div class="campo">
+                    <label for="dataManutencao">Data</label>
+                    <input id="dataManutencao" type="date" th:field="*{data}">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('data')}" th:errors="*{data}"></div>
+                </div>
+                <button type="submit" class="botao botao-principal">
+                    <i class="bi bi-plus-lg"></i> Adicionar gasto
+                </button>
+            </form>
+
+            <div class="manutencao-registros">
+                <h3>Gastos registrados</h3>
+                <p class="lista-vazia" th:if="${#lists.isEmpty(manutencoes)}">Ainda não há gastos registrados.</p>
+                <article class="manutencao-registro" th:each="registro : ${manutencoes}">
+                    <div>
+                        <strong th:text="${registro.descricao}">Troca do bico</strong>
+                        <small th:text="${#temporals.format(registro.data, 'dd/MM/yyyy')}">05/11/2026</small>
+                    </div>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(registro.valor, 1, 'POINT', 2, 'COMMA')}|">R$ 35,00</strong>
+                    <form th:action="@{/impressora/{impressoraId}/manutencoes/{manutencaoId}/excluir(impressoraId=${impressora.id}, manutencaoId=${registro.id})}"
+                          method="post" data-turbo-confirm="Remover este gasto de manutenção?">
+                        <button type="submit" class="botao-remover-filamento" aria-label="Remover gasto de manutenção">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </article>
             </div>
         </div>
     </section>

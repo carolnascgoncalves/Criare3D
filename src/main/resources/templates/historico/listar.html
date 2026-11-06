@@ -58,10 +58,32 @@
                        title="Filtrar cálculos por data"
                        aria-label="Filtrar cálculos por data">
             </div>
+            <input type="hidden" name="plataforma" th:value="${plataforma}">
 
             <button type="submit" class="botao botao-principal">
                 Pesquisar
             </button>
+
+            <details class="controle-ordenacao controle-plataforma"
+                     th:classappend="${plataforma != null and !plataforma.isBlank()} ? ' filtro-plataforma-ativo' : ''">
+                <summary aria-label="Filtrar por plataforma" title="Filtrar por plataforma">
+                    <i class="bi bi-shop"></i>
+                    <span class="indicador-filtro" th:if="${plataforma != null and !plataforma.isBlank()}" aria-hidden="true"></span>
+                </summary>
+                <div class="painel-ordenacao painel-plataforma">
+                    <strong>Mostrar cálculos</strong>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem})}"
+                       th:classappend="${plataforma == null or plataforma.isBlank()} ? ' selecionada' : ''">Todas as plataformas</a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SHOPEE')}"
+                       th:classappend="${plataforma == 'SHOPEE'} ? ' selecionada' : ''">Shopee</a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='TIKTOK')}"
+                       th:classappend="${plataforma == 'TIKTOK'} ? ' selecionada' : ''">TikTok Shop</a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='MERCADO_LIVRE')}"
+                       th:classappend="${plataforma == 'MERCADO_LIVRE'} ? ' selecionada' : ''">Mercado Livre</a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SEM_PLATAFORMA')}"
+                       th:classappend="${plataforma == 'SEM_PLATAFORMA'} ? ' selecionada' : ''">Sem plataforma</a>
+                </div>
+            </details>
 
             <details class="controle-ordenacao">
                 <summary aria-label="Opções de ordenação" title="Ordenar histórico"><i class="bi bi-sort-down"></i></summary>
@@ -80,7 +102,7 @@
                     <button type="submit" class="botao botao-secundario">Aplicar</button>
                 </div>
             </details>
-            <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
+            <a th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"
                th:href="@{/historico/listar(ordem=${ordem})}"
                class="botao botao-secundario">
                 Limpar
@@ -94,33 +116,23 @@
 
                 <div class="historico-vazio-icone">
                     <i class="bi bi-search"
-                       th:if="${(busca != null and !busca.isBlank()) or data != null}"></i>
+                       th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"></i>
 
                     <i class="bi bi-calendar-x"
-                       th:unless="${(busca != null and !busca.isBlank()) or data != null}"></i>
+                       th:unless="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"></i>
                 </div>
 
                 <h3>Nenhum cálculo encontrado</h3>
 
-                <p th:if="${data != null and busca != null and !busca.isBlank()}">
-                    Não encontramos cálculos com esse nome nessa data.
-                    Tente alterar os filtros.
+                <p th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}">
+                    Nenhum cálculo corresponde aos filtros selecionados. Tente alterar ou limpar os filtros.
                 </p>
 
-                <p th:if="${data != null and (busca == null or busca.isBlank())}">
-                    Não existem cálculos registrados nessa data.
-                    Experimente selecionar outro dia.
-                </p>
-
-                <p th:if="${data == null and busca != null and !busca.isBlank()}">
-                    Não encontramos peças com esse nome. Tente pesquisar novamente.
-                </p>
-
-                <p th:if="${data == null and (busca == null or busca.isBlank())}">
+                <p th:unless="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}">
                     Nenhum cálculo foi registrado ainda.
                 </p>
 
-                <a th:if="${(busca != null and !busca.isBlank()) or data != null}"
+                <a th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"
                    th:href="@{/historico/listar(ordem=${ordem})}"
                    class="botao botao-secundario">
                     Limpar filtros
@@ -133,6 +145,7 @@
                     <tr>
                         <th>Peça</th>
                         <th>Data do cálculo</th>
+                        <th>Plataforma</th>
                         <th>Custo total</th>
                         <th>Preço sugerido</th>
                         <th class="coluna-acoes">Ações</th>
@@ -161,6 +174,10 @@
 
                         <td>
                             <span th:text="${#temporals.format(historico.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm')}"></span>
+                        </td>
+
+                        <td>
+                            <span th:text="${historico.plataformaVenda == null or historico.plataformaVenda == 'NENHUMA' ? '—' : (historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (historico.plataformaVenda == 'TIKTOK' or historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'))}">—</span>
                         </td>
 
                         <td>
@@ -209,7 +226,7 @@
                  th:if="${pagina.totalPages > 1}">
 
                 <a th:if="${pagina.hasPrevious()}"
-                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem})}"
+                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma})}"
                    title="Página anterior"
                    aria-label="Página anterior">
                     <i class="bi bi-chevron-left"></i>
@@ -225,7 +242,7 @@
                 </span>
 
                 <a th:if="${pagina.hasNext()}"
-                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem})}"
+                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma})}"
                    title="Próxima página"
                    aria-label="Próxima página">
                     <i class="bi bi-chevron-right"></i>

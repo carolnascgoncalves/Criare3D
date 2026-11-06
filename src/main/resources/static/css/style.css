@@ -1545,3 +1545,109 @@ input[type="color"]:focus {
     color: var(--marrom);
     font-weight: 500;
 }
+
+
+.alerta-configuracao-flutuante {
+    position: fixed;
+    top: 100px;
+    left: 50%;
+    z-index: 1100;
+    width: min(620px, calc(100% - 32px));
+    margin: 0;
+    transform: translateX(-50%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+}
+
+
+.main-alerta.alerta-sucesso.alerta-configuracao-flutuante {
+    background: #e8f5e9 !important;
+    color: #256b35 !important;
+    border: 1px solid #b7dfbd;
+    transition: opacity 350ms ease, transform 350ms ease;
+}
+
+.alerta-configuracao-flutuante.alerta-configuracao-ocultando {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+}
+
+#campoMaoObra,
+#campoTempoMaoObraFixo {
+    grid-column: 1 / -1;
+}
+
+.configuracao-tempo-fixo {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: fit-content;
+    max-width: 100%;
+    margin: -8px 0;
+    padding: 8px 0;
+    border: 0;
+    cursor: pointer;
+}
+
+.configuracao-tempo-fixo input {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    accent-color: var(--marrom);
+}
+
+.configuracao-tempo-fixo > span {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
+}
+
+.configuracao-tempo-fixo strong {
+    color: var(--marrom);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.configuracao-tempo-fixo small {
+    color: var(--marrom-claro);
+    font-size: 0.78rem;
+}
+
+.etiqueta-opcional {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #f1ece6;
+    color: #705c4c;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.4;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.configuracao-opcao strong .etiqueta-opcional,
+.campo label .etiqueta-opcional {
+    color: #705c4c;
+    font-weight: 600;
+}
+
+.texto-campo-opcional {
+    grid-column: 1 / -1;
+    align-self: flex-start;
+    text-align: left;
+    color: var(--marrom-claro);
+    font-size: 0.85rem;
+    padding-bottom: 8px;
+}
+
+.separador-custos-adicionais {
+    grid-column: 1 / -1;
+    height: 1px;
+    background: #d6c2b1;
+    margin: -4px 0;
+}

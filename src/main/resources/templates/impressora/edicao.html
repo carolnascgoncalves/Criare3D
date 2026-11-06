@@ -13,7 +13,7 @@
         <div>
             <span class="texto-apoio">SEU EQUIPAMENTO</span>
             <h1>Editar impressora</h1>
-            <p>Atualize as informações do equipamento.</p>
+            <p>Atualize os dados do equipamento e os custos estimados de uso.</p>
         </div>
 
         <a th:href="@{/impressora/listar}" class="botao botao-secundario">
@@ -65,6 +65,25 @@
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('potenciaWatts')}"
                          th:errors="*{potenciaWatts}"></div>
+                </div>
+
+                <div class="campo">
+                    <label for="valorCompra">Valor de compra da impressora (R$) <span class="etiqueta-opcional">Opcional</span></label>
+                    <input type="number" id="valorCompra" th:field="*{valorCompra}" min="0" step="0.01">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('valorCompra')}" th:errors="*{valorCompra}"></div>
+                </div>
+                <div class="campo">
+                    <label for="vidaUtilHoras">Vida útil estimada (horas) <span class="etiqueta-opcional">Opcional</span></label>
+                    <input type="number" id="vidaUtilHoras" th:field="*{vidaUtilHoras}" min="0" step="0.01" placeholder="Ex.: 5000">
+                    <div class="erro-campo" th:if="${#fields.hasErrors('vidaUtilHoras')}" th:errors="*{vidaUtilHoras}"></div>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosDepreciacaoValidos')}" th:errors="*{dadosDepreciacaoValidos}"></div>
+                </div>
+                <small class="texto-campo-opcional">Esses dados só são necessários quando a depreciação da impressora estiver ativada em Configurações.</small>
+                <div class="campo">
+                    <label for="manutencaoPorHora">Estimativa manual de manutenção por hora (R$) <span class="etiqueta-opcional">Opcional</span></label>
+                    <input type="number" id="manutencaoPorHora" th:field="*{manutencaoPorHora}" min="0" step="0.01" placeholder="Ex.: 0.20">
+                    <small>Usada como estimativa até haver dados reais suficientes para a média automática.</small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('manutencaoPorHora')}" th:errors="*{manutencaoPorHora}"></div>
                 </div>
 
                 <div class="formulario-acoes">

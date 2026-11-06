@@ -34,6 +34,15 @@ public class Impressora {
     @Column(name="potencia_imp", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal potenciaWatts;
 
+    @Column(name = "valor_compra_imp", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal valorCompra;
+
+    @Column(name = "vida_util_horas_imp", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal vidaUtilHoras;
+
+    @Column(name = "manutencao_hora_imp", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal manutencaoPorHora;
+
 
     @OneToMany(mappedBy = "impressora")
     private Set<CalculoHistorico> historicos;

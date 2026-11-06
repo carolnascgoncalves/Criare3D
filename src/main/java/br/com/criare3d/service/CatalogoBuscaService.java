@@ -69,37 +69,17 @@ public class CatalogoBuscaService {
     }
 
     public Page<CalculoHistorico> buscarHistorico(
-            String nome, LocalDate data, Pageable pageable) {
+            String nome, LocalDate data, String plataforma, Pageable pageable) {
 
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        boolean temNome = nome != null && !nome.isBlank();
+        // Mantém o parâmetro tipado como texto no PostgreSQL mesmo sem busca.
+        String nomeFiltro = nome == null ? "" : nome.trim();
+        boolean filtrarData = data != null;
+        LocalDateTime inicio = data == null ? null : data.atStartOfDay();
+        LocalDateTime fim = data == null ? null : data.plusDays(1).atStartOfDay();
+        String plataformaFiltro = plataforma == null ? "" : plataforma.trim();
 
-        if (data == null && !temNome) {
-            return calculoHistoricoRepository.findAllByUsuario_Id(
-                    usuarioId, pageable
-            );
-        }
-
-        if (data == null) {
-            return calculoHistoricoRepository
-                    .findByNomePecaContainingIgnoreCaseAndUsuario_Id(
-                            nome.trim(), usuarioId, pageable
-                    );
-        }
-
-        LocalDateTime inicio = data.atStartOfDay();
-        LocalDateTime fim = data.plusDays(1).atStartOfDay();
-
-        if (!temNome) {
-            return calculoHistoricoRepository
-                    .findByDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
-                            inicio, fim, usuarioId, pageable
-                    );
-        }
-
-        return calculoHistoricoRepository
-                .findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
-                        nome.trim(), inicio, fim, usuarioId, pageable
-                );
+        return calculoHistoricoRepository.buscarHistoricoFiltrado(
+                usuarioId, nomeFiltro, filtrarData, inicio, fim, plataformaFiltro, pageable);
     }
 }

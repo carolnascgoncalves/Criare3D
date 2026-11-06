@@ -4,6 +4,7 @@ import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
 import br.com.criare3d.service.interfaces.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Autowired
     private UsuarioLogadoService usuarioLogadoService;
+
+    @Autowired
+    private ManutencaoImpressoraService manutencaoImpressoraService;
 
     @Override
     public long contarPorFilamento(UUID filamentoId) {
@@ -205,6 +209,54 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         custoEnergia = moeda(custoEnergia);
 
+        Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
+                ? configuracao.getTempoMaoObraFixoMinutos()
+                : (request.getTempoTrabalhoMinutos() != null
+                    ? request.getTempoTrabalhoMinutos()
+                    : 0L);
+        if (tempoTrabalhoMinutos == null || tempoTrabalhoMinutos < 0) {
+            throw new IllegalArgumentException("Informe um tempo de trabalho manual válido.");
+        }
+
+        BigDecimal custoMaoObra = ZERO;
+        if (Boolean.TRUE.equals(configuracao.getMaoObraAtivada())) {
+            BigDecimal valorHora = configuracao.getValorMaoObraHora();
+            if (valorHora == null || valorHora.signum() < 0) {
+                throw new IllegalArgumentException("Configure um custo por hora válido para a mão de obra.");
+            }
+            custoMaoObra = moeda(valorHora.multiply(BigDecimal.valueOf(tempoTrabalhoMinutos))
+                    .divide(new BigDecimal("60"), 8, RoundingMode.HALF_UP));
+        }
+
+        BigDecimal custoDepreciacao = ZERO;
+        if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
+            BigDecimal valorImpressora = impressora.getValorCompra();
+            BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
+            BigDecimal manutencaoPorHora = manutencaoImpressoraService.custoPorHora(
+                    impressora.getId(), impressora.getManutencaoPorHora());
+            if (valorImpressora == null || valorImpressora.signum() < 0
+                    || vidaUtilHoras == null || vidaUtilHoras.signum() <= 0
+                    || manutencaoPorHora.signum() < 0) {
+                throw new IllegalArgumentException("Cadastre o valor de compra e a vida útil da impressora; a manutenção por hora deve ser igual ou maior que zero.");
+            }
+            BigDecimal horasImpressao = tempo.divide(new BigDecimal("60"), 8, RoundingMode.HALF_UP);
+            BigDecimal custoMaquinaHora = valorImpressora.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP)
+                    .add(manutencaoPorHora);
+            custoDepreciacao = moeda(horasImpressao.multiply(custoMaquinaHora));
+        }
+
+        BigDecimal custoFalha = ZERO;
+        if (Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada())) {
+            BigDecimal percentualFalha = configuracao.getPercentualFalha();
+            if (percentualFalha == null || percentualFalha.signum() < 0
+                    || percentualFalha.compareTo(CEM) > 0) {
+                throw new IllegalArgumentException("Configure um percentual de falhas entre zero e 100.");
+            }
+            custoFalha = moeda(custoFilamentoTotal.add(custoEnergia)
+                    .multiply(percentualFalha)
+                    .divide(CEM, 8, RoundingMode.HALF_UP));
+        }
+
         BigDecimal custoEmbalagem;
         String nomeEmbalagem;
         Embalagem embalagem = null;
@@ -237,6 +289,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         BigDecimal custoTotal = moeda(
                 custoFilamentoTotal.add(custoEnergia).add(custoEmbalagem)
+                        .add(custoMaoObra).add(custoDepreciacao).add(custoFalha)
         );
 
         BigDecimal fatorMarkup = BigDecimal.ONE.add(
@@ -258,6 +311,18 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setNomeEmbalagem(nomeEmbalagem);
         historico.setCustoEmbalagem(custoEmbalagem);
         historico.setCustoEnergia(custoEnergia);
+        historico.setCustoMaoObra(custoMaoObra);
+        historico.setCustoDepreciacao(custoDepreciacao);
+        historico.setCustoFalha(custoFalha);
+        historico.setMaoObraAtivada(Boolean.TRUE.equals(configuracao.getMaoObraAtivada()));
+        historico.setValorMaoObraHora(configuracao.getValorMaoObraHora());
+        historico.setDepreciacaoAtivada(Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()));
+        historico.setTempoTrabalhoMinutos(tempoTrabalhoMinutos);
+        historico.setValorCompraImpressora(impressora.getValorCompra());
+        historico.setVidaUtilImpressoraHoras(impressora.getVidaUtilHoras());
+        historico.setManutencaoHoraImpressora(impressora.getManutencaoPorHora());
+        historico.setTaxaFalhaAtivada(Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada()));
+        historico.setPercentualFalha(configuracao.getPercentualFalha());
         historico.setCustoTotal(custoTotal);
 
         historico.setMarkupPercentual(markup);

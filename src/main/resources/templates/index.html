@@ -28,6 +28,24 @@
     <section class="secao">
         <div class="titulo-secao">
             <div>
+                <h2>Primeiros passos</h2>
+                <p>Custos adicionais são opcionais e podem ser configurados quando você quiser.</p>
+            </div>
+        </div>
+
+        <a th:href="@{/configuracao#custosAdicionais}" class="atalho-card">
+            <span class="atalho-icone"><i class="bi bi-clock-history"></i></span>
+            <span>
+                <strong>Defina o valor da sua hora</strong>
+                <small th:text="${valorHoraConfigurado ? 'Valor da mão de obra configurado.' : 'Opcional: configure para incluir mão de obra nos cálculos.'}">Opcional: configure para incluir mão de obra nos cálculos.</small>
+            </span>
+            <span class="seta" th:text="${valorHoraConfigurado ? '✓' : '→'}">→</span>
+        </a>
+    </section>
+
+    <section class="secao">
+        <div class="titulo-secao">
+            <div>
                 <h2>Visão geral</h2>
                 <p>Acompanhe os itens cadastrados no sistema.</p>
             </div>

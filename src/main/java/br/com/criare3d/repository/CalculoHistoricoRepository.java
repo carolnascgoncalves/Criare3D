@@ -28,9 +28,54 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
             UUID usuarioId, Pageable pageable
     );
 
+    @Query(value = """
+        SELECT h
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId
+          AND (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
+          AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
+          AND (
+              :plataforma = ''
+              OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
+              OR h.plataformaVenda = :plataforma
+          )
+        """,
+        countQuery = """
+        SELECT COUNT(h)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId
+          AND (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
+          AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
+          AND (
+              :plataforma = ''
+              OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
+              OR h.plataformaVenda = :plataforma
+          )
+        """)
+    Page<CalculoHistorico> buscarHistoricoFiltrado(
+            @Param("usuarioId") UUID usuarioId,
+            @Param("nome") String nome,
+            @Param("filtrarData") boolean filtrarData,
+            @Param("inicio") LocalDateTime inicio,
+            @Param("fim") LocalDateTime fim,
+            @Param("plataforma") String plataforma,
+            Pageable pageable
+    );
+
     long countByEmbalagem_IdAndUsuario_Id(UUID embalagemId, UUID usuarioId);
 
     long countByImpressora_IdAndUsuario_Id(UUID impressoraId, UUID usuarioId);
+
+    @Query("""
+        SELECT COALESCE(SUM(c.tempoImpressaoMinutos), 0)
+        FROM CalculoHistorico c
+        WHERE c.impressora.id = :impressoraId
+          AND c.usuario.id = :usuarioId
+        """)
+    Long somarMinutosPorImpressoraEUsuario(
+            @Param("impressoraId") UUID impressoraId,
+            @Param("usuarioId") UUID usuarioId
+    );
 
     long countByPeca_IdAndUsuario_Id(UUID pecaId, UUID usuarioId);
 

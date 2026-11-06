@@ -7,8 +7,8 @@ Aplicação web para organizar os cadastros usados na impressão 3D e calcular o
 - Autenticação com Spring Security, senhas com BCrypt e perfis ADMIN e USER.
 - Cadastro, edição, pesquisa, consulta e exclusão de peças, filamentos, impressoras e embalagens.
 - Filamentos com cor, código hexadecimal, marca, peso do rolo e preço.
-- Configuração da tarifa de energia e da opção de custo fixo de embalagem.
-- Cálculo em etapas, com vários filamentos/cores, consumo por filamento, tempo de impressão, energia, embalagem e markup.
+- Configuração da tarifa de energia, embalagem fixa e custos opcionais de mão de obra, depreciação da impressora e falhas/desperdício.
+- Cálculo em etapas, com vários filamentos/cores, consumo por filamento, tempo de impressão, energia, embalagem, custos adicionais e markup.
 - Simulação de venda na Shopee, TikTok Shop e Mercado Livre, incluindo tipo de anúncio no Mercado Livre.
 - Histórico dos cálculos com valores registrados no momento da operação.
 - Rascunho temporário para reduzir a perda de dados durante a navegação e cadastro rápido de itens auxiliares.
@@ -96,7 +96,7 @@ Para construir a imagem:
 docker build -t criare3d .
 ```
 
-O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A coluna legada `peca.preco_emb_peca` do banco local é preservada.
+O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A migração `V3` adiciona as opções dos custos adicionais; a `V4` registra o tempo de trabalho nas peças e os dados de compra, vida útil e manutenção por impressora; a `V5` adiciona a opção de usar um tempo de mão de obra fixo nas configurações; a `V6` registra gastos de manutenção por impressora para calcular a média por hora com base nas horas de impressão do histórico. As migrações preservam os cálculos antigos. A coluna legada `peca.preco_emb_peca` do banco local é preservada.
 
 Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes usam H2 com Flyway desativado e não substituem a validação das migrações em PostgreSQL.
 

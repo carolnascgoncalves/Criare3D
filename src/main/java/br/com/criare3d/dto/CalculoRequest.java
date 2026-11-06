@@ -2,10 +2,7 @@ package br.com.criare3d.dto;
 
 import br.com.criare3d.models.CalculoHistorico;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -38,6 +35,9 @@ public class CalculoRequest {
     @NotNull(message = "O tempo de impressão é obrigatório")
     @Positive(message = "O tempo de impressão deve ser maior que zero")
     private Long tempoImpressaoMinutos;
+
+    @PositiveOrZero(message = "O tempo de trabalho não pode ser negativo")
+    private Long tempoTrabalhoMinutos;
 
     private UUID embalagemId;
 

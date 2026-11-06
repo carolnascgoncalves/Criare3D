@@ -41,6 +41,32 @@ public class Configuracao {
     @Builder.Default
     private @Getter @Setter Boolean formularioAvancado = false;
 
+    @Column(name = "mao_obra_ativada", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean maoObraAtivada = false;
+
+    @Column(name = "valor_mao_obra_hora", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal valorMaoObraHora;
+
+    @Column(name = "mao_obra_tempo_fixo", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean maoObraTempoFixo = false;
+
+    @Column(name = "tempo_mao_obra_fixo_minutos", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Long tempoMaoObraFixoMinutos = 0L;
+
+    @Column(name = "depreciacao_ativada", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean depreciacaoAtivada = false;
+
+    @Column(name = "taxa_falha_ativada", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean taxaFalhaAtivada = false;
+
+    @Column(name = "percentual_falha", precision = 5, scale = 2)
+    private @Getter @Setter BigDecimal percentualFalha;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private @Getter @Setter Usuario usuario;

@@ -21,6 +21,10 @@
         Impressora excluída com sucesso!
     </div>
 
+    <div class="alerta-erro" th:if="${param.erro != null and param.erro[0] == 'impressoraComManutencao'}">
+        Remova os gastos de manutenção registrados antes de excluir esta impressora.
+    </div>
+
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU EQUIPAMENTO</span>

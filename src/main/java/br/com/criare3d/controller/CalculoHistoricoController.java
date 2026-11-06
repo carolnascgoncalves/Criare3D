@@ -40,6 +40,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.Map;
+import java.util.Set;
 
 @Controller
 public class CalculoHistoricoController {
@@ -54,6 +55,9 @@ public class CalculoHistoricoController {
             Map.entry("precoAsc", JpaSort.unsafe(Sort.Direction.ASC, "coalesce(precoVendaPlataforma, precoSugerido)")),
             Map.entry("precoDesc", JpaSort.unsafe(Sort.Direction.DESC, "coalesce(precoVendaPlataforma, precoSugerido)"))
     );
+
+    private static final Set<String> PLATAFORMAS_FILTRO = Set.of(
+            "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "SEM_PLATAFORMA");
 
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
@@ -88,8 +92,12 @@ public class CalculoHistoricoController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "data", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
             @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
             @PageableDefault(page = 0, size = 5) Pageable pageable) {
+
+        plataforma = plataforma == null ? "" : plataforma.trim().toUpperCase();
+        if (!PLATAFORMAS_FILTRO.contains(plataforma)) plataforma = "";
 
         ordem = OrdenacaoPaginada.validarOrdem(ordem, "dataDesc", ORDENACOES_HISTORICO);
         pageable = OrdenacaoPaginada.aplicar(pageable, ordem, ORDENACOES_HISTORICO);
@@ -99,6 +107,7 @@ public class CalculoHistoricoController {
         Page<CalculoHistorico> pagina = catalogoBuscaService.buscarHistorico(
                 busca.trim(),
                 data,
+                plataforma,
                 pageable
         );
 
@@ -106,6 +115,7 @@ public class CalculoHistoricoController {
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
         mv.addObject("data", data);
+        mv.addObject("plataforma", plataforma);
         mv.addObject("ordem", ordem);
 
         return mv;
@@ -403,6 +413,7 @@ public class CalculoHistoricoController {
         copia.setImpressoraId(original.getImpressoraId());
         copia.setEmbalagemId(original.getEmbalagemId());
         copia.setTempoImpressaoMinutos(original.getTempoImpressaoMinutos());
+        copia.setTempoTrabalhoMinutos(original.getTempoTrabalhoMinutos());
         copia.setMarkupPercentual(original.getMarkupPercentual());
 
         List<ItemCalculoRequest> itens = new ArrayList<>();
