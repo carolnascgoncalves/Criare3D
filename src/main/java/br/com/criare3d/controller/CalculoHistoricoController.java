@@ -339,7 +339,8 @@ public class CalculoHistoricoController {
             String modoComparacao,
             BigDecimal precoVendaFixo
     ) {
-        record Opcao(PlataformaVenda plataforma, String nome) {}
+        record Opcao(PlataformaVenda plataforma, String nome) {
+        }
 
         List<Opcao> opcoes = List.of(
                 new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
@@ -730,22 +731,100 @@ public class CalculoHistoricoController {
     @PostMapping("/historico/{id}/produzido")
     public ModelAndView atualizarProduzido(
             @PathVariable UUID id,
-            @RequestParam boolean valor) {
+            @RequestParam boolean valor,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "data", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
+            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
+            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
+            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+
         String resultado = calculoHistoricoService.atualizarProduzido(id, valor);
+
         if (!"ok".equals(resultado)) {
-            return new ModelAndView("redirect:/historico/listar?erro=" + resultado);
+            return redirecionarHistoricoComFiltros(
+                    "erro", resultado, busca, data, plataforma,
+                    produzido, vendido, ordem, page
+            );
         }
-        return new ModelAndView("redirect:/historico/listar?sucesso=producaoAtualizada");
+
+        return redirecionarHistoricoComFiltros(
+                "sucesso", "producaoAtualizada", busca, data, plataforma,
+                produzido, vendido, ordem, page
+        );
     }
 
     @PostMapping("/historico/{id}/vendido")
     public ModelAndView atualizarVendido(
             @PathVariable UUID id,
-            @RequestParam boolean valor) {
+            @RequestParam boolean valor,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "data", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
+            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
+            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
+            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+
         String resultado = calculoHistoricoService.atualizarVendido(id, valor);
+
         if (!"ok".equals(resultado)) {
-            return new ModelAndView("redirect:/historico/listar?erro=" + resultado);
+            return redirecionarHistoricoComFiltros(
+                    "erro", resultado, busca, data, plataforma,
+                    produzido, vendido, ordem, page
+            );
         }
-        return new ModelAndView("redirect:/historico/listar?sucesso=vendaAtualizada");
+
+        return redirecionarHistoricoComFiltros(
+                "sucesso", "vendaAtualizada", busca, data, plataforma,
+                produzido, vendido, ordem, page
+        );
+    }
+
+    private ModelAndView redirecionarHistoricoComFiltros(
+            String tipoMensagem,
+            String mensagem,
+            String busca,
+            LocalDate data,
+            String plataforma,
+            String produzido,
+            String vendido,
+            String ordem,
+            int page) {
+
+        ModelAndView mv = new ModelAndView("redirect:/historico/listar");
+
+        String plataformaFiltro = plataforma == null
+                ? ""
+                : plataforma.trim().toUpperCase();
+
+        if (!PLATAFORMAS_FILTRO.contains(plataformaFiltro)) {
+            plataformaFiltro = "";
+        }
+
+        mv.addObject("busca", busca == null ? "" : busca);
+
+        if (data != null) {
+            mv.addObject("data", data.toString());
+        }
+
+        mv.addObject("plataforma", plataformaFiltro);
+        mv.addObject("produzido", normalizarFiltroStatus(produzido));
+        mv.addObject("vendido", normalizarFiltroStatus(vendido));
+        mv.addObject(
+                "ordem",
+                OrdenacaoPaginada.validarOrdem(
+                        ordem,
+                        "dataDesc",
+                        ORDENACOES_HISTORICO
+                )
+        );
+        mv.addObject("page", Math.max(page, 0));
+        mv.addObject(tipoMensagem, mensagem);
+
+        return mv;
     }
 }

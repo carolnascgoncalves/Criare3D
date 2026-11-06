@@ -11,30 +11,37 @@
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
+
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'filamentoNaoEncontrado'}">
         Esse filamento não foi encontrado.
     </div>
+
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoRemovido'}">
         Filamento excluído com sucesso!
     </div>
+
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoCriado'}">
         Filamento cadastrado com sucesso.
     </div>
+
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoAtualizado'}">
         Filamento atualizado com sucesso.
     </div>
+
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentosRemovidos'}">
         Filamentos selecionados excluídos com sucesso.
     </div>
+
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'nenhumFilamentoSelecionado'}">
         Selecione pelo menos um filamento.
     </div>
+
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'filamentosEmUso'}">
         Os filamentos vinculados a cálculos foram mantidos; os demais selecionados foram excluídos.
@@ -46,6 +53,7 @@
             <h1>Filamentos</h1>
             <p>Gerencie os filamentos utilizados nos seus cálculos de impressão 3D.</p>
         </div>
+
         <a th:href="@{/filamento/novo}" class="botao botao-principal">
             <i class="bi bi-plus-lg"></i> Novo filamento
         </a>
@@ -57,106 +65,171 @@
                 <h2>Filamentos cadastrados</h2>
                 <p>Consulte e gerencie os materiais do seu catálogo.</p>
             </div>
-            <span class="contador" th:text="${pagina.totalElements} + ' cadastrados'">
+
+            <span class="contador"
+                  th:text="${pagina.totalElements} + ' cadastrados'">
                 0 cadastrados
             </span>
         </div>
 
-        <form th:action="@{/filamento/listar}" method="get"
-              class="busca-filamentos" data-ordenacao-listagem>
+        <form th:action="@{/filamento/listar}"
+              method="get"
+              class="busca-filamentos"
+              data-ordenacao-listagem>
+
             <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
-                <input type="text" name="busca" th:value="${busca}"
+                <input type="text"
+                       name="busca"
+                       th:value="${busca}"
                        placeholder="Buscar por nome ou cor..."
                        aria-label="Buscar filamentos por nome ou cor">
             </div>
 
-            <button type="submit" class="botao botao-principal">Pesquisar</button>
+            <button type="submit" class="botao botao-principal">
+                Pesquisar
+            </button>
 
             <details class="controle-ordenacao">
-                <summary aria-label="Opções de ordenação" title="Ordenar filamentos">
+                <summary aria-label="Opções de ordenação"
+                         title="Ordenar filamentos">
                     <i class="bi bi-sort-down"></i>
                 </summary>
+
                 <div class="painel-ordenacao">
-                    <label for="campo-ordem-filamentos">Ordenar por</label>
-                    <select id="campo-ordem-filamentos" data-ordenacao-campo>
-                        <option value="nome">Nome</option>
-                        <option value="cor">Cor</option>
-                    </select>
-                    <input type="hidden" name="ordem" value="nomeAsc"
-                           th:value="${ordem}" data-ordenacao-valor>
-                    <button type="button" class="botao botao-secundario"
-                            data-ordenacao-direcao>
+                    <div class="ordenacao-campo-linha">
+                        <div class="ordenacao-campo">
+                            <label for="campo-ordem-filamentos">Ordenar por</label>
+                            <select id="campo-ordem-filamentos"
+                                    data-ordenacao-campo>
+                                <option value="nome">Nome</option>
+                                <option value="cor">Cor</option>
+                            </select>
+                        </div>
+
+                        <button type="button"
+                                class="botao botao-secundario ordenacao-direcao"
+                                data-ordenacao-direcao>
+                            <i class="bi bi-arrow-up" data-ordenacao-icone></i>
+                        </button>
+                    </div>
+
+                    <small class="ordenacao-status"
+                           data-ordenacao-status>
                         Crescente
+                    </small>
+
+                    <input type="hidden"
+                           name="ordem"
+                           th:value="${ordem}"
+                           data-ordenacao-valor>
+
+                    <button type="submit"
+                            class="botao botao-secundario ordenacao-aplicar"
+                            data-ordenacao-aplicar>
+                        Aplicar
                     </button>
-                    <button type="submit" class="botao botao-secundario">Aplicar</button>
                 </div>
             </details>
 
             <a th:if="${busca != null and !#strings.isEmpty(busca)}"
                th:href="@{/filamento/listar(ordem=${ordem})}"
-               class="botao botao-limpar-busca">Limpar</a>
+               class="botao botao-limpar-busca">
+                Limpar
+            </a>
         </form>
 
-        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(filamentos)}">
-            <button type="button" class="botao botao-secundario"
-                    data-selecao-toggle data-form="form-remover-filamentos">
+        <div class="controles-selecao-listagem"
+             th:if="${!#lists.isEmpty(filamentos)}">
+
+            <button type="button"
+                    class="botao botao-secundario"
+                    data-selecao-toggle
+                    data-form="form-remover-filamentos"
+                    aria-pressed="false">
                 <i class="bi bi-check2-square"></i> Selecionar
             </button>
-            <span data-contador-selecao>0 selecionado(s)</span>
+
+            <span data-contador-selecao hidden>0 selecionado(s)</span>
+
             <form id="form-remover-filamentos"
-                  th:action="@{/filamento/remover-lote}" method="post"
+                  th:action="@{/filamento/remover-lote}"
+                  method="post"
                   onsubmit="return confirm('Excluir os filamentos selecionados? Filamentos vinculados a cálculos serão mantidos.');">
+
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="ordem" th:value="${ordem}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
-                <button type="submit" class="botao botao-secundario"
-                        data-excluir-selecionados hidden disabled>
+
+                <button type="submit"
+                        class="botao botao-secundario"
+                        data-excluir-selecionados
+                        hidden
+                        disabled>
                     <i class="bi bi-trash3"></i> Excluir selecionados
                 </button>
             </form>
         </div>
 
-        <div class="tabela-container" th:if="${!#lists.isEmpty(filamentos)}">
+        <div class="tabela-container"
+             th:if="${!#lists.isEmpty(filamentos)}">
+
             <table class="tabela">
                 <thead>
                 <tr>
-                    <th class="coluna-selecao" aria-label="Selecionar filamento"></th>
+                    <th class="coluna-selecao"
+                        aria-label="Selecionar filamento"></th>
                     <th>Filamento</th>
                     <th>Estoque</th>
                     <th class="coluna-acoes">Ações</th>
                 </tr>
                 </thead>
+
                 <tbody>
                 <tr th:each="filamento : ${filamentos}"
                     th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(filamento.id)} ? ' item-exclusao-falhou' : ''">
+
                     <td class="coluna-selecao">
-                        <input class="checkbox-selecao-listagem" type="checkbox"
-                               name="ids" th:value="${filamento.id}"
+                        <input class="checkbox-selecao-listagem"
+                               type="checkbox"
+                               name="ids"
+                               th:value="${filamento.id}"
                                form="form-remover-filamentos"
                                th:aria-label="|Selecionar ${filamento.nome}|">
                     </td>
+
                     <td>
                         <div class="nome-peca">
                             <span class="icone-peca icone-cor-filamento"
                                   th:if="${filamento.codigoCor != null and !#strings.isEmpty(filamento.codigoCor)}"
                                   th:style="|background-color: ${filamento.codigoCor}|">
                             </span>
+
                             <span class="icone-peca"
                                   th:unless="${filamento.codigoCor != null and !#strings.isEmpty(filamento.codigoCor)}">
                                 <i class="bi bi-palette"></i>
                             </span>
+
                             <div class="info-filamento">
-                                <span class="nome-filamento" th:text="${filamento.nome}">Nome do filamento</span>
-                                <span class="cor-filamento">Cor:
+                                <span class="nome-filamento"
+                                      th:text="${filamento.nome}">
+                                    Nome do filamento
+                                </span>
+
+                                <span class="cor-filamento">
+                                    Cor:
                                     <span th:text="${filamento.cor}">Verde</span>
                                 </span>
                             </div>
                         </div>
                     </td>
+
                     <td>
                         <div class="estoque-filamento-lista">
-                            <span th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">0 g</span>
+                            <span th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">
+                                0 g
+                            </span>
+
                             <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}"
                                class="botao-acao"
                                title="Ver cálculos que usaram este filamento"
@@ -165,21 +238,32 @@
                             </a>
                         </div>
                     </td>
+
                     <td class="coluna-acoes">
                         <div class="acoes">
                             <a th:href="@{/filamento/detalhes/{id}(id=${filamento.id})}"
-                               class="botao-acao" title="Ver detalhes" aria-label="Ver detalhes">
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
                                 <i class="bi bi-eye"></i>
                             </a>
+
                             <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
-                               class="botao-acao" title="Editar filamento" aria-label="Editar filamento">
+                               class="botao-acao"
+                               title="Editar filamento"
+                               aria-label="Editar filamento">
                                 <i class="bi bi-pencil"></i>
                             </a>
+
                             <form th:action="@{/filamento/remover/{id}(id=${filamento.id})}"
-                                  method="post" class="formulario-excluir"
+                                  method="post"
+                                  class="formulario-excluir"
                                   onsubmit="return confirm('Tem certeza que deseja remover este filamento?')">
-                                <button type="submit" class="botao-acao-excluir"
-                                        title="Remover filamento" aria-label="Remover filamento">
+
+                                <button type="submit"
+                                        class="botao-acao-excluir"
+                                        title="Remover filamento"
+                                        aria-label="Remover filamento">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
@@ -190,47 +274,72 @@
             </table>
         </div>
 
-        <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
+        <div class="paginacao-historico"
+             th:if="${pagina.totalPages > 1}">
+
             <a th:if="${pagina.hasPrevious()}"
                th:href="@{/filamento/listar(page=${pagina.number - 1}, busca=${busca}, ordem=${ordem})}"
-               class="paginacao-seta" aria-label="Página anterior">
+               class="paginacao-seta"
+               aria-label="Página anterior">
                 <i class="bi bi-chevron-left"></i>
             </a>
-            <span th:unless="${pagina.hasPrevious()}" class="paginacao-seta desabilitada">
+
+            <span th:unless="${pagina.hasPrevious()}"
+                  class="paginacao-seta desabilitada">
                 <i class="bi bi-chevron-left"></i>
             </span>
+
             <span class="paginacao-info">
                 Página <strong th:text="${pagina.number + 1}">1</strong>
                 de <strong th:text="${pagina.totalPages}">1</strong>
             </span>
+
             <a th:if="${pagina.hasNext()}"
                th:href="@{/filamento/listar(page=${pagina.number + 1}, busca=${busca}, ordem=${ordem})}"
-               class="paginacao-seta" aria-label="Próxima página">
+               class="paginacao-seta"
+               aria-label="Próxima página">
                 <i class="bi bi-chevron-right"></i>
             </a>
-            <span th:unless="${pagina.hasNext()}" class="paginacao-seta desabilitada">
+
+            <span th:unless="${pagina.hasNext()}"
+                  class="paginacao-seta desabilitada">
                 <i class="bi bi-chevron-right"></i>
             </span>
         </div>
 
         <div class="estado-vazio"
              th:if="${#lists.isEmpty(filamentos) and busca != null and !#strings.isEmpty(busca)}">
-            <span class="estado-vazio-icone"><i class="bi bi-search"></i></span>
+
+            <span class="estado-vazio-icone">
+                <i class="bi bi-search"></i>
+            </span>
+
             <h3>Nenhum filamento encontrado</h3>
+
             <p th:text="${'Não encontramos filamentos para ' + busca + '. Tente pesquisar por outro nome ou cor.'}">
                 Nenhum resultado para a busca.
             </p>
-            <a th:href="@{/filamento/listar(ordem=${ordem})}" class="botao botao-secundario">
+
+            <a th:href="@{/filamento/listar(ordem=${ordem})}"
+               class="botao botao-secundario">
                 Limpar pesquisa
             </a>
         </div>
 
         <div class="estado-vazio"
              th:if="${#lists.isEmpty(filamentos) and (busca == null or #strings.isEmpty(busca))}">
-            <span class="estado-vazio-icone"><i class="bi bi-palette"></i></span>
+
+            <span class="estado-vazio-icone">
+                <i class="bi bi-palette"></i>
+            </span>
+
             <h3>Nenhum filamento cadastrado</h3>
             <p>Cadastre seu primeiro filamento para organizar seus materiais.</p>
-            <a th:href="@{/filamento/novo}" class="botao botao-principal">Cadastrar filamento</a>
+
+            <a th:href="@{/filamento/novo}"
+               class="botao botao-principal">
+                Cadastrar filamento
+            </a>
         </div>
     </section>
 </main>

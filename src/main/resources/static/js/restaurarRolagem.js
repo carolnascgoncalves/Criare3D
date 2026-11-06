@@ -1,17 +1,16 @@
 (() => {
     const chaveOrigem = "criare3d:origem-listagem";
     const chaveRolagemPost = "criare3d:rolagem-post";
-    const validade = 30000;
+    const validadePost = 30000;
 
     function salvarOrigem(url) {
         try {
             sessionStorage.setItem(chaveOrigem, JSON.stringify({
-                url,
-                y: window.scrollY,
-                criadoEm: Date.now()
+                url: url,
+                y: window.scrollY
             }));
         } catch {
-            // A navegação continua funcionando mesmo sem sessionStorage.
+            // A navegação continua funcionando sem sessionStorage.
         }
     }
 
@@ -20,88 +19,62 @@
             const salvo = sessionStorage.getItem(chaveOrigem);
             if (!salvo) return null;
 
-            const estado = JSON.parse(salvo);
-
-            if (!estado || Date.now() - estado.criadoEm > validade) {
-                sessionStorage.removeItem(chaveOrigem);
-                return null;
-            }
-
-            return estado;
+            return JSON.parse(salvo);
         } catch {
             sessionStorage.removeItem(chaveOrigem);
             return null;
         }
     }
 
+    function paginaEhDetalhes(caminho) {
+        return caminho.includes("/detalhes/")
+            || /^\/filamento\/[^/]+\/historico$/.test(caminho);
+    }
+
+    function atualizarLinksDeVolta() {
+        const estado = lerOrigem();
+
+        if (!estado || !estado.url) return;
+        if (!paginaEhDetalhes(window.location.pathname)) return;
+
+        document.querySelectorAll("main.pagina a[href]").forEach(link => {
+            const destino = new URL(link.href, window.location.origin);
+
+            const ehVoltar =
+                destino.pathname.endsWith("/listar")
+                || link.matches(
+                    "a.botao-voltar, " +
+                    ".pagina-intro a.botao-secundario, " +
+                    ".formulario-acoes a.botao-secundario, " +
+                    ".detalhes-acoes a"
+                );
+
+            if (ehVoltar) {
+                link.href = estado.url;
+            }
+        });
+    }
+
     function restaurarOrigem() {
         const estado = lerOrigem();
-        if (!estado) return;
+        if (!estado || !estado.url) return;
 
         const urlAtual = window.location.pathname + window.location.search;
         const urlSalva = new URL(estado.url, window.location.origin);
         const caminhoSalvo = urlSalva.pathname + urlSalva.search;
 
-        if (urlAtual !== caminhoSalvo) {
-            return;
-        }
+        if (urlAtual !== caminhoSalvo) return;
 
         sessionStorage.removeItem(chaveOrigem);
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                window.scrollTo(0, estado.y);
+                window.scrollTo(0, Number(estado.y) || 0);
             });
         });
     }
 
-    function atualizarLinkDeVolta() {
-        const estado = lerOrigem();
-        if (!estado) return;
-
-        const caminhoAtual = window.location.pathname;
-
-        const paginaDeDetalhes =
-            caminhoAtual.includes("/detalhes/") ||
-            caminhoAtual.endsWith("/historico");
-
-        if (!paginaDeDetalhes) return;
-
-        const linkVoltar = document.querySelector(
-            "main.pagina .pagina-intro a.botao-secundario"
-        );
-
-        if (linkVoltar) {
-            linkVoltar.href = estado.url;
-        }
-    }
-
-    document.addEventListener("click", event => {
-        const link = event.target.closest("a[href]");
-        if (!link || !link.closest("main.pagina")) return;
-
-        const destino = new URL(link.href, window.location.origin);
-
-        if (destino.origin !== window.location.origin) return;
-
-        const caminho = destino.pathname;
-
-        const abrindoDetalhes =
-            caminho.includes("/detalhes/") ||
-            (caminho.includes("/filamento/") && caminho.endsWith("/historico"));
-
-        if (abrindoDetalhes) {
-            salvarOrigem(window.location.pathname + window.location.search);
-        }
-    }, true);
-
-    document.addEventListener("submit", event => {
-        const formulario = event.target;
-
-        if (!(formulario instanceof HTMLFormElement)) return;
-        if (formulario.id === "formCalculo") return;
-        if ((formulario.method || "get").toLowerCase() !== "post") return;
-
+    function salvarRolagemPost() {
         try {
             sessionStorage.setItem(chaveRolagemPost, JSON.stringify({
                 y: window.scrollY,
@@ -110,16 +83,16 @@
         } catch {
             // Não interrompe o envio do formulário.
         }
-    }, true);
+    }
 
-    function restaurarPost() {
+    function restaurarRolagemPost() {
         try {
             const salvo = sessionStorage.getItem(chaveRolagemPost);
             if (!salvo) return;
 
             const estado = JSON.parse(salvo);
 
-            if (!estado || Date.now() - estado.criadoEm > validade) {
+            if (!estado || Date.now() - estado.criadoEm > validadePost) {
                 sessionStorage.removeItem(chaveRolagemPost);
                 return;
             }
@@ -136,10 +109,44 @@
         }
     }
 
+    document.addEventListener("click", event => {
+        if (!(event.target instanceof Element)) return;
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+
+        const link = event.target.closest("a[href]");
+        if (!link || !link.closest("main.pagina")) return;
+
+        const destino = new URL(link.href, window.location.origin);
+
+        if (destino.origin !== window.location.origin) return;
+
+        const caminho = destino.pathname;
+
+        const abrindoDetalhes =
+            caminho.includes("/detalhes/")
+            || /^\/filamento\/[^/]+\/historico$/.test(caminho);
+
+        if (abrindoDetalhes) {
+            salvarOrigem(
+                window.location.pathname + window.location.search
+            );
+        }
+    }, true);
+
+    document.addEventListener("submit", event => {
+        const formulario = event.target;
+
+        if (!(formulario instanceof HTMLFormElement)) return;
+        if (formulario.id === "formCalculo") return;
+        if ((formulario.method || "get").toLowerCase() !== "post") return;
+
+        salvarRolagemPost();
+    }, true);
+
     function inicializar() {
-        atualizarLinkDeVolta();
+        atualizarLinksDeVolta();
         restaurarOrigem();
-        restaurarPost();
+        restaurarRolagemPost();
     }
 
     document.addEventListener("DOMContentLoaded", inicializar);

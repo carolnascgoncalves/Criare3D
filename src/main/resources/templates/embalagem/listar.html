@@ -11,16 +11,41 @@
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
+
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemRemovida'}">
         Embalagem excluída com sucesso!
     </div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemCriada'}">Embalagem cadastrada com sucesso.</div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemAtualizada'}">Embalagem atualizada com sucesso.</div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagensRemovidas'}">Embalagens selecionadas excluídas com sucesso.</div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumaEmbalagemSelecionada'}">Selecione pelo menos uma embalagem.</div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'embalagemNaoEncontrada'}">A embalagem não foi encontrada.</div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'embalagensEmUso'}">As embalagens vinculadas a cálculos foram mantidas; as demais selecionadas foram excluídas.</div>
+
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemCriada'}">
+        Embalagem cadastrada com sucesso.
+    </div>
+
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemAtualizada'}">
+        Embalagem atualizada com sucesso.
+    </div>
+
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'embalagensRemovidas'}">
+        Embalagens selecionadas excluídas com sucesso.
+    </div>
+
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'nenhumaEmbalagemSelecionada'}">
+        Selecione pelo menos uma embalagem.
+    </div>
+
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'embalagemNaoEncontrada'}">
+        A embalagem não foi encontrada.
+    </div>
+
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'embalagensEmUso'}">
+        As embalagens vinculadas a cálculos foram mantidas; as demais selecionadas foram excluídas.
+    </div>
 
     <section class="pagina-intro">
         <div>
@@ -28,6 +53,7 @@
             <h1>Embalagens</h1>
             <p>Gerencie as embalagens utilizadas nos seus cálculos de impressão.</p>
         </div>
+
         <a th:href="@{/embalagem/novo}" class="botao botao-principal">
             <span>+</span> Nova embalagem
         </a>
@@ -39,105 +65,175 @@
                 <h2>Embalagens cadastradas</h2>
                 <p>Consulte e gerencie as embalagens do seu catálogo.</p>
             </div>
-            <span class="contador" th:text="${pagina.totalElements} + ' itens'">0 itens</span>
+
+            <span class="contador"
+                  th:text="${pagina.totalElements} + ' itens'">
+                0 itens
+            </span>
         </div>
 
-        <form th:action="@{/embalagem/listar}" method="get"
-              class="busca-filamentos" data-ordenacao-listagem>
+        <form th:action="@{/embalagem/listar}"
+              method="get"
+              class="busca-filamentos"
+              data-ordenacao-listagem>
+
             <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
-                <input type="search" name="busca" th:value="${busca}"
+                <input type="search"
+                       name="busca"
+                       th:value="${busca}"
                        placeholder="Pesquisar pelo nome da embalagem..."
                        aria-label="Pesquisar pelo nome da embalagem">
             </div>
 
-            <button type="submit" class="botao botao-principal">Pesquisar</button>
+            <button type="submit" class="botao botao-principal">
+                Pesquisar
+            </button>
 
             <details class="controle-ordenacao">
-                <summary aria-label="Opções de ordenação" title="Ordenar embalagens">
+                <summary aria-label="Opções de ordenação"
+                         title="Ordenar embalagens">
                     <i class="bi bi-sort-down"></i>
                 </summary>
+
                 <div class="painel-ordenacao">
-                    <label for="campo-ordem-embalagens">Ordenar por</label>
-                    <select id="campo-ordem-embalagens" data-ordenacao-campo>
-                        <option value="nome">Nome</option>
-                        <option value="custo">Custo unitário</option>
-                    </select>
-                    <input type="hidden" name="ordem" value="nomeAsc"
-                           th:value="${ordem}" data-ordenacao-valor>
-                    <button type="button" class="botao botao-secundario"
-                            data-ordenacao-direcao>
+                    <div class="ordenacao-campo-linha">
+                        <div class="ordenacao-campo">
+                            <label for="campo-ordem-embalagens">Ordenar por</label>
+                            <select id="campo-ordem-embalagens"
+                                    data-ordenacao-campo>
+                                <option value="nome">Nome</option>
+                                <option value="custo">Custo unitário</option>
+                            </select>
+                        </div>
+
+                        <button type="button"
+                                class="botao botao-secundario ordenacao-direcao"
+                                data-ordenacao-direcao>
+                            <i class="bi bi-arrow-up" data-ordenacao-icone></i>
+                        </button>
+                    </div>
+
+                    <small class="ordenacao-status"
+                           data-ordenacao-status>
                         Crescente
+                    </small>
+
+                    <input type="hidden"
+                           name="ordem"
+                           th:value="${ordem}"
+                           data-ordenacao-valor>
+
+                    <button type="submit"
+                            class="botao botao-secundario ordenacao-aplicar"
+                            data-ordenacao-aplicar>
+                        Aplicar
                     </button>
-                    <button type="submit" class="botao botao-secundario">Aplicar</button>
                 </div>
             </details>
 
             <a th:if="${busca != null and !busca.isBlank()}"
                th:href="@{/embalagem/listar(ordem=${ordem})}"
-               class="botao botao-secundario">Limpar</a>
+               class="botao botao-secundario">
+                Limpar
+            </a>
         </form>
 
-        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(embalagens)}">
-            <button type="button" class="botao botao-secundario"
-                    data-selecao-toggle data-form="form-remover-embalagens">
+        <div class="controles-selecao-listagem"
+             th:if="${!#lists.isEmpty(embalagens)}">
+
+            <button type="button"
+                    class="botao botao-secundario"
+                    data-selecao-toggle
+                    data-form="form-remover-embalagens"
+                    aria-pressed="false">
                 <i class="bi bi-check2-square"></i> Selecionar
             </button>
-            <span data-contador-selecao>0 selecionado(s)</span>
+
+            <span data-contador-selecao hidden>0 selecionado(s)</span>
+
             <form id="form-remover-embalagens"
-                  th:action="@{/embalagem/remover-lote}" method="post"
+                  th:action="@{/embalagem/remover-lote}"
+                  method="post"
                   onsubmit="return confirm('Excluir as embalagens selecionadas? Embalagens vinculadas a cálculos serão mantidas.');">
+
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="ordem" th:value="${ordem}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
-                <button type="submit" class="botao botao-secundario"
-                        data-excluir-selecionados hidden disabled>
+
+                <button type="submit"
+                        class="botao botao-secundario"
+                        data-excluir-selecionados
+                        hidden
+                        disabled>
                     <i class="bi bi-trash3"></i> Excluir selecionadas
                 </button>
             </form>
         </div>
 
-        <div class="tabela-container" th:if="${!#lists.isEmpty(embalagens)}">
+        <div class="tabela-container"
+             th:if="${!#lists.isEmpty(embalagens)}">
+
             <table class="tabela">
                 <thead>
                 <tr>
-                    <th class="coluna-selecao" aria-label="Selecionar embalagem"></th>
+                    <th class="coluna-selecao"
+                        aria-label="Selecionar embalagem"></th>
                     <th>Nome da embalagem</th>
                     <th>Custo unitário</th>
                     <th class="coluna-acoes">Ações</th>
                 </tr>
                 </thead>
+
                 <tbody>
                 <tr th:each="embalagem : ${embalagens}"
                     th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(embalagem.id)} ? ' item-exclusao-falhou' : ''">
+
                     <td class="coluna-selecao">
-                        <input class="checkbox-selecao-listagem" type="checkbox"
-                               name="ids" th:value="${embalagem.id}"
+                        <input class="checkbox-selecao-listagem"
+                               type="checkbox"
+                               name="ids"
+                               th:value="${embalagem.id}"
                                form="form-remover-embalagens"
                                th:aria-label="|Selecionar ${embalagem.nome}|">
                     </td>
+
                     <td>
                         <div class="nome-peca">
-                            <span class="icone-peca"><i class="bi bi-box-seam"></i></span>
+                            <span class="icone-peca">
+                                <i class="bi bi-box-seam"></i>
+                            </span>
                             <span th:text="${embalagem.nome}"></span>
                         </div>
                     </td>
+
                     <td th:text="'R$ ' + ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 2)}"></td>
+
                     <td class="coluna-acoes">
                         <div class="acoes">
                             <a th:href="@{/embalagem/detalhes/{id}(id=${embalagem.id})}"
-                               class="botao-acao" title="Ver detalhes" aria-label="Ver detalhes">
+                               class="botao-acao"
+                               title="Ver detalhes"
+                               aria-label="Ver detalhes">
                                 <i class="bi bi-eye"></i>
                             </a>
+
                             <a th:href="@{/embalagem/editar/{id}(id=${embalagem.id})}"
-                               class="botao-acao" title="Editar embalagem" aria-label="Editar embalagem">
+                               class="botao-acao"
+                               title="Editar embalagem"
+                               aria-label="Editar embalagem">
                                 <i class="bi bi-pencil"></i>
                             </a>
+
                             <form th:action="@{/embalagem/remover/{id}(id=${embalagem.id})}"
-                                  method="post" class="formulario-excluir"
+                                  method="post"
+                                  class="formulario-excluir"
                                   onsubmit="return confirm('Tem certeza que deseja remover esta embalagem?')">
-                                <button type="submit" class="botao-acao-excluir"
-                                        title="Remover embalagem" aria-label="Remover embalagem">
+
+                                <button type="submit"
+                                        class="botao-acao-excluir"
+                                        title="Remover embalagem"
+                                        aria-label="Remover embalagem">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
@@ -148,43 +244,66 @@
             </table>
         </div>
 
-        <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
+        <div class="paginacao-historico"
+             th:if="${pagina.totalPages > 1}">
+
             <a th:if="${pagina.hasPrevious()}"
                th:href="@{/embalagem/listar(page=${pagina.number - 1}, busca=${busca}, ordem=${ordem})}"
-               class="paginacao-seta" aria-label="Página anterior">
+               class="paginacao-seta"
+               aria-label="Página anterior">
                 <i class="bi bi-chevron-left"></i>
             </a>
-            <span th:unless="${pagina.hasPrevious()}" class="paginacao-seta desabilitada">
+
+            <span th:unless="${pagina.hasPrevious()}"
+                  class="paginacao-seta desabilitada">
                 <i class="bi bi-chevron-left"></i>
             </span>
+
             <span class="paginacao-info">
                 Página <strong th:text="${pagina.number + 1}">1</strong>
                 de <strong th:text="${pagina.totalPages}">1</strong>
             </span>
+
             <a th:if="${pagina.hasNext()}"
                th:href="@{/embalagem/listar(page=${pagina.number + 1}, busca=${busca}, ordem=${ordem})}"
-               class="paginacao-seta" aria-label="Próxima página">
+               class="paginacao-seta"
+               aria-label="Próxima página">
                 <i class="bi bi-chevron-right"></i>
             </a>
-            <span th:unless="${pagina.hasNext()}" class="paginacao-seta desabilitada">
+
+            <span th:unless="${pagina.hasNext()}"
+                  class="paginacao-seta desabilitada">
                 <i class="bi bi-chevron-right"></i>
             </span>
         </div>
 
         <div class="estado-vazio"
              th:if="${#lists.isEmpty(embalagens) and busca != null and !busca.isBlank()}">
+
             <i class="bi bi-search"></i>
             <h3>Nenhum resultado encontrado</h3>
             <p>Não encontramos embalagens com esse nome. Tente outra pesquisa.</p>
-            <a th:href="@{/embalagem/listar(ordem=${ordem})}" class="botao botao-secundario">Limpar pesquisa</a>
+
+            <a th:href="@{/embalagem/listar(ordem=${ordem})}"
+               class="botao botao-secundario">
+                Limpar pesquisa
+            </a>
         </div>
 
         <div class="estado-vazio"
              th:if="${#lists.isEmpty(embalagens) and (busca == null or busca.isBlank())}">
-            <span class="estado-vazio-icone"><i class="bi bi-box-seam"></i></span>
+
+            <span class="estado-vazio-icone">
+                <i class="bi bi-box-seam"></i>
+            </span>
+
             <h3>Nenhuma embalagem cadastrada</h3>
             <p>Cadastre sua primeira embalagem para utilizá-la nos cálculos de impressão.</p>
-            <a th:href="@{/embalagem/novo}" class="botao botao-principal">Cadastrar embalagem</a>
+
+            <a th:href="@{/embalagem/novo}"
+               class="botao botao-principal">
+                Cadastrar embalagem
+            </a>
         </div>
     </section>
 </main>
