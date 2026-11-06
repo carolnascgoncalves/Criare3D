@@ -403,6 +403,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                     .orElseThrow(() -> new IllegalArgumentException("Embalagem não encontrada"));
 
             custoEmbalagem = embalagem.getCustoUnitario();
+            if (custoEmbalagem == null || custoEmbalagem.compareTo(ZERO) < 0) {
+                throw new IllegalArgumentException(
+                        "O custo unitário da embalagem deve ser igual ou maior que zero."
+                );
+            }
+
             nomeEmbalagem = embalagem.getNome();
         }
 

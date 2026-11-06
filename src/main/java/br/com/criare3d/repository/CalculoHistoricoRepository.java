@@ -78,11 +78,12 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     long countByImpressora_IdAndUsuario_Id(UUID impressoraId, UUID usuarioId);
 
     @Query("""
-        SELECT COALESCE(SUM(c.tempoImpressaoMinutos), 0)
-        FROM CalculoHistorico c
-        WHERE c.impressora.id = :impressoraId
-          AND c.usuario.id = :usuarioId
-        """)
+    SELECT COALESCE(SUM(c.tempoImpressaoMinutos), 0)
+    FROM CalculoHistorico c
+    WHERE c.impressora.id = :impressoraId
+      AND c.usuario.id = :usuarioId
+      AND c.produzido = true
+    """)
     Long somarMinutosPorImpressoraEUsuario(
             @Param("impressoraId") UUID impressoraId,
             @Param("usuarioId") UUID usuarioId
