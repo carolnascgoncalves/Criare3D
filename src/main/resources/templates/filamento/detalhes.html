@@ -61,6 +61,17 @@
             </div>
 
             <div class="detalhe-item">
+                <span>Disponível em estoque</span>
+                <div class="detalhe-valor">
+                    <span th:text="${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)}"></span>
+                    <span class="detalhe-unidade">g</span>
+                    <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}" class="botao-acao" title="Ver cálculos que usaram este filamento" aria-label="Ver histórico de uso deste filamento">
+                        <i class="bi bi-search"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="detalhe-item">
                 <span class="detalhe-label">Preço do rolo</span>
                 <div class="detalhe-valor">
                     <span class="detalhe-unidade">R$</span>

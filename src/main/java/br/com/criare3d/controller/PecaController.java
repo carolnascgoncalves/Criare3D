@@ -19,8 +19,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
+import java.util.List;
 
 @Controller
 public class PecaController {
@@ -75,7 +77,7 @@ public class PecaController {
             return new ModelAndView("redirect:/historico/novo?pecaCriada=" + entidade.getId());
         }
 
-        return new ModelAndView("redirect:/peca/listar");
+        return new ModelAndView("redirect:/peca/listar?sucesso=pecaCriada");
     }
 
     @GetMapping("/peca/detalhes/{id}")
@@ -104,7 +106,7 @@ public class PecaController {
     @PostMapping("/peca/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!pecaService.existsById(id)) {
-            return new ModelAndView("redirect:/peca/listar");
+            return new ModelAndView("redirect:/peca/listar?erro=pecaNaoEncontrada");
         }
 
         long quantidade = calculoHistoricoService.contarPorPeca(id);
@@ -117,6 +119,30 @@ public class PecaController {
 
         pecaService.delete(id);
         return new ModelAndView("redirect:/peca/listar?sucesso=pecaRemovida");
+    }
+
+    @PostMapping("/peca/remover-lote")
+    public ModelAndView deleteSelected(
+            @RequestParam(name = "ids", required = false) List<UUID> ids,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/peca/listar?erro=nenhumaPecaSelecionada");
+        List<UUID> bloqueadas = new java.util.ArrayList<>();
+        for (UUID id : ids.stream().distinct().toList()) {
+            if (!pecaService.existsById(id)) continue;
+            if (calculoHistoricoService.contarPorPeca(id) > 0) {
+                bloqueadas.add(id);
+                continue;
+            }
+            pecaService.delete(id);
+        }
+        if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        redirect.addAttribute("busca", busca);
+        redirect.addAttribute("page", page);
+        if (!bloqueadas.isEmpty()) redirect.addAttribute("erro", "pecasEmUso");
+        else redirect.addAttribute("sucesso", "pecasRemovidas");
+        return new ModelAndView("redirect:/peca/listar");
     }
 
     @PostMapping("/peca/atualizar/{id}")
@@ -137,6 +163,6 @@ public class PecaController {
 
         pecaService.update(id, PecaRequest.toEntity(request));
 
-        return new ModelAndView("redirect:/peca/listar");
+        return new ModelAndView("redirect:/peca/listar?sucesso=pecaAtualizada");
     }
 }

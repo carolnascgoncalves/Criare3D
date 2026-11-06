@@ -8,22 +8,28 @@
 
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
-    <div class="alerta-erro"
+<main class="pagina lista-catalogo">
+    <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'impressoraEmUso'}">
         Não é possível excluir esta impressora porque ela está vinculada a
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
 
-    <div class="alerta-sucesso"
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'impressoraRemovida'}">
         Impressora excluída com sucesso!
     </div>
 
-    <div class="alerta-erro" th:if="${param.erro != null and param.erro[0] == 'impressoraComManutencao'}">
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'impressoraComManutencao'}">
         Remova os gastos de manutenção registrados antes de excluir esta impressora.
     </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'impressoraCriada'}">Impressora cadastrada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'impressoraAtualizada'}">Impressora atualizada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'impressorasRemovidas'}">Impressoras selecionadas excluídas com sucesso.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumaImpressoraSelecionada'}">Selecione pelo menos uma impressora.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'impressoraNaoEncontrada'}">A impressora não foi encontrada.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'impressorasEmUso'}">As impressoras vinculadas a cálculos ou manutenção foram mantidas; as demais selecionadas foram excluídas.</div>
 
     <section class="pagina-intro">
         <div>
@@ -37,7 +43,7 @@
         </a>
     </section>
 
-    <section class="cartao">
+    <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
             <div>
                 <h2>Suas impressoras</h2>
@@ -65,17 +71,37 @@
                class="botao botao-secundario">Limpar</a>
         </form>
 
+        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(impressoras)}">
+            <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-impressoras">
+                <i class="bi bi-check2-square"></i> Selecionar
+            </button>
+            <span data-contador-selecao>0 selecionado(s)</span>
+            <form id="form-remover-impressoras" th:action="@{/impressora/remover-lote}" method="post"
+                  onsubmit="return confirm('Excluir as impressoras selecionadas? Equipamentos vinculados a cálculos ou manutenção serão mantidos.');">
+                <input type="hidden" name="busca" th:value="${busca}">
+                <input type="hidden" name="page" th:value="${pagina.number}">
+                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
+                    <i class="bi bi-trash3"></i> Excluir selecionadas
+                </button>
+            </form>
+        </div>
+
         <div class="tabela-container" th:if="${!#lists.isEmpty(impressoras)}">
             <table class="tabela">
                 <thead>
                 <tr>
+                    <th class="coluna-selecao" aria-label="Selecionar impressora"></th>
                     <th>Impressora</th>
                     <th class="coluna-acoes">Ações</th>
                 </tr>
                 </thead>
 
                 <tbody>
-                <tr th:each="impressora : ${impressoras}">
+                <tr th:each="impressora : ${impressoras}"
+                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(impressora.id)} ? ' item-exclusao-falhou' : ''">
+                    <td class="coluna-selecao">
+                        <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${impressora.id}" form="form-remover-impressoras" th:aria-label="|Selecionar ${impressora.nome}|">
+                    </td>
                     <td>
                         <div class="identificacao-peca">
                             <span class="icone-peca">

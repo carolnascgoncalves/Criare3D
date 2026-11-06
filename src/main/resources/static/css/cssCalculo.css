@@ -3066,3 +3066,205 @@ a:focus-visible {
 .painel-plataforma > a.selecionada {
     background: #f7eee6;
 }
+
+.controles-selecao-listagem {
+    display: flex;
+    justify-content: flex-end;
+    margin: 14px 0 18px;
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+.lista-catalogo .tabela thead,
+.lista-catalogo .tabela thead th {
+    background: #fffaf6;
+}
+
+.lista-catalogo .tabela thead th {
+    padding: 14px 16px;
+    color: var(--marrom-claro);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.modo-selecao .controles-selecao-listagem {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    max-width: 320px;
+    margin: 14px 0 18px;
+    padding: 14px;
+    border: 1px solid #ead6c8;
+    border-radius: 12px;
+    background: #f7eee6;
+}
+
+.modo-selecao .controles-selecao-listagem [data-selecao-toggle] {
+    align-self: flex-start;
+    padding: 7px 10px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--marrom-claro);
+}
+
+.modo-selecao .controles-selecao-listagem [data-contador-selecao] {
+    display: block;
+    padding-left: 10px;
+    font-weight: 600;
+}
+
+.modo-selecao .controles-selecao-listagem [data-excluir-selecionados] {
+    width: 100%;
+    justify-content: center;
+}
+
+.modo-selecao .controles-selecao-listagem [data-excluir-selecionados] {
+    border: 1px solid #c56a5f;
+    background: #fbe9e5;
+    color: #7c3027;
+}
+
+.modo-selecao .controles-selecao-listagem [data-excluir-selecionados]:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.lista-catalogo .cartao-cabecalho h2 {
+    color: var(--marrom-claro);
+}
+
+.controles-selecao-listagem form {
+    margin: 0;
+}
+
+.controles-selecao-listagem [data-contador-selecao] {
+    display: none;
+}
+
+.modo-selecao .controles-selecao-listagem [data-contador-selecao] {
+    display: inline;
+}
+
+.controles-selecao-listagem button[hidden] {
+    display: none !important;
+}
+
+.coluna-selecao {
+    display: none;
+    width: 44px;
+}
+
+.modo-selecao .coluna-selecao {
+    display: table-cell;
+}
+
+.tabela-historico .form-status-historico {
+    display: inline-flex;
+    margin: 0;
+}
+
+.botao-status-historico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-width: 84px;
+    border: 1px solid #d7ccc2;
+    border-radius: 999px;
+    padding: 6px 12px;
+    background: #f6f1ec;
+    color: #75675e;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.botao-status-historico.status-ativo {
+    color: #2d7b42;
+    background: #e8f5e9;
+    border-color: #b7dfbc;
+}
+
+.botao-status-historico i {
+    font-size: 1.25rem;
+}
+
+.botao-status-historico:focus-visible,
+.acoes-selecao-historico button:focus-visible {
+    outline: 2px solid var(--destaque);
+    outline-offset: 2px;
+}
+
+.checkbox-selecao-listagem {
+    width: 17px;
+    height: 17px;
+    accent-color: #8a5b3d;
+}
+
+.estoque-filamento-lista {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.tabela tbody tr.item-exclusao-falhou {
+    background-color: #f8d9d4;
+    transition: background-color 500ms ease;
+}
+
+.tabela tbody tr.item-exclusao-falhou.item-exclusao-falhou-ocultando {
+    background-color: transparent;
+}
+
+.status-venda-historico {
+    display: inline-block;
+    min-width: 52px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f0e8e2;
+    color: #75675e;
+    text-align: center;
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.status-venda-historico.status-ativo {
+    background: #e8f5e9;
+    color: #256b35;
+}
+
+.notificacao-flutuante {
+    position: fixed;
+    left: 50%;
+    z-index: 1100;
+    width: min(620px, calc(100% - 32px));
+    margin: 0;
+    transform: translateX(-50%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
+    transition: opacity 350ms ease, transform 350ms ease;
+}
+
+.notificacao-flutuante.alerta-sucesso {
+    background: #e8f5e9;
+    color: #256b35;
+    border: 1px solid #b7dfbd;
+}
+
+.notificacao-flutuante.alerta-configuracao-ocultando {
+    opacity: 0;
+    transform: translate(-50%, -8px);
+}
+
+@media (max-width: 700px) {
+    .controles-selecao-listagem {
+        justify-content: flex-start;
+    }
+
+    .modo-selecao .controles-selecao-listagem {
+        max-width: none;
+    }
+}

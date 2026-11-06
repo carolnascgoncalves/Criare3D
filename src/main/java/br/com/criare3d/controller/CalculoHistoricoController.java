@@ -571,7 +571,7 @@ public class CalculoHistoricoController {
             session.removeAttribute(REQUEST_CALCULO);
             session.removeAttribute(RESULTADO_CALCULO);
 
-            return new ModelAndView("redirect:/historico/listar");
+            return new ModelAndView("redirect:/historico/listar?sucesso=historicoSalvo");
 
         } catch (IllegalArgumentException e) {
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -674,13 +674,44 @@ public class CalculoHistoricoController {
 
     @PostMapping("/historico/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
-
-        if (calculoHistoricoService.existsById(id)) {
-            calculoHistoricoService.delete(id);
+        if (!calculoHistoricoService.existsById(id)) {
+            return new ModelAndView("redirect:/historico/listar?erro=naoEncontrado");
         }
+        calculoHistoricoService.delete(id);
 
         return new ModelAndView(
                 "redirect:/historico/listar?sucesso=historicoRemovido"
         );
+    }
+
+    @PostMapping("/historico/remover-lote")
+    public ModelAndView deleteSelected(@RequestParam(name = "ids", required = false) List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ModelAndView("redirect:/historico/listar?erro=nenhumSelecionado");
+        }
+        calculoHistoricoService.deleteAll(ids);
+        return new ModelAndView("redirect:/historico/listar?sucesso=historicosRemovidos");
+    }
+
+    @PostMapping("/historico/{id}/produzido")
+    public ModelAndView atualizarProduzido(
+            @PathVariable UUID id,
+            @RequestParam boolean valor) {
+        String resultado = calculoHistoricoService.atualizarProduzido(id, valor);
+        if (!"ok".equals(resultado)) {
+            return new ModelAndView("redirect:/historico/listar?erro=" + resultado);
+        }
+        return new ModelAndView("redirect:/historico/listar?sucesso=producaoAtualizada");
+    }
+
+    @PostMapping("/historico/{id}/vendido")
+    public ModelAndView atualizarVendido(
+            @PathVariable UUID id,
+            @RequestParam boolean valor) {
+        String resultado = calculoHistoricoService.atualizarVendido(id, valor);
+        if (!"ok".equals(resultado)) {
+            return new ModelAndView("redirect:/historico/listar?erro=" + resultado);
+        }
+        return new ModelAndView("redirect:/historico/listar?sucesso=vendaAtualizada");
     }
 }

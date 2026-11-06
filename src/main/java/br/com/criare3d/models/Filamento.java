@@ -41,6 +41,10 @@ public class Filamento {
     @Column(name="pesoRolo_fil", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
+    @NotNull
+    @Column(name = "estoque_gramas", nullable = false, precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal estoqueGramas;
+
     @NotNull(message = "O preco do filamento do filamento é obrigatorio")
     @Column(name="precoRolo_fil", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal precoRolo;

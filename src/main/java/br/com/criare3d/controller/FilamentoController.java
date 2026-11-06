@@ -19,9 +19,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 import java.util.Map;
+import java.util.List;
 
 @Controller
 public class FilamentoController {
@@ -86,7 +88,7 @@ public class FilamentoController {
             return new ModelAndView("redirect:/historico/novo?filamentoCriado=" + entidade.getId());
         }
 
-        return new ModelAndView("redirect:/filamento/listar");
+        return new ModelAndView("redirect:/filamento/listar?sucesso=filamentoCriado");
     }
 
     @GetMapping("/filamento/detalhes/{id}")
@@ -98,6 +100,18 @@ public class FilamentoController {
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
+    }
+
+    @GetMapping("/filamento/{id}/historico")
+    public ModelAndView historicoDoFilamento(@PathVariable UUID id) {
+        return filamentoService.fetchById(id)
+                .map(filamento -> {
+                    ModelAndView mv = new ModelAndView("filamento/historico");
+                    mv.addObject("filamento", filamento);
+                    mv.addObject("usos", calculoHistoricoService.listarUsosPorFilamento(id));
+                    return mv;
+                })
+                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
     }
 
     @GetMapping("/filamento/editar/{id}")
@@ -133,13 +147,13 @@ public class FilamentoController {
         }
 
         filamentoService.update(id, FilamentoDadosRequest.toEntity(request));
-        return new ModelAndView("redirect:/filamento/listar");
+        return new ModelAndView("redirect:/filamento/listar?sucesso=filamentoAtualizado");
     }
 
     @PostMapping("/filamento/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!filamentoService.existsById(id)) {
-            return new ModelAndView("redirect:/filamento/listar");
+            return new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado");
         }
 
         long quantidade = calculoHistoricoService.contarPorFilamento(id);
@@ -151,5 +165,31 @@ public class FilamentoController {
 
         filamentoService.delete(id);
         return new ModelAndView("redirect:/filamento/listar?sucesso=filamentoRemovido");
+    }
+
+    @PostMapping("/filamento/remover-lote")
+    public ModelAndView deleteSelected(
+            @RequestParam(name = "ids", required = false) List<UUID> ids,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/filamento/listar?erro=nenhumFilamentoSelecionado");
+        List<UUID> bloqueados = new java.util.ArrayList<>();
+        for (UUID id : ids.stream().distinct().toList()) {
+            if (!filamentoService.existsById(id)) continue;
+            if (calculoHistoricoService.contarPorFilamento(id) > 0) {
+                bloqueados.add(id);
+                continue;
+            }
+            filamentoService.delete(id);
+        }
+        if (!bloqueados.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueados);
+        redirect.addAttribute("busca", busca);
+        redirect.addAttribute("ordem", ordem);
+        redirect.addAttribute("page", page);
+        if (!bloqueados.isEmpty()) redirect.addAttribute("erro", "filamentosEmUso");
+        else redirect.addAttribute("sucesso", "filamentosRemovidos");
+        return new ModelAndView("redirect:/filamento/listar");
     }
 }

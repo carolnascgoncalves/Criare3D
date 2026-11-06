@@ -29,6 +29,9 @@ public class FilamentoServiceImp implements FilamentoService {
 
     @Override
     public Filamento create(Filamento filamento) {
+        if (filamento.getEstoqueGramas() == null) {
+            filamento.setEstoqueGramas(filamento.getPesoRoloGramas());
+        }
         filamento.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
         return filamentoRepository.save(filamento);
     }
@@ -50,6 +53,9 @@ public class FilamentoServiceImp implements FilamentoService {
 
             if (patch.getPesoRoloGramas() != null)
                 existing.setPesoRoloGramas(patch.getPesoRoloGramas());
+
+            if (patch.getEstoqueGramas() != null)
+                existing.setEstoqueGramas(patch.getEstoqueGramas());
 
             if (patch.getPrecoRolo() != null)
                 existing.setPrecoRolo(patch.getPrecoRolo());

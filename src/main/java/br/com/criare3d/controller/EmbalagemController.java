@@ -20,9 +20,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
 import java.util.Map;
+import java.util.List;
 
 @Controller
 public class EmbalagemController {
@@ -90,7 +92,7 @@ public class EmbalagemController {
             return new ModelAndView("redirect:/historico/novo?embalagemCriada=" + entidade.getId());
         }
 
-        return new ModelAndView("redirect:/embalagem/listar");
+        return new ModelAndView("redirect:/embalagem/listar?sucesso=embalagemCriada");
     }
 
     @GetMapping("/embalagem/detalhes/{id}")
@@ -137,13 +139,13 @@ public class EmbalagemController {
         }
 
         embalagemService.update(id, EmbalagemDadosRequest.toEntity(request));
-        return new ModelAndView("redirect:/embalagem/listar");
+        return new ModelAndView("redirect:/embalagem/listar?sucesso=embalagemAtualizada");
     }
 
     @PostMapping("/embalagem/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!embalagemService.existsById(id)) {
-            return new ModelAndView("redirect:/embalagem/listar");
+            return new ModelAndView("redirect:/embalagem/listar?erro=embalagemNaoEncontrada");
         }
 
         long quantidade = calculoHistoricoService.contarPorEmbalagem(id);
@@ -155,5 +157,31 @@ public class EmbalagemController {
 
         embalagemService.delete(id);
         return new ModelAndView("redirect:/embalagem/listar?sucesso=embalagemRemovida");
+    }
+
+    @PostMapping("/embalagem/remover-lote")
+    public ModelAndView deleteSelected(
+            @RequestParam(name = "ids", required = false) List<UUID> ids,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/embalagem/listar?erro=nenhumaEmbalagemSelecionada");
+        List<UUID> bloqueadas = new java.util.ArrayList<>();
+        for (UUID id : ids.stream().distinct().toList()) {
+            if (!embalagemService.existsById(id)) continue;
+            if (calculoHistoricoService.contarPorEmbalagem(id) > 0) {
+                bloqueadas.add(id);
+                continue;
+            }
+            embalagemService.delete(id);
+        }
+        if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        redirect.addAttribute("busca", busca);
+        redirect.addAttribute("ordem", ordem);
+        redirect.addAttribute("page", page);
+        if (!bloqueadas.isEmpty()) redirect.addAttribute("erro", "embalagensEmUso");
+        else redirect.addAttribute("sucesso", "embalagensRemovidas");
+        return new ModelAndView("redirect:/embalagem/listar");
     }
 }

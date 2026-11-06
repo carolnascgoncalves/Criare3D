@@ -35,6 +35,10 @@ public class FilamentoDadosRequest {
     @DecimalMin(value = "0.01", message = "O peso deve ser maior que zero.")
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
+    @DecimalMin(value = "0.00", message = "O estoque não pode ser negativo.")
+    @Column(name = "estoque_gramas", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal estoqueGramas;
+
     @NotNull(message = "O preco do filamento do filamento é obrigatorio")
     @Column(name="precoRolo_fil", precision = 10, scale = 2)
     @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
@@ -47,6 +51,7 @@ public class FilamentoDadosRequest {
                 .codigoCor(filamento.getCodigoCor())
                 .marca(filamento.getMarca())
                 .pesoRoloGramas(filamento.getPesoRoloGramas())
+                .estoqueGramas(filamento.getEstoqueGramas())
                 .precoRolo(filamento.getPrecoRolo())
                 .build();
     }
@@ -58,6 +63,7 @@ public class FilamentoDadosRequest {
                 .codigoCor(dto.getCodigoCor())
                 .marca((dto.getMarca()))
                 .pesoRoloGramas(dto.getPesoRoloGramas())
+                .estoqueGramas(dto.getEstoqueGramas())
                 .precoRolo(dto.getPrecoRolo())
                 .build();
     }

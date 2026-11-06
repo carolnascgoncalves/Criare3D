@@ -7,12 +7,34 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
-    <div class="alerta-sucesso"
+<main class="pagina lista-catalogo">
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'estoqueInsuficiente'}">
+        Estoque insuficiente para marcar como produzido ou vendido. Atualize o saldo do filamento e tente novamente.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'vendaAtiva'}">
+        Desmarque “Vendido” antes de desmarcar “Produzido”.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'naoEncontrado'}">
+        Este cálculo não foi encontrado ou não está mais disponível.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumSelecionado'}">
+        Selecione pelo menos um cálculo para excluir.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'producaoAtualizada'}">
+        Status de produção atualizado; o estoque foi ajustado.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'vendaAtualizada'}">
+        Venda atualizada; ao marcar como vendido, a produção e o desconto no estoque também são registrados.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'historicosRemovidos'}">
+        Cálculos excluídos; o estoque dos que estavam produzidos foi restaurado.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'historicoRemovido'}">
         <i class="bi bi-check-circle"></i>
         Cálculo excluído do histórico com sucesso!
     </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'historicoSalvo'}">Cálculo salvo no histórico.</div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU CATÁLOGO</span>
@@ -26,7 +48,7 @@
     </section>
 
 
-    <section class="cartao">
+    <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
             <div>
                 <h2>Cálculos realizados</h2>
@@ -140,20 +162,39 @@
             </div>
 
             <div class="tabela-responsiva" th:if="${!#lists.isEmpty(historicos)}">
+                <form id="form-remover-lote" th:action="@{/historico/remover-lote}" method="post"
+                      onsubmit="return confirm('Excluir os cálculos selecionados? O estoque será restaurado para os que estiverem marcados como produzidos.');">
+                </form>
+                <div class="controles-selecao-listagem">
+                    <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-lote">
+                        <i class="bi bi-check2-square"></i> Selecionar
+                    </button>
+                    <span data-contador-selecao>0 selecionado(s)</span>
+                    <button type="submit" form="form-remover-lote" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
+                        <i class="bi bi-trash3"></i> Excluir selecionados
+                    </button>
+                </div>
                 <table class="tabela-historico">
                     <thead>
                     <tr>
+                        <th class="coluna-selecao" aria-label="Selecionar cálculos"></th>
                         <th>Peça</th>
                         <th>Data do cálculo</th>
                         <th>Plataforma</th>
                         <th>Custo total</th>
                         <th>Preço sugerido</th>
+                        <th>Produzido</th>
+                        <th>Vendido</th>
                         <th class="coluna-acoes">Ações</th>
                     </tr>
                     </thead>
 
                     <tbody>
                     <tr th:each="historico : ${historicos}">
+                        <td class="coluna-selecao">
+                            <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${historico.id}" form="form-remover-lote"
+                                   th:aria-label="|Selecionar ${historico.nomePeca} para exclusão|">
+                        </td>
                         <td>
                             <div class="peca-historico">
                                 <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
@@ -196,6 +237,30 @@
                                       1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </span>
+                        </td>
+                        <td>
+                            <form th:action="@{/historico/{id}/produzido(id=${historico.id})}" method="post" class="form-status-historico">
+                                <input type="hidden" name="valor" th:value="${!(historico.produzido == true)}">
+                                <button type="submit" class="botao-status-historico"
+                                        th:classappend="${(historico.produzido == true)} ? ' status-ativo' : ''"
+                                        th:title="${(historico.produzido == true)} ? 'Desmarcar como produzido (devolve o material ao estoque)' : 'Marcar como produzido (desconta o material do estoque)'"
+                                        th:aria-label="${(historico.produzido == true)} ? 'Produzido: sim' : 'Produzido: não'">
+                                    <i th:class="${(historico.produzido == true)} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                                    <span th:text="${(historico.produzido == true)} ? 'Sim' : 'Não'">Não</span>
+                                </button>
+                            </form>
+                        </td>
+                        <td>
+                            <form th:action="@{/historico/{id}/vendido(id=${historico.id})}" method="post" class="form-status-historico">
+                                <input type="hidden" name="valor" th:value="${!(historico.vendido == true)}">
+                                <button type="submit" class="botao-status-historico"
+                                        th:classappend="${(historico.vendido == true)} ? ' status-ativo' : ''"
+                                        th:title="${(historico.vendido == true)} ? 'Desmarcar como vendido' : 'Marcar como vendido'"
+                                        th:aria-label="${(historico.vendido == true)} ? 'Vendido: sim' : 'Vendido: não'">
+                                    <i th:class="${(historico.vendido == true)} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                                    <span th:text="${(historico.vendido == true)} ? 'Sim' : 'Não'">Não</span>
+                                </button>
+                            </form>
                         </td>
                         <td class="coluna-acoes">
                             <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"

@@ -9,10 +9,10 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
-    <div class="alerta-sucesso" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'registrada'}">
+    <div class="alerta-sucesso notificacao-flutuante" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'registrada'}">
         Gasto de manutenção registrado; a estimativa por hora foi atualizada.
     </div>
-    <div class="alerta-sucesso" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'excluida'}">
+    <div class="alerta-sucesso notificacao-flutuante" role="status" th:if="${param.manutencao != null and param.manutencao[0] == 'excluida'}">
         Gasto de manutenção removido.
     </div>
     <section class="pagina-intro">

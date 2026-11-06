@@ -6,18 +6,24 @@
 
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
-    <div class="alerta-erro"
+<main class="pagina lista-catalogo">
+    <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'filamentoEmUso'}">
         Não é possível excluir este filamento porque ele está vinculado a
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'filamentoNaoEncontrado'}">Esse filamento não foi encontrado.</div>
 
-    <div class="alerta-sucesso"
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoRemovido'}">
         Filamento excluído com sucesso!
     </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoCriado'}">Filamento cadastrado com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'filamentoAtualizado'}">Filamento atualizado com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'filamentosRemovidos'}">Filamentos selecionados excluídos com sucesso.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumFilamentoSelecionado'}">Selecione pelo menos um filamento.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'filamentosEmUso'}">Os filamentos vinculados a cálculos foram mantidos; os demais selecionados foram excluídos.</div>
 
     <section class="pagina-intro">
         <div>
@@ -31,7 +37,7 @@
         </a>
     </section>
 
-    <section class="cartao">
+    <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
             <div>
                 <h2>Filamentos cadastrados</h2>
@@ -71,18 +77,40 @@
             <a th:if="${busca != null and !#strings.isEmpty(busca)}" th:href="@{/filamento/listar(ordem=${ordem})}" class="botao botao-limpar-busca">Limpar</a>
         </form>
 
+        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(filamentos)}">
+            <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-filamentos">
+                <i class="bi bi-check2-square"></i> Selecionar
+            </button>
+            <span data-contador-selecao>0 selecionado(s)</span>
+            <form id="form-remover-filamentos" th:action="@{/filamento/remover-lote}" method="post"
+                  onsubmit="return confirm('Excluir os filamentos selecionados? Filamentos vinculados a cálculos serão mantidos.');">
+                <input type="hidden" name="busca" th:value="${busca}">
+                <input type="hidden" name="ordem" th:value="${ordem}">
+                <input type="hidden" name="page" th:value="${pagina.number}">
+                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
+                    <i class="bi bi-trash3"></i> Excluir selecionados
+                </button>
+            </form>
+        </div>
+
         <div class="tabela-container"
              th:if="${!#lists.isEmpty(filamentos)}">
             <table class="tabela">
                 <thead>
                 <tr>
+                    <th class="coluna-selecao" aria-label="Selecionar filamento"></th>
                     <th>Filamento</th>
+                    <th>Estoque</th>
                     <th class="coluna-acoes">Ações</th>
                 </tr>
                 </thead>
 
                 <tbody>
-                <tr th:each="filamento : ${filamentos}">
+                <tr th:each="filamento : ${filamentos}"
+                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(filamento.id)} ? ' item-exclusao-falhou' : ''">
+                    <td class="coluna-selecao">
+                        <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${filamento.id}" form="form-remover-filamentos" th:aria-label="|Selecionar ${filamento.nome}|">
+                    </td>
                     <td>
                         <div class="nome-peca">
                             <span class="icone-peca icone-cor-filamento"
@@ -95,6 +123,15 @@
                                 <span class="nome-filamento" th:text="${filamento.nome}">Nome do filamento</span>
                                 <span class="cor-filamento">Cor:<span th:text="${filamento.cor}">Verde</span></span>
                             </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="estoque-filamento-lista">
+                            <span th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">0 g</span>
+                            <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}" class="botao-acao" title="Ver cálculos que usaram este filamento" aria-label="Ver histórico de uso deste filamento">
+                                <i class="bi bi-search"></i>
+                            </a>
                         </div>
                     </td>
 

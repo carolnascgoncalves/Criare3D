@@ -6,18 +6,26 @@
 
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
-    <div class="alerta-erro"
+<main class="pagina lista-catalogo">
+    <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'pecaEmUso'}">
         Não é possível excluir esta peça porque ela está vinculada a
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'pecasEmUso'}">
+        As peças vinculadas a cálculos não foram excluídas; as demais selecionadas foram removidas.
+    </div>
 
-    <div class="alerta-sucesso"
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'pecaRemovida'}">
         Peça excluída com sucesso!
     </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'pecaCriada'}">Peça cadastrada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'pecaAtualizada'}">Peça atualizada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'pecasRemovidas'}">Peças selecionadas excluídas com sucesso.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumaPecaSelecionada'}">Selecione pelo menos uma peça.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'pecaNaoEncontrada'}">A peça não foi encontrada.</div>
 
     <section class="pagina-intro">
         <div>
@@ -31,7 +39,7 @@
         </a>
     </section>
 
-    <section class="cartao">
+    <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
             <div>
                 <h2>Peças cadastradas</h2>
@@ -59,18 +67,38 @@
                class="botao botao-secundario">Limpar</a>
         </form>
 
+        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(pecas)}">
+            <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-pecas">
+                <i class="bi bi-check2-square"></i> Selecionar
+            </button>
+            <span data-contador-selecao>0 selecionado(s)</span>
+            <form id="form-remover-pecas" th:action="@{/peca/remover-lote}" method="post"
+                  onsubmit="return confirm('Excluir as peças selecionadas?');">
+                <input type="hidden" name="busca" th:value="${busca}">
+                <input type="hidden" name="page" th:value="${pagina.number}">
+                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
+                    <i class="bi bi-trash3"></i> Excluir selecionadas
+                </button>
+            </form>
+        </div>
+
         <div class="tabela-container"
              th:if="${!#lists.isEmpty(pecas)}">
             <table class="tabela">
                 <thead>
                 <tr>
+                    <th class="coluna-selecao" aria-label="Selecionar peça"></th>
                     <th>Nome da peça</th>
                     <th class="coluna-acoes">Ações</th>
                 </tr>
                 </thead>
 
                 <tbody>
-                <tr th:each="peca : ${pecas}">
+                <tr th:each="peca : ${pecas}"
+                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(peca.id)} ? ' item-exclusao-falhou' : ''">
+                    <td class="coluna-selecao">
+                        <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${peca.id}" form="form-remover-pecas" th:aria-label="|Selecionar ${peca.nome}|">
+                    </td>
                     <td>
                         <div class="nome-peca">
                             <span class="icone-peca">

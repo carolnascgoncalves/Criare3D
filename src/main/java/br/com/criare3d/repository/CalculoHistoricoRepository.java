@@ -1,6 +1,7 @@
 package br.com.criare3d.repository;
 
 import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
 
@@ -92,12 +94,32 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     );
 
     @Query("""
-        SELECT COUNT(i)
-        FROM ItemCalculoHistorico i
-        WHERE i.filamento.id = :filamentoId
-        AND i.calculoHistorico.usuario.id = :usuarioId
+        SELECT COUNT(DISTINCT h.id)
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.usuario.id = :usuarioId
+          AND (h.filamento.id = :filamentoId OR item.filamento.id = :filamentoId)
         """)
     long contarUsosDosItensPorFilamento(
+            @Param("filamentoId") UUID filamentoId,
+            @Param("usuarioId") UUID usuarioId
+    );
+
+    @Query("""
+        SELECT new br.com.criare3d.dto.FilamentoHistoricoUsoResponse(
+            h.nomePeca,
+            h.dataCalculo,
+            COALESCE(SUM(item.quantidadeFilamentoGramas), h.quantidadeFilamentoGramas),
+            h.vendido
+        )
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item ON item.filamento.id = :filamentoId
+        WHERE h.usuario.id = :usuarioId
+          AND (item.id IS NOT NULL OR h.filamento.id = :filamentoId)
+        GROUP BY h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas
+        ORDER BY h.dataCalculo DESC
+        """)
+    List<FilamentoHistoricoUsoResponse> buscarUsosDoFilamento(
             @Param("filamentoId") UUID filamentoId,
             @Param("usuarioId") UUID usuarioId
     );

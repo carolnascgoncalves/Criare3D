@@ -7,6 +7,8 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+    <div class="alerta-erro notificacao-flutuante" role="alert"
+         th:if="${erro != null}" th:text="${erro}"></div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
@@ -46,10 +48,6 @@
                     <span class="etapa-nome">Venda e markup</span>
                 </div>
             </div>
-
-            <div class="mensagem-erro"
-                 th:if="${erro != null}"
-                 th:text="${erro}"></div>
 
             <form th:action="@{/historico/calcular}"
                   th:object="${calculo}"
@@ -140,7 +138,7 @@
                                         <option th:each="filamento : ${filamentos}"
                                                 th:value="${filamento.id}"
                                                 th:text="|${filamento.nome} - ${filamento.cor}|"
-                                                th:attr="data-cor=${filamento.cor}, data-codigo-cor=${filamento.codigoCor}, data-preco-rolo=${filamento.precoRolo}, data-peso-rolo=${filamento.pesoRoloGramas}"></option>
+                                                th:attr="data-cor=${filamento.cor}, data-codigo-cor=${filamento.codigoCor}, data-preco-rolo=${filamento.precoRolo}, data-peso-rolo=${filamento.pesoRoloGramas}, data-estoque=${filamento.estoqueGramas}"></option>
                                         <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
                                     </select>
                                     <div class="erro-campo"
@@ -187,7 +185,8 @@
                                             th:attr="data-cor=${filamento.cor},
                                                      data-codigo-cor=${filamento.codigoCor},
                                                      data-preco-rolo=${filamento.precoRolo},
-                                                     data-peso-rolo=${filamento.pesoRoloGramas}">
+                                                     data-peso-rolo=${filamento.pesoRoloGramas},
+                                                     data-estoque=${filamento.estoqueGramas}">
                                     </option>
                                     <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
                                 </select>

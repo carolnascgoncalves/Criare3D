@@ -17,8 +17,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.UUID;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 
 @Controller
@@ -77,7 +79,7 @@ public class ImpressoraController {
             return new ModelAndView("redirect:/historico/novo?impressoraCriada=" + entidade.getId());
         }
 
-        return new ModelAndView("redirect:/impressora/listar");
+        return new ModelAndView("redirect:/impressora/listar?sucesso=impressoraCriada");
     }
 
     @GetMapping("/impressora/detalhes/{id}")
@@ -143,7 +145,7 @@ public class ImpressoraController {
     @PostMapping("/impressora/remover/{id}")
     public ModelAndView deleteById(@PathVariable UUID id) {
         if (!impressoraService.existsById(id)) {
-            return new ModelAndView("redirect:/impressora/listar");
+            return new ModelAndView("redirect:/impressora/listar?erro=impressoraNaoEncontrada");
         }
 
         long quantidade = calculoHistoricoService.contarPorImpressora(id);
@@ -158,6 +160,31 @@ public class ImpressoraController {
 
         impressoraService.delete(id);
         return new ModelAndView("redirect:/impressora/listar?sucesso=impressoraRemovida");
+    }
+
+    @PostMapping("/impressora/remover-lote")
+    public ModelAndView deleteSelected(
+            @RequestParam(name = "ids", required = false) List<UUID> ids,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/impressora/listar?erro=nenhumaImpressoraSelecionada");
+        List<UUID> bloqueadas = new java.util.ArrayList<>();
+        for (UUID id : ids.stream().distinct().toList()) {
+            if (!impressoraService.existsById(id)) continue;
+            if (calculoHistoricoService.contarPorImpressora(id) > 0
+                    || manutencaoImpressoraService.contar(id) > 0) {
+                bloqueadas.add(id);
+                continue;
+            }
+            impressoraService.delete(id);
+        }
+        if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        redirect.addAttribute("busca", busca);
+        redirect.addAttribute("page", page);
+        if (!bloqueadas.isEmpty()) redirect.addAttribute("erro", "impressorasEmUso");
+        else redirect.addAttribute("sucesso", "impressorasRemovidas");
+        return new ModelAndView("redirect:/impressora/listar");
     }
 
     @PostMapping("/impressora/atualizar/{id}")
@@ -182,6 +209,6 @@ public class ImpressoraController {
 
         impressoraService.update(id, ImpressoraRequest.toEntity(request));
 
-        return new ModelAndView("redirect:/impressora/listar");
+        return new ModelAndView("redirect:/impressora/listar?sucesso=impressoraAtualizada");
     }
 }

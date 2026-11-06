@@ -2,6 +2,7 @@ package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.ItemCalculoRequest;
+import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
@@ -15,6 +16,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import br.com.criare3d.models.enums.PlataformaVenda;
@@ -60,6 +65,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
     @Override
+    public java.util.List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return calculoHistoricoRepository.buscarUsosDoFilamento(filamentoId, usuarioId);
+    }
+
+    @Override
     public long contarPorEmbalagem(UUID embalagemId) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
@@ -95,7 +106,102 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public void delete(UUID id) {
-        fetchById(id).ifPresent(calculoHistoricoRepository::delete);
+        fetchById(id).ifPresent(historico -> {
+            if (Boolean.TRUE.equals(historico.getProduzido())) {
+                ajustarEstoque(historico, true);
+            }
+            calculoHistoricoRepository.delete(historico);
+        });
+    }
+
+    @Override
+    public void deleteAll(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        new LinkedHashSet<>(ids).forEach(this::delete);
+    }
+
+    @Override
+    public String atualizarProduzido(UUID id, boolean produzido) {
+        var encontrado = fetchById(id);
+        if (encontrado.isEmpty()) return "naoEncontrado";
+
+        CalculoHistorico historico = encontrado.get();
+        boolean jaProduzido = Boolean.TRUE.equals(historico.getProduzido());
+        if (jaProduzido == produzido) return "ok";
+
+        if (!produzido && Boolean.TRUE.equals(historico.getVendido())) {
+            return "vendaAtiva";
+        }
+
+        if (produzido && !ajustarEstoque(historico, false)) {
+            return "estoqueInsuficiente";
+        }
+        if (!produzido) ajustarEstoque(historico, true);
+
+        historico.setProduzido(produzido);
+        calculoHistoricoRepository.save(historico);
+        return "ok";
+    }
+
+    @Override
+    public String atualizarVendido(UUID id, boolean vendido) {
+        var encontrado = fetchById(id);
+        if (encontrado.isEmpty()) return "naoEncontrado";
+        CalculoHistorico historico = encontrado.get();
+        if (vendido && !Boolean.TRUE.equals(historico.getProduzido())) {
+            if (!ajustarEstoque(historico, false)) return "estoqueInsuficiente";
+            historico.setProduzido(true);
+        }
+        historico.setVendido(vendido);
+        calculoHistoricoRepository.save(historico);
+        return "ok";
+    }
+
+    /** Ajusta o saldo; retorna false sem alterar nada se não houver saldo suficiente. */
+    private boolean ajustarEstoque(CalculoHistorico historico, boolean devolver) {
+        Map<UUID, BigDecimal> quantidades = new HashMap<>();
+        for (ItemCalculoHistorico item : historico.getItensFilamento()) {
+            Filamento filamento = item.getFilamento();
+            if (filamento == null || filamento.getId() == null) continue;
+            quantidades.merge(filamento.getId(), item.getQuantidadeFilamentoGramas(), BigDecimal::add);
+        }
+        // Registros anteriores ao suporte a múltiplos filamentos usam os campos do cálculo.
+        if (quantidades.isEmpty()
+                && historico.getFilamento() != null
+                && historico.getQuantidadeFilamentoGramas() != null) {
+            quantidades.put(
+                    historico.getFilamento().getId(),
+                    historico.getQuantidadeFilamentoGramas()
+            );
+        }
+
+        Map<UUID, Filamento> filamentos = new HashMap<>();
+        for (UUID filamentoId : quantidades.keySet()) {
+            var encontrado = filamentoService.fetchById(filamentoId);
+            if (encontrado.isEmpty()) {
+                if (!devolver) return false;
+                continue;
+            }
+            filamentos.put(filamentoId, encontrado.get());
+        }
+
+        if (!devolver) {
+            for (Map.Entry<UUID, Filamento> entrada : filamentos.entrySet()) {
+                BigDecimal disponivel = entrada.getValue().getEstoqueGramas() == null
+                        ? BigDecimal.ZERO : entrada.getValue().getEstoqueGramas();
+                if (disponivel.compareTo(quantidades.get(entrada.getKey())) < 0) return false;
+            }
+        }
+
+        quantidades.forEach((filamentoId, quantidade) -> {
+            Filamento filamento = filamentos.get(filamentoId);
+            if (filamento == null) return;
+            BigDecimal saldo = filamento.getEstoqueGramas() == null
+                    ? BigDecimal.ZERO : filamento.getEstoqueGramas();
+            filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
+            filamentoService.update(filamentoId, filamento);
+        });
+        return true;
     }
 
     @Override
@@ -139,6 +245,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .build();
 
         BigDecimal custoFilamentoTotal = ZERO;
+        Map<UUID, BigDecimal> consumoPorFilamento = new HashMap<>();
 
         for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
 
@@ -155,6 +262,20 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
             Filamento filamento = filamentoService.fetchById(itemRequest.getFilamentoId())
                     .orElseThrow(() -> new IllegalArgumentException("Filamento não encontrado"));
+
+            BigDecimal consumoTotal = consumoPorFilamento.merge(
+                    filamento.getId(), quantidade, BigDecimal::add);
+            BigDecimal disponivel = filamento.getEstoqueGramas() == null
+                    ? ZERO : filamento.getEstoqueGramas();
+            if (consumoTotal.compareTo(disponivel) > 0) {
+                String quantidadeDisponivel = disponivel
+                        .setScale(2, RoundingMode.HALF_UP)
+                        .toPlainString()
+                        .replace('.', ',');
+                throw new IllegalArgumentException(
+                        "Estoque insuficiente de " + filamento.getNome()
+                                + ". Há " + quantidadeDisponivel + " g disponíveis.");
+            }
 
             if (filamento.getPesoRoloGramas() == null
                     || filamento.getPesoRoloGramas().compareTo(ZERO) <= 0) {

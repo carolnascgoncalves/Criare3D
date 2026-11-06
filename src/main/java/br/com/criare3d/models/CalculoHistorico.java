@@ -190,6 +190,14 @@ public class CalculoHistorico {
     @Column(name = "formularioAvancado_hist")
     private @Getter @Setter Boolean formularioAvancado;
 
+    @Column(name = "produzido_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean produzido = false;
+
+    @Column(name = "vendido_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean vendido = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_filamento_fk")
     private @Getter @Setter Filamento filamento;

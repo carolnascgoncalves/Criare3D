@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Histórico de uso do filamento')}"></head>
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Histórico de uso</h1>
+            <p th:text="|${filamento.nome} · ${filamento.cor}|">Filamento</p>
+        </div>
+        <a th:href="@{/filamento/listar}" class="botao botao-secundario"><i class="bi bi-arrow-left"></i> Voltar aos filamentos</a>
+    </section>
+
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Cálculos que usaram este filamento</h2>
+                <p>Quantidade registrada em cada cálculo e situação da venda.</p>
+            </div>
+            <span class="contador" th:text="|${#lists.size(usos)} registros|">0 registros</span>
+        </div>
+
+        <div class="tabela-container" th:if="${!#lists.isEmpty(usos)}">
+            <table class="tabela">
+                <thead>
+                <tr>
+                    <th>Peça</th>
+                    <th>Data do cálculo</th>
+                    <th>Quantidade usada</th>
+                    <th>Vendido</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="uso : ${usos}">
+                    <td th:text="${uso.nomePeca}">Peça</td>
+                    <td th:text="${#temporals.format(uso.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm')}">Data</td>
+                    <td th:text="|${#numbers.formatDecimal(uso.quantidadeGramas, 1, 2)} g|">0 g</td>
+                    <td>
+                        <span class="status-venda-historico" th:classappend="${uso.vendido == true} ? ' status-ativo' : ''"
+                              th:text="${uso.vendido == true} ? 'Sim' : 'Não'">Não</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="estado-vazio" th:if="${#lists.isEmpty(usos)}">
+            <span class="estado-vazio-icone"><i class="bi bi-search"></i></span>
+            <h3>Nenhum cálculo encontrado</h3>
+            <p>Este filamento ainda não foi usado em cálculos salvos no histórico.</p>
+        </div>
+    </section>
+</main>
+</body>
+</html>

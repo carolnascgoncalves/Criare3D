@@ -6,18 +6,24 @@
 
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
-    <div class="alerta-erro"
+<main class="pagina lista-catalogo">
+    <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'embalagemEmUso'}">
         Não é possível excluir esta embalagem porque ela está vinculada a
         <strong th:text="${param.quantidade[0]}">0</strong>
         cálculo(s) do histórico. Os registros antigos precisam ser preservados.
     </div>
 
-    <div class="alerta-sucesso"
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemRemovida'}">
         Embalagem excluída com sucesso!
     </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemCriada'}">Embalagem cadastrada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagemAtualizada'}">Embalagem atualizada com sucesso.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'embalagensRemovidas'}">Embalagens selecionadas excluídas com sucesso.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumaEmbalagemSelecionada'}">Selecione pelo menos uma embalagem.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'embalagemNaoEncontrada'}">A embalagem não foi encontrada.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'embalagensEmUso'}">As embalagens vinculadas a cálculos foram mantidas; as demais selecionadas foram excluídas.</div>
 
     <section class="pagina-intro">
         <div>
@@ -31,7 +37,7 @@
         </a>
     </section>
 
-    <section class="cartao">
+    <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
             <div>
                 <h2>Embalagens cadastradas</h2>
@@ -72,11 +78,28 @@
                class="botao botao-secundario">Limpar</a>
         </form>
 
+        <div class="controles-selecao-listagem" th:if="${!#lists.isEmpty(embalagens)}">
+            <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-embalagens">
+                <i class="bi bi-check2-square"></i> Selecionar
+            </button>
+            <span data-contador-selecao>0 selecionado(s)</span>
+            <form id="form-remover-embalagens" th:action="@{/embalagem/remover-lote}" method="post"
+                  onsubmit="return confirm('Excluir as embalagens selecionadas? Embalagens vinculadas a cálculos serão mantidas.');">
+                <input type="hidden" name="busca" th:value="${busca}">
+                <input type="hidden" name="ordem" th:value="${ordem}">
+                <input type="hidden" name="page" th:value="${pagina.number}">
+                <button type="submit" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
+                    <i class="bi bi-trash3"></i> Excluir selecionadas
+                </button>
+            </form>
+        </div>
+
         <div class="tabela-container"
              th:if="${!#lists.isEmpty(embalagens)}">
             <table class="tabela">
                 <thead>
                 <tr>
+                    <th class="coluna-selecao" aria-label="Selecionar embalagem"></th>
                     <th>Nome da embalagem</th>
                     <th>Custo unitário</th>
                     <th class="coluna-acoes">Ações</th>
@@ -84,7 +107,11 @@
                 </thead>
 
                 <tbody>
-                <tr th:each="embalagem : ${embalagens}">
+                <tr th:each="embalagem : ${embalagens}"
+                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(embalagem.id)} ? ' item-exclusao-falhou' : ''">
+                    <td class="coluna-selecao">
+                        <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${embalagem.id}" form="form-remover-embalagens" th:aria-label="|Selecionar ${embalagem.nome}|">
+                    </td>
                     <td>
                         <div class="nome-peca">
                             <span class="icone-peca">

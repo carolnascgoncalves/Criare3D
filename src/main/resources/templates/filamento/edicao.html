@@ -94,6 +94,13 @@
                     </div>
 
                     <div class="campo">
+                        <label for="estoqueGramas">Quantidade disponível agora (gramas) <span class="etiqueta-opcional">Opcional</span></label>
+                        <input type="number" id="estoqueGramas" th:field="*{estoqueGramas}" min="0" step="0.01">
+                        <small>Atualize este saldo quando comprar ou usar filamento fora do sistema.</small>
+                        <span class="erro-campo" th:if="${#fields.hasErrors('estoqueGramas')}" th:errors="*{estoqueGramas}"></span>
+                    </div>
+
+                    <div class="campo">
                         <label for="precoRolo">Preço do rolo (R$)</label>
                         <input type="number"
                                id="precoRolo"

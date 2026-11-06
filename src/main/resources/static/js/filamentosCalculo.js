@@ -21,6 +21,37 @@ function inicializarFilamentosCalculo() {
         })} g`;
     }
 
+    function validarEstoque(item, avisar = false) {
+        const select = item.querySelector("[data-campo-filamento]");
+        const quantidade = item.querySelector("[data-campo-quantidade]");
+        const opcao = select.selectedOptions[0];
+        const estoque = Number(opcao?.dataset.estoque);
+
+        if (!select.value || !Number.isFinite(estoque) || !quantidade.value) {
+            quantidade.setCustomValidity("");
+            item.dataset.ultimoAvisoEstoque = "";
+            return true;
+        }
+
+        const consumoTotal = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
+            .filter(outro => outro.querySelector("[data-campo-filamento]").value === select.value)
+            .reduce((total, outro) => total + (Number(outro.querySelector("[data-campo-quantidade]").value) || 0), 0);
+
+        if (consumoTotal > estoque + 0.000001) {
+            const mensagem = `Estoque insuficiente de ${opcao.textContent.trim()}. Há ${formatarGramas(estoque)} disponíveis.`;
+            quantidade.setCustomValidity(mensagem);
+            if (avisar && item.dataset.ultimoAvisoEstoque !== mensagem) {
+                window.mostrarNotificacao?.(mensagem, "erro");
+                item.dataset.ultimoAvisoEstoque = mensagem;
+            }
+            return false;
+        }
+
+        quantidade.setCustomValidity("");
+        item.dataset.ultimoAvisoEstoque = "";
+        return true;
+    }
+
     function formatarPercentual(valor) {
         return `${Number(valor.toFixed(1)).toLocaleString("pt-BR")}%`;
     }
@@ -308,6 +339,12 @@ function inicializarFilamentosCalculo() {
             const select = item.querySelector("[data-campo-filamento]");
             const quantidade = item.querySelector("[data-campo-quantidade]");
 
+            if (!validarEstoque(item, true)) {
+                quantidade.focus();
+                window.validacaoInline?.validar(quantidade);
+                return;
+            }
+
             if (!select.checkValidity()) {
                 window.validacaoInline?.validar(select);
                 select.focus();
@@ -356,32 +393,51 @@ function inicializarFilamentosCalculo() {
 
     listaFilamentos.addEventListener("change", event => {
         const select = event.target.closest("[data-campo-filamento]");
+        if (select) {
+            const opcao = select.selectedOptions[0];
 
-        if (!select) return;
+            if (opcao?.dataset.acao === "cadastrar-filamento") {
+                window.salvarRascunhoCalculo?.();
 
-        const opcao = select.selectedOptions[0];
+                const destino = "/filamento/novo?origem=calculo";
 
-        if (opcao?.dataset.acao === "cadastrar-filamento") {
-            window.salvarRascunhoCalculo?.();
+                if (window.Turbo) {
+                    window.Turbo.visit(destino);
+                } else {
+                    window.location.href = destino;
+                }
 
-            const destino = "/filamento/novo?origem=calculo";
-
-            if (window.Turbo) {
-                window.Turbo.visit(destino);
-            } else {
-                window.location.href = destino;
+                return;
             }
 
+            validarEstoque(select.closest("[data-filamento-item]"), true);
+            atualizarTudo();
             return;
         }
 
-        atualizarTudo();
+        const quantidade = event.target.closest("[data-campo-quantidade]");
+        if (quantidade) {
+            validarEstoque(quantidade.closest("[data-filamento-item]"), true);
+            atualizarResumo();
+        }
     });
 
     listaFilamentos.addEventListener("input", event => {
         if (event.target.matches("[data-campo-quantidade]")) {
+            validarEstoque(event.target.closest("[data-filamento-item]"), true);
             atualizarResumo();
         }
+    });
+
+    document.getElementById("formCalculo")?.addEventListener("submit", event => {
+        const itens = [...listaFilamentos.querySelectorAll("[data-filamento-item]")];
+        const invalido = itens.find(item => !validarEstoque(item, true));
+        if (!invalido) return;
+        event.preventDefault();
+        invalido.hidden = false;
+        invalido.dataset.confirmado = "false";
+        invalido.querySelector("[data-campo-quantidade]").focus();
+        atualizarTudo();
     });
 
     pecaId?.addEventListener("change", atualizarTudo);

@@ -27,6 +27,8 @@ public class FilamentoResponse {
 
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
+    private @Getter @Setter BigDecimal estoqueGramas;
+
     private @Getter @Setter BigDecimal precoRolo;
 
     public static FilamentoResponse toDto(Filamento filamento){
@@ -37,6 +39,7 @@ public class FilamentoResponse {
                 .codigoCor(filamento.getCodigoCor())
                 .marca(filamento.getMarca())
                 .pesoRoloGramas(filamento.getPesoRoloGramas())
+                .estoqueGramas(filamento.getEstoqueGramas())
                 .precoRolo(filamento.getPrecoRolo())
                 .build();
     }
