@@ -381,8 +381,8 @@
 
 /* AUMENTA A ÁREA ÚTIL DO HISTÓRICO */
 main.pagina.lista-catalogo:has(.tabela-historico) {
-    width: min(1680px, calc(100% - 48px));
-    max-width: 1680px;
+    width: min(1200px, calc(100% - 48px));
+    max-width: 1200px;
 }
 
 .historico-vazio {
@@ -425,14 +425,14 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico {
     width: 100%;
-    min-width: 1380px;
+    min-width: 1100px;
     table-layout: fixed;
     border-collapse: collapse;
     text-align: left;
 }
 
 .tabela-historico th {
-    padding: 14px 10px;
+    padding: 12px 8px;
     background: #fffaf6;
     color: var(--marrom-claro);
     font-size: 0.82rem;
@@ -443,7 +443,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 .tabela-historico td {
-    padding: 14px 10px;
+    padding: 12px 8px;
     border-bottom: 1px solid #eee3da;
     color: var(--marrom);
     font-size: 0.94rem;
@@ -451,15 +451,14 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     white-space: nowrap;
 }
 
-.tabela-historico th:nth-child(1) { width: 3.5%; }
-.tabela-historico th:nth-child(2) { width: 17.5%; }
-.tabela-historico th:nth-child(3) { width: 16%; }
-.tabela-historico th:nth-child(4) { width: 12%; }
-.tabela-historico th:nth-child(5) { width: 11%; }
-.tabela-historico th:nth-child(6) { width: 13%; }
+.tabela-historico th:nth-child(1) { width: 4%; }
+.tabela-historico th:nth-child(2) { width: 27%; }
+.tabela-historico th:nth-child(3) { width: 14%; }
+.tabela-historico th:nth-child(4) { width: 10%; }
+.tabela-historico th:nth-child(5) { width: 15%; }
+.tabela-historico th:nth-child(6) { width: 10%; }
 .tabela-historico th:nth-child(7) { width: 10%; }
 .tabela-historico th:nth-child(8) { width: 10%; }
-.tabela-historico th:nth-child(9) { width: 7%; }
 
 .tabela-historico tbody tr:last-child td {
     border-bottom: none;
@@ -469,8 +468,11 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     background: #fffbf8;
 }
 
-.tabela-historico td:nth-child(2) {
+.tabela-historico td:nth-child(2),
+.tabela-historico td:nth-child(3),
+.tabela-historico td:nth-child(4) {
     white-space: normal;
+    line-height: 1.35;
 }
 
 .peca-historico {
@@ -490,14 +492,14 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 .tabela-historico .coluna-acoes {
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
 }
 
 .tabela-historico .acoes {
     display: inline-flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 5px;
     white-space: nowrap;
 }
@@ -1575,8 +1577,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 .foto-peca-preview img {
-    width: 76px;
-    height: 76px;
+    width: 84px;
+    height: 84px;
     flex-shrink: 0;
     border: 1px solid var(--borda);
     border-radius: 10px;
@@ -1635,8 +1637,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .peca-historico-foto {
     display: block;
-    width: 76px;
-    height: 76px;
+    width: 84px;
+    height: 84px;
     flex-shrink: 0;
     border: 1px solid var(--borda);
     border-radius: 12px;
@@ -1647,8 +1649,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 .peca-historico-icone {
     display: grid;
     place-items: center;
-    width: 76px;
-    height: 76px;
+    width: 84px;
+    height: 84px;
     flex-shrink: 0;
     border: 1px solid var(--borda);
     border-radius: 12px;
@@ -3281,9 +3283,24 @@ a:focus-visible {
 
 /* STATUS DO HISTÓRICO */
 
-.tabela-historico .form-status-historico {
-    display: inline-flex;
+.tabela-historico th:nth-child(6),
+.tabela-historico th:nth-child(7),
+.tabela-historico td:nth-child(6),
+.tabela-historico td:nth-child(7),
+.tabela-historico th.coluna-acoes,
+.tabela-historico td.coluna-acoes {
+    text-align: center;
+}
+
+.tabela-historico td:nth-child(6) .form-status-historico,
+.tabela-historico td:nth-child(7) .form-status-historico {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 100%;
     margin: 0;
+    transform: translateY(4px);
 }
 
 .botao-status-historico {
@@ -3291,13 +3308,13 @@ a:focus-visible {
     align-items: center;
     justify-content: center;
     gap: 5px;
-    min-width: 84px;
-    padding: 6px 12px;
+    min-width: 76px;
+    padding: 5px 8px;
     border: 1px solid #d7ccc2;
     border-radius: 999px;
     background: #f6f1ec;
     color: #75675e;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
@@ -3310,7 +3327,7 @@ a:focus-visible {
 }
 
 .botao-status-historico i {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
 }
 
 .botao-status-historico:focus-visible,

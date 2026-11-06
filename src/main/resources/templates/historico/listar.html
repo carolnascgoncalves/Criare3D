@@ -207,7 +207,6 @@
                                     data-ordenacao-campo>
                                 <option value="data">Data do cálculo</option>
                                 <option value="nome">Nome da peça</option>
-                                <option value="custo">Custo total</option>
                                 <option value="preco">Preço sugerido</option>
                             </select>
                         </div>
@@ -249,33 +248,33 @@
         </form>
 
         <div class="historico-conteudo">
-                <div class="controles-selecao-listagem"
-                     th:if="${!#lists.isEmpty(historicos)}">
+            <div class="controles-selecao-listagem"
+                 th:if="${!#lists.isEmpty(historicos)}">
 
-                    <button type="button"
-                            class="botao botao-secundario"
-                            data-selecao-toggle
-                            data-form="form-remover-lote"
-                            aria-pressed="false">
-                        <i class="bi bi-check2-square"></i> Selecionar
-                    </button>
+                <button type="button"
+                        class="botao botao-secundario"
+                        data-selecao-toggle
+                        data-form="form-remover-lote"
+                        aria-pressed="false">
+                    <i class="bi bi-check2-square"></i> Selecionar
+                </button>
 
-                    <span data-contador-selecao hidden>0 selecionado(s)</span>
+                <span data-contador-selecao hidden>0 selecionado(s)</span>
 
-                    <button type="submit"
-                            form="form-remover-lote"
-                            class="botao botao-secundario"
-                            data-excluir-selecionados
-                            title="Excluir selecionados"
-                            aria-label="Excluir selecionados"
-                            hidden
-                            disabled>
-                        <i class="bi bi-trash3"></i>
-                    </button>
-                </div>
+                <button type="submit"
+                        form="form-remover-lote"
+                        class="botao botao-secundario"
+                        data-excluir-selecionados
+                        title="Excluir selecionados"
+                        aria-label="Excluir selecionados"
+                        hidden
+                        disabled>
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </div>
 
-                <div class="historico-vazio"
-                     th:if="${#lists.isEmpty(historicos)}">
+            <div class="historico-vazio"
+                 th:if="${#lists.isEmpty(historicos)}">
 
                 <div class="historico-vazio-icone">
                     <i class="bi bi-search"
@@ -349,7 +348,6 @@
                         <th>Peça</th>
                         <th>Data do cálculo</th>
                         <th>Plataforma</th>
-                        <th>Custo total</th>
                         <th>Preço sugerido</th>
                         <th>Produzido</th>
                         <th>Vendido</th>
@@ -400,12 +398,6 @@
                             </span>
                         </td>
 
-                        <td>
-                            <span class="valor-custo"
-                                  th:text="${'R$ ' + #numbers.formatDecimal(historico.custoTotal, 1, 'POINT', 2, 'COMMA')}">
-                                R$ 0,00
-                            </span>
-                        </td>
 
                         <td>
                             <span class="valor-preco"
