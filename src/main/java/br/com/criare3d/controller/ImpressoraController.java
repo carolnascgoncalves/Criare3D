@@ -92,7 +92,7 @@ public class ImpressoraController {
                     mv.addObject("manutencao", new ManutencaoImpressoraRequest());
                     mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
                     mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
-                    mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id, entidade.getManutencaoPorHora()));
+                    mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id));
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/impressora/listar"));
@@ -114,7 +114,7 @@ public class ImpressoraController {
             mv.addObject("manutencoes", manutencaoImpressoraService.listar(id));
             mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
             mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
-            mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id, impressora.get().getManutencaoPorHora()));
+            mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id));
             return mv;
         }
 

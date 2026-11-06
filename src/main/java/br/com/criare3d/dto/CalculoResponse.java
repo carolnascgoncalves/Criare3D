@@ -34,6 +34,7 @@ public class CalculoResponse {
     private BigDecimal custoEnergia;
     private BigDecimal custoMaoObra;
     private BigDecimal custoDepreciacao;
+    private BigDecimal custoManutencao;
     private BigDecimal custoFalha;
     private Boolean maoObraAtivada;
     private Boolean depreciacaoAtivada;
@@ -100,6 +101,7 @@ public class CalculoResponse {
                 .custoEnergia(calculo.getCustoEnergia())
                 .custoMaoObra(calculo.getCustoMaoObra())
                 .custoDepreciacao(calculo.getCustoDepreciacao())
+                .custoManutencao(calculo.getCustoManutencao())
                 .custoFalha(calculo.getCustoFalha())
                 .maoObraAtivada(calculo.getMaoObraAtivada())
                 .depreciacaoAtivada(calculo.getDepreciacaoAtivada())

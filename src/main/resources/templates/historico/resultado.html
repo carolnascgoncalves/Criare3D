@@ -70,8 +70,13 @@
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
-                            <span th:text="${'Máquina (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Máquina</span>
+                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Depreciação da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
+                        <div class="resultado-item" th:if="${resultado.manutencaoHoraImpressora != null and resultado.manutencaoHoraImpressora.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Manutenção da impressora</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoManutencao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.taxaFalhaAtivada == true}">

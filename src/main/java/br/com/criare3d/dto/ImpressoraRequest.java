@@ -38,12 +38,9 @@ public class ImpressoraRequest {
     @DecimalMin(value = "0.0", message = "A vida útil não pode ser negativa")
     private @Getter @Setter BigDecimal vidaUtilHoras;
 
-    @DecimalMin(value = "0.0", message = "A manutenção por hora não pode ser negativa")
-    private @Getter @Setter BigDecimal manutencaoPorHora;
-
     @AssertTrue(message = "Para calcular o custo da máquina, informe o valor de compra e uma vida útil maior que zero.")
     public boolean isDadosDepreciacaoValidos() {
-        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null && manutencaoPorHora == null;
+        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
         return nenhumDado || (valorCompra != null && vidaUtilHoras != null
                 && vidaUtilHoras.signum() > 0);
     }
@@ -55,7 +52,6 @@ public class ImpressoraRequest {
                 .potenciaWatts(impressora.getPotenciaWatts())
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
-                .manutencaoPorHora(impressora.getManutencaoPorHora())
                 .build();
     }
 
@@ -66,7 +62,6 @@ public class ImpressoraRequest {
                 .potenciaWatts(dto.getPotenciaWatts())
                 .valorCompra(dto.getValorCompra())
                 .vidaUtilHoras(dto.getVidaUtilHoras())
-                .manutencaoPorHora(dto.getManutencaoPorHora())
                 .build();
     }
 }

@@ -26,10 +26,9 @@ public class ImpressoraResponse {
 
     private @Getter @Setter BigDecimal valorCompra;
     private @Getter @Setter BigDecimal vidaUtilHoras;
-    private @Getter @Setter BigDecimal manutencaoPorHora;
 
     public boolean isDadosDepreciacaoValidos() {
-        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null && manutencaoPorHora == null;
+        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
         return nenhumDado || (valorCompra != null && vidaUtilHoras != null
                 && vidaUtilHoras.signum() > 0);
     }
@@ -42,7 +41,6 @@ public class ImpressoraResponse {
                 .potenciaWatts(impressora.getPotenciaWatts())
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
-                .manutencaoPorHora(impressora.getManutencaoPorHora())
                 .build();
     }
 }

@@ -102,7 +102,9 @@
                              th:errors="*{pecaId}"></div>
                     </div>
 
-                    <div class="filamentos-calculo">
+                    <div id="secaoFilamentos"
+                         class="filamentos-calculo"
+                         th:hidden="*{pecaId == null}">
                         <div class="filamentos-calculo-cabecalho">
                             <div>
                                 <h3>Filamentos utilizados</h3>

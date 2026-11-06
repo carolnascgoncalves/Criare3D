@@ -81,13 +81,6 @@
                     <div class="erro-campo" th:if="${#fields.hasErrors('dadosDepreciacaoValidos')}" th:errors="*{dadosDepreciacaoValidos}"></div>
                 </div>
                 <small class="texto-campo-opcional">Esses dados só são necessários quando a depreciação da impressora estiver ativada em Configurações.</small>
-                <div class="campo">
-                    <label for="manutencaoPorHora">Estimativa manual de manutenção por hora (R$) <span class="etiqueta-opcional">Opcional</span></label>
-                    <input type="number" id="manutencaoPorHora" th:field="*{manutencaoPorHora}" min="0" step="0.01" placeholder="Ex.: 0.20">
-                    <small>Usada como estimativa até haver dados reais suficientes para a média automática.</small>
-                    <div class="erro-campo" th:if="${#fields.hasErrors('manutencaoPorHora')}" th:errors="*{manutencaoPorHora}"></div>
-                </div>
-
                 <div class="formulario-acoes">
                     <button type="submit" class="botao botao-principal">
                         <i class="bi bi-check-lg"></i> Cadastrar impressora

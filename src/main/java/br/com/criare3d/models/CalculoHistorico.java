@@ -82,6 +82,9 @@ public class CalculoHistorico {
     @Column(name = "custo_depreciacao_hist", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal custoDepreciacao;
 
+    @Column(name = "custo_manutencao_hist", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal custoManutencao;
+
     @Column(name = "custo_falha_hist", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal custoFalha;
 

@@ -42,7 +42,7 @@ public class ImpressoraServiceImp implements ImpressoraService {
 
             existing.setValorCompra(patch.getValorCompra());
             existing.setVidaUtilHoras(patch.getVidaUtilHoras());
-            existing.setManutencaoPorHora(patch.getManutencaoPorHora());
+            // Mantém o campo legado no banco para não apagar dados; ele não participa mais dos cálculos.
 
             return impressoraRepository.save(existing);
         });

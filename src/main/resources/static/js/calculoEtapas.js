@@ -93,7 +93,7 @@ function inicializarCalculoEtapas() {
         ];
 
         if (itens.length === 0) {
-            alert("Adicione pelo menos um filamento.");
+            window.mostrarNotificacao?.("Adicione pelo menos um filamento.", "erro");
             return false;
         }
 
@@ -122,7 +122,7 @@ function inicializarCalculoEtapas() {
                 return false;
             }
 
-            alert("Confirme todos os filamentos antes de avançar.");
+            window.mostrarNotificacao?.("Confirme todos os filamentos antes de avançar.", "erro");
             item.querySelector("[data-confirmar-filamento]")?.focus();
 
             salvarRascunho();
@@ -142,7 +142,7 @@ function inicializarCalculoEtapas() {
             } else if (!quantidade.checkValidity()) {
                 focarCampo(quantidade);
             } else {
-                alert("Confirme pelo menos um filamento antes de avançar.");
+                window.mostrarNotificacao?.("Confirme pelo menos um filamento antes de avançar.", "erro");
                 primeiroItem.querySelector("[data-confirmar-filamento]")?.focus();
             }
 
@@ -422,13 +422,13 @@ function inicializarCalculoEtapas() {
         const formatos = ["image/jpeg", "image/png", "image/webp"];
 
         if (!formatos.includes(arquivo.type)) {
-            alert("Selecione uma imagem JPG, PNG ou WEBP.");
+            window.mostrarNotificacao?.("Selecione uma imagem JPG, PNG ou WEBP.", "erro");
             limparFoto();
             return;
         }
 
         if (arquivo.size > 3 * 1024 * 1024) {
-            alert("A foto deve ter no máximo 3 MB.");
+            window.mostrarNotificacao?.("A foto deve ter no máximo 3 MB.", "erro");
             limparFoto();
             return;
         }
@@ -436,7 +436,7 @@ function inicializarCalculoEtapas() {
         const leitor = new FileReader();
 
         leitor.onerror = () => {
-            alert("Não foi possível abrir essa foto. Tente escolher outra.");
+            window.mostrarNotificacao?.("Não foi possível abrir essa foto. Tente escolher outra.", "erro");
             limparFoto();
         };
 
@@ -444,7 +444,7 @@ function inicializarCalculoEtapas() {
             const imagem = new Image();
 
             imagem.onerror = () => {
-                alert("Não foi possível abrir essa foto. Tente escolher outra.");
+                window.mostrarNotificacao?.("Não foi possível abrir essa foto. Tente escolher outra.", "erro");
                 limparFoto();
             };
 
@@ -457,7 +457,7 @@ function inicializarCalculoEtapas() {
 
                 const contexto = canvas.getContext("2d");
                 if (!contexto) {
-                    alert("Não foi possível preparar essa foto. Tente outra imagem.");
+                    window.mostrarNotificacao?.("Não foi possível preparar essa foto. Tente outra imagem.", "erro");
                     limparFoto();
                     return;
                 }

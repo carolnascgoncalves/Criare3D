@@ -289,9 +289,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "O preço do rolo é inválido: " + filamento.getNome());
             }
 
-            BigDecimal custoIndividual = quantidade
-                    .multiply(filamento.getPrecoRolo())
-                    .divide(filamento.getPesoRoloGramas(), 2, RoundingMode.HALF_UP);
+            BigDecimal custoIndividual = CalculoFinanceiro.filamento(
+                    quantidade, filamento.getPrecoRolo(), filamento.getPesoRoloGramas());
 
             ItemCalculoHistorico item = ItemCalculoHistorico.builder()
                     .calculoHistorico(historico)
@@ -320,15 +319,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
         historico.setCustoFilamento(custoFilamentoTotal);
 
-        BigDecimal tempo = BigDecimal.valueOf(request.getTempoImpressaoMinutos());
-
-        BigDecimal custoEnergia = impressora.getPotenciaWatts()
-                .divide(new BigDecimal("1000"), 8, RoundingMode.HALF_UP)
-                .multiply(tempo)
-                .divide(new BigDecimal("60"), 8, RoundingMode.HALF_UP)
-                .multiply(configuracao.getTarifaEnergiaKwh());
-
-        custoEnergia = moeda(custoEnergia);
+        BigDecimal custoEnergia = CalculoFinanceiro.energia(
+                impressora.getPotenciaWatts(), request.getTempoImpressaoMinutos(),
+                configuracao.getTarifaEnergiaKwh());
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
                 ? configuracao.getTempoMaoObraFixoMinutos()
@@ -345,25 +338,26 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             if (valorHora == null || valorHora.signum() < 0) {
                 throw new IllegalArgumentException("Configure um custo por hora válido para a mão de obra.");
             }
-            custoMaoObra = moeda(valorHora.multiply(BigDecimal.valueOf(tempoTrabalhoMinutos))
-                    .divide(new BigDecimal("60"), 8, RoundingMode.HALF_UP));
+            custoMaoObra = CalculoFinanceiro.maoDeObra(valorHora, tempoTrabalhoMinutos);
         }
+
+        BigDecimal manutencaoPorHora = manutencaoImpressoraService.custoPorHora(impressora.getId());
+        if (manutencaoPorHora == null || manutencaoPorHora.signum() < 0) {
+            throw new IllegalArgumentException("A estimativa de manutenção por hora é inválida.");
+        }
+        BigDecimal custoManutencao = CalculoFinanceiro.manutencao(
+                manutencaoPorHora, request.getTempoImpressaoMinutos());
 
         BigDecimal custoDepreciacao = ZERO;
         if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
             BigDecimal valorImpressora = impressora.getValorCompra();
             BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
-            BigDecimal manutencaoPorHora = manutencaoImpressoraService.custoPorHora(
-                    impressora.getId(), impressora.getManutencaoPorHora());
             if (valorImpressora == null || valorImpressora.signum() < 0
-                    || vidaUtilHoras == null || vidaUtilHoras.signum() <= 0
-                    || manutencaoPorHora.signum() < 0) {
-                throw new IllegalArgumentException("Cadastre o valor de compra e a vida útil da impressora; a manutenção por hora deve ser igual ou maior que zero.");
+                    || vidaUtilHoras == null || vidaUtilHoras.signum() <= 0) {
+                throw new IllegalArgumentException("Cadastre o valor de compra e uma vida útil maior que zero para calcular a depreciação.");
             }
-            BigDecimal horasImpressao = tempo.divide(new BigDecimal("60"), 8, RoundingMode.HALF_UP);
-            BigDecimal custoMaquinaHora = valorImpressora.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP)
-                    .add(manutencaoPorHora);
-            custoDepreciacao = moeda(horasImpressao.multiply(custoMaquinaHora));
+            custoDepreciacao = CalculoFinanceiro.depreciacao(
+                    valorImpressora, vidaUtilHoras, request.getTempoImpressaoMinutos());
         }
 
         BigDecimal custoFalha = ZERO;
@@ -373,9 +367,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                     || percentualFalha.compareTo(CEM) > 0) {
                 throw new IllegalArgumentException("Configure um percentual de falhas entre zero e 100.");
             }
-            custoFalha = moeda(custoFilamentoTotal.add(custoEnergia)
-                    .multiply(percentualFalha)
-                    .divide(CEM, 8, RoundingMode.HALF_UP));
+            custoFalha = CalculoFinanceiro.falhas(custoFilamentoTotal, custoEnergia, percentualFalha);
         }
 
         BigDecimal custoEmbalagem;
@@ -416,14 +408,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         BigDecimal custoTotal = moeda(
                 custoFilamentoTotal.add(custoEnergia).add(custoEmbalagem)
-                        .add(custoMaoObra).add(custoDepreciacao).add(custoFalha)
+                        .add(custoMaoObra).add(custoDepreciacao).add(custoManutencao).add(custoFalha)
         );
 
-        BigDecimal fatorMarkup = BigDecimal.ONE.add(
-                markup.divide(CEM, 8, RoundingMode.HALF_UP)
-        );
-
-        BigDecimal precoSugerido = moeda(custoTotal.multiply(fatorMarkup));
+        BigDecimal precoSugerido = CalculoFinanceiro.markup(custoTotal, markup);
 
         historico.setPeca(peca);
         historico.setImpressora(impressora);
@@ -440,6 +428,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setCustoEnergia(custoEnergia);
         historico.setCustoMaoObra(custoMaoObra);
         historico.setCustoDepreciacao(custoDepreciacao);
+        historico.setCustoManutencao(custoManutencao);
         historico.setCustoFalha(custoFalha);
         historico.setMaoObraAtivada(Boolean.TRUE.equals(configuracao.getMaoObraAtivada()));
         historico.setValorMaoObraHora(configuracao.getValorMaoObraHora());
@@ -447,7 +436,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setTempoTrabalhoMinutos(tempoTrabalhoMinutos);
         historico.setValorCompraImpressora(impressora.getValorCompra());
         historico.setVidaUtilImpressoraHoras(impressora.getVidaUtilHoras());
-        historico.setManutencaoHoraImpressora(impressora.getManutencaoPorHora());
+        historico.setManutencaoHoraImpressora(manutencaoPorHora);
         historico.setTaxaFalhaAtivada(Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada()));
         historico.setPercentualFalha(configuracao.getPercentualFalha());
         historico.setCustoTotal(custoTotal);
@@ -533,6 +522,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
                 if (avancado) {
                     comissao = comissaoInformada;
+
+                    if (comissao == null) {
+                        throw new IllegalArgumentException("Informe a comissão do Mercado Livre.");
+                    }
 
                     if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("10")) < 0 || comissao.compareTo(new BigDecimal("14")) > 0)) {
                         throw new IllegalArgumentException("No anúncio Clássico, informe uma comissão entre 10% e 14%");
@@ -766,6 +759,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 if (avancado) {
                     comissao = comissaoInformada;
 
+                    if (comissao == null) {
+                        throw new IllegalArgumentException("Informe a comissão do Mercado Livre.");
+                    }
+
                     if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("10")) < 0 || comissao.compareTo(new BigDecimal("14")) > 0)) {
                         throw new IllegalArgumentException("No anúncio Clássico, informe uma comissão entre 10% e 14%");
                     }
@@ -851,7 +848,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setLucroLiquido(moeda(precoVenda.subtract(taxas).subtract(historico.getCustoTotal())));
     }
 
-    private BigDecimal calcularPrecoShopee(
+    BigDecimal calcularPrecoShopee(
             BigDecimal base,
             BigDecimal custosExtras,
             BigDecimal imposto,
@@ -890,11 +887,13 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         };
 
         for (int i = 0; i < percentuais.length; i++) {
-            BigDecimal preco = calcularPrecoComTaxas(
-                    base,
-                    custosExtras.add(adicionalCpf).add(fixos[i]),
-                    percentuais[i].add(imposto)
-            );
+            BigDecimal preco = calcularPrecoComTaxas(base,
+                    custosExtras.add(adicionalCpf).add(fixos[i]), percentuais[i].add(imposto));
+            // A regra vigente reduz a tarifa fixa para metade do preço em itens abaixo de R$ 9.
+            if (i == 0 && preco.compareTo(new BigDecimal("9.00")) < 0) {
+                preco = calcularPrecoComTaxas(base, custosExtras.add(adicionalCpf),
+                        percentuais[i].add(imposto).add(new BigDecimal("50.00")));
+            }
 
             boolean acima = preco.compareTo(limitesInferiores[i]) >= 0;
             boolean abaixo = limitesSuperiores[i] == null
@@ -910,7 +909,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         );
     }
 
-    private BigDecimal calcularTaxasShopee(
+    BigDecimal calcularTaxasShopee(
             BigDecimal preco,
             BigDecimal imposto,
             BigDecimal custosExtras,
@@ -921,7 +920,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         if (preco.compareTo(new BigDecimal("79.99")) <= 0) {
             percentual = new BigDecimal("20.00");
-            fixo = new BigDecimal("4.50");
+            fixo = preco.compareTo(new BigDecimal("9.00")) < 0
+                    ? preco.divide(DOIS, 2, RoundingMode.HALF_UP)
+                    : new BigDecimal("4.50");
         } else if (preco.compareTo(new BigDecimal("99.99")) <= 0) {
             percentual = new BigDecimal("14.00");
             fixo = new BigDecimal("16.00");
@@ -945,7 +946,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return moeda(total);
     }
 
-    private BigDecimal calcularPrecoTikTok(
+    BigDecimal calcularPrecoTikTok(
             BigDecimal base,
             BigDecimal custosExtras,
             BigDecimal imposto,
@@ -1007,7 +1008,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         );
     }
 
-    private BigDecimal calcularTaxasTikTok(
+    BigDecimal calcularTaxasTikTok(
             BigDecimal preco,
             BigDecimal imposto,
             BigDecimal afiliado,
@@ -1043,7 +1044,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return moeda(total);
     }
 
-    private BigDecimal calcularPrecoMercadoLivreSimples(
+    BigDecimal calcularPrecoMercadoLivreSimples(
             BigDecimal base,
             BigDecimal freteVendedor,
             BigDecimal imposto,
@@ -1134,7 +1135,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return tabela[linha][coluna];
     }
 
-    private BigDecimal calcularPrecoComTaxas(
+    BigDecimal calcularPrecoComTaxas(
             BigDecimal base,
             BigDecimal custosFixos,
             BigDecimal percentualTotal

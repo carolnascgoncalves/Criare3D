@@ -15,5 +15,5 @@ public interface ManutencaoImpressoraService {
     long contar(UUID impressoraId);
     BigDecimal totalGasto(UUID impressoraId);
     long minutosImpressos(UUID impressoraId);
-    BigDecimal custoPorHora(UUID impressoraId, BigDecimal fallbackManual);
+    BigDecimal custoPorHora(UUID impressoraId);
 }

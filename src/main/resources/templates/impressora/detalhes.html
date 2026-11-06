@@ -65,11 +65,6 @@
                 <strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 2, 'POINT') + ' horas' : 'Não informada'}"></strong>
             </div>
 
-            <div class="detalhe-item">
-                <span>Estimativa atual de manutenção por hora</span>
-                <strong th:text="|R$ ${#numbers.formatDecimal(manutencaoPorHoraCalculada, 1, 'POINT', 2, 'COMMA')}/h|"></strong>
-            </div>
-
             <div class="formulario-acoes">
                 <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
                    class="botao botao-principal">
@@ -108,10 +103,10 @@
         </div>
 
         <p class="aviso-info" th:if="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
-            <i class="bi bi-info-circle"></i> Estimativa automática: gastos cadastrados divididos pelas horas de impressão salvas no histórico. Para uma média mais fiel, registre também gastos anteriores.
+            <i class="bi bi-info-circle"></i> Estimativa automática: total dos gastos registrados dividido pelas horas de cálculos marcados como produzidos.
         </p>
         <p class="aviso-info" th:unless="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
-            <i class="bi bi-info-circle"></i> Quando houver gastos de manutenção e horas de impressão registradas, o sistema calcula a média automaticamente. Até lá, usa a estimativa manual cadastrada.
+            <i class="bi bi-info-circle"></i> A estimativa começa em zero e é calculada automaticamente quando houver gastos de manutenção registrados e horas de impressão produzidas.
         </p>
 
         <div class="manutencao-impressora-colunas">

@@ -5,6 +5,7 @@ function inicializarFilamentosCalculo() {
     const modeloFilamento = document.getElementById("modeloFilamento");
     const adicionarFilamento = document.getElementById("adicionarFilamento");
     const pecaId = document.getElementById("pecaId");
+    const secaoFilamentos = document.getElementById("secaoFilamentos");
     const resumoConsumoPeca = document.getElementById("resumoConsumoPeca");
     const nomePecaResumo = document.getElementById("nomePecaResumo");
     const consumoPrevistoResumo = document.getElementById("consumoPrevistoResumo");
@@ -310,6 +311,12 @@ function inicializarFilamentosCalculo() {
         atualizarResumo();
     }
 
+    function atualizarDisponibilidadeFilamentos() {
+        if (secaoFilamentos) {
+            secaoFilamentos.hidden = !pecaId?.value;
+        }
+    }
+
     function criarFilamento() {
         const novo = modeloFilamento.content.firstElementChild.cloneNode(true);
 
@@ -365,7 +372,10 @@ function inicializarFilamentosCalculo() {
                 );
 
             if (duplicado) {
-                alert("Esse filamento já foi confirmado. Edite o filamento existente para alterar a quantidade.");
+                window.mostrarNotificacao?.(
+                    "Esse filamento já foi confirmado. Edite o filamento existente para alterar a quantidade.",
+                    "erro"
+                );
                 return;
             }
 
@@ -440,9 +450,16 @@ function inicializarFilamentosCalculo() {
         atualizarTudo();
     });
 
-    pecaId?.addEventListener("change", atualizarTudo);
-    pecaId?.addEventListener("pecaSelecionada", atualizarTudo);
+    pecaId?.addEventListener("change", () => {
+        atualizarDisponibilidadeFilamentos();
+        atualizarTudo();
+    });
+    pecaId?.addEventListener("pecaSelecionada", () => {
+        atualizarDisponibilidadeFilamentos();
+        atualizarTudo();
+    });
 
+    atualizarDisponibilidadeFilamentos();
     atualizarTudo();
 }
 

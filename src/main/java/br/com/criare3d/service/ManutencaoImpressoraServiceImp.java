@@ -88,12 +88,10 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
 
     @Override
     @Transactional(readOnly = true)
-    public BigDecimal custoPorHora(UUID impressoraId, BigDecimal fallbackManual) {
+    public BigDecimal custoPorHora(UUID impressoraId) {
         BigDecimal total = totalGasto(impressoraId);
         long minutos = minutosImpressos(impressoraId);
-        if (total.signum() <= 0 || minutos <= 0) {
-            return fallbackManual == null ? BigDecimal.ZERO : fallbackManual;
-        }
+        if (total == null || total.signum() <= 0 || minutos <= 0) return BigDecimal.ZERO;
         BigDecimal horas = BigDecimal.valueOf(minutos)
                 .divide(BigDecimal.valueOf(60), 10, RoundingMode.HALF_UP);
         return total.divide(horas, 8, RoundingMode.HALF_UP);
