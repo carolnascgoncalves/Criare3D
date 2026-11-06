@@ -3211,91 +3211,27 @@ a:focus-visible {
     background: #f7eee6;
 }
 
-/* CONTROLES DE SELEÇÃO DAS LISTAGENS */
+/* CONTROLES DE SELEÇÃO DO HISTÓRICO */
 
-.controles-selecao-listagem {
+.lista-catalogo .historico-conteudo > .controles-selecao-listagem {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
     gap: 8px;
     width: 100%;
-    max-width: none;
     margin: 0 0 6px;
-    padding: 0 16px 0 0;
-    border: none;
-    background: transparent;
-    color: var(--marrom-claro);
-    font-size: 0.9rem;
-}
-
-.modo-selecao .controles-selecao-listagem {
-    justify-content: flex-end;
-    background: transparent;
-    border: none;
-}
-
-.controles-selecao-listagem form {
-    display: flex;
-    align-items: center;
-    margin: 0;
-}
-
-.controles-selecao-listagem [data-selecao-toggle] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    padding: 8px 12px;
-    border: 1px solid var(--borda);
-    border-radius: 9px;
-    background: #fffaf6;
-    color: var(--marrom);
-    white-space: nowrap;
-}
-
-.controles-selecao-listagem [data-selecao-toggle]:hover {
-    border-color: var(--destaque);
-    background: #f7eee6;
-}
-
-.controles-selecao-listagem [data-contador-selecao] {
-    color: var(--marrom-claro);
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.controles-selecao-listagem [data-excluir-selecionados] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
     padding: 0;
-    border: 1px solid #c56a5f;
-    border-radius: 9px;
-    background: #fbe9e5;
-    color: #7c3027;
-    font-size: 0;
 }
 
-.controles-selecao-listagem [data-excluir-selecionados] i {
-    font-size: 1rem;
+.lista-catalogo .historico-conteudo > .controles-selecao-listagem [data-selecao-toggle] {
+    min-height: 38px;
 }
 
-.controles-selecao-listagem [data-excluir-selecionados]:hover:not(:disabled) {
-    background: #f5d5cf;
-}
-
-.controles-selecao-listagem [data-excluir-selecionados]:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-.controles-selecao-listagem [hidden] {
-    display: none;
+.lista-catalogo .modo-selecao .historico-conteudo > .controles-selecao-listagem {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
 }
 
 /* CABEÇALHOS DAS TABELAS */
