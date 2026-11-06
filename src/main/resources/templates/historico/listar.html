@@ -1,32 +1,36 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-
 <head th:replace="~{fragmentos :: cabecalho('Histórico de Cálculos')}"></head>
-
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina lista-catalogo">
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'estoqueInsuficiente'}">
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'estoqueInsuficiente'}">
         Estoque insuficiente para marcar como produzido ou vendido. Atualize o saldo do filamento e tente novamente.
     </div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'vendaAtiva'}">
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'vendaAtiva'}">
         Desmarque “Vendido” antes de desmarcar “Produzido”.
     </div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'naoEncontrado'}">
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'naoEncontrado'}">
         Este cálculo não foi encontrado ou não está mais disponível.
     </div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'nenhumSelecionado'}">
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'nenhumSelecionado'}">
         Selecione pelo menos um cálculo para excluir.
     </div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'producaoAtualizada'}">
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'producaoAtualizada'}">
         Status de produção atualizado; o estoque foi ajustado.
     </div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'vendaAtualizada'}">
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'vendaAtualizada'}">
         Venda atualizada; ao marcar como vendido, a produção e o desconto no estoque também são registrados.
     </div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'historicosRemovidos'}">
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'historicosRemovidos'}">
         Cálculos excluídos; o estoque dos que estavam produzidos foi restaurado.
     </div>
     <div class="alerta-sucesso notificacao-flutuante"
@@ -34,19 +38,21 @@
         <i class="bi bi-check-circle"></i>
         Cálculo excluído do histórico com sucesso!
     </div>
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'historicoSalvo'}">Cálculo salvo no histórico.</div>
+    <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'historicoSalvo'}">
+        Cálculo salvo no histórico.
+    </div>
+
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU CATÁLOGO</span>
             <h1>Histórico de cálculos</h1>
             <p>Acompanhe os custos e preços sugeridos das suas impressões 3D.</p>
         </div>
-
         <a th:href="@{/historico/novo}" class="botao botao-principal">
             <i class="bi bi-plus-lg"></i> Novo cálculo
         </a>
     </section>
-
 
     <section class="cartao" data-lista-selecao>
         <div class="cartao-cabecalho">
@@ -54,107 +60,159 @@
                 <h2>Cálculos realizados</h2>
                 <p>Consulte os resultados que você já salvou.</p>
             </div>
-
-            <span class="contador-historicos"
-                  th:text="${pagina.totalElements + ' registros'}">
+            <span class="contador-historicos" th:text="${pagina.totalElements + ' registros'}">
                 0 registros
             </span>
         </div>
 
-        <form th:action="@{/historico/listar}" method="get" class="busca-filamentos">
+        <form th:action="@{/historico/listar}" method="get"
+              class="busca-filamentos" data-ordenacao-listagem>
 
             <div class="busca-filamentos-campo">
                 <i class="bi bi-search"></i>
-                <input type="search"
-                       name="busca"
-                       th:value="${busca}"
+                <input type="search" name="busca" th:value="${busca}"
                        placeholder="Pesquisar pelo nome da peça..."
                        aria-label="Pesquisar pelo nome da peça">
             </div>
 
             <div class="busca-listagem-data">
                 <i class="bi bi-calendar3"></i>
-                <input type="date"
-                       name="data"
-                       th:value="${data}"
+                <input type="date" name="data" th:value="${data}"
                        title="Filtrar cálculos por data"
                        aria-label="Filtrar cálculos por data">
             </div>
+
             <input type="hidden" name="plataforma" th:value="${plataforma}">
 
-            <button type="submit" class="botao botao-principal">
-                Pesquisar
-            </button>
+            <select name="produzido" aria-label="Filtrar por produção"
+                    title="Filtrar por produção">
+                <option value="TODOS" th:selected="${produzido == 'TODOS'}">Produção: todos</option>
+                <option value="SIM" th:selected="${produzido == 'SIM'}">Produzidos</option>
+                <option value="NAO" th:selected="${produzido == 'NAO'}">Não produzidos</option>
+            </select>
+
+            <select name="vendido" aria-label="Filtrar por venda"
+                    title="Filtrar por venda">
+                <option value="TODOS" th:selected="${vendido == 'TODOS'}">Venda: todas</option>
+                <option value="SIM" th:selected="${vendido == 'SIM'}">Vendidos</option>
+                <option value="NAO" th:selected="${vendido == 'NAO'}">Não vendidos</option>
+            </select>
+
+            <button type="submit" class="botao botao-principal">Pesquisar</button>
 
             <details class="controle-ordenacao controle-plataforma"
                      th:classappend="${plataforma != null and !plataforma.isBlank()} ? ' filtro-plataforma-ativo' : ''">
                 <summary aria-label="Filtrar por plataforma" title="Filtrar por plataforma">
                     <i class="bi bi-shop"></i>
-                    <span class="indicador-filtro" th:if="${plataforma != null and !plataforma.isBlank()}" aria-hidden="true"></span>
+                    <span class="indicador-filtro"
+                          th:if="${plataforma != null and !plataforma.isBlank()}"
+                          aria-hidden="true"></span>
                 </summary>
                 <div class="painel-ordenacao painel-plataforma">
                     <strong>Mostrar cálculos</strong>
-                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem})}"
-                       th:classappend="${plataforma == null or plataforma.isBlank()} ? ' selecionada' : ''">Todas as plataformas</a>
-                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SHOPEE')}"
-                       th:classappend="${plataforma == 'SHOPEE'} ? ' selecionada' : ''">Shopee</a>
-                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='TIKTOK')}"
-                       th:classappend="${plataforma == 'TIKTOK'} ? ' selecionada' : ''">TikTok Shop</a>
-                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='MERCADO_LIVRE')}"
-                       th:classappend="${plataforma == 'MERCADO_LIVRE'} ? ' selecionada' : ''">Mercado Livre</a>
-                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SEM_PLATAFORMA')}"
-                       th:classappend="${plataforma == 'SEM_PLATAFORMA'} ? ' selecionada' : ''">Sem plataforma</a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == null or plataforma.isBlank()} ? ' selecionada' : ''">
+                        Todas as plataformas
+                    </a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SHOPEE', produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == 'SHOPEE'} ? ' selecionada' : ''">
+                        Shopee
+                    </a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='TIKTOK', produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == 'TIKTOK'} ? ' selecionada' : ''">
+                        TikTok Shop
+                    </a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='MERCADO_LIVRE', produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == 'MERCADO_LIVRE'} ? ' selecionada' : ''">
+                        Mercado Livre
+                    </a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SEM_PLATAFORMA', produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == 'SEM_PLATAFORMA'} ? ' selecionada' : ''">
+                        Sem plataforma
+                    </a>
                 </div>
             </details>
 
             <details class="controle-ordenacao">
-                <summary aria-label="Opções de ordenação" title="Ordenar histórico"><i class="bi bi-sort-down"></i></summary>
+                <summary aria-label="Opções de ordenação" title="Ordenar histórico">
+                    <i class="bi bi-sort-down"></i>
+                </summary>
                 <div class="painel-ordenacao">
-                    <label for="ordem-historico">Ordenar por</label>
-                    <select id="ordem-historico" name="ordem">
-                        <option value="dataDesc" th:selected="${ordem == 'dataDesc'}">Mais recente</option>
-                        <option value="dataAsc" th:selected="${ordem == 'dataAsc'}">Mais antiga</option>
-                        <option value="nomeAsc" th:selected="${ordem == 'nomeAsc'}">Peça (A–Z)</option>
-                        <option value="nomeDesc" th:selected="${ordem == 'nomeDesc'}">Peça (Z–A)</option>
-                        <option value="custoAsc" th:selected="${ordem == 'custoAsc'}">Menor custo total</option>
-                        <option value="custoDesc" th:selected="${ordem == 'custoDesc'}">Maior custo total</option>
-                        <option value="precoAsc" th:selected="${ordem == 'precoAsc'}">Menor preço exibido</option>
-                        <option value="precoDesc" th:selected="${ordem == 'precoDesc'}">Maior preço exibido</option>
+                    <label for="campo-ordem-historico">Ordenar por</label>
+                    <select id="campo-ordem-historico" data-ordenacao-campo>
+                        <option value="data">Data do cálculo</option>
+                        <option value="nome">Nome da peça</option>
+                        <option value="custo">Custo total</option>
+                        <option value="preco">Preço exibido</option>
                     </select>
+                    <input type="hidden" name="ordem" value="dataDesc"
+                           th:value="${ordem}" data-ordenacao-valor>
+                    <button type="button" class="botao botao-secundario"
+                            data-ordenacao-direcao>
+                        Decrescente
+                    </button>
                     <button type="submit" class="botao botao-secundario">Aplicar</button>
                 </div>
             </details>
-            <a th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"
+
+            <a th:if="${(busca != null and !busca.isBlank()) or data != null
+                        or (plataforma != null and !plataforma.isBlank())
+                        or (produzido != null and produzido != 'TODOS')
+                        or (vendido != null and vendido != 'TODOS')}"
                th:href="@{/historico/listar(ordem=${ordem})}"
                class="botao botao-secundario">
                 Limpar
             </a>
         </form>
 
+        <div class="controles-selecao-listagem"
+             th:if="${!#lists.isEmpty(historicos)}">
+            <button type="button" class="botao botao-secundario"
+                    data-selecao-toggle data-form="form-remover-lote">
+                <i class="bi bi-check2-square"></i> Selecionar
+            </button>
+            <span data-contador-selecao>0 selecionado(s)</span>
+            <button type="submit" form="form-remover-lote"
+                    class="botao botao-secundario"
+                    data-excluir-selecionados hidden disabled>
+                <i class="bi bi-trash3"></i> Excluir selecionados
+            </button>
+        </div>
+
         <div class="historico-conteudo">
-
-            <div class="historico-vazio"
-                 th:if="${#lists.isEmpty(historicos)}">
-
+            <div class="historico-vazio" th:if="${#lists.isEmpty(historicos)}">
                 <div class="historico-vazio-icone">
                     <i class="bi bi-search"
-                       th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"></i>
-
+                       th:if="${(busca != null and !busca.isBlank()) or data != null
+                               or (plataforma != null and !plataforma.isBlank())
+                               or (produzido != null and produzido != 'TODOS')
+                               or (vendido != null and vendido != 'TODOS')}"></i>
                     <i class="bi bi-calendar-x"
-                       th:unless="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"></i>
+                       th:unless="${(busca != null and !busca.isBlank()) or data != null
+                                   or (plataforma != null and !plataforma.isBlank())
+                                   or (produzido != null and produzido != 'TODOS')
+                                   or (vendido != null and vendido != 'TODOS')}"></i>
                 </div>
 
                 <h3>Nenhum cálculo encontrado</h3>
 
-                <p th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}">
+                <p th:if="${(busca != null and !busca.isBlank()) or data != null
+                           or (plataforma != null and !plataforma.isBlank())
+                           or (produzido != null and produzido != 'TODOS')
+                           or (vendido != null and vendido != 'TODOS')}">
                     Nenhum cálculo corresponde aos filtros selecionados. Tente alterar ou limpar os filtros.
                 </p>
-
-                <p th:unless="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}">
+                <p th:unless="${(busca != null and !busca.isBlank()) or data != null
+                               or (plataforma != null and !plataforma.isBlank())
+                               or (produzido != null and produzido != 'TODOS')
+                               or (vendido != null and vendido != 'TODOS')}">
                     Nenhum cálculo foi registrado ainda.
                 </p>
 
-                <a th:if="${(busca != null and !busca.isBlank()) or data != null or (plataforma != null and !plataforma.isBlank())}"
+                <a th:if="${(busca != null and !busca.isBlank()) or data != null
+                           or (plataforma != null and !plataforma.isBlank())
+                           or (produzido != null and produzido != 'TODOS')
+                           or (vendido != null and vendido != 'TODOS')}"
                    th:href="@{/historico/listar(ordem=${ordem})}"
                    class="botao botao-secundario">
                     Limpar filtros
@@ -162,18 +220,18 @@
             </div>
 
             <div class="tabela-responsiva" th:if="${!#lists.isEmpty(historicos)}">
-                <form id="form-remover-lote" th:action="@{/historico/remover-lote}" method="post"
+                <form id="form-remover-lote" th:action="@{/historico/remover-lote}"
+                      method="post"
                       onsubmit="return confirm('Excluir os cálculos selecionados? O estoque será restaurado para os que estiverem marcados como produzidos.');">
+                    <input type="hidden" name="busca" th:value="${busca}">
+                    <input type="hidden" name="data" th:value="${data}">
+                    <input type="hidden" name="plataforma" th:value="${plataforma}">
+                    <input type="hidden" name="produzido" th:value="${produzido}">
+                    <input type="hidden" name="vendido" th:value="${vendido}">
+                    <input type="hidden" name="ordem" th:value="${ordem}">
+                    <input type="hidden" name="page" th:value="${pagina.number}">
                 </form>
-                <div class="controles-selecao-listagem">
-                    <button type="button" class="botao botao-secundario" data-selecao-toggle data-form="form-remover-lote">
-                        <i class="bi bi-check2-square"></i> Selecionar
-                    </button>
-                    <span data-contador-selecao>0 selecionado(s)</span>
-                    <button type="submit" form="form-remover-lote" class="botao botao-secundario" data-excluir-selecionados hidden disabled>
-                        <i class="bi bi-trash3"></i> Excluir selecionados
-                    </button>
-                </div>
+
                 <table class="tabela-historico">
                     <thead>
                     <tr>
@@ -188,11 +246,12 @@
                         <th class="coluna-acoes">Ações</th>
                     </tr>
                     </thead>
-
                     <tbody>
                     <tr th:each="historico : ${historicos}">
                         <td class="coluna-selecao">
-                            <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${historico.id}" form="form-remover-lote"
+                            <input class="checkbox-selecao-listagem" type="checkbox"
+                                   name="ids" th:value="${historico.id}"
+                                   form="form-remover-lote"
                                    th:aria-label="|Selecionar ${historico.nomePeca} para exclusão|">
                         </td>
                         <td>
@@ -200,15 +259,12 @@
                                 <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
                                      class="peca-historico-foto"
                                      th:src="@{/historico/{id}/foto(id=${historico.id})}"
-                                     loading="lazy"
-                                     decoding="async"
+                                     loading="lazy" decoding="async"
                                      th:alt="|Foto de ${historico.nomePeca}|">
-
                                 <span class="peca-historico-icone"
                                       th:unless="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}">
                                     <i class="bi bi-image"></i>
                                 </span>
-
                                 <strong th:text="${historico.nomePeca}">Nome da peça</strong>
                             </div>
                         </td>
@@ -230,52 +286,52 @@
 
                         <td>
                             <span class="valor-preco"
-                                  th:text="${'R$ ' + #numbers.formatDecimal(
-                                      historico.precoVendaPlataforma != null
-                                          ? historico.precoVendaPlataforma
-                                          : historico.precoSugerido,
-                                      1, 'POINT', 2, 'COMMA')}">
+                                  th:text="${'R$ ' + #numbers.formatDecimal((historico.precoVendaPlataforma != null ? historico.precoVendaPlataforma  : historico.precoSugerido),
+                                   1, 'POINT', 2, 'COMMA')}">
                                 R$ 0,00
                             </span>
                         </td>
+
                         <td>
-                            <form th:action="@{/historico/{id}/produzido(id=${historico.id})}" method="post" class="form-status-historico">
-                                <input type="hidden" name="valor" th:value="${!(historico.produzido == true)}">
+                            <form th:action="@{/historico/{id}/produzido(id=${historico.id})}"
+                                  method="post" class="form-status-historico">
+                                <input type="hidden" name="valor"
+                                       th:value="${!(historico.produzido == true)}">
                                 <button type="submit" class="botao-status-historico"
-                                        th:classappend="${(historico.produzido == true)} ? ' status-ativo' : ''"
-                                        th:title="${(historico.produzido == true)} ? 'Desmarcar como produzido (devolve o material ao estoque)' : 'Marcar como produzido (desconta o material do estoque)'"
-                                        th:aria-label="${(historico.produzido == true)} ? 'Produzido: sim' : 'Produzido: não'">
-                                    <i th:class="${(historico.produzido == true)} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
-                                    <span th:text="${(historico.produzido == true)} ? 'Sim' : 'Não'">Não</span>
+                                        th:classappend="${historico.produzido == true} ? ' status-ativo' : ''"
+                                        th:title="${historico.produzido == true} ? 'Desmarcar como produzido (devolve o material ao estoque)' : 'Marcar como produzido (desconta o material do estoque)'"
+                                        th:aria-label="${historico.produzido == true} ? 'Produzido: sim' : 'Produzido: não'">
+                                    <i th:class="${historico.produzido == true} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                                    <span th:text="${historico.produzido == true} ? 'Sim' : 'Não'">Não</span>
                                 </button>
                             </form>
                         </td>
+
                         <td>
-                            <form th:action="@{/historico/{id}/vendido(id=${historico.id})}" method="post" class="form-status-historico">
-                                <input type="hidden" name="valor" th:value="${!(historico.vendido == true)}">
+                            <form th:action="@{/historico/{id}/vendido(id=${historico.id})}"
+                                  method="post" class="form-status-historico">
+                                <input type="hidden" name="valor"
+                                       th:value="${!(historico.vendido == true)}">
                                 <button type="submit" class="botao-status-historico"
-                                        th:classappend="${(historico.vendido == true)} ? ' status-ativo' : ''"
-                                        th:title="${(historico.vendido == true)} ? 'Desmarcar como vendido' : 'Marcar como vendido'"
-                                        th:aria-label="${(historico.vendido == true)} ? 'Vendido: sim' : 'Vendido: não'">
-                                    <i th:class="${(historico.vendido == true)} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
-                                    <span th:text="${(historico.vendido == true)} ? 'Sim' : 'Não'">Não</span>
+                                        th:classappend="${historico.vendido == true} ? ' status-ativo' : ''"
+                                        th:title="${historico.vendido == true} ? 'Desmarcar como vendido' : 'Marcar como vendido'"
+                                        th:aria-label="${historico.vendido == true} ? 'Vendido: sim' : 'Vendido: não'">
+                                    <i th:class="${historico.vendido == true} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
+                                    <span th:text="${historico.vendido == true} ? 'Sim' : 'Não'">Não</span>
                                 </button>
                             </form>
                         </td>
+
                         <td class="coluna-acoes">
                             <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
-                               class="botao-acao"
-                               title="Ver detalhes"
+                               class="botao-acao" title="Ver detalhes"
                                aria-label="Ver detalhes do cálculo">
                                 <i class="bi bi-eye"></i>
                             </a>
-
                             <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
-                                  method="post"
-                                  class="formulario-excluir"
+                                  method="post" class="formulario-excluir"
                                   onsubmit="return confirm('Tem certeza de que deseja excluir este cálculo do histórico? Esta ação não poderá ser desfeita.');">
-                                <button type="submit"
-                                        class="botao-acao-excluir"
+                                <button type="submit" class="botao-acao-excluir"
                                         title="Excluir cálculo"
                                         aria-label="Excluir cálculo do histórico">
                                     <i class="bi bi-trash"></i>
@@ -287,16 +343,12 @@
                 </table>
             </div>
 
-            <div class="paginacao-historico"
-                 th:if="${pagina.totalPages > 1}">
-
+            <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">
                 <a th:if="${pagina.hasPrevious()}"
-                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma})}"
-                   title="Página anterior"
-                   aria-label="Página anterior">
+                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
+                   title="Página anterior" aria-label="Página anterior">
                     <i class="bi bi-chevron-left"></i>
                 </a>
-
                 <span class="seta-desabilitada" th:unless="${pagina.hasPrevious()}">
                     <i class="bi bi-chevron-left"></i>
                 </span>
@@ -307,16 +359,13 @@
                 </span>
 
                 <a th:if="${pagina.hasNext()}"
-                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma})}"
-                   title="Próxima página"
-                   aria-label="Próxima página">
+                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
+                   title="Próxima página" aria-label="Próxima página">
                     <i class="bi bi-chevron-right"></i>
                 </a>
-
                 <span class="seta-desabilitada" th:unless="${pagina.hasNext()}">
                     <i class="bi bi-chevron-right"></i>
                 </span>
-
             </div>
         </div>
     </section>

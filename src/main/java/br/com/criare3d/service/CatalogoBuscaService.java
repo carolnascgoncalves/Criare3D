@@ -69,17 +69,48 @@ public class CatalogoBuscaService {
     }
 
     public Page<CalculoHistorico> buscarHistorico(
-            String nome, LocalDate data, String plataforma, Pageable pageable) {
+            String nome,
+            LocalDate data,
+            String plataforma,
+            String produzido,
+            String vendido,
+            Pageable pageable) {
 
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        // Mantém o parâmetro tipado como texto no PostgreSQL mesmo sem busca.
+
         String nomeFiltro = nome == null ? "" : nome.trim();
+
         boolean filtrarData = data != null;
         LocalDateTime inicio = data == null ? null : data.atStartOfDay();
         LocalDateTime fim = data == null ? null : data.plusDays(1).atStartOfDay();
+
         String plataformaFiltro = plataforma == null ? "" : plataforma.trim();
+        String produzidoFiltro = normalizarStatus(produzido);
+        String vendidoFiltro = normalizarStatus(vendido);
 
         return calculoHistoricoRepository.buscarHistoricoFiltrado(
-                usuarioId, nomeFiltro, filtrarData, inicio, fim, plataformaFiltro, pageable);
+                usuarioId,
+                nomeFiltro,
+                filtrarData,
+                inicio,
+                fim,
+                plataformaFiltro,
+                produzidoFiltro,
+                vendidoFiltro,
+                pageable
+        );
+    }
+
+    private String normalizarStatus(String status) {
+        if (status == null) {
+            return "TODOS";
+        }
+
+        String valor = status.trim().toUpperCase();
+
+        return switch (valor) {
+            case "SIM", "NAO" -> valor;
+            default -> "TODOS";
+        };
     }
 }

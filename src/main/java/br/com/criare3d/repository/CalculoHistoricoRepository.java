@@ -41,6 +41,16 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
               OR h.plataformaVenda = :plataforma
           )
+          AND (
+              :produzido = 'TODOS'
+              OR (:produzido = 'SIM' AND h.produzido = true)
+              OR (:produzido = 'NAO' AND (h.produzido = false OR h.produzido IS NULL))
+          )
+          AND (
+              :vendido = 'TODOS'
+              OR (:vendido = 'SIM' AND h.vendido = true)
+              OR (:vendido = 'NAO' AND (h.vendido = false OR h.vendido IS NULL))
+          )
         """,
             countQuery = """
         SELECT COUNT(h)
@@ -53,6 +63,16 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
               OR h.plataformaVenda = :plataforma
           )
+          AND (
+              :produzido = 'TODOS'
+              OR (:produzido = 'SIM' AND h.produzido = true)
+              OR (:produzido = 'NAO' AND (h.produzido = false OR h.produzido IS NULL))
+          )
+          AND (
+              :vendido = 'TODOS'
+              OR (:vendido = 'SIM' AND h.vendido = true)
+              OR (:vendido = 'NAO' AND (h.vendido = false OR h.vendido IS NULL))
+          )
         """)
     Page<CalculoHistorico> buscarHistoricoFiltrado(
             @Param("usuarioId") UUID usuarioId,
@@ -61,6 +81,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
             @Param("inicio") LocalDateTime inicio,
             @Param("fim") LocalDateTime fim,
             @Param("plataforma") String plataforma,
+            @Param("produzido") String produzido,
+            @Param("vendido") String vendido,
             Pageable pageable
     );
 

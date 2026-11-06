@@ -93,14 +93,31 @@ public class CalculoHistoricoController {
             @RequestParam(name = "data", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
+            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
+            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
             @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
             @PageableDefault(page = 0, size = 5) Pageable pageable) {
 
         plataforma = plataforma == null ? "" : plataforma.trim().toUpperCase();
-        if (!PLATAFORMAS_FILTRO.contains(plataforma)) plataforma = "";
 
-        ordem = OrdenacaoPaginada.validarOrdem(ordem, "dataDesc", ORDENACOES_HISTORICO);
-        pageable = OrdenacaoPaginada.aplicar(pageable, ordem, ORDENACOES_HISTORICO);
+        if (!PLATAFORMAS_FILTRO.contains(plataforma)) {
+            plataforma = "";
+        }
+
+        produzido = normalizarFiltroStatus(produzido);
+        vendido = normalizarFiltroStatus(vendido);
+
+        ordem = OrdenacaoPaginada.validarOrdem(
+                ordem,
+                "dataDesc",
+                ORDENACOES_HISTORICO
+        );
+
+        pageable = OrdenacaoPaginada.aplicar(
+                pageable,
+                ordem,
+                ORDENACOES_HISTORICO
+        );
 
         ModelAndView mv = new ModelAndView("historico/listar");
 
@@ -108,6 +125,8 @@ public class CalculoHistoricoController {
                 busca.trim(),
                 data,
                 plataforma,
+                produzido,
+                vendido,
                 pageable
         );
 
@@ -116,9 +135,24 @@ public class CalculoHistoricoController {
         mv.addObject("busca", busca);
         mv.addObject("data", data);
         mv.addObject("plataforma", plataforma);
+        mv.addObject("produzido", produzido);
+        mv.addObject("vendido", vendido);
         mv.addObject("ordem", ordem);
 
         return mv;
+    }
+
+    private String normalizarFiltroStatus(String status) {
+        if (status == null) {
+            return "TODOS";
+        }
+
+        String valor = status.trim().toUpperCase();
+
+        return switch (valor) {
+            case "SIM", "NAO" -> valor;
+            default -> "TODOS";
+        };
     }
 
     @GetMapping("/historico/novo")
