@@ -232,9 +232,10 @@
                                 0 g
                             </span>
 
-                            <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}"
+                            <a th:if="${filamentosComHistoricoProduzido[filamento.id]}"
+                               th:href="@{/filamento/{id}/historico(id=${filamento.id})}"
                                class="botao-acao"
-                               title="Ver cálculos que usaram este filamento"
+                               title="Ver cálculos produzidos que usaram este filamento"
                                aria-label="Ver histórico de uso deste filamento">
                                 <i class="bi bi-search"></i>
                             </a>

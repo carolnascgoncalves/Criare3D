@@ -1,3 +1,4 @@
+
 package br.com.criare3d.repository;
 
 import br.com.criare3d.models.CalculoHistorico;
@@ -124,6 +125,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         LEFT JOIN h.itensFilamento item ON item.filamento.id = :filamentoId
         WHERE h.usuario.id = :usuarioId
+          AND h.produzido = true
           AND (item.id IS NOT NULL OR h.filamento.id = :filamentoId)
         GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas
         ORDER BY h.dataCalculo DESC

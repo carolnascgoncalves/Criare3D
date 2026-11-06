@@ -24,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.UUID;
 import java.util.Map;
 import java.util.List;
+import java.util.HashMap;
 
 @Controller
 public class FilamentoController {
@@ -54,10 +55,23 @@ public class FilamentoController {
 
         Page<Filamento> pagina = filamentoService.fetchAll(pageable, busca);
 
+        Map<UUID, Boolean> filamentosComHistoricoProduzido = new HashMap<>();
+
+        for (Filamento filamento : pagina.getContent()) {
+            boolean possuiHistoricoProduzido =
+                    !calculoHistoricoService.listarUsosPorFilamento(filamento.getId()).isEmpty();
+
+            filamentosComHistoricoProduzido.put(
+                    filamento.getId(),
+                    possuiHistoricoProduzido
+            );
+        }
+
         mv.addObject("filamentos", pagina.getContent());
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca == null ? "" : busca);
         mv.addObject("ordem", ordem);
+        mv.addObject("filamentosComHistoricoProduzido", filamentosComHistoricoProduzido);
 
         return mv;
     }
