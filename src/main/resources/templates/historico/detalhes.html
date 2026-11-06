@@ -21,7 +21,7 @@
 
             <div class="detalhes-identificacao-peca">
 
-                <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}" aria-label="Ampliar foto da peça">
+                <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}" aria-label="Ampliar foto da peça" aria-controls="modalFotoPeca">
                     <img th:src="@{/historico/{id}/foto(id=${historico.id})}" alt="Foto da peça" class="detalhes-foto-peca" decoding="async">
                     <span class="detalhes-foto-lupa"><i class="bi bi-search"></i></span>
                 </button>
@@ -353,6 +353,9 @@
     <!-- MODAL DA FOTO DA PEÇA -->
     <div class="detalhes-modal-foto"
          id="modalFotoPeca"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Foto ampliada da peça"
          th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
          hidden>
 

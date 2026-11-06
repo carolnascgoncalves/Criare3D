@@ -18,6 +18,10 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
     Page<CalculoHistorico> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
 
+    long countByProduzidoTrueAndUsuario_Id(UUID usuarioId);
+
+    long countByVendidoTrueAndUsuario_Id(UUID usuarioId);
+
     Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndUsuario_Id(
             String nomePeca, UUID usuarioId, Pageable pageable
     );

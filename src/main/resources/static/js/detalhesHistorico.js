@@ -21,6 +21,7 @@
         function abrirModal() {
             modal.hidden = false;
             document.body.style.overflow = "hidden";
+            botaoFechar.focus();
         }
 
         function fecharModal() {
@@ -36,6 +37,13 @@
         modal.addEventListener("click", function (event) {
             if (event.target === modal) {
                 fecharModal();
+            }
+        });
+
+        modal.addEventListener("keydown", function (event) {
+            if (event.key === "Tab") {
+                event.preventDefault();
+                botaoFechar.focus();
             }
         });
 
@@ -71,6 +79,7 @@
         if (modal && !modal.hidden) {
             modal.hidden = true;
             document.body.style.overflow = "";
+            document.getElementById("abrirFotoPeca")?.focus();
         }
     });
 

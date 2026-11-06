@@ -1203,6 +1203,20 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
     @Override
+    public long contarProduzidos() {
+        return calculoHistoricoRepository.countByProduzidoTrueAndUsuario_Id(
+                usuarioLogadoService.buscarIdUsuarioAtual()
+        );
+    }
+
+    @Override
+    public long contarVendidos() {
+        return calculoHistoricoRepository.countByVendidoTrueAndUsuario_Id(
+                usuarioLogadoService.buscarIdUsuarioAtual()
+        );
+    }
+
+    @Override
     public java.util.Optional<CalculoHistorico> fetchById(UUID id) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 

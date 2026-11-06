@@ -84,52 +84,52 @@
         </div>
     </section>
 
+
     <section class="secao">
         <div class="titulo-secao">
             <div>
-                <h2>Acesso rápido</h2>
-                <p>Escolha o que deseja fazer.</p>
+                <h2>Produção e vendas</h2>
+                <p>Acompanhe os cálculos que já foram produzidos ou vendidos.</p>
             </div>
         </div>
 
-        <div class="atalhos-grid">
-
-            <a th:href="@{/peca/novo}" class="atalho-card">
-                <span class="atalho-icone">＋</span>
-                <span>
-                    <strong>Cadastrar peça</strong>
-                    <small>Adicione uma nova peça ao catálogo.</small>
-                </span>
-                <span class="seta">→</span>
+        <div class="resumo-grid resumo-grid-producao">
+            <a th:href="@{/historico/listar(produzido='SIM')}" class="resumo-card resumo-card-producao">
+                <span class="resumo-icone"><i class="bi bi-printer"></i></span>
+                <span class="resumo-titulo">Peças produzidas</span>
+                <strong class="resumo-valor" th:text="${totalProduzidos}">0</strong>
+                <span class="resumo-link">Ver produzidas →</span>
             </a>
 
-            <a th:href="@{/filamento/novo}" class="atalho-card">
-                <span class="atalho-icone">＋</span>
-                <span>
-                    <strong>Adicionar filamento</strong>
-                    <small>Cadastre materiais e seus custos.</small>
-                </span>
-                <span class="seta">→</span>
+            <a th:href="@{/historico/listar(vendido='SIM')}" class="resumo-card resumo-card-producao">
+                <span class="resumo-icone"><i class="bi bi-bag-check"></i></span>
+                <span class="resumo-titulo">Peças vendidas</span>
+                <strong class="resumo-valor" th:text="${totalVendidos}">0</strong>
+                <span class="resumo-link">Ver vendidas →</span>
             </a>
+        </div>
+    </section>
 
-            <a th:href="@{/impressora/novo}" class="atalho-card">
-                <span class="atalho-icone">＋</span>
-                <span>
-                    <strong>Cadastrar impressora</strong>
-                    <small>Registre suas impressoras 3D.</small>
+    <section class="secao" th:if="${!#lists.isEmpty(ultimosCalculos)}">
+        <div class="titulo-secao">
+            <div>
+                <h2>Cálculos recentes</h2>
+                <p>Retome rapidamente os últimos itens que você calculou.</p>
+            </div>
+            <a th:href="@{/historico/listar}" class="resumo-link">Ver histórico →</a>
+        </div>
+
+        <div class="dashboard-recentes">
+            <a class="dashboard-recente"
+               th:each="calculo : ${ultimosCalculos}"
+               th:href="@{/historico/detalhes/{id}(id=${calculo.id})}">
+                <span class="dashboard-recente-nome" th:text="${calculo.nomePeca}">Nome da peça</span>
+                <span class="dashboard-recente-valores">
+                    <small th:text="|Custo: R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">Custo: R$ 0,00</small>
+                    <strong th:text="|Preço sugerido: R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">Preço sugerido: R$ 0,00</strong>
                 </span>
-                <span class="seta">→</span>
+                <i class="bi bi-chevron-right" aria-hidden="true"></i>
             </a>
-
-            <a th:href="@{/embalagem/novo}" class="atalho-card">
-                <span class="atalho-icone">＋</span>
-                <span>
-                    <strong>Adicionar embalagem</strong>
-                    <small>Organize os custos de embalagem.</small>
-                </span>
-                <span class="seta">→</span>
-            </a>
-
         </div>
     </section>
 

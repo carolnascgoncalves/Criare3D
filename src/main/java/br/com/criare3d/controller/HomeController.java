@@ -8,6 +8,7 @@ import br.com.criare3d.service.interfaces.ImpressoraService;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +34,9 @@ public class HomeController {
     @GetMapping({"/", "/home"})
     public String home(Model model) {
         PageRequest pagina = PageRequest.of(0, 1);
+        var historicosRecentes = calculoHistoricoService.fetchAll(
+                PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "dataCalculo"))
+        );
 
         model.addAttribute("totalPecas",
                 pecaService.fetchAll(pagina).getTotalElements());
@@ -43,8 +47,10 @@ public class HomeController {
         model.addAttribute("totalImpressoras",
                 impressoraService.fetchAll(pagina).getTotalElements());
 
-        model.addAttribute("totalCalculos",
-                calculoHistoricoService.fetchAll(pagina).getTotalElements());
+        model.addAttribute("totalCalculos", historicosRecentes.getTotalElements());
+        model.addAttribute("totalProduzidos", calculoHistoricoService.contarProduzidos());
+        model.addAttribute("totalVendidos", calculoHistoricoService.contarVendidos());
+        model.addAttribute("ultimosCalculos", historicosRecentes.getContent());
 
         boolean valorHoraConfigurado = configuracaoService.buscarConfiguracao()
                 .map(config -> Boolean.TRUE.equals(config.getMaoObraAtivada())

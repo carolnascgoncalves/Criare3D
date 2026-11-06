@@ -145,11 +145,11 @@
                    name="plataforma"
                    th:value="${plataforma}">
 
-            <button type="submit" class="botao botao-principal">
+            <button type="submit" class="botao botao-principal historico-pesquisar">
                 Pesquisar
             </button>
 
-            <details class="controle-ordenacao controle-plataforma"
+            <details class="controle-ordenacao controle-plataforma historico-filtro-plataforma"
                      th:classappend="${plataforma != null and !plataforma.isBlank()} ? ' filtro-plataforma-ativo' : ''">
 
                 <summary aria-label="Filtrar por plataforma"
@@ -192,7 +192,7 @@
                 </div>
             </details>
 
-            <details class="controle-ordenacao">
+            <details class="controle-ordenacao historico-ordenar">
                 <summary aria-label="Opções de ordenação"
                          title="Ordenar histórico">
                     <i class="bi bi-sort-down"></i>
@@ -242,7 +242,7 @@
                         or (produzido != null and produzido != 'TODOS')
                         or (vendido != null and vendido != 'TODOS')}"
                th:href="@{/historico/listar(ordem=${ordem})}"
-               class="botao botao-secundario">
+               class="botao botao-secundario historico-limpar">
                 Limpar
             </a>
         </form>

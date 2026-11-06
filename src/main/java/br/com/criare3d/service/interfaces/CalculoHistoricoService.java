@@ -16,6 +16,8 @@ import java.util.List;
 public interface CalculoHistoricoService {
     CalculoHistorico create(CalculoHistorico calculoHistorico);
     Page<CalculoHistorico> fetchAll(Pageable pageable);
+    long contarProduzidos();
+    long contarVendidos();
     Optional<CalculoHistorico> fetchById(UUID id);
     boolean existsById(UUID id);
     long contarPorFilamento(UUID filamentoId);

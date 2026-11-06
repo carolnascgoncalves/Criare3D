@@ -198,6 +198,10 @@ a {
     gap: 16px;
 }
 
+.resumo-grid-producao {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .resumo-card {
     display: flex;
     flex-direction: column;
@@ -245,6 +249,51 @@ a {
     color: var(--marrom);
     font-size: 13px;
     font-weight: bold;
+}
+
+.dashboard-recentes {
+    display: grid;
+    gap: 10px;
+}
+
+.dashboard-recente {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, auto) 18px;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 18px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: var(--branco);
+    color: var(--marrom);
+    text-decoration: none;
+}
+
+.dashboard-recente:hover {
+    border-color: var(--destaque);
+    color: var(--marrom);
+}
+
+.dashboard-recente-nome {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 700;
+}
+
+.dashboard-recente-valores {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px 14px;
+    color: var(--marrom-claro);
+}
+
+.dashboard-recente-valores strong {
+    color: var(--marrom);
+}
+
+.dashboard-recente > i {
+    color: var(--marrom-claro);
 }
 
 /* ATALHOS DA PÁGINA INICIAL */
@@ -486,6 +535,25 @@ a {
         width: calc(100% - 36px);
         margin-right: 18px;
     }
+
+    .lista-catalogo .historico-conteudo > .controles-selecao-listagem {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 38px;
+        justify-content: stretch;
+        row-gap: 8px;
+    }
+
+    .lista-catalogo .historico-conteudo > .controles-selecao-listagem [data-selecao-toggle] {
+        grid-column: 1 / -1;
+        justify-self: start;
+        max-width: 100%;
+    }
+
+    .lista-catalogo .historico-conteudo > .controles-selecao-listagem [data-contador-selecao] {
+        grid-column: 1;
+        white-space: normal;
+    }
+
 }
 
 @media (max-width: 420px) {
@@ -510,6 +578,10 @@ a {
         min-width: 36px;
         height: 36px;
         min-height: 36px;
+    }
+
+    .lista-catalogo .historico-conteudo > .controles-selecao-listagem {
+        grid-template-columns: minmax(0, 1fr) 36px;
     }
 }
 
@@ -975,8 +1047,28 @@ tr:nth-child(even) {
     }
 
     .resumo-grid,
+    .resumo-grid-producao,
     .atalhos-grid {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-recente {
+        grid-template-columns: minmax(0, 1fr) 18px;
+        gap: 8px 12px;
+    }
+
+    .dashboard-recente-nome {
+        grid-column: 1;
+    }
+
+    .dashboard-recente-valores {
+        grid-column: 1;
+        justify-content: flex-start;
+    }
+
+    .dashboard-recente > i {
+        grid-column: 2;
+        grid-row: 1 / span 2;
     }
 
     .menu-links {
