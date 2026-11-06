@@ -3,6 +3,7 @@
 <head th:replace="~{fragmentos :: cabecalho('Histórico de uso do filamento')}"></head>
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
+
 <main class="pagina">
     <section class="pagina-intro">
         <div>
@@ -10,7 +11,9 @@
             <h1>Histórico de uso</h1>
             <p th:text="|${filamento.nome} · ${filamento.cor}|">Filamento</p>
         </div>
-        <a th:href="@{/filamento/listar}" class="botao botao-secundario"><i class="bi bi-arrow-left"></i> Voltar aos filamentos</a>
+        <a th:href="@{/filamento/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar aos filamentos
+        </a>
     </section>
 
     <section class="cartao">
@@ -34,11 +37,18 @@
                 </thead>
                 <tbody>
                 <tr th:each="uso : ${usos}">
-                    <td th:text="${uso.nomePeca}">Peça</td>
+                    <td>
+                        <a th:href="@{/historico/detalhes/{id}(id=${uso.historicoId})}"
+                           class="link-historico-filamento"
+                           th:text="${uso.nomePeca}">
+                            Peça
+                        </a>
+                    </td>
                     <td th:text="${#temporals.format(uso.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm')}">Data</td>
                     <td th:text="|${#numbers.formatDecimal(uso.quantidadeGramas, 1, 2)} g|">0 g</td>
                     <td>
-                        <span class="status-venda-historico" th:classappend="${uso.vendido == true} ? ' status-ativo' : ''"
+                        <span class="status-venda-historico"
+                              th:classappend="${uso.vendido == true} ? ' status-ativo' : ''"
                               th:text="${uso.vendido == true} ? 'Sim' : 'Não'">Não</span>
                     </td>
                 </tr>

@@ -42,7 +42,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               OR h.plataformaVenda = :plataforma
           )
         """,
-        countQuery = """
+            countQuery = """
         SELECT COUNT(h)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId
@@ -107,6 +107,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
     @Query("""
         SELECT new br.com.criare3d.dto.FilamentoHistoricoUsoResponse(
+            h.id,
             h.nomePeca,
             h.dataCalculo,
             COALESCE(SUM(item.quantidadeFilamentoGramas), h.quantidadeFilamentoGramas),
@@ -116,7 +117,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         LEFT JOIN h.itensFilamento item ON item.filamento.id = :filamentoId
         WHERE h.usuario.id = :usuarioId
           AND (item.id IS NOT NULL OR h.filamento.id = :filamentoId)
-        GROUP BY h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas
+        GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas
         ORDER BY h.dataCalculo DESC
         """)
     List<FilamentoHistoricoUsoResponse> buscarUsosDoFilamento(
