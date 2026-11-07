@@ -10,8 +10,9 @@
             <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
             <h1>Bem-vinda ao Criare 3D!</h1>
             <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
+            <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> Tarifas e lucros das plataformas são estimativas; os valores reais podem variar.</small>
         </div>
-        <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período dos indicadores">
+        <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período da dashboard">
             <button type="submit" name="periodo" value="30" th:classappend="${periodo == '30' ? ' selecionado' : ''}">30 dias</button>
             <button type="submit" name="periodo" value="90" th:classappend="${periodo == '90' ? ' selecionado' : ''}">90 dias</button>
             <button type="submit" name="periodo" value="tudo" th:classappend="${periodo == 'tudo' ? ' selecionado' : ''}">Tudo</button>
@@ -27,7 +28,7 @@
         <article class="dashboard-indicador">
             <span>Lucro estimado por hora</span>
             <strong th:text="|R$ ${#numbers.formatDecimal(lucroPorHora, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
-            <small>Lucro estimado ÷ horas produzidas</small>
+            <small>Lucro das vendas ÷ horas dessas peças</small>
         </article>
         <article class="dashboard-indicador">
             <span>Horas imprimindo</span>
@@ -51,18 +52,18 @@
     <section class="dashboard-grade dashboard-grade-graficos">
         <article class="dashboard-bloco dashboard-lucro-mensal">
             <div class="dashboard-bloco-titulo">
-                <div><h2>Lucro líquido por mês</h2><p>Das peças vendidas com plataforma simulada · últimos seis meses</p></div>
-                <strong class="dashboard-variacao" th:classappend="${variacaoLucroMensal < 0 ? ' negativo' : ''}"
-                        th:text="|${variacaoLucroMensal >= 0 ? '+' : ''}${variacaoLucroMensal}% vs mês anterior|">0% vs mês anterior</strong>
+                <div><h2>Lucro líquido estimado</h2><p th:text="${descricaoPeriodoGrafico}">Lucro estimado por dia no período selecionado</p></div>
+                <strong class="dashboard-variacao" th:classappend="${variacaoLucro < 0 ? ' negativo' : ''}"
+                        th:text="${textoVariacaoLucro}">0% vs período anterior</strong>
             </div>
             <div class="dashboard-grafico-linha">
-                <canvas id="graficoLucroMensal" role="img" aria-label="Lucro líquido mensal das peças vendidas nos últimos seis meses">Gráfico de lucro líquido mensal.</canvas>
+                <canvas id="graficoLucroMensal" role="img" aria-label="Lucro líquido estimado das peças vendidas no período selecionado">Gráfico de lucro líquido estimado no período.</canvas>
             </div>
         </article>
 
         <article class="dashboard-bloco dashboard-vendas-plataforma">
             <div class="dashboard-bloco-titulo">
-                <div><h2>Vendas por plataforma</h2><p>Lucro líquido de cada uma</p></div>
+                <div><h2>Vendas por plataforma</h2><p>Lucro estimado após taxas simuladas</p></div>
             </div>
             <div class="dashboard-grafico-rosca-wrap" th:if="${vendasPlataformas > 0}">
                 <canvas id="graficoPlataformas" role="img" aria-label="Lucro líquido por plataforma de venda"></canvas>
@@ -170,8 +171,8 @@
 <script th:replace="~{fragmentos :: bootstrap-script}"></script>
 <script type="application/json" id="dashboard-chart-data" th:inline="javascript">
     {
-        "meses": [[${lucroMensalRotulos}]],
-        "lucroMensal": [[${lucroMensalValores}]],
+        "rotulosLucro": [[${rotulosLucro}]],
+        "valoresLucro": [[${valoresLucro}]],
         "plataformas": [[${lucroPlataformaNomes}]],
         "lucroPlataformas": [[${lucroPlataformaValores}]],
         "coresPlataformas": [[${lucroPlataformaCores}]]

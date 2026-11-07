@@ -33,6 +33,16 @@
     </div>
 
     <div class="alerta-sucesso notificacao-flutuante"
+         th:if="${param.sucesso != null and param.sucesso[0] == 'estoqueAtualizado'}">
+        Estoque atualizado com sucesso.
+    </div>
+
+    <div class="alerta-erro notificacao-flutuante"
+         th:if="${param.erro != null and param.erro[0] == 'estoqueInvalido'}">
+        Informe uma quantidade válida: zero ou mais, com até duas casas decimais.
+    </div>
+
+    <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'filamentosRemovidos'}">
         Filamentos selecionados excluídos com sucesso.
     </div>
@@ -249,6 +259,20 @@
                                 </div>
                                 <strong th:text="|${percentualEstoque[filamento.id]}%|">0%</strong>
                             </div>
+                            <details class="estoque-ajuste-rapido">
+                                <summary><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajustar estoque</summary>
+                                <form th:action="@{/filamento/estoque/{id}(id=${filamento.id})}" method="post">
+                                    <input type="hidden" name="busca" th:value="${busca}">
+                                    <input type="hidden" name="ordem" th:value="${ordem}">
+                                    <input type="hidden" name="page" th:value="${pagina.number}">
+                                    <label th:for="|estoque-${filamento.id}|">Quantidade disponível (g)</label>
+                                    <div>
+                                        <input type="number" name="estoqueGramas" min="0" step="0.01" required
+                                               th:id="|estoque-${filamento.id}|" th:value="${filamento.estoqueGramas}">
+                                        <button type="submit" class="botao botao-secundario">Salvar</button>
+                                    </div>
+                                </form>
+                            </details>
                         </div>
                     </td>
 

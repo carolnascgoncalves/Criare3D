@@ -51,9 +51,58 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.lucroLiquido IS NOT NULL
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
         """)
     BigDecimal somarLucroVendidoDesde(@Param("usuarioId") UUID usuarioId,
                                       @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+          AND h.lucroLiquido IS NOT NULL
+        """)
+    Long somarMinutosDasVendasEntre(@Param("usuarioId") UUID usuarioId,
+                                    @Param("inicio") LocalDateTime inicio,
+                                    @Param("fim") LocalDateTime fim);
+
+    @Query("""
+        SELECT COALESCE(SUM(h.lucroLiquido), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+          AND h.lucroLiquido IS NOT NULL
+        """)
+    BigDecimal somarLucroVendidoEntre(@Param("usuarioId") UUID usuarioId,
+                                      @Param("inicio") LocalDateTime inicio,
+                                      @Param("fim") LocalDateTime fim);
+
+    @Query("""
+        SELECT YEAR(h.dataCalculo), MONTH(h.dataCalculo), DAY(h.dataCalculo),
+               COALESCE(SUM(h.lucroLiquido), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+          AND h.lucroLiquido IS NOT NULL
+        GROUP BY YEAR(h.dataCalculo), MONTH(h.dataCalculo), DAY(h.dataCalculo)
+        ORDER BY YEAR(h.dataCalculo), MONTH(h.dataCalculo), DAY(h.dataCalculo)
+        """)
+    List<Object[]> somarLucroVendidoPorDia(@Param("usuarioId") UUID usuarioId,
+                                          @Param("inicio") LocalDateTime inicio,
+                                          @Param("fim") LocalDateTime fim);
+
+    @Query("""
+        SELECT MIN(h.dataCalculo)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+          AND h.lucroLiquido IS NOT NULL
+        """)
+    LocalDateTime primeiraVendaComPlataforma(@Param("usuarioId") UUID usuarioId);
 
     @Query("""
         SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)

@@ -2141,6 +2141,7 @@ input[type="color"]:focus {
 .dashboard-cabecalho { align-items: flex-end; margin-bottom: 12px; }
 .dashboard-cabecalho h1 { margin: 8px 0; font-size: 34px; font-weight: 700; }
 .dashboard-cabecalho p { font-size: 14px; line-height: 1.6; }
+.dashboard-aviso-estimativa { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; color: var(--marrom-claro); font-size: 0.76rem; }
 .etiqueta-dashboard { color: #c0705e; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; }
 .dashboard-periodo { gap: 6px; }
 .dashboard-periodo button { padding: 5px 9px; border-radius: 6px; font-size: 0.76rem; }
@@ -2221,6 +2222,12 @@ input[type="color"]:focus {
     .inicio-hero-icone { display: none; }
     .inicio-atencao-grade { grid-template-columns: minmax(0, 1fr); }
     .dashboard-cadastros-resumo { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-indicadores { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+    .dashboard-indicador { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; padding: 12px 14px; }
+    .dashboard-indicador > span { grid-column: 1; grid-row: 1; }
+    .dashboard-indicador strong { grid-column: 2; grid-row: 1 / span 2; font-size: 1.4rem; text-align: right; }
+    .dashboard-indicador small { grid-column: 1; grid-row: 2; }
+    .dashboard-aviso-estimativa { max-width: 100%; line-height: 1.4; }
     .dashboard-estoque-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dashboard-recente { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 9px 0; }
     .dashboard-recente-nome { grid-column: 1 / -1; }

@@ -142,6 +142,33 @@ public class FilamentoController {
                 .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
     }
 
+    @PostMapping("/filamento/estoque/{id}")
+    public ModelAndView atualizarEstoqueRapido(
+            @PathVariable UUID id,
+            @RequestParam(name = "estoqueGramas", required = false) java.math.BigDecimal estoqueGramas,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            RedirectAttributes redirect) {
+
+        if (filamentoService.fetchById(id).isEmpty()) {
+            redirect.addAttribute("erro", "filamentoNaoEncontrado");
+        } else if (estoqueGramas == null || estoqueGramas.signum() < 0
+                || estoqueGramas.scale() > 2 || estoqueGramas.precision() - estoqueGramas.scale() > 8) {
+            redirect.addAttribute("erro", "estoqueInvalido");
+        } else {
+            Filamento atualizacao = new Filamento();
+            atualizacao.setEstoqueGramas(estoqueGramas);
+            filamentoService.update(id, atualizacao);
+            redirect.addAttribute("sucesso", "estoqueAtualizado");
+        }
+
+        redirect.addAttribute("busca", busca);
+        redirect.addAttribute("ordem", ordem);
+        redirect.addAttribute("page", Math.max(0, page));
+        return new ModelAndView("redirect:/filamento/listar");
+    }
+
     @GetMapping("/filamento/editar/{id}")
     public ModelAndView retornarPaginaEdicao(@PathVariable UUID id) {
         return filamentoService.fetchById(id)

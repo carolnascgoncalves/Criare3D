@@ -59,15 +59,17 @@
             new Chart(canvasMensal, {
                 type: 'line',
                 data: {
-                    labels: dados.meses,
+                    labels: dados.rotulosLucro,
                     datasets: [{
-                        data: dados.lucroMensal,
+                        data: dados.valoresLucro,
                         borderColor: '#492e1e',
                         backgroundColor: 'rgba(233,166,149,0.25)',
                         fill: true,
                         tension: 0.35,
                         borderWidth: 2,
-                        pointRadius: 4,
+                        // Mantém os valores diários, mas destaca somente os dias com movimento.
+                        pointRadius: contexto => Number(contexto.raw) !== 0 ? 4 : 0,
+                        pointHoverRadius: contexto => Number(contexto.raw) !== 0 ? 5 : 0,
                         pointBackgroundColor: '#492e1e',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2
@@ -78,7 +80,16 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#765b4b', font: { size: 11 } } },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                color: '#765b4b',
+                                font: { size: 11 },
+                                autoSkip: true,
+                                maxTicksLimit: dados.rotulosLucro.length <= 31 ? 6
+                                    : dados.rotulosLucro.length <= 90 ? 7 : 8
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             grid: { color: '#ead6c8' },

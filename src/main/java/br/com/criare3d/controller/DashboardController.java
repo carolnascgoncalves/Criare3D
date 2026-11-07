@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -65,23 +66,25 @@ public class DashboardController {
 
         ZoneId fuso = ZoneId.of("America/Sao_Paulo");
         LocalDateTime agora = LocalDateTime.now(fuso);
+        LocalDate hoje = agora.toLocalDate();
         LocalDateTime inicio = switch (periodo) {
-            case "90" -> agora.minusDays(90);
+            case "90" -> hoje.minusDays(89).atStartOfDay();
             case "tudo" -> LocalDateTime.of(1900, 1, 1, 0, 0);
-            default -> agora.minusDays(30);
+            default -> hoje.minusDays(29).atStartOfDay();
         };
+        LocalDateTime fim = hoje.plusDays(1).atStartOfDay();
         var usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
         long calculos = historicoRepository.countByUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
         long produzidos = historicoRepository.countByProduzidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
         long vendidos = historicoRepository.countByVendidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
-        BigDecimal lucroVendido = valor(historicoRepository.somarLucroVendidoDesde(usuarioId, inicio));
-        long minutosProduzidos = numero(historicoRepository.somarMinutosProduzidosDesde(usuarioId, inicio));
+        BigDecimal lucroVendido = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
+        long minutosVendidos = numero(historicoRepository.somarMinutosDasVendasEntre(usuarioId, inicio, fim));
         BigDecimal gramasUsadas = valor(historicoRepository.somarFilamentoProduzidoDesde(usuarioId, inicio));
-        BigDecimal lucroPorHora = minutosProduzidos <= 0
+        BigDecimal lucroPorHora = minutosVendidos <= 0
                 ? ZERO
                 : lucroVendido.multiply(BigDecimal.valueOf(60))
-                .divide(BigDecimal.valueOf(minutosProduzidos), 2, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(minutosVendidos), 2, RoundingMode.HALF_UP);
 
         model.addAttribute("periodo", periodo);
         model.addAttribute("totalCalculos", calculos);
@@ -93,6 +96,7 @@ public class DashboardController {
         model.addAttribute("percentualVendidoProduzido", percentual(vendidos, produzidos));
         model.addAttribute("lucroVendido", lucroVendido);
         model.addAttribute("lucroPorHora", lucroPorHora);
+        long minutosProduzidos = numero(historicoRepository.somarMinutosProduzidosDesde(usuarioId, inicio));
         model.addAttribute("horasProduzidas", BigDecimal.valueOf(minutosProduzidos)
                 .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP));
         model.addAttribute("filamentoUsadoKg", gramasUsadas
@@ -111,7 +115,7 @@ public class DashboardController {
         model.addAttribute("lucroPlataformaNomes", plataformas.stream().map(item -> item.get("nome")).toList());
         model.addAttribute("lucroPlataformaValores", plataformas.stream().map(item -> item.get("lucro")).toList());
         model.addAttribute("lucroPlataformaCores", plataformas.stream().map(item -> item.get("cor")).toList());
-        adicionarSerieMensal(model, usuarioId, YearMonth.now(fuso));
+        adicionarSerieLucro(model, usuarioId, periodo, hoje, inicio, fim);
         List<Map<String, Object>> composicao = montarComposicao(
                 historicoRepository.somarComposicaoCustosProduzidosDesde(usuarioId, inicio));
         model.addAttribute("composicaoCustos", composicao);
@@ -152,36 +156,71 @@ public class DashboardController {
         return resultado;
     }
 
-    private void adicionarSerieMensal(Model model, java.util.UUID usuarioId, YearMonth mesAtual) {
-        YearMonth primeiroMes = mesAtual.minusMonths(5);
-        var linhas = historicoRepository.somarLucroVendidoPorMes(
-                usuarioId,
-                primeiroMes.atDay(1).atStartOfDay(),
-                mesAtual.plusMonths(1).atDay(1).atStartOfDay());
-        Map<Integer, BigDecimal> lucroPorMes = new LinkedHashMap<>();
-        for (Object[] linha : linhas) {
-            int chave = Math.toIntExact(numero(linha[0]) * 100 + (int) numero(linha[1]));
-            lucroPorMes.put(chave, valor(linha[2]));
-        }
-
-        DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMM", Locale.forLanguageTag("pt-BR"));
+    private void adicionarSerieLucro(Model model, UUID usuarioId, String periodo, LocalDate hoje,
+                                     LocalDateTime inicio, LocalDateTime fim) {
         List<String> rotulos = new ArrayList<>();
         List<BigDecimal> valores = new ArrayList<>();
-        for (int i = 0; i < 6; i++) {
-            YearMonth mes = primeiroMes.plusMonths(i);
-            String rotulo = mes.format(formatoMes).replace(".", "");
-            rotulos.add(rotulo.substring(0, 1).toUpperCase(Locale.ROOT) + rotulo.substring(1));
-            valores.add(lucroPorMes.getOrDefault(mes.getYear() * 100 + mes.getMonthValue(), ZERO));
+        BigDecimal lucroAtual;
+        BigDecimal lucroAnterior;
+        String comparacao;
+
+        if (!"tudo".equals(periodo)) {
+            int dias = "90".equals(periodo) ? 90 : 30;
+            Map<LocalDate, BigDecimal> lucroPorDia = new LinkedHashMap<>();
+            for (Object[] linha : historicoRepository.somarLucroVendidoPorDia(usuarioId, inicio, fim)) {
+                LocalDate data = LocalDate.of((int) numero(linha[0]), (int) numero(linha[1]), (int) numero(linha[2]));
+                lucroPorDia.put(data, valor(linha[3]));
+            }
+            DateTimeFormatter formatoDia = DateTimeFormatter.ofPattern("dd/MM");
+            LocalDate primeiroDia = inicio.toLocalDate();
+            for (int i = 0; i < dias; i++) {
+                LocalDate dia = primeiroDia.plusDays(i);
+                rotulos.add(dia.format(formatoDia));
+                valores.add(lucroPorDia.getOrDefault(dia, ZERO));
+            }
+            lucroAtual = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
+            lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(
+                    usuarioId, inicio.minusDays(dias), inicio));
+            comparacao = "vs período anterior";
+        } else {
+            YearMonth mesAtual = YearMonth.from(hoje);
+            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComPlataforma(usuarioId);
+            YearMonth primeiroMes = primeiraVenda == null
+                    ? mesAtual.minusMonths(5)
+                    : YearMonth.from(primeiraVenda);
+            Map<Integer, BigDecimal> lucroPorMes = new LinkedHashMap<>();
+            var linhas = historicoRepository.somarLucroVendidoPorMes(
+                    usuarioId, primeiroMes.atDay(1).atStartOfDay(), mesAtual.plusMonths(1).atDay(1).atStartOfDay());
+            for (Object[] linha : linhas) {
+                int chave = Math.toIntExact(numero(linha[0]) * 100 + numero(linha[1]));
+                lucroPorMes.put(chave, valor(linha[2]));
+            }
+
+            DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMM/yy", Locale.forLanguageTag("pt-BR"));
+            for (YearMonth mes = primeiroMes; !mes.isAfter(mesAtual); mes = mes.plusMonths(1)) {
+                String rotulo = mes.format(formatoMes).replace(".", "");
+                rotulos.add(rotulo.substring(0, 1).toUpperCase(Locale.ROOT) + rotulo.substring(1));
+                valores.add(lucroPorMes.getOrDefault(mes.getYear() * 100 + mes.getMonthValue(), ZERO));
+            }
+            LocalDateTime inicioMesAtual = mesAtual.atDay(1).atStartOfDay();
+            LocalDateTime inicioMesAnterior = mesAtual.minusMonths(1).atDay(1).atStartOfDay();
+            lucroAtual = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicioMesAtual, fim));
+            lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicioMesAnterior, inicioMesAtual));
+            comparacao = "vs mês anterior";
         }
 
-        BigDecimal anterior = valores.get(4);
-        BigDecimal atual = valores.get(5);
-        int variacao = anterior.signum() == 0 ? 0 : atual.subtract(anterior)
-                .multiply(BigDecimal.valueOf(100))
-                .divide(anterior, 0, RoundingMode.HALF_UP).intValue();
-        model.addAttribute("lucroMensalRotulos", rotulos);
-        model.addAttribute("lucroMensalValores", valores);
-        model.addAttribute("variacaoLucroMensal", variacao);
+        int variacao = lucroAnterior.signum() == 0 ? 0 : lucroAtual.subtract(lucroAnterior)
+                .multiply(BigDecimal.valueOf(100)).divide(lucroAnterior, 0, RoundingMode.HALF_UP).intValue();
+        String textoVariacao = lucroAnterior.signum() == 0
+                ? (lucroAtual.signum() > 0 ? "Novas vendas no período" : "Sem vendas no período anterior")
+                : (variacao >= 0 ? "+" : "") + variacao + "% " + comparacao;
+        model.addAttribute("rotulosLucro", rotulos);
+        model.addAttribute("valoresLucro", valores);
+        model.addAttribute("variacaoLucro", variacao);
+        model.addAttribute("textoVariacaoLucro", textoVariacao);
+        model.addAttribute("descricaoPeriodoGrafico", "tudo".equals(periodo)
+                ? "Lucro estimado por mês em todo o histórico"
+                : "Lucro estimado por dia no período selecionado");
     }
 
     private String corPlataforma(String codigo) {
