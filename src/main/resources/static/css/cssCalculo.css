@@ -2269,15 +2269,6 @@ input[type="search"] {
         gap: 4px;
     }
 
-    .usuario-logado {
-        display: block;
-        flex: 0 0 110px;
-        width: 110px;
-        min-width: 0;
-        max-width: 110px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
 }
 
 /* LOGO */
@@ -2350,23 +2341,72 @@ input[type="search"] {
     margin: 0;
 }
 
-/* IDENTIFICAÇÃO DO USUÁRIO */
+.menu-usuario {
+    position: relative;
+    flex: 0 0 auto;
+}
 
-.usuario-logado {
+.menu-usuario-botao {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-
-    padding: 9px 13px;
-    border: 1px solid rgba(245, 231, 218, 0.2);
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(245, 231, 218, 0.24);
     border-radius: 9px;
-
-    background: rgba(245, 231, 218, 0.10);
+    background: rgba(245, 231, 218, 0.1);
     color: var(--fundo);
+    cursor: pointer;
+    list-style: none;
+}
 
-    font-size: 12px;
+.menu-usuario-botao::-webkit-details-marker {
+    display: none;
+}
+
+.menu-usuario-botao:hover,
+.menu-usuario[open] > .menu-usuario-botao {
+    border-color: var(--destaque);
+    color: var(--destaque);
+}
+
+.menu-usuario-botao i {
+    font-size: 1.2rem;
+}
+
+.menu-usuario-painel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 1100;
+    display: grid;
+    gap: 8px;
+    width: min(280px, calc(100vw - 32px));
+    padding: 14px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: var(--branco);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+.menu-usuario-legenda {
+    color: var(--marrom-claro);
+    font-size: 0.8rem;
+}
+
+.menu-usuario-email {
+    overflow-wrap: anywhere;
+    color: var(--marrom);
+}
+
+.menu-usuario-painel a {
+    color: var(--marrom);
     font-weight: 600;
-    white-space: nowrap;
+    text-decoration: none;
+}
+
+.menu-usuario-painel a:hover {
+    text-decoration: underline;
 }
 
 /* BOTÃO SAIR */
@@ -2457,15 +2497,6 @@ input[type="search"] {
         gap: 6px;
     }
 
-    .usuario-logado {
-        display: block;
-        width: clamp(88px, 27vw, 140px);
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
     .menu-links {
         justify-content: flex-start;
         gap: 4px;
@@ -2505,7 +2536,8 @@ input[type="search"] {
         font-size: 13px;
     }
 
-    .menu-acoes .menu-configuracoes {
+    .menu-acoes .menu-configuracoes,
+    .menu-usuario-botao {
         width: 36px;
         height: 36px;
     }
@@ -2879,6 +2911,10 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
         left: auto;
         width: min(280px, calc(100vw - 64px));
     }
+}
+
+main.pagina.lista-catalogo > .cartao:has(> form.historico-filtros .historico-ordenar[open]) {
+    overflow: visible;
 }
 
 /* Os alertas seguem a ordem do HTML, imediatamente antes do título. */

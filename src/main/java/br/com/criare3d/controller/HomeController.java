@@ -37,6 +37,9 @@ public class HomeController {
         var historicosRecentes = calculoHistoricoService.fetchAll(
                 PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "dataCalculo"))
         );
+        long totalCalculos = historicosRecentes.getTotalElements();
+        long totalProduzidos = calculoHistoricoService.contarProduzidos();
+        long totalVendidos = calculoHistoricoService.contarVendidos();
 
         model.addAttribute("totalPecas",
                 pecaService.fetchAll(pagina).getTotalElements());
@@ -47,9 +50,11 @@ public class HomeController {
         model.addAttribute("totalImpressoras",
                 impressoraService.fetchAll(pagina).getTotalElements());
 
-        model.addAttribute("totalCalculos", historicosRecentes.getTotalElements());
-        model.addAttribute("totalProduzidos", calculoHistoricoService.contarProduzidos());
-        model.addAttribute("totalVendidos", calculoHistoricoService.contarVendidos());
+        model.addAttribute("totalCalculos", totalCalculos);
+        model.addAttribute("totalProduzidos", totalProduzidos);
+        model.addAttribute("totalVendidos", totalVendidos);
+        model.addAttribute("percentualProduzido", percentual(totalProduzidos, totalCalculos));
+        model.addAttribute("percentualVendido", percentual(totalVendidos, totalCalculos));
         model.addAttribute("ultimosCalculos", historicosRecentes.getContent());
 
         boolean valorHoraConfigurado = configuracaoService.buscarConfiguracao()
@@ -59,5 +64,10 @@ public class HomeController {
         model.addAttribute("valorHoraConfigurado", valorHoraConfigurado);
 
         return "index";
+    }
+
+    private static int percentual(long quantidade, long total) {
+        if (total <= 0) return 0;
+        return (int) Math.round((double) quantidade * 100 / total);
     }
 }

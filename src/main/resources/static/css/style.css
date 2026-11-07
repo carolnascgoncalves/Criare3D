@@ -251,6 +251,103 @@ a {
     font-weight: bold;
 }
 
+.dashboard-fluxo {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 34px;
+    padding: 28px;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    background: linear-gradient(120deg, #fffaf6, #ffffff 70%);
+    box-shadow: 0 6px 24px rgba(73, 46, 30, 0.05);
+}
+
+.dashboard-fluxo-intro h2 {
+    margin: 8px 0;
+    font-size: 1.45rem;
+}
+
+.dashboard-fluxo-intro p {
+    margin: 0 0 18px;
+    color: var(--marrom-claro);
+    line-height: 1.55;
+}
+
+.dashboard-fluxo-grafico {
+    display: grid;
+    gap: 19px;
+    min-width: 0;
+}
+
+.dashboard-fluxo-item {
+    display: grid;
+    gap: 8px;
+}
+
+.dashboard-fluxo-legenda,
+.dashboard-fluxo-legenda > span {
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-fluxo-legenda {
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--marrom-claro);
+    font-size: 0.9rem;
+}
+
+.dashboard-fluxo-legenda > span {
+    gap: 8px;
+}
+
+.dashboard-fluxo-legenda strong {
+    color: var(--marrom);
+    font-size: 1rem;
+}
+
+.dashboard-ponto {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--marrom-claro);
+}
+
+.ponto-produzidos,
+.barra-produzidos {
+    background: #d69a56;
+}
+
+.ponto-vendidos,
+.barra-vendidos {
+    background: #6c9b72;
+}
+
+.dashboard-fluxo-trilho {
+    height: 11px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #f0e8df;
+}
+
+.dashboard-fluxo-barra {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 350ms ease;
+}
+
+.barra-calculos {
+    background: var(--marrom-claro);
+}
+
+.dashboard-fluxo-vazio {
+    margin: -4px 0 0;
+    color: var(--marrom-claro);
+    font-size: 0.85rem;
+}
+
 .dashboard-recentes {
     display: grid;
     gap: 10px;
@@ -1050,6 +1147,12 @@ tr:nth-child(even) {
     .resumo-grid-producao,
     .atalhos-grid {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-fluxo {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 22px;
+        padding: 22px;
     }
 
     .dashboard-recente {

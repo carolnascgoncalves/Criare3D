@@ -89,7 +89,7 @@
         <div class="titulo-secao">
             <div>
                 <h2>Produção e vendas</h2>
-                <p>Acompanhe os cálculos que já foram produzidos ou vendidos.</p>
+                <p>Veja quantos cálculos avançaram para produção e venda.</p>
             </div>
         </div>
 
@@ -107,6 +107,68 @@
                 <strong class="resumo-valor" th:text="${totalVendidos}">0</strong>
                 <span class="resumo-link">Ver vendidas →</span>
             </a>
+        </div>
+    </section>
+
+    <section class="secao dashboard-fluxo-secao">
+        <div class="dashboard-fluxo">
+            <div class="dashboard-fluxo-intro">
+                <span class="texto-apoio">ACOMPANHAMENTO</span>
+                <h2>Como está o seu fluxo?</h2>
+                <p>Compare peças produzidas e vendidas com o total de cálculos salvos.</p>
+                <a th:href="@{/historico/listar}" class="botao botao-secundario">Abrir histórico</a>
+            </div>
+
+            <div class="dashboard-fluxo-grafico"
+                 th:attr="aria-label=|Fluxo: ${totalCalculos} cálculos, ${totalProduzidos} produzidos e ${totalVendidos} vendidos|">
+                <div class="dashboard-fluxo-item">
+                    <div class="dashboard-fluxo-legenda">
+                        <span><i class="dashboard-ponto ponto-calculos"></i>Cálculos salvos</span>
+                        <strong th:text="${totalCalculos}">0</strong>
+                    </div>
+                    <div class="dashboard-fluxo-trilho" role="progressbar"
+                         aria-label="Cálculos salvos"
+                         aria-valuemin="0" aria-valuemax="100"
+                         th:aria-valuenow="${totalCalculos > 0 ? 100 : 0}">
+                        <span class="dashboard-fluxo-barra barra-calculos"
+                              th:style="|width: ${totalCalculos > 0 ? 100 : 0}%|"></span>
+                    </div>
+                </div>
+
+                <div class="dashboard-fluxo-item">
+                    <div class="dashboard-fluxo-legenda">
+                        <span><i class="dashboard-ponto ponto-produzidos"></i>Produzidos</span>
+                        <strong th:text="${totalProduzidos}">0</strong>
+                    </div>
+                    <div class="dashboard-fluxo-trilho" role="progressbar"
+                         aria-label="Percentual de cálculos produzidos"
+                         aria-valuemin="0" aria-valuemax="100"
+                         th:aria-valuenow="${percentualProduzido}"
+                         th:aria-valuetext="|${totalProduzidos} de ${totalCalculos} cálculos|">
+                        <span class="dashboard-fluxo-barra barra-produzidos"
+                              th:style="|width: ${percentualProduzido}%|"></span>
+                    </div>
+                </div>
+
+                <div class="dashboard-fluxo-item">
+                    <div class="dashboard-fluxo-legenda">
+                        <span><i class="dashboard-ponto ponto-vendidos"></i>Vendidos</span>
+                        <strong th:text="${totalVendidos}">0</strong>
+                    </div>
+                    <div class="dashboard-fluxo-trilho" role="progressbar"
+                         aria-label="Percentual de cálculos vendidos"
+                         aria-valuemin="0" aria-valuemax="100"
+                         th:aria-valuenow="${percentualVendido}"
+                         th:aria-valuetext="|${totalVendidos} de ${totalCalculos} cálculos|">
+                        <span class="dashboard-fluxo-barra barra-vendidos"
+                              th:style="|width: ${percentualVendido}%|"></span>
+                    </div>
+                </div>
+
+                <p class="dashboard-fluxo-vazio" th:if="${totalCalculos == 0}">
+                    Seus indicadores aparecem aqui depois do primeiro cálculo.
+                </p>
+            </div>
         </div>
     </section>
 
