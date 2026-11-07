@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TarifasPlataformaTest {
-    private final CalculoHistoricoServiceImp calculo = new CalculoHistoricoServiceImp();
+    private final CalculoPlataformaService calculo = new CalculoPlataformaService();
 
     @Test
     void shopeeAplicaFaixasEValorFixoVigentes() {

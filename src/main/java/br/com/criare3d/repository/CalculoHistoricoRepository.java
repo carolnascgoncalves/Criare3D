@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
@@ -354,6 +355,18 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         """)
     List<AjusteEstoqueCalculoResponse> buscarDadosParaAtualizarStatus(
             @Param("id") UUID id, @Param("usuarioId") UUID usuarioId);
+
+    @Query("""
+        SELECT new br.com.criare3d.dto.AjusteEstoqueCalculoResponse(
+            h.id, h.produzido, h.vendido, item.filamento.id,
+            item.quantidadeFilamentoGramas, h.filamento.id, h.quantidadeFilamentoGramas
+        )
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.id IN :ids AND h.usuario.id = :usuarioId
+        """)
+    List<AjusteEstoqueCalculoResponse> buscarDadosParaExclusaoEmLote(
+            @Param("ids") Collection<UUID> ids, @Param("usuarioId") UUID usuarioId);
 
     @Modifying
     @Query("""

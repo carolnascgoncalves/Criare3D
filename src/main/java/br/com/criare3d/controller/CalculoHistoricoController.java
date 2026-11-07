@@ -318,7 +318,7 @@ public class CalculoHistoricoController {
 
         mv.addObject(
                 "comparacoes",
-                compararPlataformas(request, modoComparacao, precoVendaFixo)
+                compararPlataformas(request, resultado, modoComparacao, precoVendaFixo)
         );
 
         adicionarPreviewFoto(mv, request);
@@ -333,6 +333,7 @@ public class CalculoHistoricoController {
      */
     private List<ComparacaoPlataforma> compararPlataformas(
             CalculoRequest base,
+            CalculoResponse resultadoBase,
             String modoComparacao,
             BigDecimal precoVendaFixo
     ) {
@@ -373,6 +374,16 @@ public class CalculoHistoricoController {
                 continue;
             }
 
+            // O cálculo originalmente enviado já contém os valores da plataforma
+            // selecionada. Reutilizá-los evita repetir toda a leitura e validação
+            // da peça, impressora, filamentos e configuração nessa linha.
+            if (!precoFixo && linha.isSelecionada()) {
+                preencherValoresComparacao(linha, resultadoBase.getPrecoVendaPlataforma(),
+                        resultadoBase.getTaxasPlataforma(), resultadoBase.getLucroLiquido());
+                linhas.add(linha);
+                continue;
+            }
+
             try {
                 CalculoRequest copia = copiarParaComparacao(base);
                 copia.setPlataformaVenda(opcao.plataforma());
@@ -391,19 +402,7 @@ public class CalculoHistoricoController {
                 BigDecimal preco = calculo.getPrecoVendaPlataforma();
                 BigDecimal lucro = calculo.getLucroLiquido();
 
-                linha.setPrecoVenda(preco);
-                linha.setTaxas(calculo.getTaxasPlataforma());
-                linha.setLucro(lucro);
-
-                if (preco != null
-                        && preco.compareTo(BigDecimal.ZERO) > 0
-                        && lucro != null) {
-
-                    linha.setMargem(
-                            lucro.multiply(new BigDecimal("100"))
-                                    .divide(preco, 1, RoundingMode.HALF_UP)
-                    );
-                }
+                preencherValoresComparacao(linha, preco, calculo.getTaxasPlataforma(), lucro);
 
             } catch (IllegalArgumentException e) {
                 linha.setAviso(e.getMessage());
@@ -434,6 +433,22 @@ public class CalculoHistoricoController {
         }
 
         return linhas;
+    }
+
+    private void preencherValoresComparacao(
+            ComparacaoPlataforma linha,
+            BigDecimal preco,
+            BigDecimal taxas,
+            BigDecimal lucro
+    ) {
+        linha.setPrecoVenda(preco);
+        linha.setTaxas(taxas);
+        linha.setLucro(lucro);
+
+        if (preco != null && preco.compareTo(BigDecimal.ZERO) > 0 && lucro != null) {
+            linha.setMargem(lucro.multiply(new BigDecimal("100"))
+                    .divide(preco, 1, RoundingMode.HALF_UP));
+        }
     }
 
 

@@ -1,6 +1,5 @@
 package br.com.criare3d.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -9,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
-@AllArgsConstructor
 public class FilamentoHistoricoUsoResponse {
 
     private final UUID historicoId;
@@ -20,6 +18,27 @@ public class FilamentoHistoricoUsoResponse {
     private final String codigoCor;
     private final BigDecimal pesoRoloGramas;
     private final Boolean vendido;
+
+    /** Construtor explícito para a projeção JPQL do histórico de uso. */
+    public FilamentoHistoricoUsoResponse(
+            UUID historicoId,
+            String nomePeca,
+            LocalDateTime dataCalculo,
+            BigDecimal quantidadeGramas,
+            String corFilamento,
+            String codigoCor,
+            BigDecimal pesoRoloGramas,
+            Boolean vendido
+    ) {
+        this.historicoId = historicoId;
+        this.nomePeca = nomePeca;
+        this.dataCalculo = dataCalculo;
+        this.quantidadeGramas = quantidadeGramas;
+        this.corFilamento = corFilamento;
+        this.codigoCor = codigoCor;
+        this.pesoRoloGramas = pesoRoloGramas;
+        this.vendido = vendido;
+    }
 
     public String getCorHexadecimal() {
         return codigoCor != null && codigoCor.matches("#[0-9A-Fa-f]{6}")
