@@ -63,7 +63,7 @@
 
         <article class="dashboard-bloco dashboard-vendas-plataforma">
             <div class="dashboard-bloco-titulo">
-                <div><h2>Vendas por plataforma</h2><p>Lucro estimado após taxas simuladas</p></div>
+                <div><h2>Vendas por plataforma</h2><p>Lucro estimado por canal, incluindo vendas sem plataforma</p></div>
             </div>
             <div class="dashboard-grafico-rosca-wrap" th:if="${vendasPlataformas > 0}">
                 <canvas id="graficoPlataformas" role="img" aria-label="Lucro líquido por plataforma de venda"></canvas>
@@ -72,7 +72,7 @@
                     <span th:text="|${vendasPlataformas} vendas|">0 vendas</span>
                 </div>
             </div>
-            <p class="dashboard-vazio dashboard-rosca-vazia" th:if="${vendasPlataformas == 0}">Ainda não há vendas com lucro de plataforma calculado no período.</p>
+            <p class="dashboard-vazio dashboard-rosca-vazia" th:if="${vendasPlataformas == 0}">Ainda não há vendas marcadas como vendidas no período.</p>
             <div class="dashboard-plataforma-legenda" th:if="${vendasPlataformas > 0}">
                 <div th:each="item : ${lucrosPorPlataforma}">
                     <span><i th:style="|background: ${item.cor}|"></i><span th:text="${item.nome}">Shopee</span></span>

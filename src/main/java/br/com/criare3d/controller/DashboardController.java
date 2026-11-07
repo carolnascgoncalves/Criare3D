@@ -184,7 +184,7 @@ public class DashboardController {
             comparacao = "vs período anterior";
         } else {
             YearMonth mesAtual = YearMonth.from(hoje);
-            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComPlataforma(usuarioId);
+            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComLucro(usuarioId);
             YearMonth primeiroMes = primeiraVenda == null
                     ? mesAtual.minusMonths(5)
                     : YearMonth.from(primeiraVenda);
@@ -229,6 +229,7 @@ public class DashboardController {
             case "TIKTOK", "TIKTOK_SHOP" -> "#492e1e";
             case "SHOPEE" -> "#e9a695";
             case "MERCADO_LIVRE" -> "#a98a76";
+            case "NENHUMA" -> "#d9b69c";
             default -> "#816252";
         };
     }
@@ -238,6 +239,7 @@ public class DashboardController {
             case "TikTok Shop" -> 0;
             case "Shopee" -> 1;
             case "Mercado Livre" -> 2;
+            case "Sem plataforma" -> 3;
             default -> 3;
         };
     }
@@ -332,6 +334,7 @@ public class DashboardController {
     private String nomePlataforma(String codigo) {
         if (codigo == null || codigo.isBlank()) return "Sem plataforma";
         return switch (codigo) {
+            case "NENHUMA" -> "Sem plataforma";
             case "SHOPEE" -> "Shopee";
             case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
             case "MERCADO_LIVRE" -> "Mercado Livre";

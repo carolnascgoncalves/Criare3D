@@ -51,7 +51,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.lucroLiquido IS NOT NULL
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
         """)
     BigDecimal somarLucroVendidoDesde(@Param("usuarioId") UUID usuarioId,
                                       @Param("inicio") LocalDateTime inicio);
@@ -61,7 +60,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
           AND h.lucroLiquido IS NOT NULL
         """)
     Long somarMinutosDasVendasEntre(@Param("usuarioId") UUID usuarioId,
@@ -73,7 +71,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
           AND h.lucroLiquido IS NOT NULL
         """)
     BigDecimal somarLucroVendidoEntre(@Param("usuarioId") UUID usuarioId,
@@ -86,7 +83,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
           AND h.lucroLiquido IS NOT NULL
         GROUP BY YEAR(h.dataCalculo), MONTH(h.dataCalculo), DAY(h.dataCalculo)
         ORDER BY YEAR(h.dataCalculo), MONTH(h.dataCalculo), DAY(h.dataCalculo)
@@ -99,10 +95,9 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         SELECT MIN(h.dataCalculo)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
           AND h.lucroLiquido IS NOT NULL
         """)
-    LocalDateTime primeiraVendaComPlataforma(@Param("usuarioId") UUID usuarioId);
+    LocalDateTime primeiraVendaComLucro(@Param("usuarioId") UUID usuarioId);
 
     @Query("""
         SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)
@@ -125,12 +120,11 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                             @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT h.plataformaVenda, COALESCE(SUM(h.lucroLiquido), 0), COUNT(h)
+        SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(h.lucroLiquido), 0), COUNT(h)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
-          AND h.dataCalculo >= :inicio AND h.lucroLiquido IS NOT NULL
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
-        GROUP BY h.plataformaVenda
+          AND h.dataCalculo >= :inicio
+        GROUP BY COALESCE(h.plataformaVenda, 'NENHUMA')
         """)
     List<Object[]> somarLucroPorPlataformaDesde(@Param("usuarioId") UUID usuarioId,
                                                 @Param("inicio") LocalDateTime inicio);
@@ -140,7 +134,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
-          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
           AND h.lucroLiquido IS NOT NULL
         GROUP BY YEAR(h.dataCalculo), MONTH(h.dataCalculo)
         ORDER BY YEAR(h.dataCalculo), MONTH(h.dataCalculo)
