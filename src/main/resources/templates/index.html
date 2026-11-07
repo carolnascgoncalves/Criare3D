@@ -8,191 +8,132 @@
 
 <nav th:replace="~{fragmentos :: menu}"></nav>
 
-<main class="pagina">
+<main class="pagina pagina-inicio">
 
-    <section class="boas-vindas">
-        <span class="etiqueta">PAINEL PRINCIPAL</span>
-
-        <h1>Bem-vinda ao Criare 3D!</h1>
-
-        <p>
-            Gerencie suas peças, impressoras e filamentos
-            em um só lugar.
-        </p>
-
-        <a th:href="@{/historico/novo}" class="botao-principal">
-            Começar um cálculo
-        </a>
+    <section class="boas-vindas inicio-hero">
+        <div>
+            <span class="etiqueta">PAINEL PRINCIPAL</span>
+            <h1>Bem-vinda ao Criare 3D!</h1>
+            <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
+            <div class="inicio-hero-acoes">
+                <a th:href="@{/historico/novo}" class="botao-principal">Começar um cálculo</a>
+                <a th:href="@{/dashboard}" class="botao-dashboard-inicio">
+                    <i class="bi bi-pie-chart" aria-hidden="true"></i>Ver dashboard
+                </a>
+            </div>
+        </div>
+        <i class="bi bi-printer inicio-hero-icone" aria-hidden="true"></i>
     </section>
 
     <section class="secao">
         <div class="titulo-secao">
             <div>
-                <h2>Primeiros passos</h2>
-                <p>Custos adicionais são opcionais e podem ser configurados quando você quiser.</p>
+                <h2>Precisa de atenção</h2>
+                <p>O que vale resolver agora</p>
             </div>
         </div>
 
-        <a th:href="@{/configuracao#custosAdicionais}" class="atalho-card">
-            <span class="atalho-icone"><i class="bi bi-clock-history"></i></span>
-            <span>
-                <strong>Defina o valor da sua hora</strong>
-                <small th:text="${valorHoraConfigurado ? 'Valor da mão de obra configurado.' : 'Opcional: configure para incluir mão de obra nos cálculos.'}">Opcional: configure para incluir mão de obra nos cálculos.</small>
-            </span>
-            <span class="seta" th:text="${valorHoraConfigurado ? '✓' : '→'}">→</span>
-        </a>
+        <div class="inicio-atencao-grade">
+            <a th:if="${filamentoAcabando != null}" th:href="@{/filamento/listar}" class="atalho-card inicio-aviso-estoque">
+                <span class="atalho-icone"><i class="bi bi-circle-half"></i></span>
+                <span>
+                    <strong th:text="|Filamento ${filamentoAcabando.cor} acabando|">Filamento acabando</strong>
+                    <small th:text="|${#numbers.formatDecimal(filamentoAcabando.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g restantes|">0 g restantes</small>
+                </span>
+            </a>
+            <a th:href="@{/historico/listar(produzido='SIM', vendido='NAO')}" class="atalho-card" th:if="${aguardandoVenda > 0}">
+                <span class="atalho-icone"><i class="bi bi-box-seam"></i></span>
+                <span>
+                    <strong th:text="|${aguardandoVenda} ${aguardandoVenda == 1 ? 'peça sem venda' : 'peças sem venda'}|">Peças sem venda</strong>
+                    <small>Produzidas e paradas</small>
+                </span>
+            </a>
+            <a th:href="@{/configuracao#custosAdicionais}" class="atalho-card">
+                <span class="atalho-icone"><i class="bi bi-clock-history"></i></span>
+                <span>
+                    <strong>Defina o valor da sua hora</strong>
+                    <small th:text="${valorHoraConfigurado ? 'Valor da mão de obra configurado.' : 'Opcional · inclui mão de obra.'}">Opcional · inclui mão de obra.</small>
+                </span>
+            </a>
+        </div>
     </section>
 
     <section class="secao">
         <div class="titulo-secao">
             <div>
-                <h2>Visão geral</h2>
-                <p>Acompanhe os itens cadastrados no sistema.</p>
+                <h2>Seus cadastros</h2>
+                <p>Acesso rápido a tudo que alimenta os cálculos</p>
             </div>
         </div>
 
         <div class="resumo-grid">
 
-            <a th:href="@{/peca/listar}" class="resumo-card">
-                <span class="resumo-icone">▧</span>
-                <span class="resumo-titulo">Peças cadastradas</span>
+            <a th:href="@{/peca/listar}" class="resumo-card inicio-cadastro-card">
+                <span class="resumo-icone"><i class="bi bi-box"></i></span>
+                <span class="resumo-titulo">Peças</span>
                 <strong class="resumo-valor" th:text="${totalPecas}">0</strong>
                 <span class="resumo-link">Ver peças →</span>
             </a>
 
-            <a th:href="@{/filamento/listar}" class="resumo-card">
-                <span class="resumo-icone">◉</span>
+            <a th:href="@{/filamento/listar}" class="resumo-card inicio-cadastro-card">
+                <span class="resumo-icone"><i class="bi bi-circle-half"></i></span>
                 <span class="resumo-titulo">Filamentos</span>
                 <strong class="resumo-valor" th:text="${totalFilamentos}">0</strong>
                 <span class="resumo-link">Ver filamentos →</span>
             </a>
 
-            <a th:href="@{/impressora/listar}" class="resumo-card">
-                <span class="resumo-icone">▤</span>
+            <a th:href="@{/impressora/listar}" class="resumo-card inicio-cadastro-card">
+                <span class="resumo-icone"><i class="bi bi-printer"></i></span>
                 <span class="resumo-titulo">Impressoras</span>
                 <strong class="resumo-valor" th:text="${totalImpressoras}">0</strong>
                 <span class="resumo-link">Ver impressoras →</span>
             </a>
 
-            <a th:href="@{/historico/listar}" class="resumo-card">
-                <span class="resumo-icone">◷</span>
-                <span class="resumo-titulo">Cálculos realizados</span>
-                <strong class="resumo-valor" th:text="${totalCalculos}">0</strong>
-                <span class="resumo-link">Ver histórico →</span>
+            <a th:href="@{/embalagem/listar}" class="resumo-card inicio-cadastro-card">
+                <span class="resumo-icone"><i class="bi bi-box-seam"></i></span>
+                <span class="resumo-titulo">Embalagens</span>
+                <strong class="resumo-valor" th:text="${totalEmbalagens}">0</strong>
+                <span class="resumo-link">Ver embalagens →</span>
             </a>
 
         </div>
     </section>
 
-
-    <section class="secao">
-        <div class="titulo-secao">
-            <div>
-                <h2>Produção e vendas</h2>
-                <p>Veja quantos cálculos avançaram para produção e venda.</p>
-            </div>
-        </div>
-
-        <div class="resumo-grid resumo-grid-producao">
-            <a th:href="@{/historico/listar(produzido='SIM')}" class="resumo-card resumo-card-producao">
-                <span class="resumo-icone"><i class="bi bi-printer"></i></span>
-                <span class="resumo-titulo">Peças produzidas</span>
-                <strong class="resumo-valor" th:text="${totalProduzidos}">0</strong>
-                <span class="resumo-link">Ver produzidas →</span>
-            </a>
-
-            <a th:href="@{/historico/listar(vendido='SIM')}" class="resumo-card resumo-card-producao">
-                <span class="resumo-icone"><i class="bi bi-bag-check"></i></span>
-                <span class="resumo-titulo">Peças vendidas</span>
-                <strong class="resumo-valor" th:text="${totalVendidos}">0</strong>
-                <span class="resumo-link">Ver vendidas →</span>
-            </a>
-        </div>
-    </section>
-
-    <section class="secao dashboard-fluxo-secao">
-        <div class="dashboard-fluxo">
-            <div class="dashboard-fluxo-intro">
-                <span class="texto-apoio">ACOMPANHAMENTO</span>
-                <h2>Como está o seu fluxo?</h2>
-                <p>Compare peças produzidas e vendidas com o total de cálculos salvos.</p>
-                <a th:href="@{/historico/listar}" class="botao botao-secundario">Abrir histórico</a>
-            </div>
-
-            <div class="dashboard-fluxo-grafico"
-                 th:attr="aria-label=|Fluxo: ${totalCalculos} cálculos, ${totalProduzidos} produzidos e ${totalVendidos} vendidos|">
-                <div class="dashboard-fluxo-item">
-                    <div class="dashboard-fluxo-legenda">
-                        <span><i class="dashboard-ponto ponto-calculos"></i>Cálculos salvos</span>
-                        <strong th:text="${totalCalculos}">0</strong>
-                    </div>
-                    <div class="dashboard-fluxo-trilho" role="progressbar"
-                         aria-label="Cálculos salvos"
-                         aria-valuemin="0" aria-valuemax="100"
-                         th:aria-valuenow="${totalCalculos > 0 ? 100 : 0}">
-                        <span class="dashboard-fluxo-barra barra-calculos"
-                              th:style="|width: ${totalCalculos > 0 ? 100 : 0}%|"></span>
-                    </div>
-                </div>
-
-                <div class="dashboard-fluxo-item">
-                    <div class="dashboard-fluxo-legenda">
-                        <span><i class="dashboard-ponto ponto-produzidos"></i>Produzidos</span>
-                        <strong th:text="${totalProduzidos}">0</strong>
-                    </div>
-                    <div class="dashboard-fluxo-trilho" role="progressbar"
-                         aria-label="Percentual de cálculos produzidos"
-                         aria-valuemin="0" aria-valuemax="100"
-                         th:aria-valuenow="${percentualProduzido}"
-                         th:aria-valuetext="|${totalProduzidos} de ${totalCalculos} cálculos|">
-                        <span class="dashboard-fluxo-barra barra-produzidos"
-                              th:style="|width: ${percentualProduzido}%|"></span>
-                    </div>
-                </div>
-
-                <div class="dashboard-fluxo-item">
-                    <div class="dashboard-fluxo-legenda">
-                        <span><i class="dashboard-ponto ponto-vendidos"></i>Vendidos</span>
-                        <strong th:text="${totalVendidos}">0</strong>
-                    </div>
-                    <div class="dashboard-fluxo-trilho" role="progressbar"
-                         aria-label="Percentual de cálculos vendidos"
-                         aria-valuemin="0" aria-valuemax="100"
-                         th:aria-valuenow="${percentualVendido}"
-                         th:aria-valuetext="|${totalVendidos} de ${totalCalculos} cálculos|">
-                        <span class="dashboard-fluxo-barra barra-vendidos"
-                              th:style="|width: ${percentualVendido}%|"></span>
-                    </div>
-                </div>
-
-                <p class="dashboard-fluxo-vazio" th:if="${totalCalculos == 0}">
-                    Seus indicadores aparecem aqui depois do primeiro cálculo.
-                </p>
-            </div>
-        </div>
-    </section>
 
     <section class="secao" th:if="${!#lists.isEmpty(ultimosCalculos)}">
-        <div class="titulo-secao">
-            <div>
-                <h2>Cálculos recentes</h2>
-                <p>Retome rapidamente os últimos itens que você calculou.</p>
+        <div class="inicio-recentes">
+            <div class="inicio-recentes-cabecalho">
+                <div>
+                    <h2>Continue de onde parou</h2>
+                    <p>Seus últimos cálculos</p>
+                </div>
+                <a th:href="@{/historico/listar}" class="resumo-link">Ver histórico →</a>
             </div>
-            <a th:href="@{/historico/listar}" class="resumo-link">Ver histórico →</a>
-        </div>
 
-        <div class="dashboard-recentes">
-            <a class="dashboard-recente"
-               th:each="calculo : ${ultimosCalculos}"
-               th:href="@{/historico/detalhes/{id}(id=${calculo.id})}">
-                <span class="dashboard-recente-nome" th:text="${calculo.nomePeca}">Nome da peça</span>
-                <span class="dashboard-recente-valores">
-                    <small th:text="|Custo: R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">Custo: R$ 0,00</small>
-                    <strong th:text="|Preço sugerido: R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">Preço sugerido: R$ 0,00</strong>
-                </span>
-                <i class="bi bi-chevron-right" aria-hidden="true"></i>
-            </a>
+            <div class="dashboard-recentes">
+                <a class="dashboard-recente"
+                   th:each="calculo : ${ultimosCalculos}"
+                   th:href="@{/historico/detalhes/{id}(id=${calculo.id})}">
+                    <span class="dashboard-recente-nome" th:text="${calculo.nomePeca}">Nome da peça</span>
+                    <span class="dashboard-recente-custo" th:text="|Custo R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">Custo R$ 0,00</span>
+                    <strong class="dashboard-recente-preco" th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+                    <span class="dashboard-status-inicio"
+                          th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}"
+                          th:text="${calculo.vendido ? 'Vendido' : (calculo.produzido ? 'Produzido' : 'Só cálculo')}">Só cálculo</span>
+                </a>
+            </div>
         </div>
+    </section>
+
+    <section class="secao">
+        <a th:href="@{/dashboard}" class="dashboard-chamada">
+            <i class="bi bi-pie-chart" aria-hidden="true"></i>
+            <span>
+                <strong>Quer ver como está o seu negócio?</strong>
+                <small>Lucro, vendas por plataforma, custos e estoque na dashboard</small>
+            </span>
+            <span class="dashboard-chamada-botao">Abrir dashboard →</span>
+        </a>
     </section>
 
     <footer class="rodape">

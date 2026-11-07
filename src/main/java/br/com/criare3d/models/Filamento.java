@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -45,6 +46,9 @@ public class Filamento {
     @Column(name = "estoque_gramas", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal estoqueGramas;
 
+    @Column(name = "data_cadastro", nullable = false, updatable = false)
+    private @Getter @Setter LocalDateTime dataCadastro;
+
     @NotNull(message = "O preco do filamento do filamento é obrigatorio")
     @Column(name="precoRolo_fil", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal precoRolo;
@@ -56,4 +60,11 @@ public class Filamento {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private @Getter @Setter Usuario usuario;
+
+    @PrePersist
+    private void definirDataCadastro() {
+        if (dataCadastro == null) {
+            dataCadastro = LocalDateTime.now();
+        }
+    }
 }

@@ -13,14 +13,112 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.List;
+import java.math.BigDecimal;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
+
+    @Query("""
+        SELECT item.filamento.id, COUNT(DISTINCT item.calculoHistorico.id)
+        FROM ItemCalculoHistorico item
+        WHERE item.calculoHistorico.usuario.id = :usuarioId AND item.filamento IS NOT NULL
+        GROUP BY item.filamento.id
+        """)
+    List<Object[]> contarUsosDeFilamentosEmItens(@Param("usuarioId") UUID usuarioId);
+
+    @Query("""
+        SELECT h.filamento.id, COUNT(h)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.filamento IS NOT NULL
+          AND h.itensFilamento IS EMPTY
+        GROUP BY h.filamento.id
+        """)
+    List<Object[]> contarUsosDeFilamentosSimples(@Param("usuarioId") UUID usuarioId);
 
     Page<CalculoHistorico> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
 
     long countByProduzidoTrueAndUsuario_Id(UUID usuarioId);
 
     long countByVendidoTrueAndUsuario_Id(UUID usuarioId);
+
+    long countByUsuario_IdAndDataCalculoGreaterThanEqual(UUID usuarioId, LocalDateTime inicio);
+
+    long countByProduzidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(UUID usuarioId, LocalDateTime inicio);
+
+    long countByVendidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(UUID usuarioId, LocalDateTime inicio);
+
+    @Query("""
+        SELECT COALESCE(SUM(h.lucroLiquido), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.lucroLiquido IS NOT NULL
+        """)
+    BigDecimal somarLucroVendidoDesde(@Param("usuarioId") UUID usuarioId,
+                                      @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.produzido = true
+          AND h.dataCalculo >= :inicio
+        """)
+    Long somarMinutosProduzidosDesde(@Param("usuarioId") UUID usuarioId,
+                                     @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT COALESCE(SUM(CASE WHEN item.id IS NOT NULL
+            THEN item.quantidadeFilamentoGramas ELSE h.quantidadeFilamentoGramas END), 0)
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.usuario.id = :usuarioId AND h.produzido = true
+          AND h.dataCalculo >= :inicio
+        """)
+    BigDecimal somarFilamentoProduzidoDesde(@Param("usuarioId") UUID usuarioId,
+                                            @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT h.plataformaVenda, COALESCE(SUM(h.lucroLiquido), 0), COUNT(h)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.lucroLiquido IS NOT NULL
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+        GROUP BY h.plataformaVenda
+        """)
+    List<Object[]> somarLucroPorPlataformaDesde(@Param("usuarioId") UUID usuarioId,
+                                                @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT YEAR(h.dataCalculo), MONTH(h.dataCalculo), COALESCE(SUM(h.lucroLiquido), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.vendido = true
+          AND h.dataCalculo >= :inicio AND h.dataCalculo < :fim
+          AND h.plataformaVenda IS NOT NULL AND h.plataformaVenda <> 'NENHUMA'
+          AND h.lucroLiquido IS NOT NULL
+        GROUP BY YEAR(h.dataCalculo), MONTH(h.dataCalculo)
+        ORDER BY YEAR(h.dataCalculo), MONTH(h.dataCalculo)
+        """)
+    List<Object[]> somarLucroVendidoPorMes(@Param("usuarioId") UUID usuarioId,
+                                           @Param("inicio") LocalDateTime inicio,
+                                           @Param("fim") LocalDateTime fim);
+
+    @Query("""
+        SELECT COALESCE(SUM(h.custoFilamento), 0), COALESCE(SUM(h.custoEnergia), 0),
+               COALESCE(SUM(h.custoEmbalagem), 0), COALESCE(SUM(h.custoMaoObra), 0),
+               COALESCE(SUM(h.custoDepreciacao), 0), COALESCE(SUM(h.custoManutencao), 0),
+               COALESCE(SUM(h.custoFalha), 0)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio
+        """)
+    List<Object[]> somarComposicaoCustosProduzidosDesde(@Param("usuarioId") UUID usuarioId,
+                                                        @Param("inicio") LocalDateTime inicio);
+
+    @Query("""
+        SELECT h.nomeImpressora, COALESCE(SUM(h.tempoImpressaoMinutos), 0), COUNT(h)
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio
+        GROUP BY h.nomeImpressora ORDER BY SUM(h.tempoImpressaoMinutos) DESC
+        """)
+    List<Object[]> somarHorasPorImpressoraDesde(@Param("usuarioId") UUID usuarioId,
+                                                @Param("inicio") LocalDateTime inicio);
 
     Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndUsuario_Id(
             String nomePeca, UUID usuarioId, Pageable pageable

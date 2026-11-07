@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 public interface FilamentoService {
@@ -14,5 +16,7 @@ public interface FilamentoService {
     Page<Filamento> fetchAll(Pageable pageable);
     Page<Filamento> fetchAll(Pageable pageable, String busca);
     Optional<Filamento> fetchById(UUID id);
+    List<Filamento> fetchByIds(Collection<UUID> ids);
+    List<Filamento> fetchRecentes(int limite);
     boolean existsById(UUID id);
 }

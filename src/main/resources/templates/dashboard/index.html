@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Criare 3D | Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina dashboard-pagina">
+    <header class="dashboard-cabecalho">
+        <div>
+            <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
+            <h1>Bem-vinda ao Criare 3D!</h1>
+            <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
+        </div>
+        <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período dos indicadores">
+            <button type="submit" name="periodo" value="30" th:classappend="${periodo == '30' ? ' selecionado' : ''}">30 dias</button>
+            <button type="submit" name="periodo" value="90" th:classappend="${periodo == '90' ? ' selecionado' : ''}">90 dias</button>
+            <button type="submit" name="periodo" value="tudo" th:classappend="${periodo == 'tudo' ? ' selecionado' : ''}">Tudo</button>
+        </form>
+    </header>
+
+    <section class="dashboard-indicadores" aria-label="Indicadores do período">
+        <article class="dashboard-indicador dashboard-indicador-destaque">
+            <span>Lucro líquido estimado</span>
+            <strong th:text="|R$ ${#numbers.formatDecimal(lucroVendido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            <small>Das peças marcadas como vendidas</small>
+        </article>
+        <article class="dashboard-indicador">
+            <span>Lucro estimado por hora</span>
+            <strong th:text="|R$ ${#numbers.formatDecimal(lucroPorHora, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            <small>Lucro estimado ÷ horas produzidas</small>
+        </article>
+        <article class="dashboard-indicador">
+            <span>Horas imprimindo</span>
+            <strong th:text="|${#numbers.formatDecimal(horasProduzidas, 1, 'POINT', 1, 'COMMA')} h|">0 h</strong>
+            <small th:text="|${totalProduzidos} peças produzidas|">0 peças produzidas</small>
+        </article>
+        <article class="dashboard-indicador">
+            <span>Filamento usado</span>
+            <strong th:text="|${#numbers.formatDecimal(filamentoUsadoKg, 1, 'POINT', 2, 'COMMA')} kg|">0 kg</strong>
+            <small>Nas peças produzidas no período</small>
+        </article>
+    </section>
+
+    <section class="dashboard-cadastros-resumo" aria-label="Resumo dos cadastros">
+        <a th:href="@{/peca/listar}"><i class="bi bi-box" aria-hidden="true"></i><span><small>Peças</small><strong th:text="${totalPecas}">0</strong></span></a>
+        <a th:href="@{/filamento/listar}"><i class="bi bi-circle-half" aria-hidden="true"></i><span><small>Filamentos</small><strong th:text="${totalFilamentos}">0</strong></span></a>
+        <a th:href="@{/impressora/listar}"><i class="bi bi-printer" aria-hidden="true"></i><span><small>Impressoras</small><strong th:text="${totalImpressoras}">0</strong></span></a>
+        <a th:href="@{/historico/listar}"><i class="bi bi-calculator" aria-hidden="true"></i><span><small>Cálculos</small><strong th:text="${totalCalculos}">0</strong></span></a>
+    </section>
+
+    <section class="dashboard-grade dashboard-grade-graficos">
+        <article class="dashboard-bloco dashboard-lucro-mensal">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Lucro líquido por mês</h2><p>Das peças vendidas com plataforma simulada · últimos seis meses</p></div>
+                <strong class="dashboard-variacao" th:classappend="${variacaoLucroMensal < 0 ? ' negativo' : ''}"
+                        th:text="|${variacaoLucroMensal >= 0 ? '+' : ''}${variacaoLucroMensal}% vs mês anterior|">0% vs mês anterior</strong>
+            </div>
+            <div class="dashboard-grafico-linha">
+                <canvas id="graficoLucroMensal" role="img" aria-label="Lucro líquido mensal das peças vendidas nos últimos seis meses">Gráfico de lucro líquido mensal.</canvas>
+            </div>
+        </article>
+
+        <article class="dashboard-bloco dashboard-vendas-plataforma">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Vendas por plataforma</h2><p>Lucro líquido de cada uma</p></div>
+            </div>
+            <div class="dashboard-grafico-rosca-wrap" th:if="${vendasPlataformas > 0}">
+                <canvas id="graficoPlataformas" role="img" aria-label="Lucro líquido por plataforma de venda"></canvas>
+                <div class="dashboard-rosca-centro" aria-hidden="true">
+                    <strong th:text="|R$ ${#numbers.formatDecimal(lucroPlataformas, 1, 'POINT', 0, 'COMMA')}|">R$ 0</strong>
+                    <span th:text="|${vendasPlataformas} vendas|">0 vendas</span>
+                </div>
+            </div>
+            <p class="dashboard-vazio dashboard-rosca-vazia" th:if="${vendasPlataformas == 0}">Ainda não há vendas com lucro de plataforma calculado no período.</p>
+            <div class="dashboard-plataforma-legenda" th:if="${vendasPlataformas > 0}">
+                <div th:each="item : ${lucrosPorPlataforma}">
+                    <span><i th:style="|background: ${item.cor}|"></i><span th:text="${item.nome}">Shopee</span></span>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(item.lucro, 1, 'POINT', 0, 'COMMA')} · ${item.vendas} vendas|">R$ 0 · 0 vendas</strong>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="dashboard-grade dashboard-grade-producao">
+        <article class="dashboard-bloco dashboard-fluxo-bloco">
+            <div class="dashboard-bloco-titulo"><div><h2>Fluxo de produção</h2><p>Do cálculo até a venda</p></div></div>
+            <div class="dashboard-etapas">
+                <div class="dashboard-etapa-calculado"><strong th:text="${totalCalculos}">0</strong><span>Calculados</span></div>
+                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${percentualProduzido}%|">0%</span></div>
+                <div class="dashboard-etapa-produzido"><strong th:text="${totalProduzidos}">0</strong><span>Produzidos</span></div>
+                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${percentualVendidoProduzido}%|">0%</span></div>
+                <div class="dashboard-etapa-vendido"><strong th:text="${totalVendidos}">0</strong><span>Vendidos</span></div>
+            </div>
+            <div class="dashboard-fluxo-legenda" th:if="${aguardandoVenda > 0}">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span th:text="|${aguardandoVenda} produzidas ainda sem venda|">0 produzidas ainda sem venda</span>
+            </div>
+        </article>
+
+        <article class="dashboard-bloco dashboard-custos">
+            <div class="dashboard-bloco-titulo"><div><h2>Para onde vai o custo</h2><p>Média do período</p></div></div>
+            <div class="dashboard-custos-trilho" th:if="${totalCustos.signum() > 0}" role="img" aria-label="Composição dos custos">
+                <span th:each="item : ${composicaoCustos}" th:if="${item.percentual > 0}"
+                      th:style="|width: ${item.percentual}%; background: ${item.cor}|"></span>
+            </div>
+            <div class="dashboard-legenda-custos" th:if="${totalCustos.signum() > 0}">
+                <div th:each="item : ${composicaoCustos}" th:if="${item.valor.signum() > 0}">
+                    <span><i th:style="|background: ${item.cor}|"></i><span th:text="|${item.nome} ${item.percentual}%|">Filamento 0%</span></span>
+                </div>
+            </div>
+            <p class="dashboard-vazio" th:if="${totalCustos.signum() == 0}">Marque cálculos como produzidos para acompanhar a composição dos custos.</p>
+        </article>
+    </section>
+
+    <section class="dashboard-grade dashboard-grade-estoque">
+        <article class="dashboard-bloco dashboard-estoque">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Estoque de filamentos</h2><p>Saldo disponível em cada rolo</p></div>
+                <a th:href="@{/filamento/listar}" aria-label="Ver todos os filamentos" title="Ver todos os filamentos"><i class="bi bi-arrow-up-right"></i></a>
+            </div>
+            <div class="dashboard-estoque-lista" th:if="${!#lists.isEmpty(estoqueFilamentos)}">
+                <a class="dashboard-estoque-item" th:each="item : ${estoqueFilamentos}" th:href="@{/filamento/listar}">
+                    <span class="dashboard-estoque-anel" th:style="|--estoque-cor: ${item.anelCor}; --filamento-cor: ${item.cor}; --estoque-percentual: ${item.restante}%|"></span>
+                    <span class="dashboard-estoque-info"><strong th:text="${item.nome}">Filamento</strong><small th:text="|${#numbers.formatDecimal(item.gramas, 1, 'POINT', 0, 'COMMA')} g restantes|">0 g restantes</small></span>
+                </a>
+            </div>
+            <p class="dashboard-vazio" th:if="${#lists.isEmpty(estoqueFilamentos)}">Cadastre filamentos para acompanhar o estoque nesta tela.</p>
+        </article>
+
+        <article class="dashboard-bloco dashboard-impressoras">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Horas por impressora</h2><p>Tempo de produção no período</p></div>
+                <i class="bi bi-printer" aria-hidden="true"></i>
+            </div>
+            <div class="dashboard-impressoras-lista" th:if="${!#lists.isEmpty(horasPorImpressora)}">
+                <div class="dashboard-impressora-item" th:each="item : ${horasPorImpressora}">
+                    <span><strong th:text="${item.nome}">Impressora</strong><small th:text="|${item.pecas} peças produzidas|">0 peças</small></span>
+                    <b th:text="|${#numbers.formatDecimal(item.horas, 1, 'POINT', 1, 'COMMA')} h|">0 h</b>
+                </div>
+            </div>
+            <p class="dashboard-aviso-leve" th:if="${impressorasSemProducao > 0}"
+               th:text="|${impressorasSemProducao} ${impressorasSemProducao == 1 ? 'impressora sem produção' : 'impressoras sem produção'}|">0 impressoras sem produção</p>
+        </article>
+    </section>
+
+    <section class="dashboard-bloco dashboard-recentes-bloco">
+        <div class="dashboard-bloco-titulo">
+            <div><h2>Cálculos recentes</h2></div>
+            <a th:href="@{/historico/listar}" class="dashboard-link">Ver histórico <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="dashboard-tabela-wrap" th:if="${!#lists.isEmpty(calculosRecentes)}">
+            <table class="dashboard-tabela">
+                <thead><tr><th>Peça</th><th>Custo</th><th>Preço sugerido</th><th>Plataforma</th><th>Status</th></tr></thead>
+                <tbody>
+                <tr th:each="calculo : ${calculosRecentes}">
+                    <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="${calculo.nomePeca}">Peça</a></td>
+                    <td th:text="|R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                    <td th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                    <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda)))}">Sem plataforma</td>
+                    <td><span class="dashboard-status" th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}" th:text="${calculo.vendido ? 'Vendido' : (calculo.produzido ? 'Produzido' : 'Só cálculo')}">Só cálculo</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="dashboard-vazio" th:if="${#lists.isEmpty(calculosRecentes)}">Seus cálculos recentes aparecerão aqui.</p>
+    </section>
+
+    <footer class="rodape">Criare 3D · Gestão e cálculo de custos de impressão 3D</footer>
+</main>
+<script th:replace="~{fragmentos :: bootstrap-script}"></script>
+<script type="application/json" id="dashboard-chart-data" th:inline="javascript">
+    {
+        "meses": [[${lucroMensalRotulos}]],
+        "lucroMensal": [[${lucroMensalValores}]],
+        "plataformas": [[${lucroPlataformaNomes}]],
+        "lucroPlataformas": [[${lucroPlataformaValores}]],
+        "coresPlataformas": [[${lucroPlataformaCores}]]
+    }
+</script>
+</body>
+</html>

@@ -6,12 +6,16 @@ import br.com.criare3d.service.interfaces.PecaService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
+import br.com.criare3d.service.interfaces.EmbalagemService;
+import br.com.criare3d.models.Filamento;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import java.math.BigDecimal;
 
 @Controller
 public class HomeController {
@@ -31,13 +35,15 @@ public class HomeController {
     @Autowired
     private ConfiguracaoService configuracaoService;
 
+    @Autowired
+    private EmbalagemService embalagemService;
+
     @GetMapping({"/", "/home"})
     public String home(Model model) {
         PageRequest pagina = PageRequest.of(0, 1);
         var historicosRecentes = calculoHistoricoService.fetchAll(
-                PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "dataCalculo"))
+                PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "dataCalculo"))
         );
-        long totalCalculos = historicosRecentes.getTotalElements();
         long totalProduzidos = calculoHistoricoService.contarProduzidos();
         long totalVendidos = calculoHistoricoService.contarVendidos();
 
@@ -49,12 +55,23 @@ public class HomeController {
 
         model.addAttribute("totalImpressoras",
                 impressoraService.fetchAll(pagina).getTotalElements());
+        model.addAttribute("totalEmbalagens",
+                embalagemService.fetchAll(pagina).getTotalElements());
 
-        model.addAttribute("totalCalculos", totalCalculos);
+        Filamento filamentoAcabando = filamentoService.fetchAll(PageRequest.of(
+                        0, 200, Sort.by(Sort.Direction.ASC, "estoqueGramas")))
+                .getContent().stream()
+                .filter(f -> f.getEstoqueGramas() != null
+                        && f.getPesoRoloGramas() != null
+                        && f.getPesoRoloGramas().compareTo(BigDecimal.ZERO) > 0
+                        && f.getEstoqueGramas().multiply(BigDecimal.valueOf(100))
+                        .compareTo(f.getPesoRoloGramas().multiply(BigDecimal.TEN)) <= 0)
+                .findFirst().orElse(null);
+        model.addAttribute("filamentoAcabando", filamentoAcabando);
+
         model.addAttribute("totalProduzidos", totalProduzidos);
         model.addAttribute("totalVendidos", totalVendidos);
-        model.addAttribute("percentualProduzido", percentual(totalProduzidos, totalCalculos));
-        model.addAttribute("percentualVendido", percentual(totalVendidos, totalCalculos));
+        model.addAttribute("aguardandoVenda", Math.max(0, totalProduzidos - totalVendidos));
         model.addAttribute("ultimosCalculos", historicosRecentes.getContent());
 
         boolean valorHoraConfigurado = configuracaoService.buscarConfiguracao()
@@ -64,10 +81,5 @@ public class HomeController {
         model.addAttribute("valorHoraConfigurado", valorHoraConfigurado);
 
         return "index";
-    }
-
-    private static int percentual(long quantidade, long total) {
-        if (total <= 0) return 0;
-        return (int) Math.round((double) quantidade * 100 / total);
     }
 }

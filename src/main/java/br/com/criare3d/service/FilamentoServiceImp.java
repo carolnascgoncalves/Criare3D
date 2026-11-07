@@ -7,6 +7,8 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,6 +122,27 @@ public class FilamentoServiceImp implements FilamentoService {
     public Optional<Filamento> fetchById(UUID id) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return filamentoRepository.findByIdAndUsuario_Id(id, usuarioId);
+    }
+
+    @Override
+    public List<Filamento> fetchByIds(java.util.Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return filamentoRepository.findAllByIdInAndUsuario_Id(ids, usuarioId);
+    }
+
+    @Override
+    public List<Filamento> fetchRecentes(int limite) {
+        if (limite <= 0) {
+            return List.of();
+        }
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return filamentoRepository.findAllByUsuario_Id(usuarioId,
+                        PageRequest.of(0, limite, Sort.by(Sort.Order.desc("dataCadastro"),
+                                Sort.Order.asc("nome"))))
+                .getContent();
     }
 
     @Override
