@@ -3,6 +3,7 @@ package br.com.criare3d.repository;
 
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
+import br.com.criare3d.dto.CalculoRecenteResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,7 +35,68 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         """)
     List<Object[]> contarUsosDeFilamentosSimples(@Param("usuarioId") UUID usuarioId);
 
+    @Query("""
+        SELECT DISTINCT CASE
+            WHEN item.filamento.id IN :filamentoIds THEN item.filamento.id
+            ELSE h.filamento.id
+        END
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.usuario.id = :usuarioId
+          AND h.produzido = true
+          AND (h.filamento.id IN :filamentoIds OR item.filamento.id IN :filamentoIds)
+        """)
+    List<UUID> buscarIdsFilamentoComHistoricoProduzido(
+            @Param("usuarioId") UUID usuarioId,
+            @Param("filamentoIds") List<UUID> filamentoIds
+    );
+
+    @Query("""
+        SELECT DISTINCT CASE
+            WHEN item.filamento.id IN :filamentoIds THEN item.filamento.id
+            ELSE h.filamento.id
+        END
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.usuario.id = :usuarioId
+          AND (h.filamento.id IN :filamentoIds OR item.filamento.id IN :filamentoIds)
+        """)
+    List<UUID> buscarIdsFilamentoComHistorico(
+            @Param("usuarioId") UUID usuarioId,
+            @Param("filamentoIds") List<UUID> filamentoIds
+    );
+
+    @Query("""
+        SELECT DISTINCT h.peca.id FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.peca.id IN :ids
+        """)
+    List<UUID> buscarIdsPecaComHistorico(@Param("usuarioId") UUID usuarioId, @Param("ids") List<UUID> ids);
+
+    @Query("""
+        SELECT DISTINCT h.impressora.id FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.impressora.id IN :ids
+        """)
+    List<UUID> buscarIdsImpressoraComHistorico(@Param("usuarioId") UUID usuarioId, @Param("ids") List<UUID> ids);
+
+    @Query("""
+        SELECT DISTINCT h.embalagem.id FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId AND h.embalagem.id IN :ids
+        """)
+    List<UUID> buscarIdsEmbalagemComHistorico(@Param("usuarioId") UUID usuarioId, @Param("ids") List<UUID> ids);
+
     Page<CalculoHistorico> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
+
+    @Query("""
+        SELECT new br.com.criare3d.dto.CalculoRecenteResponse(
+            h.id, h.nomePeca, h.custoTotal, h.precoSugerido,
+            h.plataformaVenda, h.produzido, h.vendido
+        )
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId
+        ORDER BY h.dataCalculo DESC
+        """)
+    List<CalculoRecenteResponse> buscarCalculosRecentes(
+            @Param("usuarioId") UUID usuarioId, Pageable pageable);
 
     long countByProduzidoTrueAndUsuario_Id(UUID usuarioId);
 

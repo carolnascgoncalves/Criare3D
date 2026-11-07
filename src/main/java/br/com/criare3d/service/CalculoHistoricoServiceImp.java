@@ -3,6 +3,7 @@ package br.com.criare3d.service;
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
+import br.com.criare3d.dto.CalculoRecenteResponse;
 import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
@@ -18,8 +19,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import br.com.criare3d.models.enums.PlataformaVenda;
@@ -68,6 +71,15 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public java.util.List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return calculoHistoricoRepository.buscarUsosDoFilamento(filamentoId, usuarioId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<UUID> buscarFilamentosComHistoricoProduzido(Collection<UUID> filamentoIds) {
+        if (filamentoIds == null || filamentoIds.isEmpty()) return Set.of();
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistoricoProduzido(
+                usuarioId, List.copyOf(filamentoIds)));
     }
 
     @Override
@@ -176,14 +188,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         }
 
         Map<UUID, Filamento> filamentos = new HashMap<>();
-        for (UUID filamentoId : quantidades.keySet()) {
-            var encontrado = filamentoService.fetchById(filamentoId);
-            if (encontrado.isEmpty()) {
-                if (!devolver) return false;
-                continue;
-            }
-            filamentos.put(filamentoId, encontrado.get());
+        for (Filamento filamento : filamentoService.fetchByIds(quantidades.keySet())) {
+            filamentos.put(filamento.getId(), filamento);
         }
+        if (!devolver && filamentos.size() != quantidades.size()) return false;
 
         if (!devolver) {
             for (Map.Entry<UUID, Filamento> entrada : filamentos.entrySet()) {
@@ -199,8 +207,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             BigDecimal saldo = filamento.getEstoqueGramas() == null
                     ? BigDecimal.ZERO : filamento.getEstoqueGramas();
             filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
-            filamentoService.update(filamentoId, filamento);
         });
+        // Os filamentos estão gerenciados na transação atual; o dirty checking persiste os saldos.
         return true;
     }
 
@@ -247,6 +255,17 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         BigDecimal custoFilamentoTotal = ZERO;
         Map<UUID, BigDecimal> consumoPorFilamento = new HashMap<>();
 
+        java.util.Set<UUID> idsFilamentosSolicitados = new LinkedHashSet<>();
+        for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
+            if (itemRequest.getFilamentoId() != null) {
+                idsFilamentosSolicitados.add(itemRequest.getFilamentoId());
+            }
+        }
+        Map<UUID, Filamento> filamentosCadastrados = new HashMap<>();
+        for (Filamento filamento : filamentoService.fetchByIds(idsFilamentosSolicitados)) {
+            filamentosCadastrados.put(filamento.getId(), filamento);
+        }
+
         for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
 
             if (itemRequest.getFilamentoId() == null) {
@@ -260,8 +279,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "A quantidade de cada filamento deve ser maior que zero");
             }
 
-            Filamento filamento = filamentoService.fetchById(itemRequest.getFilamentoId())
-                    .orElseThrow(() -> new IllegalArgumentException("Filamento não encontrado"));
+            Filamento filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
+            if (filamento == null) {
+                throw new IllegalArgumentException("Filamento não encontrado");
+            }
 
             BigDecimal consumoTotal = consumoPorFilamento.merge(
                     filamento.getId(), quantidade, BigDecimal::add);
@@ -354,7 +375,11 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
             if (valorImpressora == null || valorImpressora.signum() < 0
                     || vidaUtilHoras == null || vidaUtilHoras.signum() <= 0) {
-                throw new IllegalArgumentException("Cadastre o valor de compra e uma vida útil maior que zero para calcular a depreciação.");
+                throw new IllegalArgumentException(
+                        "A depreciação está ativada nas Configurações, mas faltam dados na impressora selecionada. " +
+                        "Cadastre o valor de compra e a vida útil em Impressoras; a calculadora usará esses dados " +
+                        "e o tempo de impressão para incluir esse custo no cálculo."
+                );
             }
             custoDepreciacao = CalculoFinanceiro.depreciacao(
                     valorImpressora, vidaUtilHoras, request.getTempoImpressaoMinutos());
@@ -1199,6 +1224,16 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         return calculoHistoricoRepository.findAllByUsuario_Id(
                 usuarioId, pageable
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<CalculoRecenteResponse> fetchRecentes(int limite) {
+        if (limite <= 0) return java.util.List.of();
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        return calculoHistoricoRepository.buscarCalculosRecentes(
+                usuarioId, org.springframework.data.domain.PageRequest.of(0, limite)
         );
     }
 

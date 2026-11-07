@@ -89,12 +89,18 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     @Override
     @Transactional(readOnly = true)
     public BigDecimal custoPorHora(UUID impressoraId) {
-        BigDecimal total = totalGasto(impressoraId);
-        long minutos = minutosImpressos(impressoraId);
-        if (total == null || total.signum() <= 0 || minutos <= 0) return BigDecimal.ZERO;
-        BigDecimal horas = BigDecimal.valueOf(minutos)
-                .divide(BigDecimal.valueOf(60), 10, RoundingMode.HALF_UP);
-        return total.divide(horas, 8, RoundingMode.HALF_UP);
+        Impressora impressora = buscarImpressoraDoUsuario(impressoraId);
+        BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
+        if (vidaUtilHoras == null || vidaUtilHoras.signum() <= 0) return BigDecimal.ZERO;
+
+        BigDecimal total = manutencaoRepository.somarValoresPorImpressoraEUsuario(
+                impressoraId, usuarioLogadoService.buscarIdUsuarioAtual());
+        if (total == null || total.signum() <= 0) return BigDecimal.ZERO;
+
+        // Distribui os gastos de manutenção pela vida útil prevista da impressora.
+        // Dividir apenas pelas horas já produzidas fazia uma manutenção recente
+        // recair quase inteira sobre cada peça quando havia pouco histórico.
+        return total.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP);
     }
 
     private Impressora buscarImpressoraDoUsuario(UUID impressoraId) {

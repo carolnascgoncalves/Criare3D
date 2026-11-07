@@ -7,8 +7,6 @@ import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import br.com.criare3d.service.interfaces.PecaService;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -126,14 +124,14 @@ public class DashboardController {
         model.addAttribute("horasPorImpressora", montarImpressoras(totaisPorImpressora));
 
         model.addAttribute("estoqueFilamentos", montarEstoque(usuarioId));
-        model.addAttribute("totalPecas", pecaService.fetchAll(PageRequest.of(0, 1)).getTotalElements());
-        model.addAttribute("totalFilamentos", filamentoService.fetchAll(PageRequest.of(0, 1)).getTotalElements());
-        long totalImpressoras = impressoraService.fetchAll(PageRequest.of(0, 1)).getTotalElements();
+        model.addAttribute("totalPecas", pecaService.contar());
+        model.addAttribute("totalFilamentos", filamentoService.contar());
+        long totalImpressoras = impressoraService.contar();
         model.addAttribute("totalImpressoras", totalImpressoras);
-        model.addAttribute("totalEmbalagens", embalagemService.fetchAll(PageRequest.of(0, 1)).getTotalElements());
+        model.addAttribute("totalEmbalagens", embalagemService.contar());
         model.addAttribute("impressorasSemProducao", Math.max(0, totalImpressoras - totaisPorImpressora.size()));
-        model.addAttribute("calculosRecentes", historicoRepository.findAllByUsuario_Id(
-                usuarioId, PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "dataCalculo"))).getContent());
+        model.addAttribute("calculosRecentes", historicoRepository.buscarCalculosRecentes(
+                usuarioId, org.springframework.data.domain.PageRequest.of(0, 5)));
 
         return "dashboard/index";
     }

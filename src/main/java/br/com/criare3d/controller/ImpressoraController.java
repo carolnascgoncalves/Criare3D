@@ -169,16 +169,7 @@ public class ImpressoraController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/impressora/listar?erro=nenhumaImpressoraSelecionada");
-        List<UUID> bloqueadas = new java.util.ArrayList<>();
-        for (UUID id : ids.stream().distinct().toList()) {
-            if (!impressoraService.existsById(id)) continue;
-            if (calculoHistoricoService.contarPorImpressora(id) > 0
-                    || manutencaoImpressoraService.contar(id) > 0) {
-                bloqueadas.add(id);
-                continue;
-            }
-            impressoraService.delete(id);
-        }
+        List<UUID> bloqueadas = impressoraService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("page", page);

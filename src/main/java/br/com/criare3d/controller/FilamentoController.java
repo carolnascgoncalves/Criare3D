@@ -59,14 +59,13 @@ public class FilamentoController {
 
         Map<UUID, Boolean> filamentosComHistoricoProduzido = new HashMap<>();
         Map<UUID, Integer> percentualEstoque = new HashMap<>();
+        List<UUID> idsPagina = pagina.getContent().stream().map(Filamento::getId).toList();
+        var idsComHistoricoProduzido = calculoHistoricoService.buscarFilamentosComHistoricoProduzido(idsPagina);
 
         for (Filamento filamento : pagina.getContent()) {
-            boolean possuiHistoricoProduzido =
-                    !calculoHistoricoService.listarUsosPorFilamento(filamento.getId()).isEmpty();
-
             filamentosComHistoricoProduzido.put(
                     filamento.getId(),
-                    possuiHistoricoProduzido
+                    idsComHistoricoProduzido.contains(filamento.getId())
             );
 
             BigDecimal pesoRolo = filamento.getPesoRoloGramas();
@@ -230,15 +229,7 @@ public class FilamentoController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/filamento/listar?erro=nenhumFilamentoSelecionado");
-        List<UUID> bloqueados = new java.util.ArrayList<>();
-        for (UUID id : ids.stream().distinct().toList()) {
-            if (!filamentoService.existsById(id)) continue;
-            if (calculoHistoricoService.contarPorFilamento(id) > 0) {
-                bloqueados.add(id);
-                continue;
-            }
-            filamentoService.delete(id);
-        }
+        List<UUID> bloqueados = filamentoService.deleteUnused(ids);
         if (!bloqueados.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueados);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);

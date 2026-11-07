@@ -2,13 +2,13 @@ package br.com.criare3d.service;
 
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.repository.FilamentoRepository;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Collection;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -28,6 +30,9 @@ public class FilamentoServiceImp implements FilamentoService {
 
     @Autowired
     private UsuarioLogadoService usuarioLogadoService;
+
+    @Autowired
+    private CalculoHistoricoRepository calculoHistoricoRepository;
 
     @Override
     public Filamento create(Filamento filamento) {
@@ -72,9 +77,29 @@ public class FilamentoServiceImp implements FilamentoService {
     }
 
     @Override
+    public List<UUID> deleteUnused(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (solicitados.isEmpty()) return List.of();
+        List<UUID> existentes = filamentoRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+                .stream().map(Filamento::getId).toList();
+        if (existentes.isEmpty()) return List.of();
+        Set<UUID> bloqueados = Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(usuarioId, existentes));
+        List<UUID> removiveis = existentes.stream().filter(id -> !bloqueados.contains(id)).toList();
+        if (!removiveis.isEmpty()) filamentoRepository.deleteAllByIdInBatch(removiveis);
+        return existentes.stream().filter(bloqueados::contains).toList();
+    }
+
+    @Override
     public Page<Filamento> fetchAll(Pageable pageable) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return filamentoRepository.findAllByUsuario_Id(usuarioId, pageable);
+    }
+
+    @Override
+    public long contar() {
+        return filamentoRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
     }
 
     @Override
@@ -139,10 +164,15 @@ public class FilamentoServiceImp implements FilamentoService {
             return List.of();
         }
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.findAllByUsuario_Id(usuarioId,
-                        PageRequest.of(0, limite, Sort.by(Sort.Order.desc("dataCadastro"),
-                                Sort.Order.asc("nome"))))
-                .getContent();
+        return filamentoRepository.findByUsuario_IdOrderByDataCadastroDescNomeAsc(
+                usuarioId, PageRequest.of(0, limite));
+    }
+
+    @Override
+    public Optional<Filamento> fetchEstoqueCritico() {
+        List<Filamento> encontrados = filamentoRepository.buscarComEstoqueCritico(
+                usuarioLogadoService.buscarIdUsuarioAtual(), PageRequest.of(0, 1));
+        return encontrados.stream().findFirst();
     }
 
     @Override

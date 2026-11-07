@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 import java.util.Collection;
@@ -16,6 +18,21 @@ public interface FilamentoRepository extends
         JpaSpecificationExecutor<Filamento> {
 
     Page<Filamento> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
+
+    long countByUsuario_Id(UUID usuarioId);
+
+    List<Filamento> findByUsuario_IdOrderByDataCadastroDescNomeAsc(UUID usuarioId, Pageable pageable);
+
+    @Query("""
+        SELECT f FROM Filamento f
+        WHERE f.usuario.id = :usuarioId
+          AND f.estoqueGramas IS NOT NULL
+          AND f.pesoRoloGramas IS NOT NULL
+          AND f.pesoRoloGramas > 0
+          AND f.estoqueGramas * 10 <= f.pesoRoloGramas
+        ORDER BY f.estoqueGramas ASC
+        """)
+    List<Filamento> buscarComEstoqueCritico(@Param("usuarioId") UUID usuarioId, Pageable pageable);
 
     Page<Filamento> findByNomeContainingIgnoreCaseAndUsuario_Id(String nome, UUID usuarioId, Pageable pageable);
 

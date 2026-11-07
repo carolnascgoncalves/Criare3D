@@ -102,11 +102,11 @@
             </div>
         </div>
 
-        <p class="aviso-info" th:if="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
-            <i class="bi bi-info-circle"></i> Estimativa automática: total dos gastos registrados dividido pelas horas de cálculos marcados como produzidos.
+        <p class="aviso-info" th:if="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and manutencaoPorHoraCalculada != null and manutencaoPorHoraCalculada.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+            <i class="bi bi-info-circle"></i> Estimativa automática: os gastos registrados são distribuídos pela vida útil estimada da impressora. Esse valor por hora é aplicado pela calculadora conforme o tempo de impressão.
         </p>
-        <p class="aviso-info" th:unless="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and minutosImpressos > 0}">
-            <i class="bi bi-info-circle"></i> A estimativa começa em zero e é calculada automaticamente quando houver gastos de manutenção registrados e horas de impressão produzidas.
+        <p class="aviso-info" th:unless="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and manutencaoPorHoraCalculada != null and manutencaoPorHoraCalculada.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+            <i class="bi bi-info-circle"></i> Para estimar o custo por hora, cadastre gastos de manutenção e informe a vida útil da impressora. A calculadora aplica essa estimativa conforme o tempo de impressão.
         </p>
 
         <div class="manutencao-impressora-colunas">

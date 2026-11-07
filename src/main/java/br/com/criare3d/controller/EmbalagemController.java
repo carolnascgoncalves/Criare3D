@@ -167,15 +167,7 @@ public class EmbalagemController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/embalagem/listar?erro=nenhumaEmbalagemSelecionada");
-        List<UUID> bloqueadas = new java.util.ArrayList<>();
-        for (UUID id : ids.stream().distinct().toList()) {
-            if (!embalagemService.existsById(id)) continue;
-            if (calculoHistoricoService.contarPorEmbalagem(id) > 0) {
-                bloqueadas.add(id);
-                continue;
-            }
-            embalagemService.delete(id);
-        }
+        List<UUID> bloqueadas = embalagemService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);

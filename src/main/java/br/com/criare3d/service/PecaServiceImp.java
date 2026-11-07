@@ -2,6 +2,7 @@ package br.com.criare3d.service;
 
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.repository.PecaRepository;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.PecaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -21,6 +25,9 @@ public class PecaServiceImp implements PecaService {
 
     @Autowired
     private UsuarioLogadoService usuarioLogadoService;
+
+    @Autowired
+    private CalculoHistoricoRepository calculoHistoricoRepository;
 
     @Override
     public Peca create(Peca peca) {
@@ -35,6 +42,11 @@ public class PecaServiceImp implements PecaService {
     }
 
     @Override
+    public long contar() {
+        return pecaRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
+    }
+
+    @Override
     public Optional<Peca> fetchById(UUID id) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return pecaRepository.findByIdAndUsuario_Id(id, usuarioId);
@@ -43,6 +55,21 @@ public class PecaServiceImp implements PecaService {
     @Override
     public void delete(UUID id) {
         fetchById(id).ifPresent(pecaRepository::delete);
+    }
+
+    @Override
+    public List<UUID> deleteUnused(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (solicitados.isEmpty()) return List.of();
+        List<UUID> existentes = pecaRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+                .stream().map(Peca::getId).toList();
+        if (existentes.isEmpty()) return List.of();
+        Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsPecaComHistorico(usuarioId, existentes));
+        List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();
+        if (!removiveis.isEmpty()) pecaRepository.deleteAllByIdInBatch(removiveis);
+        return existentes.stream().filter(bloqueadas::contains).toList();
     }
 
     @Override

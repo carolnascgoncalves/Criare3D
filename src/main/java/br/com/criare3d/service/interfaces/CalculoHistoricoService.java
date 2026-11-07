@@ -8,20 +8,24 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
+import br.com.criare3d.dto.CalculoRecenteResponse;
 import java.util.List;
 
 public interface CalculoHistoricoService {
     CalculoHistorico create(CalculoHistorico calculoHistorico);
     Page<CalculoHistorico> fetchAll(Pageable pageable);
+    List<CalculoRecenteResponse> fetchRecentes(int limite);
     long contarProduzidos();
     long contarVendidos();
     Optional<CalculoHistorico> fetchById(UUID id);
     boolean existsById(UUID id);
     long contarPorFilamento(UUID filamentoId);
     List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId);
+    Set<UUID> buscarFilamentosComHistoricoProduzido(Collection<UUID> filamentoIds);
     long contarPorEmbalagem(UUID embalagemId);
     long contarPorImpressora(UUID impressoraId);
     long contarPorPeca(UUID pecaId);

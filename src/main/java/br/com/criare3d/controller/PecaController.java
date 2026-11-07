@@ -128,15 +128,7 @@ public class PecaController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/peca/listar?erro=nenhumaPecaSelecionada");
-        List<UUID> bloqueadas = new java.util.ArrayList<>();
-        for (UUID id : ids.stream().distinct().toList()) {
-            if (!pecaService.existsById(id)) continue;
-            if (calculoHistoricoService.contarPorPeca(id) > 0) {
-                bloqueadas.add(id);
-                continue;
-            }
-            pecaService.delete(id);
-        }
+        List<UUID> bloqueadas = pecaService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("page", page);
