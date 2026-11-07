@@ -25,6 +25,8 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Controller
 public class FilamentoController {
@@ -56,6 +58,7 @@ public class FilamentoController {
         Page<Filamento> pagina = filamentoService.fetchAll(pageable, busca);
 
         Map<UUID, Boolean> filamentosComHistoricoProduzido = new HashMap<>();
+        Map<UUID, Integer> percentualEstoque = new HashMap<>();
 
         for (Filamento filamento : pagina.getContent()) {
             boolean possuiHistoricoProduzido =
@@ -65,6 +68,16 @@ public class FilamentoController {
                     filamento.getId(),
                     possuiHistoricoProduzido
             );
+
+            BigDecimal pesoRolo = filamento.getPesoRoloGramas();
+            BigDecimal estoque = filamento.getEstoqueGramas();
+            int percentual = 0;
+            if (pesoRolo != null && pesoRolo.signum() > 0 && estoque != null) {
+                percentual = estoque.multiply(BigDecimal.valueOf(100))
+                        .divide(pesoRolo, 0, RoundingMode.HALF_UP).intValue();
+                percentual = Math.max(0, Math.min(100, percentual));
+            }
+            percentualEstoque.put(filamento.getId(), percentual);
         }
 
         mv.addObject("filamentos", pagina.getContent());
@@ -72,6 +85,7 @@ public class FilamentoController {
         mv.addObject("busca", busca == null ? "" : busca);
         mv.addObject("ordem", ordem);
         mv.addObject("filamentosComHistoricoProduzido", filamentosComHistoricoProduzido);
+        mv.addObject("percentualEstoque", percentualEstoque);
 
         return mv;
     }

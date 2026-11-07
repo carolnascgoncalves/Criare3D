@@ -228,10 +228,32 @@
 
                     <td>
                         <div class="estoque-filamento-lista">
-                            <span th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">
-                                0 g
-                            </span>
+                            <div class="estoque-filamento-quantidades">
+                                <div>
+                                    <strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g|">0 g</strong>
+                                    <span th:text="|de ${#numbers.formatDecimal(filamento.pesoRoloGramas, 1, 'POINT', 0, 'COMMA')} g|">de 1.000 g</span>
+                                </div>
+                                <small>Disponível no rolo</small>
+                                <span class="estoque-filamento-repor"
+                                      th:if="${percentualEstoque[filamento.id] <= 34}">
+                                    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Repor estoque
+                                </span>
+                            </div>
 
+                            <div class="estoque-filamento-indicador"
+                                 th:classappend="${percentualEstoque[filamento.id] <= 34 ? ' critico' : (percentualEstoque[filamento.id] <= 64 ? ' atencao' : ' adequado')}">
+                                <div class="estoque-filamento-trilho"
+                                     role="progressbar"
+                                     th:attr="aria-valuenow=${percentualEstoque[filamento.id]}, aria-valuemin=0, aria-valuemax=100, aria-label=|${percentualEstoque[filamento.id]}% de estoque disponível|">
+                                    <span th:style="|width: ${percentualEstoque[filamento.id]}%|"></span>
+                                </div>
+                                <strong th:text="|${percentualEstoque[filamento.id]}%|">0%</strong>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td class="coluna-acoes">
+                        <div class="acoes">
                             <a th:if="${filamentosComHistoricoProduzido[filamento.id]}"
                                th:href="@{/filamento/{id}/historico(id=${filamento.id})}"
                                class="botao-acao"
@@ -239,11 +261,7 @@
                                aria-label="Ver histórico de uso deste filamento">
                                 <i class="bi bi-search"></i>
                             </a>
-                        </div>
-                    </td>
 
-                    <td class="coluna-acoes">
-                        <div class="acoes">
                             <a th:href="@{/filamento/detalhes/{id}(id=${filamento.id})}"
                                class="botao-acao"
                                title="Ver detalhes"

@@ -45,7 +45,25 @@
                         </a>
                     </td>
                     <td th:text="${#temporals.format(uso.dataCalculo, 'dd/MM/yyyy ''às'' HH''h''mm')}">Data</td>
-                    <td th:text="|${#numbers.formatDecimal(uso.quantidadeGramas, 1, 2)} g|">0 g</td>
+                    <td>
+                        <div class="uso-filamento-quantidade">
+                            <span class="uso-filamento-cor"
+                                  aria-hidden="true"
+                                  th:style="|background-color: ${uso.corHexadecimal}|"></span>
+                            <div class="uso-filamento-dados">
+                                <div class="uso-filamento-legenda">
+                                    <span th:text="${uso.corFilamento != null ? uso.corFilamento : filamento.cor}">Cor</span>
+                                    <strong th:text="|${#numbers.formatDecimal(uso.quantidadeGramas, 1, 'POINT', 1, 'COMMA')} g|">0 g</strong>
+                                    <small th:text="|de ${#numbers.formatDecimal(uso.pesoRoloGramas, 1, 'POINT', 0, 'COMMA')} g · ${uso.percentualDoRolo}% do rolo|">de 1.000 g · 0% do rolo</small>
+                                </div>
+                                <div class="uso-filamento-trilho"
+                                     role="progressbar"
+                                     th:attr="aria-valuenow=${uso.percentualDoRolo}, aria-valuemin=0, aria-valuemax=100, aria-label=|${uso.percentualDoRolo}% do rolo usado neste cálculo|">
+                                    <span th:style="|width: ${uso.percentualDoRolo}%|"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                     <td>
                         <span class="status-venda-historico"
                               th:classappend="${uso.vendido == true} ? ' status-ativo' : ''"

@@ -223,6 +223,9 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
             h.nomePeca,
             h.dataCalculo,
             COALESCE(SUM(item.quantidadeFilamentoGramas), h.quantidadeFilamentoGramas),
+            COALESCE(item.corFilamento, h.filamento.cor),
+            COALESCE(item.codigoCor, h.filamento.codigoCor),
+            COALESCE(item.pesoRoloGramas, h.pesoRoloGramas),
             h.vendido
         )
         FROM CalculoHistorico h
@@ -230,7 +233,9 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         WHERE h.usuario.id = :usuarioId
           AND h.produzido = true
           AND (item.id IS NOT NULL OR h.filamento.id = :filamentoId)
-        GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas
+        GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas,
+                 item.corFilamento, item.codigoCor, item.pesoRoloGramas,
+                 h.filamento.cor, h.filamento.codigoCor, h.pesoRoloGramas
         ORDER BY h.dataCalculo DESC
         """)
     List<FilamentoHistoricoUsoResponse> buscarUsosDoFilamento(
