@@ -1,6 +1,7 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.*;
+import br.com.criare3d.dto.HistoricoListaResponse;
 import br.com.criare3d.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -68,7 +69,7 @@ public class CatalogoBuscaService {
         );
     }
 
-    public Page<CalculoHistorico> buscarHistorico(
+    public Page<HistoricoListaResponse> buscarHistorico(
             String nome,
             LocalDate data,
             String plataforma,

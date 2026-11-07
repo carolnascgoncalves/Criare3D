@@ -4,6 +4,7 @@ import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
+import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
 import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
@@ -134,39 +135,85 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public String atualizarProduzido(UUID id, boolean produzido) {
-        var encontrado = fetchById(id);
-        if (encontrado.isEmpty()) return "naoEncontrado";
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        List<AjusteEstoqueCalculoResponse> dados =
+                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id, usuarioId);
+        if (dados.isEmpty()) return "naoEncontrado";
 
-        CalculoHistorico historico = encontrado.get();
-        boolean jaProduzido = Boolean.TRUE.equals(historico.getProduzido());
+        AjusteEstoqueCalculoResponse historico = dados.get(0);
+        boolean jaProduzido = Boolean.TRUE.equals(historico.produzido());
         if (jaProduzido == produzido) return "ok";
 
-        if (!produzido && Boolean.TRUE.equals(historico.getVendido())) {
+        if (!produzido && Boolean.TRUE.equals(historico.vendido())) {
             return "vendaAtiva";
         }
 
-        if (produzido && !ajustarEstoque(historico, false)) {
+        if (produzido && !ajustarEstoque(dados, false)) {
             return "estoqueInsuficiente";
         }
-        if (!produzido) ajustarEstoque(historico, true);
+        if (!produzido) ajustarEstoque(dados, true);
 
-        historico.setProduzido(produzido);
-        calculoHistoricoRepository.save(historico);
+        calculoHistoricoRepository.atualizarStatus(
+                id, usuarioId, produzido, Boolean.TRUE.equals(historico.vendido()));
         return "ok";
     }
 
     @Override
     public String atualizarVendido(UUID id, boolean vendido) {
-        var encontrado = fetchById(id);
-        if (encontrado.isEmpty()) return "naoEncontrado";
-        CalculoHistorico historico = encontrado.get();
-        if (vendido && !Boolean.TRUE.equals(historico.getProduzido())) {
-            if (!ajustarEstoque(historico, false)) return "estoqueInsuficiente";
-            historico.setProduzido(true);
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        List<AjusteEstoqueCalculoResponse> dados =
+                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id, usuarioId);
+        if (dados.isEmpty()) return "naoEncontrado";
+
+        AjusteEstoqueCalculoResponse historico = dados.get(0);
+        boolean produzido = Boolean.TRUE.equals(historico.produzido());
+        if (vendido && !produzido) {
+            if (!ajustarEstoque(dados, false)) return "estoqueInsuficiente";
+            produzido = true;
         }
-        historico.setVendido(vendido);
-        calculoHistoricoRepository.save(historico);
+        calculoHistoricoRepository.atualizarStatus(id, usuarioId, produzido, vendido);
         return "ok";
+    }
+
+    /** Ajusta o estoque usando apenas os campos mínimos lidos para a troca de status. */
+    private boolean ajustarEstoque(List<AjusteEstoqueCalculoResponse> dados, boolean devolver) {
+        Map<UUID, BigDecimal> quantidades = new HashMap<>();
+        for (AjusteEstoqueCalculoResponse item : dados) {
+            if (item.filamentoItemId() != null && item.quantidadeItem() != null) {
+                quantidades.merge(item.filamentoItemId(), item.quantidadeItem(), BigDecimal::add);
+            }
+        }
+
+        // Compatibilidade com históricos antigos sem itens de filamento vinculados.
+        if (quantidades.isEmpty()) {
+            AjusteEstoqueCalculoResponse principal = dados.get(0);
+            if (principal.filamentoPrincipalId() != null && principal.quantidadePrincipal() != null) {
+                quantidades.put(principal.filamentoPrincipalId(), principal.quantidadePrincipal());
+            }
+        }
+
+        Map<UUID, Filamento> filamentos = new HashMap<>();
+        for (Filamento filamento : filamentoService.fetchByIds(quantidades.keySet())) {
+            filamentos.put(filamento.getId(), filamento);
+        }
+        if (!devolver && filamentos.size() != quantidades.size()) return false;
+
+        if (!devolver) {
+            for (Map.Entry<UUID, Filamento> entrada : filamentos.entrySet()) {
+                BigDecimal disponivel = entrada.getValue().getEstoqueGramas() == null
+                        ? ZERO : entrada.getValue().getEstoqueGramas();
+                if (disponivel.compareTo(quantidades.get(entrada.getKey())) < 0) return false;
+            }
+        }
+
+        quantidades.forEach((filamentoId, quantidade) -> {
+            Filamento filamento = filamentos.get(filamentoId);
+            if (filamento == null) return;
+            BigDecimal saldo = filamento.getEstoqueGramas() == null
+                    ? ZERO : filamento.getEstoqueGramas();
+            filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
+        });
+        return true;
     }
 
     /** Ajusta o saldo; retorna false sem alterar nada se não houver saldo suficiente. */
@@ -1214,17 +1261,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (valor.compareTo(ZERO) < 0) {
             throw new IllegalArgumentException(mensagem);
         }
-    }
-
-    @Override
-    public org.springframework.data.domain.Page<CalculoHistorico> fetchAll(
-            org.springframework.data.domain.Pageable pageable
-    ) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.findAllByUsuario_Id(
-                usuarioId, pageable
-        );
     }
 
     @Override

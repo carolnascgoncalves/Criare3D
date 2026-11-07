@@ -139,13 +139,8 @@ public class PecaController {
 
     @PostMapping("/peca/atualizar/{id}")
     public ModelAndView atualizarPeca(@PathVariable UUID id, @Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd) {
-        var atual = pecaService.fetchById(id);
-
-        if (atual.isEmpty()) {
-            return new ModelAndView("redirect:/peca/listar");
-        }
-
         if (bd.hasErrors()) {
+            if (!pecaService.existsById(id)) return new ModelAndView("redirect:/peca/listar");
             ModelAndView mv = new ModelAndView("peca/edicao");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("peca", request);
@@ -153,7 +148,9 @@ public class PecaController {
             return mv;
         }
 
-        pecaService.update(id, PecaRequest.toEntity(request));
+        if (pecaService.update(id, PecaRequest.toEntity(request)).isEmpty()) {
+            return new ModelAndView("redirect:/peca/listar");
+        }
 
         return new ModelAndView("redirect:/peca/listar?sucesso=pecaAtualizada");
     }

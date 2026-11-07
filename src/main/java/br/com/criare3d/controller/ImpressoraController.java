@@ -84,15 +84,15 @@ public class ImpressoraController {
 
     @GetMapping("/impressora/detalhes/{id}")
     public ModelAndView fetchById(@PathVariable UUID id) {
-        return impressoraService.fetchById(id)
-                .map(entidade -> {
+        return manutencaoImpressoraService.resumo(id)
+                .map(resumo -> {
                     ModelAndView mv = new ModelAndView("impressora/detalhes");
-                    mv.addObject("impressora", entidade);
-                    mv.addObject("manutencoes", manutencaoImpressoraService.listar(id));
+                    mv.addObject("impressora", resumo.impressora());
+                    mv.addObject("manutencoes", resumo.registros());
                     mv.addObject("manutencao", new ManutencaoImpressoraRequest());
-                    mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
-                    mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
-                    mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id));
+                    mv.addObject("totalGastoManutencao", resumo.totalGasto());
+                    mv.addObject("minutosImpressos", resumo.minutosImpressos());
+                    mv.addObject("manutencaoPorHoraCalculada", resumo.custoPorHora());
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/impressora/listar"));
@@ -103,22 +103,25 @@ public class ImpressoraController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("manutencao") ManutencaoImpressoraRequest request,
             BindingResult bd) {
-        var impressora = impressoraService.fetchById(id);
-        if (impressora.isEmpty()) return new ModelAndView("redirect:/impressora/listar");
-
         if (bd.hasErrors()) {
-            ModelAndView mv = new ModelAndView("impressora/detalhes");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
-            mv.addObject("impressora", impressora.get());
-            mv.addObject("manutencao", request);
-            mv.addObject("manutencoes", manutencaoImpressoraService.listar(id));
-            mv.addObject("totalGastoManutencao", manutencaoImpressoraService.totalGasto(id));
-            mv.addObject("minutosImpressos", manutencaoImpressoraService.minutosImpressos(id));
-            mv.addObject("manutencaoPorHoraCalculada", manutencaoImpressoraService.custoPorHora(id));
-            return mv;
+            return manutencaoImpressoraService.resumo(id)
+                    .map(resumo -> {
+                        ModelAndView mv = new ModelAndView("impressora/detalhes");
+                        mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+                        mv.addObject("impressora", resumo.impressora());
+                        mv.addObject("manutencao", request);
+                        mv.addObject("manutencoes", resumo.registros());
+                        mv.addObject("totalGastoManutencao", resumo.totalGasto());
+                        mv.addObject("minutosImpressos", resumo.minutosImpressos());
+                        mv.addObject("manutencaoPorHoraCalculada", resumo.custoPorHora());
+                        return mv;
+                    })
+                    .orElseGet(() -> new ModelAndView("redirect:/impressora/listar"));
         }
 
-        manutencaoImpressoraService.registrar(id, request);
+        if (manutencaoImpressoraService.registrar(id, request).isEmpty()) {
+            return new ModelAndView("redirect:/impressora/listar");
+        }
         return new ModelAndView("redirect:/impressora/detalhes/" + id + "?manutencao=registrada");
     }
 
@@ -184,13 +187,8 @@ public class ImpressoraController {
             @Valid @ModelAttribute("impressora") ImpressoraRequest request,
             BindingResult bd) {
 
-        var atual = impressoraService.fetchById(id);
-
-        if (atual.isEmpty()) {
-            return new ModelAndView("redirect:/impressora/listar");
-        }
-
         if (bd.hasErrors()) {
+            if (!impressoraService.existsById(id)) return new ModelAndView("redirect:/impressora/listar");
             ModelAndView mv = new ModelAndView("impressora/edicao");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("impressora", request);
@@ -198,7 +196,9 @@ public class ImpressoraController {
             return mv;
         }
 
-        impressoraService.update(id, ImpressoraRequest.toEntity(request));
+        if (impressoraService.update(id, ImpressoraRequest.toEntity(request)).isEmpty()) {
+            return new ModelAndView("redirect:/impressora/listar");
+        }
 
         return new ModelAndView("redirect:/impressora/listar?sucesso=impressoraAtualizada");
     }

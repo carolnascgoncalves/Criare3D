@@ -2,8 +2,6 @@ package br.com.criare3d.service.interfaces;
 
 import br.com.criare3d.models.CalculoHistorico;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -17,7 +15,6 @@ import java.util.List;
 
 public interface CalculoHistoricoService {
     CalculoHistorico create(CalculoHistorico calculoHistorico);
-    Page<CalculoHistorico> fetchAll(Pageable pageable);
     List<CalculoRecenteResponse> fetchRecentes(int limite);
     long contarProduzidos();
     long contarVendidos();

@@ -4,10 +4,13 @@ package br.com.criare3d.repository;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
+import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
+import br.com.criare3d.dto.HistoricoListaResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
@@ -83,8 +86,6 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         WHERE h.usuario.id = :usuarioId AND h.embalagem.id IN :ids
         """)
     List<UUID> buscarIdsEmbalagemComHistorico(@Param("usuarioId") UUID usuarioId, @Param("ids") List<UUID> ids);
-
-    Page<CalculoHistorico> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
 
     @Query("""
         SELECT new br.com.criare3d.dto.CalculoRecenteResponse(
@@ -224,21 +225,12 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     List<Object[]> somarHorasPorImpressoraDesde(@Param("usuarioId") UUID usuarioId,
                                                 @Param("inicio") LocalDateTime inicio);
 
-    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndUsuario_Id(
-            String nomePeca, UUID usuarioId, Pageable pageable
-    );
-
-    Page<CalculoHistorico> findByDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
-            LocalDateTime inicio, LocalDateTime fim, UUID usuarioId, Pageable pageable
-    );
-
-    Page<CalculoHistorico> findByNomePecaContainingIgnoreCaseAndDataCalculoGreaterThanEqualAndDataCalculoLessThanAndUsuario_Id(
-            String nomePeca, LocalDateTime inicio, LocalDateTime fim,
-            UUID usuarioId, Pageable pageable
-    );
-
     @Query(value = """
-    SELECT h
+    SELECT new br.com.criare3d.dto.HistoricoListaResponse(
+        h.id, h.nomePeca, h.dataCalculo, h.plataformaVenda,
+        h.precoVendaPlataforma, h.precoSugerido, h.produzido, h.vendido,
+        CASE WHEN h.fotoPecaBase64 IS NOT NULL AND h.fotoPecaBase64 <> '' THEN true ELSE false END
+    )
     FROM CalculoHistorico h
     WHERE h.usuario.id = :usuarioId
       AND (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
@@ -265,7 +257,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
       AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
       AND (:filtrarVendido = false OR h.vendido = :valorVendido)
     """)
-    Page<CalculoHistorico> buscarHistoricoFiltrado(
+    Page<HistoricoListaResponse> buscarHistoricoFiltrado(
             @Param("usuarioId") UUID usuarioId,
             @Param("nome") String nome,
             @Param("filtrarData") boolean filtrarData,
@@ -350,4 +342,25 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     Optional<CalculoHistorico> findByIdAndUsuario_Id(UUID id, UUID usuarioId);
 
     boolean existsByIdAndUsuario_Id(UUID id, UUID usuarioId);
+
+    @Query("""
+        SELECT new br.com.criare3d.dto.AjusteEstoqueCalculoResponse(
+            h.id, h.produzido, h.vendido, item.filamento.id,
+            item.quantidadeFilamentoGramas, h.filamento.id, h.quantidadeFilamentoGramas
+        )
+        FROM CalculoHistorico h
+        LEFT JOIN h.itensFilamento item
+        WHERE h.id = :id AND h.usuario.id = :usuarioId
+        """)
+    List<AjusteEstoqueCalculoResponse> buscarDadosParaAtualizarStatus(
+            @Param("id") UUID id, @Param("usuarioId") UUID usuarioId);
+
+    @Modifying
+    @Query("""
+        UPDATE CalculoHistorico h
+        SET h.produzido = :produzido, h.vendido = :vendido
+        WHERE h.id = :id AND h.usuario.id = :usuarioId
+        """)
+    int atualizarStatus(@Param("id") UUID id, @Param("usuarioId") UUID usuarioId,
+                        @Param("produzido") boolean produzido, @Param("vendido") boolean vendido);
 }

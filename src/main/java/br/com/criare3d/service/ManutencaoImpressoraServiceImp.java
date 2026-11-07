@@ -1,6 +1,7 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.ManutencaoImpressoraRequest;
+import br.com.criare3d.dto.ResumoManutencaoImpressora;
 import br.com.criare3d.models.Impressora;
 import br.com.criare3d.models.ManutencaoImpressora;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
@@ -37,22 +38,44 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<ManutencaoImpressora> listar(UUID impressoraId) {
-        buscarImpressoraDoUsuario(impressoraId);
-        return manutencaoRepository.findAllByImpressora_IdOrderByDataDescIdDesc(impressoraId);
-    }
-
-    @Override
-    public ManutencaoImpressora registrar(UUID impressoraId, ManutencaoImpressoraRequest request) {
-        Impressora impressora = buscarImpressoraDoUsuario(impressoraId);
+    public java.util.Optional<ManutencaoImpressora> registrar(UUID impressoraId, ManutencaoImpressoraRequest request) {
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        java.util.Optional<Impressora> encontrada = impressoraRepository.findByIdAndUsuario_Id(impressoraId, usuarioId);
+        if (encontrada.isEmpty()) return java.util.Optional.empty();
         ManutencaoImpressora registro = ManutencaoImpressora.builder()
                 .descricao(request.getDescricao().trim())
                 .valor(request.getValor())
                 .data(request.getData())
-                .impressora(impressora)
+                .impressora(encontrada.get())
                 .build();
-        return manutencaoRepository.save(registro);
+        return java.util.Optional.of(manutencaoRepository.save(registro));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.Optional<ResumoManutencaoImpressora> resumo(UUID impressoraId) {
+        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
+        java.util.Optional<Impressora> encontrada = impressoraRepository.findByIdAndUsuario_Id(impressoraId, usuarioId);
+        if (encontrada.isEmpty()) return java.util.Optional.empty();
+
+        Impressora impressora = encontrada.get();
+        BigDecimal total = manutencaoRepository.somarValoresPorImpressoraEUsuario(impressoraId, usuarioId);
+        Long minutos = historicoRepository.somarMinutosPorImpressoraEUsuario(impressoraId, usuarioId);
+        if (total == null) total = BigDecimal.ZERO;
+        if (minutos == null) minutos = 0L;
+
+        BigDecimal custoPorHora = BigDecimal.ZERO;
+        if (total.signum() > 0 && impressora.getVidaUtilHoras() != null
+                && impressora.getVidaUtilHoras().signum() > 0) {
+            custoPorHora = total.divide(impressora.getVidaUtilHoras(), 8, RoundingMode.HALF_UP);
+        }
+
+        return java.util.Optional.of(new ResumoManutencaoImpressora(
+                impressora,
+                manutencaoRepository.findAllByImpressora_IdOrderByDataDescIdDesc(impressoraId),
+                total,
+                minutos,
+                custoPorHora));
     }
 
     @Override
@@ -67,23 +90,6 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     public long contar(UUID impressoraId) {
         buscarImpressoraDoUsuario(impressoraId);
         return manutencaoRepository.countByImpressora_Id(impressoraId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public BigDecimal totalGasto(UUID impressoraId) {
-        buscarImpressoraDoUsuario(impressoraId);
-        return manutencaoRepository.somarValoresPorImpressoraEUsuario(
-                impressoraId, usuarioLogadoService.buscarIdUsuarioAtual());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public long minutosImpressos(UUID impressoraId) {
-        buscarImpressoraDoUsuario(impressoraId);
-        Long minutos = historicoRepository.somarMinutosPorImpressoraEUsuario(
-                impressoraId, usuarioLogadoService.buscarIdUsuarioAtual());
-        return minutos == null ? 0L : minutos;
     }
 
     @Override

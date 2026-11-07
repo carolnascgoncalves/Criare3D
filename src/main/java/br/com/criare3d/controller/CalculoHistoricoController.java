@@ -3,11 +3,11 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
+import br.com.criare3d.dto.HistoricoListaResponse;
 import br.com.criare3d.dto.ComparacaoPlataforma;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
-import br.com.criare3d.service.CalculoHistoricoServiceImp;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
 import br.com.criare3d.util.OrdenacaoPaginada;
@@ -70,9 +70,6 @@ public class CalculoHistoricoController {
     private CalculoHistoricoService calculoHistoricoService;
 
     @Autowired
-    private CalculoHistoricoServiceImp calculoHistoricoServiceImp;
-
-    @Autowired
     private PecaService pecaService;
 
     @Autowired
@@ -121,7 +118,7 @@ public class CalculoHistoricoController {
 
         ModelAndView mv = new ModelAndView("historico/listar");
 
-        Page<CalculoHistorico> pagina = catalogoBuscaService.buscarHistorico(
+        Page<HistoricoListaResponse> pagina = catalogoBuscaService.buscarHistorico(
                 busca.trim(),
                 data,
                 plataforma,
@@ -596,7 +593,7 @@ public class CalculoHistoricoController {
         }
 
         try {
-            CalculoHistorico calculo = calculoHistoricoServiceImp.calcular(request);
+            CalculoHistorico calculo = calculoHistoricoService.calcular(request);
 
             calculo.setFotoPecaBase64(request.getFotoPecaBase64());
             calculo.setFotoPecaContentType(request.getFotoPecaContentType());

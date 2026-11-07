@@ -150,16 +150,18 @@ public class FilamentoController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             RedirectAttributes redirect) {
 
-        if (filamentoService.fetchById(id).isEmpty()) {
-            redirect.addAttribute("erro", "filamentoNaoEncontrado");
-        } else if (estoqueGramas == null || estoqueGramas.signum() < 0
+        if (estoqueGramas == null || estoqueGramas.signum() < 0
                 || estoqueGramas.scale() > 2 || estoqueGramas.precision() - estoqueGramas.scale() > 8) {
-            redirect.addAttribute("erro", "estoqueInvalido");
+            redirect.addAttribute("erro", filamentoService.existsById(id)
+                    ? "estoqueInvalido" : "filamentoNaoEncontrado");
         } else {
             Filamento atualizacao = new Filamento();
             atualizacao.setEstoqueGramas(estoqueGramas);
-            filamentoService.update(id, atualizacao);
-            redirect.addAttribute("sucesso", "estoqueAtualizado");
+            if (filamentoService.update(id, atualizacao).isPresent()) {
+                redirect.addAttribute("sucesso", "estoqueAtualizado");
+            } else {
+                redirect.addAttribute("erro", "filamentoNaoEncontrado");
+            }
         }
 
         redirect.addAttribute("busca", busca);
@@ -186,13 +188,8 @@ public class FilamentoController {
             @Valid @ModelAttribute("filamento") FilamentoDadosRequest request,
             BindingResult bd) {
 
-        var atual = filamentoService.fetchById(id);
-
-        if (atual.isEmpty()) {
-            return new ModelAndView("redirect:/filamento/listar");
-        }
-
         if (bd.hasErrors()) {
+            if (!filamentoService.existsById(id)) return new ModelAndView("redirect:/filamento/listar");
             ModelAndView mv = new ModelAndView("filamento/edicao");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("filamento", request);
@@ -200,7 +197,9 @@ public class FilamentoController {
             return mv;
         }
 
-        filamentoService.update(id, FilamentoDadosRequest.toEntity(request));
+        if (filamentoService.update(id, FilamentoDadosRequest.toEntity(request)).isEmpty()) {
+            return new ModelAndView("redirect:/filamento/listar");
+        }
         return new ModelAndView("redirect:/filamento/listar?sucesso=filamentoAtualizado");
     }
 

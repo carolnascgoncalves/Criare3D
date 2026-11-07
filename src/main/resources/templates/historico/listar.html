@@ -369,7 +369,7 @@
 
                         <td>
                             <div class="peca-historico">
-                                <img th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
+                                <img th:if="${historico.temFoto}"
                                      class="peca-historico-foto"
                                      th:src="@{/historico/{id}/foto(id=${historico.id})}"
                                      loading="lazy"
@@ -377,7 +377,7 @@
                                      th:alt="|Foto de ${historico.nomePeca}|">
 
                                 <span class="peca-historico-icone"
-                                      th:unless="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}">
+                                      th:unless="${historico.temFoto}">
                                     <i class="bi bi-image"></i>
                                 </span>
 

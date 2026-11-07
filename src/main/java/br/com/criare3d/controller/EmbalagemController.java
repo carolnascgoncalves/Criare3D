@@ -124,13 +124,8 @@ public class EmbalagemController {
             @Valid @ModelAttribute("embalagem") EmbalagemDadosRequest request,
             BindingResult bd) {
 
-        var atual = embalagemService.fetchById(id);
-
-        if (atual.isEmpty()) {
-            return new ModelAndView("redirect:/embalagem/listar");
-        }
-
         if (bd.hasErrors()) {
+            if (!embalagemService.existsById(id)) return new ModelAndView("redirect:/embalagem/listar");
             ModelAndView mv = new ModelAndView("embalagem/edicao");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("embalagem", request);
@@ -138,7 +133,9 @@ public class EmbalagemController {
             return mv;
         }
 
-        embalagemService.update(id, EmbalagemDadosRequest.toEntity(request));
+        if (embalagemService.update(id, EmbalagemDadosRequest.toEntity(request)).isEmpty()) {
+            return new ModelAndView("redirect:/embalagem/listar");
+        }
         return new ModelAndView("redirect:/embalagem/listar?sucesso=embalagemAtualizada");
     }
 
