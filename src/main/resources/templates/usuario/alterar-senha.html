@@ -4,14 +4,22 @@
 <head th:replace="~{fragmentos :: cabecalho('Alterar senha')}"></head>
 
 <body>
-<nav th:replace="~{fragmentos :: menu}"></nav>
+<div th:if="${!primeiroAcesso}">
+    <nav th:replace="~{fragmentos :: menu}"></nav>
+</div>
+<header th:if="${primeiroAcesso}" class="menu-principal">
+    <a th:href="@{/}" class="marca">
+        <img th:src="@{/images/criare3d.jpg}" alt="Criare 3D" class="marca-icone">
+        <span>Criare 3D</span>
+    </a>
+</header>
 
 <main class="pagina">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SUA CONTA</span>
-            <h1>Alterar senha</h1>
-            <p>Confirme sua senha atual e escolha uma nova senha.</p>
+            <h1 th:text="${primeiroAcesso} ? 'Crie sua nova senha' : 'Alterar senha'">Alterar senha</h1>
+            <p th:text="${primeiroAcesso} ? 'Por segurança, troque a senha temporária para continuar.' : 'Confirme sua senha atual e escolha uma nova senha.'">Confirme sua senha atual e escolha uma nova senha.</p>
         </div>
     </section>
 
@@ -21,10 +29,10 @@
 
     <section class="cartao">
         <div class="formulario-conteudo">
-            <form th:action="@{/senha}" th:object="${alterarSenha}"
+            <form th:action="${primeiroAcesso} ? @{/senha/primeiro-acesso} : @{/senha}" th:object="${alterarSenha}"
                   method="post" class="formulario" novalidate>
                 <div class="campo">
-                    <label for="senhaAtual">Senha atual</label>
+                    <label for="senhaAtual" th:text="${primeiroAcesso} ? 'Senha temporária atual' : 'Senha atual'">Senha atual</label>
                     <input type="password" id="senhaAtual" th:field="*{senhaAtual}"
                            autocomplete="current-password" required>
                     <div class="erro-campo" th:if="${#fields.hasErrors('senhaAtual')}"
@@ -53,7 +61,7 @@
                     <button type="submit" class="botao botao-principal">
                         <i class="bi bi-key"></i> Salvar nova senha
                     </button>
-                    <a th:href="@{/}" class="botao botao-secundario">Cancelar</a>
+                    <a th:if="${!primeiroAcesso}" th:href="@{/}" class="botao botao-secundario">Cancelar</a>
                 </div>
             </form>
         </div>

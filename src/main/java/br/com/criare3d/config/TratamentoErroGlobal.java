@@ -4,10 +4,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class TratamentoErroGlobal {
@@ -28,6 +30,15 @@ public class TratamentoErroGlobal {
         model.addAttribute("codigo", 503);
         model.addAttribute("mensagem", "Não foi possível carregar esta página agora. Atualize e tente novamente.");
         return "erro";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Void> recursoNaoEncontrado(NoResourceFoundException erro,
+                                                       HttpServletRequest request) {
+        if ("/favicon.ico".equals(request.getRequestURI())) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(Exception.class)

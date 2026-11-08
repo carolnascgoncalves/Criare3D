@@ -2,6 +2,7 @@
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.UsuarioRequest;
+import br.com.criare3d.dto.RedefinirSenhaRequest;
 import br.com.criare3d.service.interfaces.UsuarioService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ public class UsuarioController {
     public ModelAndView listar() {
         ModelAndView mv = new ModelAndView("usuario/listar");
         mv.addObject("usuarios", usuarioService.listarUsuarios());
+        mv.addObject("redefinirSenha", new RedefinirSenhaRequest());
         return mv;
     }
 
@@ -69,5 +71,36 @@ public class UsuarioController {
         }
 
         return "redirect:/usuarios/listar?sucesso";
+    }
+
+    @PostMapping("/{id}/redefinir-senha")
+    public String redefinirSenha(
+            @PathVariable java.util.UUID id,
+            @Valid @ModelAttribute("redefinirSenha") RedefinirSenhaRequest request,
+            BindingResult resultado,
+            HttpServletResponse response,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes,
+            Model model) {
+
+        if (!resultado.hasErrors()
+                && !request.getSenhaTemporaria().equals(request.getConfirmarSenhaTemporaria())) {
+            resultado.rejectValue("confirmarSenhaTemporaria", "senha.diferente", "As senhas não coincidem.");
+        }
+        if (resultado.hasErrors()) {
+            response.setStatus(422);
+            model.addAttribute("usuarios", usuarioService.listarUsuarios());
+            model.addAttribute("usuarioIdComErro", id);
+            return "usuario/listar";
+        }
+
+        try {
+            usuarioService.redefinirSenhaPorAdmin(id, request.getSenhaTemporaria());
+        } catch (IllegalArgumentException erro) {
+            redirectAttributes.addFlashAttribute("erroRedefinicao", erro.getMessage());
+            return "redirect:/usuarios/listar";
+        }
+
+        redirectAttributes.addFlashAttribute("senhaRedefinida", true);
+        return "redirect:/usuarios/listar";
     }
 }

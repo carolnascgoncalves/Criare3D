@@ -5,6 +5,7 @@ import br.com.criare3d.models.Usuario;
 import br.com.criare3d.dto.UsuarioResumoResponse;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UsuarioService {
 
@@ -13,4 +14,6 @@ public interface UsuarioService {
     List<UsuarioResumoResponse> listarUsuarios();
 
     void alterarSenhaAtual(String senhaAtual, String novaSenha);
+
+    void redefinirSenhaPorAdmin(UUID usuarioId, String senhaTemporaria);
 }

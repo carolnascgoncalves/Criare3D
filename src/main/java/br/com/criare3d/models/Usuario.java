@@ -26,6 +26,10 @@ public class Usuario {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "troca_senha_obrigatoria", nullable = false)
+    @Builder.Default
+    private boolean trocaSenhaObrigatoria = false;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Perfil perfil;

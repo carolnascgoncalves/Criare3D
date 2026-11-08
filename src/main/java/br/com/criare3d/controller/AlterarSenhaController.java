@@ -3,11 +3,14 @@ package br.com.criare3d.controller;
 import br.com.criare3d.dto.AlterarSenhaRequest;
 import br.com.criare3d.service.interfaces.UsuarioService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import br.com.criare3d.config.PrimeiroAcessoSenhaObrigatoriaFilter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,16 +28,28 @@ public class AlterarSenhaController {
     @GetMapping("/senha")
     public String formulario(Model model) {
         model.addAttribute("alterarSenha", new AlterarSenhaRequest());
+        model.addAttribute("primeiroAcesso", false);
         return "usuario/alterar-senha";
     }
 
-    @PostMapping("/senha")
+    @GetMapping("/senha/primeiro-acesso")
+    public String formularioPrimeiroAcesso(Model model) {
+        model.addAttribute("alterarSenha", new AlterarSenhaRequest());
+        model.addAttribute("primeiroAcesso", true);
+        return "usuario/alterar-senha";
+    }
+
+    @PostMapping({"/senha", "/senha/primeiro-acesso"})
     public String alterar(
             @Valid @ModelAttribute("alterarSenha") AlterarSenhaRequest request,
             BindingResult resultado,
             HttpServletResponse response,
-            RedirectAttributes redirectAttributes
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest requisicaoWeb,
+            Model model
     ) {
+        boolean primeiroAcesso = requisicaoWeb.getRequestURI().endsWith("/senha/primeiro-acesso");
+        model.addAttribute("primeiroAcesso", primeiroAcesso);
         if (!resultado.hasErrors()
                 && !request.getNovaSenha().equals(request.getConfirmarNovaSenha())) {
             resultado.rejectValue(
@@ -59,6 +74,10 @@ public class AlterarSenhaController {
         }
 
         redirectAttributes.addFlashAttribute("senhaAlterada", true);
+        HttpSession sessao = requisicaoWeb.getSession(false);
+        if (sessao != null) {
+            sessao.removeAttribute(PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA);
+        }
         return "redirect:/senha";
     }
 }

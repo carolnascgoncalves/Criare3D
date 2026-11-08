@@ -25,6 +25,10 @@
     <div th:if="${param.sucesso}" class="alert alert-success notificacao-flutuante">
         Usuário cadastrado com sucesso!
     </div>
+    <div th:if="${senhaRedefinida}" class="alert alert-success notificacao-flutuante">
+        Senha temporária definida. O usuário deverá criar uma nova senha no próximo acesso.
+    </div>
+    <div th:if="${erroRedefinicao}" class="alert alert-danger notificacao-flutuante" th:text="${erroRedefinicao}"></div>
 
     <section class="cartao">
 
@@ -41,6 +45,7 @@
                 <tr>
                     <th>E-mail</th>
                     <th>Perfil</th>
+                    <th>Ações</th>
                 </tr>
                 </thead>
 
@@ -59,10 +64,36 @@
                             Usuário
                         </span>
                     </td>
+
+                    <td>
+                        <details th:if="${usuario.perfil.name() == 'USER'}"
+                                 th:open="${usuarioIdComErro != null and usuarioIdComErro == usuario.id}">
+                            <summary class="botao botao-secundario">Redefinir senha</summary>
+                            <form th:action="@{/usuarios/{id}/redefinir-senha(id=${usuario.id})}"
+                                  th:object="${redefinirSenha}" method="post" class="formulario mt-3" novalidate>
+                                <div class="campo">
+                                    <label th:for="|senhaTemporaria-${usuario.id}|">Senha temporária</label>
+                                    <input type="password" th:id="|senhaTemporaria-${usuario.id}|"
+                                           name="senhaTemporaria" minlength="12" autocomplete="new-password" required>
+                                    <div class="erro-campo" th:if="${usuarioIdComErro != null and usuarioIdComErro == usuario.id and #fields.hasErrors('senhaTemporaria')}"
+                                         th:errors="*{senhaTemporaria}"></div>
+                                </div>
+                                <div class="campo">
+                                    <label th:for="|confirmarSenhaTemporaria-${usuario.id}|">Confirmar senha temporária</label>
+                                    <input type="password" th:id="|confirmarSenhaTemporaria-${usuario.id}|"
+                                           name="confirmarSenhaTemporaria" autocomplete="new-password" required>
+                                    <div class="erro-campo" th:if="${usuarioIdComErro != null and usuarioIdComErro == usuario.id and #fields.hasErrors('confirmarSenhaTemporaria')}"
+                                         th:errors="*{confirmarSenhaTemporaria}"></div>
+                                </div>
+                                <button type="submit" class="botao botao-principal">Definir senha temporária</button>
+                            </form>
+                        </details>
+                        <span th:if="${usuario.perfil.name() == 'ADMIN'}">—</span>
+                    </td>
                 </tr>
 
                 <tr th:if="${#lists.isEmpty(usuarios)}">
-                    <td colspan="2" class="text-center py-4">
+                    <td colspan="3" class="text-center py-4">
                         Nenhum usuário cadastrado.
                     </td>
                 </tr>

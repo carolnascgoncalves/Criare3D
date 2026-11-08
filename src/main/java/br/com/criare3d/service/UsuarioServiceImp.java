@@ -41,6 +41,7 @@ public class UsuarioServiceImp implements UsuarioService {
                 .email(emailNormalizado)
                 .password(passwordEncoder.encode(password))
                 .perfil(Perfil.USER)
+                .trocaSenhaObrigatoria(true)
                 .build();
 
         return usuarioRepository.save(usuario);
@@ -64,6 +65,19 @@ public class UsuarioServiceImp implements UsuarioService {
             throw new IllegalArgumentException("Escolha uma senha diferente da atual.");
         }
         usuario.setPassword(passwordEncoder.encode(novaSenha));
+        usuario.setTrocaSenhaObrigatoria(false);
+        usuarioRepository.save(usuario);
+    }
+
+    @Override
+    public void redefinirSenhaPorAdmin(java.util.UUID usuarioId, String senhaTemporaria) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+        if (usuario.getPerfil() != Perfil.USER) {
+            throw new IllegalArgumentException("A senha da conta administradora não pode ser redefinida por esta tela.");
+        }
+        usuario.setPassword(passwordEncoder.encode(senhaTemporaria));
+        usuario.setTrocaSenhaObrigatoria(true);
         usuarioRepository.save(usuario);
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static br.com.criare3d.service.TabelaTarifasPlataforma.*;
+
 @Service
 public class CalculoPlataformaService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
@@ -89,11 +91,11 @@ public class CalculoPlataformaService {
                         throw new IllegalArgumentException("Informe a comissão do Mercado Livre.");
                     }
 
-                    if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("10")) < 0 || comissao.compareTo(new BigDecimal("14")) > 0)) {
+                    if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(ML_CLASSICO_COMISSAO_MINIMA) < 0 || comissao.compareTo(ML_CLASSICO_COMISSAO_MAXIMA) > 0)) {
                         throw new IllegalArgumentException("No anúncio Clássico, informe uma comissão entre 10% e 14%");
                     }
 
-                    if ("PREMIUM".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("15")) < 0 || comissao.compareTo(new BigDecimal("19")) > 0)) {
+                    if ("PREMIUM".equals(tipoAnuncio) && (comissao.compareTo(ML_PREMIUM_COMISSAO_MINIMA) < 0 || comissao.compareTo(ML_PREMIUM_COMISSAO_MAXIMA) > 0)) {
                         throw new IllegalArgumentException("No anúncio Premium, informe uma comissão entre 15% e 19%");
                     }
 
@@ -111,8 +113,8 @@ public class CalculoPlataformaService {
                 } else if (request.isFreteMercadoLivreManualNecessario()) {
                     faixaPeso = null;
                     comissao = "PREMIUM".equals(tipoAnuncio)
-                            ? new BigDecimal("19.00")
-                            : new BigDecimal("14.00");
+                            ? ML_PREMIUM_COMISSAO_PADRAO
+                            : ML_CLASSICO_COMISSAO_PADRAO;
 
                     BigDecimal percentualTotal = comissao.add(imposto);
 
@@ -130,8 +132,8 @@ public class CalculoPlataformaService {
 
                 } else {
                     comissao = "PREMIUM".equals(tipoAnuncio)
-                            ? new BigDecimal("19.00")
-                            : new BigDecimal("14.00");
+                            ? ML_PREMIUM_COMISSAO_PADRAO
+                            : ML_CLASSICO_COMISSAO_PADRAO;
 
                     faixaPeso = request.getFaixaPesoPacote();
 
@@ -174,11 +176,11 @@ public class CalculoPlataformaService {
         historico.setPlataformaVenda(plataforma);
         historico.setTipoAnuncio(tipoAnuncio);
         BigDecimal comissaoExibida = switch (plataforma) {
-            case "SHOPEE" -> precoVenda.compareTo(new BigDecimal("79.99")) <= 0 ? new BigDecimal("20.00") : new BigDecimal("14.00");
+            case "SHOPEE" -> precoVenda.compareTo(SHOPEE_LIMITE_80) <= 0 ? SHOPEE_COMISSAO_ATE_79_99 : SHOPEE_COMISSAO_ACIMA_79_99;
 
-            case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok ? ZERO : precoVenda.compareTo(new BigDecimal("50.00")) < 0 ? new BigDecimal("10.00") : new BigDecimal("6.00");
+            case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok ? ZERO : precoVenda.compareTo(TIKTOK_LIMITE_PRIMEIRA_FAIXA) < 0 ? TIKTOK_COMISSAO_PRIMEIRA_FAIXA : TIKTOK_COMISSAO_DEMAIS_FAIXAS;
 
-            case "MERCADO_LIVRE" -> avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
+            case "MERCADO_LIVRE" -> avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? ML_PREMIUM_COMISSAO_PADRAO : ML_CLASSICO_COMISSAO_PADRAO;
 
             default -> ZERO;
         };
@@ -257,7 +259,7 @@ public class CalculoPlataformaService {
 
                 taxas = calcularTaxasShopee(precoVenda, imposto, frete.add(adicional), mais450);
 
-                comissaoExibida = precoVenda.compareTo(new BigDecimal("79.99")) <= 0 ? new BigDecimal("20.00") : new BigDecimal("14.00");
+                comissaoExibida = precoVenda.compareTo(SHOPEE_LIMITE_80) <= 0 ? SHOPEE_COMISSAO_ATE_79_99 : SHOPEE_COMISSAO_ACIMA_79_99;
             }
 
             case "TIKTOK", "TIKTOK_SHOP" -> {
@@ -267,7 +269,7 @@ public class CalculoPlataformaService {
                 taxas = calcularTaxasTikTok(precoVenda, imposto, afiliado, freteGratis, frete.add(adicional), isencaoTikTok
                 );
 
-                comissaoExibida = isencaoTikTok ? ZERO : precoVenda.compareTo(new BigDecimal("50.00")) < 0 ? new BigDecimal("10.00") : new BigDecimal("6.00");
+                comissaoExibida = isencaoTikTok ? ZERO : precoVenda.compareTo(TIKTOK_LIMITE_PRIMEIRA_FAIXA) < 0 ? TIKTOK_COMISSAO_PRIMEIRA_FAIXA : TIKTOK_COMISSAO_DEMAIS_FAIXAS;
             }
 
             case "MERCADO_LIVRE" -> {
@@ -282,11 +284,11 @@ public class CalculoPlataformaService {
                         throw new IllegalArgumentException("Informe a comissão do Mercado Livre.");
                     }
 
-                    if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("10")) < 0 || comissao.compareTo(new BigDecimal("14")) > 0)) {
+                    if ("CLASSICO".equals(tipoAnuncio) && (comissao.compareTo(ML_CLASSICO_COMISSAO_MINIMA) < 0 || comissao.compareTo(ML_CLASSICO_COMISSAO_MAXIMA) > 0)) {
                         throw new IllegalArgumentException("No anúncio Clássico, informe uma comissão entre 10% e 14%");
                     }
 
-                    if ("PREMIUM".equals(tipoAnuncio) && (comissao.compareTo(new BigDecimal("15")) < 0 || comissao.compareTo(new BigDecimal("19")) > 0)) {
+                    if ("PREMIUM".equals(tipoAnuncio) && (comissao.compareTo(ML_PREMIUM_COMISSAO_MINIMA) < 0 || comissao.compareTo(ML_PREMIUM_COMISSAO_MAXIMA) > 0)) {
                         throw new IllegalArgumentException("No anúncio Premium, informe uma comissão entre 15% e 19%");
                     }
 
@@ -300,8 +302,8 @@ public class CalculoPlataformaService {
                 } else if (request.isFreteMercadoLivreManualNecessario()) {
                     faixaPeso = null;
                     comissao = "PREMIUM".equals(tipoAnuncio)
-                            ? new BigDecimal("19.00")
-                            : new BigDecimal("14.00");
+                            ? ML_PREMIUM_COMISSAO_PADRAO
+                            : ML_CLASSICO_COMISSAO_PADRAO;
 
                     taxas = calcularTaxasPercentuais(
                             precoVenda,
@@ -311,8 +313,8 @@ public class CalculoPlataformaService {
 
                 } else {
                     comissao = "PREMIUM".equals(tipoAnuncio)
-                            ? new BigDecimal("19.00")
-                            : new BigDecimal("14.00");
+                            ? ML_PREMIUM_COMISSAO_PADRAO
+                            : ML_CLASSICO_COMISSAO_PADRAO;
 
                     faixaPeso = request.getFaixaPesoPacote();
 
@@ -332,7 +334,7 @@ public class CalculoPlataformaService {
                     );
                 }
 
-                comissaoExibida = avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? new BigDecimal("19.00") : new BigDecimal("14.00");
+                comissaoExibida = avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? ML_PREMIUM_COMISSAO_PADRAO : ML_CLASSICO_COMISSAO_PADRAO;
             }
 
             default -> {
@@ -374,34 +376,34 @@ public class CalculoPlataformaService {
             boolean taxaCpf
     ) {
         BigDecimal adicionalCpf = taxaCpf
-                ? new BigDecimal("3.00")
+                ? SHOPEE_TAXA_CPF
                 : ZERO;
 
         BigDecimal[] percentuais = {
-                new BigDecimal("20.00"),
-                new BigDecimal("14.00"),
-                new BigDecimal("14.00"),
-                new BigDecimal("14.00")
+                SHOPEE_COMISSAO_ATE_79_99,
+                SHOPEE_COMISSAO_ACIMA_79_99,
+                SHOPEE_COMISSAO_ACIMA_79_99,
+                SHOPEE_COMISSAO_ACIMA_79_99
         };
 
         BigDecimal[] fixos = {
-                new BigDecimal("4.50"),
-                new BigDecimal("16.00"),
-                new BigDecimal("20.00"),
-                new BigDecimal("26.00")
+                SHOPEE_FIXO_ATE_79_99,
+                SHOPEE_FIXO_80_A_99_99,
+                SHOPEE_FIXO_100_A_199_99,
+                SHOPEE_FIXO_A_PARTIR_200
         };
 
         BigDecimal[] limitesInferiores = {
                 ZERO,
-                new BigDecimal("80.00"),
-                new BigDecimal("100.00"),
-                new BigDecimal("200.00")
+                SHOPEE_INICIO_FAIXA_80,
+                SHOPEE_INICIO_FAIXA_100,
+                SHOPEE_INICIO_FAIXA_200
         };
 
         BigDecimal[] limitesSuperiores = {
-                new BigDecimal("79.99"),
-                new BigDecimal("99.99"),
-                new BigDecimal("199.99"),
+                SHOPEE_LIMITE_80,
+                SHOPEE_LIMITE_100,
+                SHOPEE_LIMITE_200,
                 null
         };
 
@@ -409,9 +411,9 @@ public class CalculoPlataformaService {
             BigDecimal preco = calcularPrecoComTaxas(base,
                     custosExtras.add(adicionalCpf).add(fixos[i]), percentuais[i].add(imposto));
             // A regra vigente reduz a tarifa fixa para metade do preço em itens abaixo de R$ 9.
-            if (i == 0 && preco.compareTo(new BigDecimal("9.00")) < 0) {
+            if (i == 0 && preco.compareTo(SHOPEE_PRECO_MINIMO) < 0) {
                 preco = calcularPrecoComTaxas(base, custosExtras.add(adicionalCpf),
-                        percentuais[i].add(imposto).add(new BigDecimal("50.00")));
+                        percentuais[i].add(imposto).add(SHOPEE_COMISSAO_EQUIVALENTE_PRECO_BAIXO));
             }
 
             boolean acima = preco.compareTo(limitesInferiores[i]) >= 0;
@@ -437,20 +439,20 @@ public class CalculoPlataformaService {
         BigDecimal percentual;
         BigDecimal fixo;
 
-        if (preco.compareTo(new BigDecimal("79.99")) <= 0) {
-            percentual = new BigDecimal("20.00");
-            fixo = preco.compareTo(new BigDecimal("9.00")) < 0
+        if (preco.compareTo(SHOPEE_LIMITE_80) <= 0) {
+            percentual = SHOPEE_COMISSAO_ATE_79_99;
+            fixo = preco.compareTo(SHOPEE_PRECO_MINIMO) < 0
                     ? preco.divide(DOIS, 2, RoundingMode.HALF_UP)
-                    : new BigDecimal("4.50");
-        } else if (preco.compareTo(new BigDecimal("99.99")) <= 0) {
-            percentual = new BigDecimal("14.00");
-            fixo = new BigDecimal("16.00");
-        } else if (preco.compareTo(new BigDecimal("199.99")) <= 0) {
-            percentual = new BigDecimal("14.00");
-            fixo = new BigDecimal("20.00");
+                    : SHOPEE_FIXO_ATE_79_99;
+        } else if (preco.compareTo(SHOPEE_LIMITE_100) <= 0) {
+            percentual = SHOPEE_COMISSAO_ACIMA_79_99;
+            fixo = SHOPEE_FIXO_80_A_99_99;
+        } else if (preco.compareTo(SHOPEE_LIMITE_200) <= 0) {
+            percentual = SHOPEE_COMISSAO_ACIMA_79_99;
+            fixo = SHOPEE_FIXO_100_A_199_99;
         } else {
-            percentual = new BigDecimal("14.00");
-            fixo = new BigDecimal("26.00");
+            percentual = SHOPEE_COMISSAO_ACIMA_79_99;
+            fixo = SHOPEE_FIXO_A_PARTIR_200;
         }
 
         BigDecimal total = preco.multiply(percentual.add(imposto))
@@ -459,7 +461,7 @@ public class CalculoPlataformaService {
                 .add(custosExtras);
 
         if (taxaCpf) {
-            total = total.add(new BigDecimal("3.00"));
+            total = total.add(SHOPEE_TAXA_CPF);
         }
 
         return moeda(total);
@@ -475,31 +477,31 @@ public class CalculoPlataformaService {
     ) {
         BigDecimal comissao = isencao
                 ? ZERO
-                : new BigDecimal("10.00");
+                : TIKTOK_COMISSAO_PRIMEIRA_FAIXA;
 
         BigDecimal percentualFrete = freteGratis
-                ? new BigDecimal("6.00")
+                ? TIKTOK_PERCENTUAL_FRETE_GRATIS
                 : ZERO;
 
         BigDecimal precoFaixa1 = calcularPrecoComTaxas(
                 base,
-                custosExtras.add(new BigDecimal("4.00")),
+                custosExtras.add(TIKTOK_TAXA_FIXA_PRIMEIRA_FAIXA),
                 comissao.add(imposto).add(afiliado).add(percentualFrete)
         );
 
-        if (precoFaixa1.compareTo(new BigDecimal("50.00")) < 0) {
+        if (precoFaixa1.compareTo(TIKTOK_LIMITE_PRIMEIRA_FAIXA) < 0) {
             return precoFaixa1;
         }
 
         BigDecimal comissaoFaixa2 = isencao
                 ? ZERO
-                : new BigDecimal("6.00");
+                : TIKTOK_COMISSAO_DEMAIS_FAIXAS;
 
         BigDecimal percentualFaixa2 = comissaoFaixa2
                 .add(imposto)
                 .add(afiliado);
 
-        BigDecimal fixo = new BigDecimal("6.00").add(custosExtras);
+        BigDecimal fixo = TIKTOK_TAXA_FIXA_DEMAIS_FAIXAS.add(custosExtras);
 
         if (!freteGratis) {
             return calcularPrecoComTaxas(
@@ -510,19 +512,19 @@ public class CalculoPlataformaService {
         BigDecimal precoComFretePercentual = calcularPrecoComTaxas(
                 base,
                 fixo,
-                percentualFaixa2.add(new BigDecimal("6.00"))
+                percentualFaixa2.add(TIKTOK_PERCENTUAL_FRETE_GRATIS)
         );
 
         BigDecimal taxaFrete = precoComFretePercentual
-                .multiply(new BigDecimal("0.06"));
+                .multiply(TIKTOK_PERCENTUAL_FRETE_GRATIS.movePointLeft(2));
 
-        if (taxaFrete.compareTo(new BigDecimal("50.00")) <= 0) {
+        if (taxaFrete.compareTo(TIKTOK_TETO_TAXA_FRETE) <= 0) {
             return precoComFretePercentual;
         }
 
         return calcularPrecoComTaxas(
                 base,
-                fixo.add(new BigDecimal("50.00")),
+                fixo.add(TIKTOK_TETO_TAXA_FRETE),
                 percentualFaixa2
         );
     }
@@ -535,17 +537,17 @@ public class CalculoPlataformaService {
             BigDecimal custosExtras,
             boolean isencao
     ) {
-        boolean primeiraFaixa = preco.compareTo(new BigDecimal("50.00")) < 0;
+        boolean primeiraFaixa = preco.compareTo(TIKTOK_LIMITE_PRIMEIRA_FAIXA) < 0;
 
         BigDecimal comissao = isencao
                 ? ZERO
                 : primeiraFaixa
-                ? new BigDecimal("10.00")
-                : new BigDecimal("6.00");
+                ? TIKTOK_COMISSAO_PRIMEIRA_FAIXA
+                : TIKTOK_COMISSAO_DEMAIS_FAIXAS;
 
         BigDecimal fixo = primeiraFaixa
-                ? new BigDecimal("4.00")
-                : new BigDecimal("6.00");
+                ? TIKTOK_TAXA_FIXA_PRIMEIRA_FAIXA
+                : TIKTOK_TAXA_FIXA_DEMAIS_FAIXAS;
 
         BigDecimal percentual = comissao.add(imposto).add(afiliado);
 
@@ -555,8 +557,8 @@ public class CalculoPlataformaService {
                 .add(custosExtras);
 
         if (freteGratis) {
-            BigDecimal taxaFrete = preco.multiply(new BigDecimal("0.06"))
-                    .min(new BigDecimal("50.00"));
+            BigDecimal taxaFrete = preco.multiply(TIKTOK_PERCENTUAL_FRETE_GRATIS.movePointLeft(2))
+                    .min(TIKTOK_TETO_TAXA_FRETE);
             total = total.add(taxaFrete);
         }
 
@@ -602,56 +604,7 @@ public class CalculoPlataformaService {
             String faixaPeso,
             BigDecimal preco
     ) {
-        int coluna;
-
-        if (preco.compareTo(new BigDecimal("48.99")) <= 0) {
-            coluna = 0;
-        } else if (preco.compareTo(new BigDecimal("78.99")) <= 0) {
-            coluna = 1;
-        } else if (preco.compareTo(new BigDecimal("99.99")) <= 0) {
-            coluna = 2;
-        } else if (preco.compareTo(new BigDecimal("119.99")) <= 0) {
-            coluna = 3;
-        } else {
-            throw new IllegalArgumentException(
-                    "O preço calculado passou de R$ 119,99. Informe o frete manualmente."
-            );
-        }
-
-        BigDecimal[][] tabela = {
-                {new BigDecimal("6.85"), new BigDecimal("8.15"),
-                        new BigDecimal("12.95"), new BigDecimal("14.95")},
-                {new BigDecimal("6.95"), new BigDecimal("8.25"),
-                        new BigDecimal("13.85"), new BigDecimal("16.15")},
-                {new BigDecimal("7.15"), new BigDecimal("8.45"),
-                        new BigDecimal("14.45"), new BigDecimal("16.85")},
-                {new BigDecimal("7.35"), new BigDecimal("8.65"),
-                        new BigDecimal("14.75"), new BigDecimal("17.15")},
-                {new BigDecimal("7.45"), new BigDecimal("8.75"),
-                        new BigDecimal("15.05"), new BigDecimal("17.65")},
-                {new BigDecimal("8.65"), new BigDecimal("9.15"),
-                        new BigDecimal("16.45"), new BigDecimal("19.15")},
-                {new BigDecimal("8.75"), new BigDecimal("9.75"),
-                        new BigDecimal("17.85"), new BigDecimal("20.75")},
-                {new BigDecimal("8.85"), new BigDecimal("10.25"),
-                        new BigDecimal("19.75"), new BigDecimal("22.85")}
-        };
-
-        int linha = switch (faixaPeso) {
-            case "ATE_300G" -> 0;
-            case "DE_300G_500G" -> 1;
-            case "DE_500G_1KG" -> 2;
-            case "DE_1KG_1_5KG" -> 3;
-            case "DE_1_5KG_2KG" -> 4;
-            case "DE_2KG_3KG" -> 5;
-            case "DE_3KG_4KG" -> 6;
-            case "DE_4KG_5KG" -> 7;
-            default -> throw new IllegalArgumentException(
-                    "Faixa de peso do Mercado Livre ainda não configurada."
-            );
-        };
-
-        return tabela[linha][coluna];
+        return TabelaTarifasPlataforma.freteMercadoLivre(faixaPeso, preco);
     }
 
     BigDecimal calcularPrecoComTaxas(

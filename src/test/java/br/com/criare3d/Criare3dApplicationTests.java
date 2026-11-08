@@ -17,6 +17,7 @@ import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.service.FilamentoServiceImp;
+import br.com.criare3d.service.interfaces.UsuarioService;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -40,6 +41,8 @@ class Criare3dApplicationTests {
 	private FilamentoRepository filamentoRepository;
 	@Autowired
 	private FilamentoServiceImp filamentoService;
+	@Autowired
+	private UsuarioService usuarioService;
 
 	@Test
 	void contextoDaAplicacaoIniciaComBancoDeTeste() {
@@ -70,6 +73,25 @@ class Criare3dApplicationTests {
 			SecurityContextHolder.clearContext();
 			filamentoRepository.deleteById(filamentoA.getId());
 			usuarioRepository.deleteAllById(java.util.List.of(usuarioA.getId(), usuarioB.getId()));
+		}
+	}
+
+	@Test
+	void senhaRedefinidaPeloAdminExigeTrocaNoProximoLogin() {
+		Usuario usuario = criarUsuario("reset-" + UUID.randomUUID() + "@teste.local");
+		try {
+			usuarioService.redefinirSenhaPorAdmin(usuario.getId(), "TemporariaTeste123!");
+			Usuario atualizado = usuarioRepository.findById(usuario.getId()).orElseThrow();
+			assertThat(passwordEncoder.matches("TemporariaTeste123!", atualizado.getPassword())).isTrue();
+			assertThat(atualizado.isTrocaSenhaObrigatoria()).isTrue();
+
+			SecurityContextHolder.getContext().setAuthentication(
+					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			usuarioService.alterarSenhaAtual("TemporariaTeste123!", "NovaSenhaTeste123!");
+			assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().isTrocaSenhaObrigatoria()).isFalse();
+		} finally {
+			SecurityContextHolder.clearContext();
+			usuarioRepository.deleteById(usuario.getId());
 		}
 	}
 
