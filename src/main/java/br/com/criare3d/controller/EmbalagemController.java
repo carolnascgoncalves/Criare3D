@@ -10,7 +10,6 @@ import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,14 +35,17 @@ public class EmbalagemController {
             "custoDesc", Sort.by(Sort.Direction.DESC, "custoUnitario")
     );
 
-    @Autowired
-    private EmbalagemService embalagemService;
+    private final EmbalagemService embalagemService;
+    private final CalculoHistoricoService calculoHistoricoService;
+    private final CatalogoBuscaService catalogoBuscaService;
 
-    @Autowired
-    private CalculoHistoricoService calculoHistoricoService;
-
-    @Autowired
-    private CatalogoBuscaService catalogoBuscaService;
+    public EmbalagemController(EmbalagemService embalagemService,
+                               CalculoHistoricoService calculoHistoricoService,
+                               CatalogoBuscaService catalogoBuscaService) {
+        this.embalagemService = embalagemService;
+        this.calculoHistoricoService = calculoHistoricoService;
+        this.catalogoBuscaService = catalogoBuscaService;
+    }
 
     @GetMapping("/embalagem/listar")
     public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca,

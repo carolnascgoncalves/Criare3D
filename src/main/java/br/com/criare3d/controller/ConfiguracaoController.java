@@ -5,7 +5,6 @@ import br.com.criare3d.dto.ConfiguracaoRequest;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -17,8 +16,11 @@ import org.springframework.web.servlet.ModelAndView;
 @Controller
 public class ConfiguracaoController {
 
-    @Autowired
-    private ConfiguracaoService configuracaoService;
+    private final ConfiguracaoService configuracaoService;
+
+    public ConfiguracaoController(ConfiguracaoService configuracaoService) {
+        this.configuracaoService = configuracaoService;
+    }
 
     @GetMapping("/configuracao")
     public ModelAndView abrirConfiguracao() {

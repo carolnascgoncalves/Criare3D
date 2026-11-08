@@ -5,7 +5,6 @@ import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import jakarta.persistence.criteria.Predicate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -25,14 +24,17 @@ import java.util.Set;
 @Transactional
 public class FilamentoServiceImp implements FilamentoService {
 
-    @Autowired
-    private FilamentoRepository filamentoRepository;
+    private final FilamentoRepository filamentoRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final CalculoHistoricoRepository calculoHistoricoRepository;
 
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
-
-    @Autowired
-    private CalculoHistoricoRepository calculoHistoricoRepository;
+    public FilamentoServiceImp(FilamentoRepository filamentoRepository,
+                               UsuarioLogadoService usuarioLogadoService,
+                               CalculoHistoricoRepository calculoHistoricoRepository) {
+        this.filamentoRepository = filamentoRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.calculoHistoricoRepository = calculoHistoricoRepository;
+    }
 
     @Override
     public Filamento create(Filamento filamento) {

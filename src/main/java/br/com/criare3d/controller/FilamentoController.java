@@ -9,7 +9,6 @@ import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,11 +37,14 @@ public class FilamentoController {
             "corDesc", Sort.by(Sort.Direction.DESC, "cor")
     );
 
-    @Autowired
-    private FilamentoService filamentoService;
+    private final FilamentoService filamentoService;
+    private final CalculoHistoricoService calculoHistoricoService;
 
-    @Autowired
-    private CalculoHistoricoService calculoHistoricoService;
+    public FilamentoController(FilamentoService filamentoService,
+                               CalculoHistoricoService calculoHistoricoService) {
+        this.filamentoService = filamentoService;
+        this.calculoHistoricoService = calculoHistoricoService;
+    }
 
     @GetMapping("/filamento/listar")
     public ModelAndView fetchAll(

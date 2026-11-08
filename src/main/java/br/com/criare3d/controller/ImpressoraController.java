@@ -8,7 +8,6 @@ import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,17 +25,20 @@ import org.springframework.http.HttpStatus;
 @Controller
 public class ImpressoraController {
 
-    @Autowired
-    private ImpressoraService impressoraService;
+    private final ImpressoraService impressoraService;
+    private final CalculoHistoricoService calculoHistoricoService;
+    private final CatalogoBuscaService catalogoBuscaService;
+    private final ManutencaoImpressoraService manutencaoImpressoraService;
 
-    @Autowired
-    private CalculoHistoricoService calculoHistoricoService;
-
-    @Autowired
-    private CatalogoBuscaService catalogoBuscaService;
-
-    @Autowired
-    private ManutencaoImpressoraService manutencaoImpressoraService;
+    public ImpressoraController(ImpressoraService impressoraService,
+                                CalculoHistoricoService calculoHistoricoService,
+                                CatalogoBuscaService catalogoBuscaService,
+                                ManutencaoImpressoraService manutencaoImpressoraService) {
+        this.impressoraService = impressoraService;
+        this.calculoHistoricoService = calculoHistoricoService;
+        this.catalogoBuscaService = catalogoBuscaService;
+        this.manutencaoImpressoraService = manutencaoImpressoraService;
+    }
 
     @GetMapping("/impressora/listar")
     public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {

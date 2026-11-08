@@ -4,7 +4,6 @@ import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.repository.EmbalagemRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.EmbalagemService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,14 +19,17 @@ import java.util.Set;
 @Transactional
 public class EmbalagemServiceImp implements EmbalagemService {
 
-    @Autowired
-    private EmbalagemRepository embalagemRepository;
+    private final EmbalagemRepository embalagemRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final CalculoHistoricoRepository calculoHistoricoRepository;
 
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
-
-    @Autowired
-    private CalculoHistoricoRepository calculoHistoricoRepository;
+    public EmbalagemServiceImp(EmbalagemRepository embalagemRepository,
+                               UsuarioLogadoService usuarioLogadoService,
+                               CalculoHistoricoRepository calculoHistoricoRepository) {
+        this.embalagemRepository = embalagemRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.calculoHistoricoRepository = calculoHistoricoRepository;
+    }
 
     @Override
     public Embalagem create(Embalagem embalagem) {

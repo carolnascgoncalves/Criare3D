@@ -5,7 +5,6 @@ import br.com.criare3d.repository.ImpressoraRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.ManutencaoImpressoraRepository;
 import br.com.criare3d.service.interfaces.ImpressoraService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,17 +20,20 @@ import java.util.Set;
 @Transactional
 public class ImpressoraServiceImp implements ImpressoraService {
 
-    @Autowired
-    private ImpressoraRepository impressoraRepository;
+    private final ImpressoraRepository impressoraRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final CalculoHistoricoRepository calculoHistoricoRepository;
+    private final ManutencaoImpressoraRepository manutencaoImpressoraRepository;
 
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
-
-    @Autowired
-    private CalculoHistoricoRepository calculoHistoricoRepository;
-
-    @Autowired
-    private ManutencaoImpressoraRepository manutencaoImpressoraRepository;
+    public ImpressoraServiceImp(ImpressoraRepository impressoraRepository,
+                                UsuarioLogadoService usuarioLogadoService,
+                                CalculoHistoricoRepository calculoHistoricoRepository,
+                                ManutencaoImpressoraRepository manutencaoImpressoraRepository) {
+        this.impressoraRepository = impressoraRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.calculoHistoricoRepository = calculoHistoricoRepository;
+        this.manutencaoImpressoraRepository = manutencaoImpressoraRepository;
+    }
 
     @Override
     public Impressora create(Impressora impressora) {

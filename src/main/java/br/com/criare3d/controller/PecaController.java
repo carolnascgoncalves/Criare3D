@@ -9,7 +9,6 @@ import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,14 +26,17 @@ import java.util.List;
 @Controller
 public class PecaController {
 
-    @Autowired
-    private PecaService pecaService;
+    private final PecaService pecaService;
+    private final CalculoHistoricoService calculoHistoricoService;
+    private final CatalogoBuscaService catalogoBuscaService;
 
-    @Autowired
-    private CalculoHistoricoService calculoHistoricoService;
-
-    @Autowired
-    private CatalogoBuscaService catalogoBuscaService;
+    public PecaController(PecaService pecaService,
+                          CalculoHistoricoService calculoHistoricoService,
+                          CatalogoBuscaService catalogoBuscaService) {
+        this.pecaService = pecaService;
+        this.calculoHistoricoService = calculoHistoricoService;
+        this.catalogoBuscaService = catalogoBuscaService;
+    }
 
     @GetMapping("/peca/listar")
     public ModelAndView fetchAll(@RequestParam(name = "busca", defaultValue = "") String busca, @PageableDefault(page = 0, size = 10, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {

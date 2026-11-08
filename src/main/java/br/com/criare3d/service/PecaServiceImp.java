@@ -4,7 +4,6 @@ import br.com.criare3d.models.Peca;
 import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.PecaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,14 +19,17 @@ import java.util.UUID;
 @Transactional
 public class PecaServiceImp implements PecaService {
 
-    @Autowired
-    private PecaRepository pecaRepository;
+    private final PecaRepository pecaRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final CalculoHistoricoRepository calculoHistoricoRepository;
 
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
-
-    @Autowired
-    private CalculoHistoricoRepository calculoHistoricoRepository;
+    public PecaServiceImp(PecaRepository pecaRepository,
+                          UsuarioLogadoService usuarioLogadoService,
+                          CalculoHistoricoRepository calculoHistoricoRepository) {
+        this.pecaRepository = pecaRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.calculoHistoricoRepository = calculoHistoricoRepository;
+    }
 
     @Override
     public Peca create(Peca peca) {

@@ -3,7 +3,6 @@ package br.com.criare3d.service;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.repository.ConfiguracaoRepository;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,11 +16,14 @@ import java.util.UUID;
 @Transactional
 public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
-    @Autowired
-    private ConfiguracaoRepository configuracaoRepository;
+    private final ConfiguracaoRepository configuracaoRepository;
+    private final UsuarioLogadoService usuarioLogadoService;
 
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
+    public ConfiguracaoServiceImp(ConfiguracaoRepository configuracaoRepository,
+                                  UsuarioLogadoService usuarioLogadoService) {
+        this.configuracaoRepository = configuracaoRepository;
+        this.usuarioLogadoService = usuarioLogadoService;
+    }
 
     @Override
     public Configuracao create(Configuracao configuracao) {

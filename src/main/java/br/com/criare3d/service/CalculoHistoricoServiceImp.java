@@ -9,10 +9,15 @@ import br.com.criare3d.models.*;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.ItemCalculoHistoricoRepository;
-import br.com.criare3d.service.interfaces.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+import br.com.criare3d.service.interfaces.ConfiguracaoService;
+import br.com.criare3d.service.interfaces.EmbalagemService;
+import br.com.criare3d.service.interfaces.FilamentoService;
+import br.com.criare3d.service.interfaces.ImpressoraService;
+import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
+import br.com.criare3d.service.interfaces.PecaService;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -24,47 +29,53 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static br.com.criare3d.service.CalculoFinanceiro.moeda;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional
 public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final BigDecimal CEM = new BigDecimal("100");
 
-    @Autowired
-    private CalculoHistoricoRepository calculoHistoricoRepository;
+    private final CalculoHistoricoRepository calculoHistoricoRepository;
+    private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
+    private final CalculoPlataformaService calculoPlataformaService;
+    private final PecaService pecaService;
+    private final FilamentoService filamentoService;
+    private final ImpressoraService impressoraService;
+    private final EmbalagemService embalagemService;
+    private final ConfiguracaoService configuracaoService;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final ManutencaoImpressoraService manutencaoImpressoraService;
 
-    @Autowired
-    private ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
-
-    @Autowired
-    private CalculoPlataformaService calculoPlataformaService;
-
-    @Autowired
-    private PecaService pecaService;
-
-    @Autowired
-    private FilamentoService filamentoService;
-
-    @Autowired
-    private ImpressoraService impressoraService;
-
-    @Autowired
-    private EmbalagemService embalagemService;
-
-    @Autowired
-    private ConfiguracaoService configuracaoService;
-
-    @Autowired
-    private UsuarioLogadoService usuarioLogadoService;
-
-    @Autowired
-    private ManutencaoImpressoraService manutencaoImpressoraService;
+    public CalculoHistoricoServiceImp(
+            CalculoHistoricoRepository calculoHistoricoRepository,
+            ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
+            CalculoPlataformaService calculoPlataformaService,
+            PecaService pecaService,
+            FilamentoService filamentoService,
+            ImpressoraService impressoraService,
+            EmbalagemService embalagemService,
+            ConfiguracaoService configuracaoService,
+            UsuarioLogadoService usuarioLogadoService,
+            ManutencaoImpressoraService manutencaoImpressoraService
+    ) {
+        this.calculoHistoricoRepository = calculoHistoricoRepository;
+        this.itemCalculoHistoricoRepository = itemCalculoHistoricoRepository;
+        this.calculoPlataformaService = calculoPlataformaService;
+        this.pecaService = pecaService;
+        this.filamentoService = filamentoService;
+        this.impressoraService = impressoraService;
+        this.embalagemService = embalagemService;
+        this.configuracaoService = configuracaoService;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.manutencaoImpressoraService = manutencaoImpressoraService;
+    }
 
     @Override
     public long contarPorFilamento(UUID filamentoId) {
@@ -76,7 +87,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
     @Override
-    public java.util.List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
+    public List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return calculoHistoricoRepository.buscarUsosDoFilamento(filamentoId, usuarioId);
     }
@@ -585,7 +596,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (limite <= 0) return java.util.List.of();
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return calculoHistoricoRepository.buscarCalculosRecentes(
-                usuarioId, org.springframework.data.domain.PageRequest.of(0, limite)
+                usuarioId, PageRequest.of(0, limite)
         );
     }
 
@@ -604,7 +615,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
     @Override
-    public java.util.Optional<CalculoHistorico> fetchById(UUID id) {
+    public Optional<CalculoHistorico> fetchById(UUID id) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
         return calculoHistoricoRepository.buscarPorIdComItens(

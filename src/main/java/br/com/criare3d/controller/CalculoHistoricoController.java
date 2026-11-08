@@ -13,7 +13,6 @@ import br.com.criare3d.service.interfaces.*;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -63,26 +62,31 @@ public class CalculoHistoricoController {
     private static final String REQUEST_CALCULO = "requestCalculo";
     private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
 
-    @Autowired
-    private CatalogoBuscaService catalogoBuscaService;
+    private final CatalogoBuscaService catalogoBuscaService;
+    private final CalculoHistoricoService calculoHistoricoService;
+    private final PecaService pecaService;
+    private final FilamentoService filamentoService;
+    private final ImpressoraService impressoraService;
+    private final EmbalagemService embalagemService;
+    private final ConfiguracaoService configuracaoService;
 
-    @Autowired
-    private CalculoHistoricoService calculoHistoricoService;
-
-    @Autowired
-    private PecaService pecaService;
-
-    @Autowired
-    private FilamentoService filamentoService;
-
-    @Autowired
-    private ImpressoraService impressoraService;
-
-    @Autowired
-    private EmbalagemService embalagemService;
-
-    @Autowired
-    private ConfiguracaoService configuracaoService;
+    public CalculoHistoricoController(
+            CatalogoBuscaService catalogoBuscaService,
+            CalculoHistoricoService calculoHistoricoService,
+            PecaService pecaService,
+            FilamentoService filamentoService,
+            ImpressoraService impressoraService,
+            EmbalagemService embalagemService,
+            ConfiguracaoService configuracaoService
+    ) {
+        this.catalogoBuscaService = catalogoBuscaService;
+        this.calculoHistoricoService = calculoHistoricoService;
+        this.pecaService = pecaService;
+        this.filamentoService = filamentoService;
+        this.impressoraService = impressoraService;
+        this.embalagemService = embalagemService;
+        this.configuracaoService = configuracaoService;
+    }
 
     @GetMapping("/historico/listar")
     public ModelAndView fetchAll(
