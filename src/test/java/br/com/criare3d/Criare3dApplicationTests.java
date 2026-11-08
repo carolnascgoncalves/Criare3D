@@ -160,6 +160,7 @@ class Criare3dApplicationTests {
 		calculo.setDataVenda(dataVenda);
 		calculo.setVendido(true);
 		calculo.setUnidades(3);
+		calculo.setFornadas(3);
 		calculo.setLucroLiquido(new BigDecimal("25.00"));
 		calculoHistoricoRepository.saveAndFlush(calculo);
 
