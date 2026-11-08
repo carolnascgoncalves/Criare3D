@@ -151,10 +151,10 @@
         </div>
         <div class="dashboard-tabela-wrap" th:if="${!#lists.isEmpty(calculosRecentes)}">
             <table class="dashboard-tabela">
-                <thead><tr><th>Peça</th><th>Custo</th><th>Preço sugerido</th><th>Plataforma</th><th>Status</th></tr></thead>
+                <thead><tr><th>Peça</th><th>Custo / unidade</th><th>Preço / unidade</th><th>Plataforma</th><th>Status</th></tr></thead>
                 <tbody>
                 <tr th:each="calculo : ${calculosRecentes}">
-                    <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="${calculo.nomePeca}">Peça</a></td>
+                    <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="|${calculo.nomePeca}${calculo.unidades > 1 ? ' · ' + calculo.unidades + ' un.' : ''}|">Peça</a></td>
                     <td th:text="|R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
                     <td th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
                     <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda)))}">Sem plataforma</td>

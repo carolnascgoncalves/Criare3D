@@ -4,6 +4,7 @@ import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
+import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.*;
 import br.com.criare3d.models.enums.PlataformaVenda;
@@ -133,6 +134,13 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         calculoHistorico.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
 
         return calculoHistoricoRepository.save(calculoHistorico);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HistoricoExportacaoResponse> exportarHistorico() {
+        return calculoHistoricoRepository.buscarHistoricoParaExportacao(
+                usuarioLogadoService.buscarIdUsuarioAtual());
     }
 
     @Override
@@ -315,6 +323,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 || request.getTempoImpressaoMinutos() <= 0) {
             throw new IllegalArgumentException("O tempo de impressão deve ser maior que zero");
         }
+        if (request.getUnidades() == null || request.getUnidades() < 1 || request.getUnidades() > 10000) {
+            throw new IllegalArgumentException("Informe uma quantidade entre 1 e 10.000 unidades.");
+        }
 
         BigDecimal markup = request.getMarkupPercentual();
 
@@ -359,7 +370,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             }
 
             BigDecimal consumoTotal = consumoPorFilamento.merge(
-                    filamento.getId(), quantidade, BigDecimal::add);
+                    filamento.getId(), quantidade.multiply(BigDecimal.valueOf(request.getUnidades())), BigDecimal::add);
             BigDecimal disponivel = filamento.getEstoqueGramas() == null
                     ? ZERO : filamento.getEstoqueGramas();
             if (consumoTotal.compareTo(disponivel) > 0) {
@@ -517,6 +528,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setEmbalagem(embalagem);
 
         historico.setNomePeca(peca.getNome());
+        historico.setUnidades(request.getUnidades());
         historico.setNomeImpressora(impressora.getNome());
         historico.setPotenciaWatts(impressora.getPotenciaWatts());
         historico.setTempoImpressaoMinutos(request.getTempoImpressaoMinutos());
@@ -609,14 +621,14 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public long contarProduzidos() {
-        return calculoHistoricoRepository.countByProduzidoTrueAndUsuario_Id(
+        return calculoHistoricoRepository.contarUnidadesProduzidas(
                 usuarioLogadoService.buscarIdUsuarioAtual()
         );
     }
 
     @Override
     public long contarVendidos() {
-        return calculoHistoricoRepository.countByVendidoTrueAndUsuario_Id(
+        return calculoHistoricoRepository.contarUnidadesVendidas(
                 usuarioLogadoService.buscarIdUsuarioAtual()
         );
     }

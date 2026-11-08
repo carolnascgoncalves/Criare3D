@@ -4,6 +4,7 @@ package br.com.criare3d.controller;
 import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.FilamentoResponse;
 import br.com.criare3d.dto.FilamentoDadosRequest;
+import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
@@ -170,6 +171,46 @@ public class FilamentoController {
         redirect.addAttribute("ordem", ordem);
         redirect.addAttribute("page", Math.max(0, page));
         return new ModelAndView("redirect:/filamento/listar");
+    }
+
+    @GetMapping("/filamento/{id}/compra")
+    public ModelAndView abrirRegistroCompra(@PathVariable UUID id) {
+        return filamentoService.fetchById(id)
+                .map(filamento -> {
+                    ModelAndView mv = new ModelAndView("filamento/compra");
+                    mv.addObject("filamento", filamento);
+                    mv.addObject("compra", new CompraFilamentoRequest());
+                    return mv;
+                })
+                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
+    }
+
+    @PostMapping("/filamento/{id}/compra")
+    public ModelAndView registrarCompra(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute("compra") CompraFilamentoRequest compra,
+            BindingResult erros) {
+        var filamento = filamentoService.fetchById(id);
+        if (filamento.isEmpty()) {
+            return new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado");
+        }
+
+        if (erros.hasErrors()) {
+            ModelAndView mv = new ModelAndView("filamento/compra");
+            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.addObject("filamento", filamento.get());
+            mv.addObject("compra", compra);
+            return mv;
+        }
+
+        try {
+            if (!filamentoService.registrarCompra(id, compra)) {
+                return new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado");
+            }
+        } catch (org.springframework.dao.OptimisticLockingFailureException conflito) {
+            return new ModelAndView("redirect:/filamento/detalhes/" + id + "?erro=estoqueConflito");
+        }
+        return new ModelAndView("redirect:/filamento/detalhes/" + id + "?sucesso=compraRegistrada");
     }
 
     @GetMapping("/filamento/editar/{id}")

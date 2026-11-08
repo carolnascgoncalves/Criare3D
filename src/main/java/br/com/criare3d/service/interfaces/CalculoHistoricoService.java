@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
 import java.util.List;
@@ -32,4 +33,5 @@ public interface CalculoHistoricoService {
     String atualizarVendido(UUID id, boolean vendido);
     CalculoHistorico calcular(CalculoRequest request);
     CalculoHistorico calcularComPrecoFixo(CalculoRequest request, BigDecimal precoVenda);
+    List<HistoricoExportacaoResponse> exportarHistorico();
 }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Orçamento')}" ></head>
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+<main class="pagina pagina-orcamento"
+      th:attr="data-peca=${calculo.nomePeca},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote}">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">ORÇAMENTO</span>
+            <h1>Prepare uma proposta</h1>
+            <p>Confira os valores, personalize a mensagem e imprima ou envie pelo WhatsApp.</p>
+        </div>
+        <button type="button" class="botao botao-secundario" onclick="window.print()">
+            <i class="bi bi-printer"></i> Imprimir / salvar PDF
+        </button>
+    </section>
+
+    <section class="cartao orcamento-cartao">
+        <div class="orcamento-marca">
+            <span class="texto-apoio">CRIARE 3D</span>
+            <h2>Orçamento de impressão 3D</h2>
+            <p th:text="${#temporals.format(calculo.dataCalculo, 'dd/MM/yyyy')}">08/11/2026</p>
+        </div>
+        <div class="campo orcamento-cliente">
+            <label for="nomeCliente">Nome do cliente <span class="etiqueta-opcional">Opcional</span></label>
+            <input id="nomeCliente" type="text" maxlength="100" placeholder="Ex.: Ana">
+        </div>
+        <div class="orcamento-produto">
+            <div>
+                <span>Peça</span>
+                <strong th:text="${calculo.nomePeca}">Nome da peça</strong>
+            </div>
+            <div>
+                <span>Quantidade</span>
+                <strong th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'}|">1 unidade</strong>
+            </div>
+            <div>
+                <span>Preço por unidade</span>
+                <strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            </div>
+        </div>
+        <div class="orcamento-total">
+            <span>Total do orçamento</span>
+            <strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+        </div>
+        <p class="orcamento-nota">Orçamento gerado com base nos valores registrados no Criare 3D. Prazo e frete podem ser combinados à parte.</p>
+        <div class="formulario-acoes orcamento-acoes">
+            <button type="button" class="botao botao-secundario" data-copiar-orcamento>
+                <i class="bi bi-copy"></i> Copiar mensagem
+            </button>
+            <button type="button" class="botao botao-principal" data-enviar-whatsapp>
+                <i class="bi bi-whatsapp"></i> Abrir WhatsApp
+            </button>
+            <a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" class="botao botao-secundario">Voltar aos detalhes</a>
+        </div>
+    </section>
+</main>
+<script th:src="@{/js/orcamento.js(v=1)}" defer></script>
+</body>
+</html>

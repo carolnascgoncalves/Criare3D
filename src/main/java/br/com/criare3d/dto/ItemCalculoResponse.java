@@ -22,6 +22,8 @@ public class ItemCalculoResponse {
     private BigDecimal pesoRoloGramas;
     private BigDecimal quantidadeFilamentoGramas;
     private BigDecimal custoFilamento;
+    private BigDecimal precoRoloAtual;
+    private BigDecimal pesoRoloAtual;
 
     public static ItemCalculoResponse toDto(ItemCalculoHistorico item) {
         return ItemCalculoResponse.builder()
@@ -33,6 +35,14 @@ public class ItemCalculoResponse {
                 .pesoRoloGramas(item.getPesoRoloGramas())
                 .quantidadeFilamentoGramas(item.getQuantidadeFilamentoGramas())
                 .custoFilamento(item.getCustoFilamento())
+                .precoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPrecoRolo())
+                .pesoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPesoRoloGramas())
                 .build();
+    }
+
+    public boolean isPrecoAtualizado() {
+        return precoRoloAtual != null && pesoRoloAtual != null
+                && (precoRoloAtual.compareTo(precoRoloFilamento) != 0
+                || pesoRoloAtual.compareTo(pesoRoloGramas) != 0);
     }
 }

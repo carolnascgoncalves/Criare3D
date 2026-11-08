@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import br.com.criare3d.dto.CompraFilamentoRequest;
 
 public interface FilamentoService {
     Filamento create(Filamento filamento);
@@ -22,4 +23,5 @@ public interface FilamentoService {
     List<Filamento> fetchRecentes(int limite);
     Optional<Filamento> fetchEstoqueCritico();
     boolean existsById(UUID id);
+    boolean registrarCompra(UUID id, CompraFilamentoRequest compra);
 }

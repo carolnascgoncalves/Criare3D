@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Registrar compra de filamento')}"></head>
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+<main class="pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">SEUS MATERIAIS</span>
+            <h1>Registrar compra</h1>
+            <p th:text="|Atualize o estoque e o preço de referência de ${filamento.nome}.|">Atualize o estoque.</p>
+        </div>
+    </section>
+    <section class="cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Dados do rolo comprado</h2>
+                <p>O estoque informado será somado ao saldo atual. Cálculos já salvos mantêm os preços antigos.</p>
+            </div>
+        </div>
+        <div class="formulario-conteudo">
+            <form th:action="@{/filamento/{id}/compra(id=${filamento.id})}"
+                  th:object="${compra}" method="post" class="formulario" novalidate
+                  data-turbo="false">
+                <div class="detalhe-item">
+                    <span>Estoque atual</span>
+                    <strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">0 g</strong>
+                </div>
+                <div class="campo">
+                    <label for="gramasCompradas">Quantidade adicionada ao estoque (g)</label>
+                    <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01" required>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
+                </div>
+                <div class="campo">
+                    <label for="pesoRoloGramas">Peso de um rolo novo (g)</label>
+                    <input id="pesoRoloGramas" type="number" th:field="*{pesoRoloGramas}" min="0.01" step="0.01" required>
+                    <small>Usado como base para calcular o custo por grama nos próximos cálculos.</small>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('pesoRoloGramas')}" th:errors="*{pesoRoloGramas}"></span>
+                </div>
+                <div class="campo">
+                    <label for="precoRolo">Preço pago pelo rolo (R$)</label>
+                    <input id="precoRolo" type="number" th:field="*{precoRolo}" min="0.01" step="0.01" required>
+                    <span class="erro-campo" th:if="${#fields.hasErrors('precoRolo')}" th:errors="*{precoRolo}"></span>
+                </div>
+                <div class="formulario-acoes">
+                    <button type="submit" class="botao botao-principal"><i class="bi bi-check-lg"></i> Registrar compra</button>
+                    <a th:href="@{/filamento/detalhes/{id}(id=${filamento.id})}" class="botao botao-secundario">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -23,6 +23,7 @@ public class CalculoResponse {
     private BigDecimal precoRoloFilamento;
     private BigDecimal pesoRoloGramas;
     private BigDecimal quantidadeFilamentoGramas;
+    private Integer unidades;
 
     private String nomeImpressora;
     private BigDecimal potenciaWatts;
@@ -92,6 +93,7 @@ public class CalculoResponse {
                 .precoRoloFilamento(calculo.getPrecoRoloFilamento())
                 .pesoRoloGramas(calculo.getPesoRoloGramas())
                 .quantidadeFilamentoGramas(calculo.getQuantidadeFilamentoGramas())
+                .unidades(calculo.getUnidades() == null ? 1 : calculo.getUnidades())
                 .nomeImpressora(calculo.getNomeImpressora())
                 .potenciaWatts(calculo.getPotenciaWatts())
                 .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())

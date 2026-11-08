@@ -143,6 +143,10 @@ public class CalculoHistorico {
     @Column(name = "data_venda_hist")
     private @Getter @Setter LocalDateTime dataVenda;
 
+    @Column(name = "unidades_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Integer unidades = 1;
+
     // Dados da plataforma: snapshots do momento do cálculo
 
     @Column(name = "plataformaVenda_hist", length = 30)

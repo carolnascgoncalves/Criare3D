@@ -1,6 +1,7 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Filamento;
+import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.FilamentoService;
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -181,5 +183,18 @@ public class FilamentoServiceImp implements FilamentoService {
     public boolean existsById(UUID id) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return filamentoRepository.existsByIdAndUsuario_Id(id, usuarioId);
+    }
+
+    @Override
+    public boolean registrarCompra(UUID id, CompraFilamentoRequest compra) {
+        Filamento filamento = fetchById(id).orElse(null);
+        if (filamento == null) return false;
+
+        BigDecimal estoqueAtual = filamento.getEstoqueGramas() == null ? BigDecimal.ZERO : filamento.getEstoqueGramas();
+        filamento.setEstoqueGramas(estoqueAtual.add(compra.getGramasCompradas()));
+        filamento.setPesoRoloGramas(compra.getPesoRoloGramas());
+        filamento.setPrecoRolo(compra.getPrecoRolo());
+        filamentoRepository.saveAndFlush(filamento);
+        return true;
     }
 }

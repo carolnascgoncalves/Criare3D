@@ -11,5 +11,6 @@ public record CalculoRecenteResponse(
         BigDecimal precoSugerido,
         String plataformaVenda,
         Boolean produzido,
-        Boolean vendido
+        Boolean vendido,
+        Integer unidades
 ) {}

@@ -14,5 +14,6 @@ public record HistoricoListaResponse(
         BigDecimal precoSugerido,
         Boolean produzido,
         Boolean vendido,
-        Boolean temFoto
+        Boolean temFoto,
+        Integer unidades
 ) {}

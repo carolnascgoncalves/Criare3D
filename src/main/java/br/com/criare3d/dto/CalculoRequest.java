@@ -25,6 +25,11 @@ public class CalculoRequest {
 
     private BigDecimal quantidadeFilamentoGramas;
 
+    @NotNull(message = "Informe a quantidade de unidades.")
+    @Min(value = 1, message = "A quantidade mínima é 1 unidade.")
+    @Max(value = 10000, message = "A quantidade máxima é 10.000 unidades.")
+    private Integer unidades = 1;
+
     private String fotoPecaBase64;
 
     private String fotoPecaContentType;

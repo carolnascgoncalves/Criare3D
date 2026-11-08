@@ -29,6 +29,7 @@
                 <div class="detalhes-identificacao-texto">
                     <span class="detalhes-etiqueta">PEÇA</span>
                     <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
+                    <span class="texto-apoio" th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'} no lote|">1 unidade</span>
                 </div>
 
             </div>
@@ -69,6 +70,12 @@
 
                                     <span th:text="${#numbers.formatDecimal(item.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT') + ' g utilizados'}">
                                         25,00 g utilizados
+                                    </span>
+                                    <span class="aviso-info" th:if="${item.precoAtualizado}">
+                                        <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                                        O preço ou o peso do rolo mudou desde este cálculo. Agora está cadastrado por
+                                        <strong th:text="|R$ ${#numbers.formatDecimal(item.precoRoloAtual, 1, 'POINT', 2, 'COMMA')} / ${#numbers.formatDecimal(item.pesoRoloAtual, 1, 'POINT', 2, 'COMMA')} g|"></strong>.
+                                        Faça um novo cálculo para usar os valores atuais.
                                     </span>
                                 </div>
 
@@ -180,6 +187,26 @@
                     <strong th:text="${historico.precoSugerido != null ? 'R$ ' + #numbers.formatDecimal(historico.precoSugerido, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">
                         R$ 11,55
                     </strong>
+                </div>
+            </section>
+
+            <section class="cartao resumo-lote">
+                <div class="cartao-cabecalho">
+                    <div>
+                        <h3 th:text="|Lote registrado · ${unidades} ${unidades == 1 ? 'unidade' : 'unidades'}|">Lote registrado</h3>
+                        <p>Os valores de custo e preço do histórico são por unidade.</p>
+                    </div>
+                </div>
+                <div class="detalhes-conteudo">
+                    <div class="detalhe-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                </div>
+                <div class="formulario-acoes">
+                    <a th:href="@{/historico/{id}/orcamento(id=${historico.id})}" class="botao botao-principal">
+                        <i class="bi bi-file-earmark-text"></i> Gerar orçamento
+                    </a>
                 </div>
             </section>
 

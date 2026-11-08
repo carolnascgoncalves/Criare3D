@@ -99,7 +99,7 @@
 
                 <!-- PREÇO SUGERIDO -->
                 <div class="preco-sugerido">
-                    <span>Preço sugerido antes das taxas da plataforma</span>
+                    <span th:text="|Preço sugerido antes das taxas · por unidade|">Preço sugerido antes das taxas da plataforma</span>
 
                     <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.precoSugerido, 1, 'POINT', 2, 'COMMA')}">
                         R$ 0,00
@@ -115,6 +115,21 @@
                 </div>
 
             </div>
+
+            <section class="cartao resumo-lote">
+                <div class="cartao-cabecalho">
+                    <div>
+                        <h3 th:text="|Resumo do lote · ${unidades} ${unidades == 1 ? 'unidade' : 'unidades'}|">Resumo do lote</h3>
+                        <p>Os valores unitários abaixo multiplicados pela quantidade selecionada.</p>
+                    </div>
+                </div>
+                <div class="detalhes-conteudo">
+                    <div class="detalhe-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                </div>
+            </section>
 
             <!-- DETALHES DA PLATAFORMA SELECIONADA -->
             <section class="detalhes-calculo"

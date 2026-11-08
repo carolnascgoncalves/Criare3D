@@ -6,6 +6,7 @@ import br.com.criare3d.dto.CalculoResponse;
 import br.com.criare3d.dto.HistoricoListaResponse;
 import br.com.criare3d.dto.ComparacaoPlataforma;
 import br.com.criare3d.dto.ItemCalculoRequest;
+import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CatalogoBuscaService;
@@ -32,15 +33,19 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Controller
 public class CalculoHistoricoController {
 
+    private static final DateTimeFormatter FORMATO_DATA_CSV =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"));
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
     private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
@@ -119,6 +124,49 @@ public class CalculoHistoricoController {
         mv.addObject("ordem", ordem);
 
         return mv;
+    }
+
+    @GetMapping(value = "/historico/exportar.csv", produces = "text/csv")
+    @ResponseBody
+    public ResponseEntity<byte[]> exportarHistoricoCsv() {
+        StringBuilder csv = new StringBuilder("\uFEFFPeça;Data do cálculo;Plataforma;Custo unitário;Preço sugerido por unidade;Lucro líquido por unidade;Unidades;Produzido;Vendido\r\n");
+        for (HistoricoExportacaoResponse item : calculoHistoricoService.exportarHistorico()) {
+            csv.append(campoCsv(item.nomePeca())).append(';')
+                    .append(campoCsv(item.dataCalculo() == null
+                            ? "" : item.dataCalculo().format(FORMATO_DATA_CSV))).append(';')
+                    .append(campoCsv(nomePlataformaCsv(item.plataforma()))).append(';')
+                    .append(numeroCsv(item.custoTotal())).append(';')
+                    .append(numeroCsv(item.precoSugerido())).append(';')
+                    .append(numeroCsv(item.lucroLiquido())).append(';')
+                    .append(item.unidades() == null ? 1 : item.unidades()).append(';')
+                    .append(Boolean.TRUE.equals(item.produzido()) ? "Sim" : "Não").append(';')
+                    .append(Boolean.TRUE.equals(item.vendido()) ? "Sim" : "Não").append("\r\n");
+        }
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"historico-calculos.csv\"")
+                .contentType(new org.springframework.http.MediaType("text", "csv", java.nio.charset.StandardCharsets.UTF_8))
+                .body(csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private String campoCsv(String valor) {
+        if (valor == null) return "\"\"";
+        String seguro = valor.stripLeading().matches("^[=+@\\-].*") ? "'" + valor : valor;
+        return "\"" + seguro.replace("\"", "\"\"") + "\"";
+    }
+
+    private String numeroCsv(BigDecimal valor) {
+        return valor == null ? "" : valor.toPlainString().replace('.', ',');
+    }
+
+    private String nomePlataformaCsv(String plataforma) {
+        if (plataforma == null || plataforma.isBlank() || "NENHUMA".equals(plataforma)) return "Sem plataforma";
+        return switch (plataforma) {
+            case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
+            case "SHOPEE" -> "Shopee";
+            case "MERCADO_LIVRE" -> "Mercado Livre";
+            default -> plataforma;
+        };
     }
 
     @GetMapping("/historico/novo")
@@ -282,6 +330,7 @@ public class CalculoHistoricoController {
 
         mv.addObject("calculo", request);
         mv.addObject("resultado", resultado);
+        adicionarResumoLote(mv, resultado);
         mv.addObject("modoComparacao", modoComparacao);
         mv.addObject("precoVendaFixo", precoVendaFixo);
 
@@ -605,10 +654,38 @@ public class CalculoHistoricoController {
         return calculoHistoricoService.fetchById(id)
                 .map(entidade -> {
                     ModelAndView mv = new ModelAndView("historico/detalhes");
-                    mv.addObject("historico", CalculoResponse.toDto(entidade));
+                    CalculoResponse historico = CalculoResponse.toDto(entidade);
+                    mv.addObject("historico", historico);
+                    adicionarResumoLote(mv, historico);
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
+    }
+
+    @GetMapping("/historico/{id}/orcamento")
+    public ModelAndView abrirOrcamento(@PathVariable UUID id) {
+        return calculoHistoricoService.fetchById(id)
+                .map(entidade -> {
+                    CalculoResponse calculo = CalculoResponse.toDto(entidade);
+                    ModelAndView mv = new ModelAndView("historico/orcamento");
+                    mv.addObject("calculo", calculo);
+                    adicionarResumoLote(mv, calculo);
+                    return mv;
+                })
+                .orElseGet(() -> new ModelAndView("redirect:/historico/listar?erro=naoEncontrado"));
+    }
+
+    private void adicionarResumoLote(ModelAndView mv, CalculoResponse calculo) {
+        int unidades = calculo.getUnidades() == null ? 1 : calculo.getUnidades();
+        BigDecimal precoUnitario = calculo.getPrecoVendaPlataforma() != null
+                ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
+        BigDecimal lucroUnitario = calculo.getLucroLiquido() != null
+                ? calculo.getLucroLiquido() : calculo.getLucroEstimado();
+        mv.addObject("unidades", unidades);
+        mv.addObject("custoTotalLote", calculo.getCustoTotal().multiply(BigDecimal.valueOf(unidades)));
+        mv.addObject("precoUnitario", precoUnitario);
+        mv.addObject("precoTotalLote", precoUnitario.multiply(BigDecimal.valueOf(unidades)));
+        mv.addObject("lucroTotalLote", lucroUnitario.multiply(BigDecimal.valueOf(unidades)));
     }
 
     @GetMapping("/historico/{id}/foto")
@@ -703,7 +780,14 @@ public class CalculoHistoricoController {
         mv.addObject("filamentos", filamentoService.fetchAll(pageable).getContent());
         mv.addObject("impressoras", impressoraService.fetchAll(pageable).getContent());
         mv.addObject("embalagens", embalagemService.fetchAll(pageable).getContent());
-        mv.addObject("configuracao", configuracaoService.buscarOuCriarConfiguracao());
+        var configuracao = configuracaoService.buscarOuCriarConfiguracao();
+        mv.addObject("configuracao", configuracao);
+        boolean tarifaSemValor = configuracao.getTarifaEnergiaKwh() == null
+                || configuracao.getTarifaEnergiaKwh().signum() == 0;
+        boolean markupFixoSemValor = Boolean.TRUE.equals(configuracao.getMarkupFixo())
+                && (configuracao.getMarkupPercentual() == null
+                || configuracao.getMarkupPercentual().signum() == 0);
+        mv.addObject("avisoConfiguracaoIncompleta", tarifaSemValor || markupFixoSemValor);
     }
 
 }

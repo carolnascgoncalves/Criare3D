@@ -7,6 +7,12 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'compraRegistrada'}" role="status">
+        Compra registrada. O estoque e o preço atual do rolo foram atualizados.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'estoqueConflito'}" role="alert">
+        O filamento foi alterado em outra tela. Atualize a página e registre a compra novamente.
+    </div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEUS MATERIAIS</span>
@@ -87,6 +93,11 @@
             <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
                class="botao botao-principal">
                 <i class="bi bi-pencil"></i> Editar filamento
+            </a>
+            <a th:href="@{/filamento/{id}/compra(id=${filamento.id})}"
+               class="botao botao-secundario"
+               data-turbo="false">
+                <i class="bi bi-bag-plus"></i> Registrar compra
             </a>
         </div>
     </section>

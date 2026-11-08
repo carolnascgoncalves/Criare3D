@@ -18,6 +18,8 @@ import br.com.criare3d.models.Impressora;
 import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.ItemCalculoHistorico;
+import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.ConfiguracaoRepository;
@@ -28,6 +30,7 @@ import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.service.FilamentoServiceImp;
 import br.com.criare3d.service.interfaces.UsuarioService;
+import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -64,6 +67,8 @@ class Criare3dApplicationTests {
 	private FilamentoServiceImp filamentoService;
 	@Autowired
 	private UsuarioService usuarioService;
+	@Autowired
+	private CalculoHistoricoService calculoHistoricoService;
 
 	@Test
 	void contextoDaAplicacaoIniciaComBancoDeTeste() {
@@ -153,13 +158,18 @@ class Criare3dApplicationTests {
 		calculo.setDataCalculo(dataVenda.minusMonths(6));
 		calculo.setDataVenda(dataVenda);
 		calculo.setVendido(true);
+		calculo.setUnidades(3);
 		calculo.setLucroLiquido(new BigDecimal("25.00"));
 		calculoHistoricoRepository.saveAndFlush(calculo);
 
 		try {
 			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
 					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1)))
-					.isEqualByComparingTo("25.00");
+					.isEqualByComparingTo("75.00");
+			assertThat(calculoHistoricoRepository.contarVendasEntre(
+					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1))).isEqualTo(3);
+			assertThat(calculoHistoricoRepository.somarMinutosDasVendasEntre(
+					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1))).isEqualTo(180L);
 			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
 					usuario.getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)))
 					.isEqualByComparingTo("0.00");
@@ -167,6 +177,65 @@ class Criare3dApplicationTests {
 					.isEqualTo(dataVenda);
 		} finally {
 			calculoHistoricoRepository.deleteById(calculo.getId());
+			usuarioRepository.deleteById(usuario.getId());
+		}
+	}
+
+	@Test
+	void compraDeFilamentoSomaEstoqueEAtualizaPrecoDeReferencia() {
+		Usuario usuario = criarUsuario("compra-" + UUID.randomUUID() + "@teste.local");
+		Filamento filamento = criarFilamento(usuario);
+		try {
+			SecurityContextHolder.getContext().setAuthentication(
+					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			CompraFilamentoRequest compra = new CompraFilamentoRequest();
+			compra.setGramasCompradas(new BigDecimal("1000"));
+			compra.setPesoRoloGramas(new BigDecimal("1000"));
+			compra.setPrecoRolo(new BigDecimal("95.50"));
+
+			assertThat(filamentoService.registrarCompra(filamento.getId(), compra)).isTrue();
+			Filamento atualizado = filamentoService.fetchById(filamento.getId()).orElseThrow();
+			assertThat(atualizado.getEstoqueGramas()).isEqualByComparingTo("2000.00");
+			assertThat(atualizado.getPrecoRolo()).isEqualByComparingTo("95.50");
+		} finally {
+			SecurityContextHolder.clearContext();
+			filamentoRepository.deleteById(filamento.getId());
+			usuarioRepository.deleteById(usuario.getId());
+		}
+	}
+
+	@Test
+	void produzirLoteDescontaEDevolverLoteRestauraEstoqueMultiplicadoPelasUnidades() {
+		Usuario usuario = criarUsuario("lote-" + UUID.randomUUID() + "@teste.local");
+		Filamento filamento = criarFilamento(usuario);
+		CalculoHistorico calculo = criarCalculoHistorico(usuario);
+		calculo.setUnidades(3);
+		calculo.setFilamento(filamento);
+		calculo.setQuantidadeFilamentoGramas(new BigDecimal("50.00"));
+		ItemCalculoHistorico item = ItemCalculoHistorico.builder()
+				.calculoHistorico(calculo).filamento(filamento)
+				.nomeFilamento(filamento.getNome()).corFilamento(filamento.getCor())
+				.codigoCor(filamento.getCodigoCor()).precoRoloFilamento(filamento.getPrecoRolo())
+				.pesoRoloGramas(filamento.getPesoRoloGramas())
+				.quantidadeFilamentoGramas(new BigDecimal("50.00"))
+				.custoFilamento(new BigDecimal("4.00")).build();
+		calculo.getItensFilamento().add(item);
+		calculoHistoricoRepository.saveAndFlush(calculo);
+
+		try {
+			SecurityContextHolder.getContext().setAuthentication(
+					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			assertThat(calculoHistoricoService.atualizarProduzido(calculo.getId(), true)).isEqualTo("ok");
+			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
+					.isEqualByComparingTo("850.00");
+
+			assertThat(calculoHistoricoService.atualizarProduzido(calculo.getId(), false)).isEqualTo("ok");
+			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
+					.isEqualByComparingTo("1000.00");
+		} finally {
+			SecurityContextHolder.clearContext();
+			calculoHistoricoRepository.deleteById(calculo.getId());
+			filamentoRepository.deleteById(filamento.getId());
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}

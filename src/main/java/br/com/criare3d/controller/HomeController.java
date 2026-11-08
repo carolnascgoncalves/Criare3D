@@ -10,6 +10,8 @@ import br.com.criare3d.service.interfaces.EmbalagemService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
 
 
 @Controller
@@ -36,16 +38,26 @@ public class HomeController {
         this.embalagemService = embalagemService;
     }
 
+    @GetMapping("/favicon.ico")
+    @ResponseBody
+    public ResponseEntity<Void> faviconSemArquivo() {
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping({"/", "/home"})
     public String home(Model model) {
         var historicosRecentes = calculoHistoricoService.fetchRecentes(3);
         long totalProduzidos = calculoHistoricoService.contarProduzidos();
         long totalVendidos = calculoHistoricoService.contarVendidos();
 
-        model.addAttribute("totalPecas", pecaService.contar());
-        model.addAttribute("totalFilamentos", filamentoService.contar());
-        model.addAttribute("totalImpressoras", impressoraService.contar());
-        model.addAttribute("totalEmbalagens", embalagemService.contar());
+        long totalPecas = pecaService.contar();
+        long totalFilamentos = filamentoService.contar();
+        long totalImpressoras = impressoraService.contar();
+        long totalEmbalagens = embalagemService.contar();
+        model.addAttribute("totalPecas", totalPecas);
+        model.addAttribute("totalFilamentos", totalFilamentos);
+        model.addAttribute("totalImpressoras", totalImpressoras);
+        model.addAttribute("totalEmbalagens", totalEmbalagens);
         model.addAttribute("filamentoAcabando", filamentoService.fetchEstoqueCritico().orElse(null));
 
         model.addAttribute("totalProduzidos", totalProduzidos);
@@ -53,10 +65,22 @@ public class HomeController {
         model.addAttribute("aguardandoVenda", Math.max(0, totalProduzidos - totalVendidos));
         model.addAttribute("ultimosCalculos", historicosRecentes);
 
-        boolean valorHoraConfigurado = configuracaoService.buscarConfiguracao()
-                .map(config -> Boolean.TRUE.equals(config.getMaoObraAtivada())
-                        && config.getValorMaoObraHora() != null)
-                .orElse(false);
+        var configuracao = configuracaoService.buscarOuCriarConfiguracao();
+        boolean tarifaConfigurada = configuracao.getTarifaEnergiaKwh() != null
+                && configuracao.getTarifaEnergiaKwh().signum() > 0;
+        boolean markupFixoConfigurado = !Boolean.TRUE.equals(configuracao.getMarkupFixo())
+                || (configuracao.getMarkupPercentual() != null
+                && configuracao.getMarkupPercentual().signum() > 0);
+        model.addAttribute("configuracaoBasicaOk", tarifaConfigurada && markupFixoConfigurado);
+        model.addAttribute("tarifaEnergiaConfigurada", tarifaConfigurada);
+        model.addAttribute("markupFixoConfigurado", markupFixoConfigurado);
+        model.addAttribute("primeiroAcessoConcluido", tarifaConfigurada
+                && totalPecas > 0 && totalFilamentos > 0
+                && totalImpressoras > 0 && totalEmbalagens > 0
+                && !historicosRecentes.isEmpty());
+
+        boolean valorHoraConfigurado = Boolean.TRUE.equals(configuracao.getMaoObraAtivada())
+                && configuracao.getValorMaoObraHora() != null;
         model.addAttribute("valorHoraConfigurado", valorHoraConfigurado);
 
         return "index";

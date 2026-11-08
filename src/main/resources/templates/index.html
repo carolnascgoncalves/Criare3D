@@ -25,6 +25,44 @@
         <i class="bi bi-printer inicio-hero-icone" aria-hidden="true"></i>
     </section>
 
+    <section class="inicio-primeiros-passos cartao" th:if="${!primeiroAcessoConcluido}">
+        <div class="cartao-cabecalho">
+            <div>
+                <span class="texto-apoio">CONFIGURAÇÃO INICIAL</span>
+                <h2>Vamos deixar tudo pronto para calcular?</h2>
+                <p>Complete estes passos uma vez. Você poderá alterar os dados depois.</p>
+            </div>
+        </div>
+        <ol class="inicio-passos-lista">
+            <li th:classappend="${configuracaoBasicaOk} ? ' passo-concluido' : ''">
+                <i th:class="${configuracaoBasicaOk} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Configure a tarifa de energia e confira o markup</span>
+                <a th:href="@{/configuracao}">Configurações</a>
+            </li>
+            <li th:classappend="${totalImpressoras > 0} ? ' passo-concluido' : ''">
+                <i th:class="${totalImpressoras > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Cadastre uma impressora</span>
+                <a th:href="@{/impressora/novo}">Cadastrar</a>
+            </li>
+            <li th:classappend="${totalFilamentos > 0} ? ' passo-concluido' : ''">
+                <i th:class="${totalFilamentos > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Cadastre um filamento</span>
+                <a th:href="@{/filamento/novo}">Cadastrar</a>
+            </li>
+            <li th:classappend="${totalPecas > 0 and totalEmbalagens > 0} ? ' passo-concluido' : ''">
+                <i th:class="${totalPecas > 0 and totalEmbalagens > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Cadastre uma peça e uma embalagem</span>
+                <a th:if="${totalPecas == 0}" th:href="@{/peca/novo}">Cadastrar peça</a>
+                <a th:if="${totalEmbalagens == 0}" th:href="@{/embalagem/novo}">Cadastrar embalagem</a>
+            </li>
+            <li th:classappend="${!#lists.isEmpty(ultimosCalculos)} ? ' passo-concluido' : ''">
+                <i th:class="${!#lists.isEmpty(ultimosCalculos)} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Faça seu primeiro cálculo</span>
+                <a th:href="@{/historico/novo}">Começar</a>
+            </li>
+        </ol>
+    </section>
+
     <section class="secao">
         <div class="titulo-secao">
             <div>
@@ -114,8 +152,8 @@
                 <a class="dashboard-recente"
                    th:each="calculo : ${ultimosCalculos}"
                    th:href="@{/historico/detalhes/{id}(id=${calculo.id})}">
-                    <span class="dashboard-recente-nome" th:text="${calculo.nomePeca}">Nome da peça</span>
-                    <span class="dashboard-recente-custo" th:text="|Custo R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">Custo R$ 0,00</span>
+                    <span class="dashboard-recente-nome" th:text="|${calculo.nomePeca}${calculo.unidades > 1 ? ' · ' + calculo.unidades + ' un.' : ''}|">Nome da peça</span>
+                    <span class="dashboard-recente-custo" th:text="|Custo/un. R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">Custo R$ 0,00</span>
                     <strong class="dashboard-recente-preco" th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
                     <span class="dashboard-status-inicio"
                           th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}"

@@ -73,8 +73,8 @@ public class DashboardController {
         LocalDateTime fim = hoje.plusDays(1).atStartOfDay();
         var usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
-        long calculos = historicoRepository.countByUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
-        long produzidos = historicoRepository.countByProduzidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
+        long calculos = historicoRepository.contarUnidadesCalculadasDesde(usuarioId, inicio);
+        long produzidos = historicoRepository.contarUnidadesProduzidasDesde(usuarioId, inicio);
         long vendidos = historicoRepository.contarVendasEntre(usuarioId, inicio, fim);
         BigDecimal lucroVendido = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
         long minutosVendidos = numero(historicoRepository.somarMinutosDasVendasEntre(usuarioId, inicio, fim));

@@ -6,6 +6,7 @@ import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
 import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
 import br.com.criare3d.dto.HistoricoListaResponse;
+import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -91,7 +92,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     @Query("""
         SELECT new br.com.criare3d.dto.CalculoRecenteResponse(
             h.id, h.nomePeca, h.custoTotal, h.precoSugerido,
-            h.plataformaVenda, h.produzido, h.vendido
+            h.plataformaVenda, h.produzido, h.vendido, h.unidades
         )
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId
@@ -100,16 +101,32 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     List<CalculoRecenteResponse> buscarCalculosRecentes(
             @Param("usuarioId") UUID usuarioId, Pageable pageable);
 
-    long countByProduzidoTrueAndUsuario_Id(UUID usuarioId);
+    @Query("""
+        SELECT new br.com.criare3d.dto.HistoricoExportacaoResponse(
+            h.nomePeca, h.dataCalculo, h.plataformaVenda, h.custoTotal,
+            COALESCE(h.precoVendaPlataforma, h.precoSugerido), h.lucroLiquido,
+            h.produzido, h.vendido, h.unidades
+        )
+        FROM CalculoHistorico h
+        WHERE h.usuario.id = :usuarioId
+        ORDER BY h.dataCalculo DESC
+        """)
+    List<HistoricoExportacaoResponse> buscarHistoricoParaExportacao(@Param("usuarioId") UUID usuarioId);
 
-    long countByVendidoTrueAndUsuario_Id(UUID usuarioId);
+    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.usuario.id = :usuarioId AND h.produzido = true")
+    long contarUnidadesProduzidas(@Param("usuarioId") UUID usuarioId);
 
-    long countByUsuario_IdAndDataCalculoGreaterThanEqual(UUID usuarioId, LocalDateTime inicio);
+    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.usuario.id = :usuarioId AND h.vendido = true")
+    long contarUnidadesVendidas(@Param("usuarioId") UUID usuarioId);
 
-    long countByProduzidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(UUID usuarioId, LocalDateTime inicio);
+    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.usuario.id = :usuarioId AND h.dataCalculo >= :inicio")
+    long contarUnidadesCalculadasDesde(@Param("usuarioId") UUID usuarioId, @Param("inicio") LocalDateTime inicio);
+
+    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio")
+    long contarUnidadesProduzidasDesde(@Param("usuarioId") UUID usuarioId, @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT COUNT(h) FROM CalculoHistorico h
+        SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.dataVenda < :fim
         """)
@@ -118,7 +135,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                            @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT COALESCE(SUM(h.lucroLiquido), 0)
+        SELECT COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.lucroLiquido IS NOT NULL
@@ -127,7 +144,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                       @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)
+        SELECT COALESCE(SUM(h.tempoImpressaoMinutos * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.dataVenda < :fim
@@ -138,7 +155,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                     @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT COALESCE(SUM(h.lucroLiquido), 0)
+        SELECT COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.dataVenda < :fim
@@ -150,7 +167,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
     @Query("""
         SELECT YEAR(h.dataVenda), MONTH(h.dataVenda), DAY(h.dataVenda),
-               COALESCE(SUM(h.lucroLiquido), 0)
+               COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.dataVenda < :fim
@@ -171,7 +188,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     LocalDateTime primeiraVendaComLucro(@Param("usuarioId") UUID usuarioId);
 
     @Query("""
-        SELECT COALESCE(SUM(h.tempoImpressaoMinutos), 0)
+        SELECT COALESCE(SUM(h.tempoImpressaoMinutos * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.produzido = true
           AND h.dataCalculo >= :inicio
@@ -181,7 +198,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
     @Query("""
         SELECT COALESCE(SUM(CASE WHEN item.id IS NOT NULL
-            THEN item.quantidadeFilamentoGramas ELSE h.quantidadeFilamentoGramas END), 0)
+            THEN item.quantidadeFilamentoGramas * h.unidades
+            ELSE h.quantidadeFilamentoGramas * h.unidades END), 0)
         FROM CalculoHistorico h
         LEFT JOIN h.itensFilamento item
         WHERE h.usuario.id = :usuarioId AND h.produzido = true
@@ -191,7 +209,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                             @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(h.lucroLiquido), 0), COUNT(h)
+        SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(h.lucroLiquido * h.unidades), 0), COALESCE(SUM(h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio
@@ -201,7 +219,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                                 @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT YEAR(h.dataVenda), MONTH(h.dataVenda), COALESCE(SUM(h.lucroLiquido), 0)
+        SELECT YEAR(h.dataVenda), MONTH(h.dataVenda), COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.vendido = true
           AND h.dataVenda >= :inicio AND h.dataVenda < :fim
@@ -214,10 +232,10 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                            @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT COALESCE(SUM(h.custoFilamento), 0), COALESCE(SUM(h.custoEnergia), 0),
-               COALESCE(SUM(h.custoEmbalagem), 0), COALESCE(SUM(h.custoMaoObra), 0),
-               COALESCE(SUM(h.custoDepreciacao), 0), COALESCE(SUM(h.custoManutencao), 0),
-               COALESCE(SUM(h.custoFalha), 0)
+        SELECT COALESCE(SUM(h.custoFilamento * h.unidades), 0), COALESCE(SUM(h.custoEnergia * h.unidades), 0),
+               COALESCE(SUM(h.custoEmbalagem * h.unidades), 0), COALESCE(SUM(h.custoMaoObra * h.unidades), 0),
+               COALESCE(SUM(h.custoDepreciacao * h.unidades), 0), COALESCE(SUM(h.custoManutencao * h.unidades), 0),
+               COALESCE(SUM(h.custoFalha * h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio
         """)
@@ -225,10 +243,10 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                                         @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT h.nomeImpressora, COALESCE(SUM(h.tempoImpressaoMinutos), 0), COUNT(h)
+        SELECT h.nomeImpressora, COALESCE(SUM(h.tempoImpressaoMinutos * h.unidades), 0), COALESCE(SUM(h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio
-        GROUP BY h.nomeImpressora ORDER BY SUM(h.tempoImpressaoMinutos) DESC
+        GROUP BY h.nomeImpressora ORDER BY SUM(h.tempoImpressaoMinutos * h.unidades) DESC
         """)
     List<Object[]> somarHorasPorImpressoraDesde(@Param("usuarioId") UUID usuarioId,
                                                 @Param("inicio") LocalDateTime inicio);
@@ -237,7 +255,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     SELECT new br.com.criare3d.dto.HistoricoListaResponse(
         h.id, h.nomePeca, h.dataCalculo, h.plataformaVenda,
         h.precoVendaPlataforma, h.precoSugerido, h.produzido, h.vendido,
-        CASE WHEN h.fotoPecaBase64 IS NOT NULL AND h.fotoPecaBase64 <> '' THEN true ELSE false END
+        CASE WHEN h.fotoPecaBase64 IS NOT NULL AND h.fotoPecaBase64 <> '' THEN true ELSE false END,
+        h.unidades
     )
     FROM CalculoHistorico h
     WHERE h.usuario.id = :usuarioId
@@ -284,7 +303,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     long countByImpressora_IdAndUsuario_Id(UUID impressoraId, UUID usuarioId);
 
     @Query("""
-    SELECT COALESCE(SUM(c.tempoImpressaoMinutos), 0)
+    SELECT COALESCE(SUM(c.tempoImpressaoMinutos * c.unidades), 0)
     FROM CalculoHistorico c
     WHERE c.impressora.id = :impressoraId
       AND c.usuario.id = :usuarioId
@@ -300,7 +319,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     @Query("""
         SELECT DISTINCT c
         FROM CalculoHistorico c
-        LEFT JOIN FETCH c.itensFilamento
+        LEFT JOIN FETCH c.itensFilamento item
+        LEFT JOIN FETCH item.filamento
         WHERE c.id = :id
         AND c.usuario.id = :usuarioId
         """)
@@ -326,7 +346,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
             h.id,
             h.nomePeca,
             h.dataCalculo,
-            COALESCE(SUM(item.quantidadeFilamentoGramas), h.quantidadeFilamentoGramas),
+            COALESCE(SUM(item.quantidadeFilamentoGramas), h.quantidadeFilamentoGramas) * h.unidades,
             COALESCE(item.corFilamento, h.filamento.cor),
             COALESCE(item.codigoCor, h.filamento.codigoCor),
             COALESCE(item.pesoRoloGramas, h.pesoRoloGramas),
@@ -337,7 +357,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         WHERE h.usuario.id = :usuarioId
           AND h.produzido = true
           AND (item.id IS NOT NULL OR h.filamento.id = :filamentoId)
-        GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.quantidadeFilamentoGramas,
+        GROUP BY h.id, h.nomePeca, h.dataCalculo, h.vendido, h.unidades, h.quantidadeFilamentoGramas,
                  item.corFilamento, item.codigoCor, item.pesoRoloGramas,
                  h.filamento.cor, h.filamento.codigoCor, h.pesoRoloGramas
         ORDER BY h.dataCalculo DESC
@@ -354,7 +374,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     @Query("""
         SELECT new br.com.criare3d.dto.AjusteEstoqueCalculoResponse(
             h.id, h.produzido, h.vendido, item.filamento.id,
-            item.quantidadeFilamentoGramas, h.filamento.id, h.quantidadeFilamentoGramas
+            item.quantidadeFilamentoGramas * h.unidades, h.filamento.id, h.quantidadeFilamentoGramas * h.unidades
         )
         FROM CalculoHistorico h
         LEFT JOIN h.itensFilamento item
@@ -366,7 +386,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     @Query("""
         SELECT new br.com.criare3d.dto.AjusteEstoqueCalculoResponse(
             h.id, h.produzido, h.vendido, item.filamento.id,
-            item.quantidadeFilamentoGramas, h.filamento.id, h.quantidadeFilamentoGramas
+            item.quantidadeFilamentoGramas * h.unidades, h.filamento.id, h.quantidadeFilamentoGramas * h.unidades
         )
         FROM CalculoHistorico h
         LEFT JOIN h.itensFilamento item

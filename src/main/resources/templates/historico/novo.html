@@ -9,6 +9,11 @@
 <main class="pagina">
     <div class="alerta-erro notificacao-flutuante" role="alert"
          th:if="${erro != null}" th:text="${erro}"></div>
+    <div class="aviso-info" role="status" th:if="${avisoConfiguracaoIncompleta}">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        A tarifa de energia está zerada ou o markup fixo não foi definido. O cálculo ainda pode ser feito, mas o custo ou o preço sugerido pode ficar abaixo do esperado.
+        <a th:href="@{/configuracao}">Revisar configurações</a>
+    </div>
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
@@ -100,6 +105,14 @@
                         <div class="erro-campo"
                              th:if="${#fields.hasErrors('pecaId')}"
                              th:errors="*{pecaId}"></div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="unidades">Quantidade de unidades</label>
+                        <input type="number" id="unidades" th:field="*{unidades}"
+                               min="1" max="10000" step="1" required>
+                        <small>O custo e o preço exibidos são por unidade; o sistema também calcula o total do lote.</small>
+                        <span class="erro-campo" th:if="${#fields.hasErrors('unidades')}" th:errors="*{unidades}"></span>
                     </div>
 
                     <div id="secaoFilamentos"
