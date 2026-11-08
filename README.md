@@ -15,7 +15,7 @@ Aplicação web para organizar os cadastros usados na impressão 3D e calcular o
 
 ## Tecnologias
 
-Java 21 · Spring Boot 4.1.2 · Spring MVC/WebMVC · Spring Data JPA · Hibernate · Spring Security · Thymeleaf · PostgreSQL · H2 (testes) · Maven · Bootstrap 5.3.3 · Bootstrap Icons · Hotwire Turbo · JavaScript · Docker · GitHub Actions.
+Java 21 · Spring Boot 4.1.2 · Spring MVC/WebMVC · Spring Data JPA · Hibernate · Spring Security · Thymeleaf · PostgreSQL · Testcontainers · Maven · Bootstrap 5.3.3 · Bootstrap Icons · Hotwire Turbo · JavaScript · Docker · GitHub Actions.
 
 ## Estrutura
 
@@ -45,6 +45,7 @@ A aplicação usa variáveis de ambiente para conexão e criação inicial do ad
 | `DB_PASSWORD` | Senha do PostgreSQL (obrigatória). |
 | `ADMIN_EMAIL` | E-mail do administrador inicial. |
 | `ADMIN_PASSWORD` | Senha inicial do administrador, com pelo menos 12 caracteres. |
+| `SESSION_COOKIE_SECURE` | Use `true` em produção com HTTPS; o padrão local é `false`. |
 
 O `AdminBootstrap` cria o ADMIN na primeira inicialização. Se já existir um ADMIN com o mesmo e-mail, a conta é mantida. Se o e-mail pertencer a um usuário comum, a inicialização é interrompida para evitar alteração indevida de perfil.
 
@@ -72,13 +73,13 @@ A aplicação estará em `http://localhost:8080` (ou na porta definida por `PORT
 
 ## Testes automatizados
 
-Os testes usam o perfil `test` e um banco H2 em memória, sem acessar o PostgreSQL de desenvolvimento ou produção.
+Os testes de integração usam Testcontainers para iniciar um PostgreSQL descartável. É necessário ter Docker funcionando. O perfil de teste executa Flyway e valida o schema real; também há um teste que verifica que uma conta não consegue acessar o filamento de outra.
 
 ```powershell
 .\mvnw.cmd clean verify
 ```
 
-A suíte verifica a inicialização do contexto e o funcionamento básico do BCrypt (geração de hash e validação da senha original).
+O GitHub Actions executa a suíte completa em ambiente com Docker. A construção da imagem Docker compila o projeto, mas não tenta iniciar containers aninhados; os testes ficam a cargo do CI.
 
 ## Integração contínua
 
@@ -86,9 +87,9 @@ O workflow `.github/workflows/ci.yml` roda em pushes e pull requests direcionado
 
 ## Docker e Render
 
-O `Dockerfile` possui duas etapas: a primeira compila e executa os testes com Maven/Java 21; a segunda copia somente o JAR para uma imagem JRE menor, executada com usuário sem privilégios. A aplicação respeita a variável `PORT` do Render e aceita opções pela variável `JAVA_OPTS`.
+O `Dockerfile` possui duas etapas: a primeira compila o projeto com Maven/Java 21; a segunda copia somente o JAR para uma imagem JRE menor, executada com usuário sem privilégios. A aplicação respeita a variável `PORT` do Render e aceita opções pela variável `JAVA_OPTS`.
 
-Configure no ambiente do serviço as variáveis `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ADMIN_EMAIL` e `ADMIN_PASSWORD`.
+Configure no ambiente do serviço as variáveis `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `SESSION_COOKIE_SECURE=true`.
 
 Para construir a imagem:
 
@@ -98,7 +99,7 @@ docker build -t criare3d .
 
 O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A migração `V3` adiciona as opções dos custos adicionais; a `V4` registra o tempo de trabalho nas peças e os dados de compra e vida útil das impressoras; a `V5` adiciona a opção de usar um tempo de mão de obra fixo nas configurações; a `V6` registra gastos de manutenção por impressora; a `V7` adiciona estoque e status de produção/venda; e a `V8` separa no histórico o custo de manutenção do custo de depreciação. Os cálculos já salvos não são reescritos. A coluna legada `impressora.manutencao_hora_imp` é mantida no banco, mas deixa de ser usada como estimativa; a média passa a vir dos gastos registrados e das horas efetivamente produzidas.
 
-Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes usam H2 com Flyway desativado e não substituem a validação das migrações em PostgreSQL.
+Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes exercitam as migrations em um PostgreSQL descartável, sem substituir o backup do banco real.
 
 ## Checklist antes de publicar
 

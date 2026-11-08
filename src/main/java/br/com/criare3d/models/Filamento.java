@@ -21,6 +21,10 @@ public class Filamento {
     @GeneratedValue(strategy = GenerationType.UUID)
     private @Getter @Setter UUID id;
 
+    @Version
+    @Column(name = "versao", nullable = false)
+    private @Getter long versao;
+
     @NotBlank(message="O nome do filamento é obrigatório")
     @Size(min = 2, max = 150, message = "O nome do filamento deve ter entre 2 à 150 caracteres")
     @Column(name= "nome_fil", nullable = false, length = 150)

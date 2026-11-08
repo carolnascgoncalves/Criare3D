@@ -1,0 +1,2 @@
+ALTER TABLE filamento
+    ADD COLUMN versao BIGINT NOT NULL DEFAULT 0;

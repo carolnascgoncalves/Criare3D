@@ -1,4 +1,5 @@
-# Etapa de compilação e testes
+# Etapa de compilação. Os testes de integração com Testcontainers rodam no GitHub Actions,
+# onde há um daemon Docker disponível; o build da imagem não inicia containers aninhados.
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
@@ -7,7 +8,7 @@ COPY pom.xml ./
 RUN mvn -B -ntp dependency:go-offline
 
 COPY src ./src
-RUN mvn -B -ntp clean verify
+RUN mvn -B -ntp clean package -DskipTests
 
 # Imagem final menor, sem Maven nem código-fonte.
 FROM eclipse-temurin:21-jre
