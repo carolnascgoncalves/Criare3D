@@ -488,6 +488,13 @@
 
                         <td class="coluna-acoes">
                             <div class="acoes">
+                                <a th:href="@{/historico/{id}/orcamento(id=${historico.id})}"
+                                   class="botao-acao"
+                                   title="Gerar orçamento"
+                                   th:aria-label="|Gerar orçamento para ${historico.nomePeca}|">
+                                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                                </a>
+
                                 <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
                                    class="botao-acao"
                                    title="Ver detalhes"
