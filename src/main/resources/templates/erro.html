@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Não foi possível concluir')}" ></head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+<main class="container py-5">
+    <section class="cartao p-4 p-md-5 text-center">
+        <p class="text-uppercase mb-2" th:text="|Erro ${codigo}|">Erro</p>
+        <h1 class="h3 mb-3">Não foi possível concluir</h1>
+        <p class="mb-4" th:text="${mensagem}">Tente novamente.</p>
+        <a class="btn btn-primary" th:href="@{/}">Voltar ao início</a>
+    </section>
+</main>
+</body>
+</html>
