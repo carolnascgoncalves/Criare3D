@@ -75,7 +75,7 @@ public class DashboardController {
 
         long calculos = historicoRepository.countByUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
         long produzidos = historicoRepository.countByProduzidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
-        long vendidos = historicoRepository.countByVendidoTrueAndUsuario_IdAndDataCalculoGreaterThanEqual(usuarioId, inicio);
+        long vendidos = historicoRepository.contarVendasEntre(usuarioId, inicio, fim);
         BigDecimal lucroVendido = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
         long minutosVendidos = numero(historicoRepository.somarMinutosDasVendasEntre(usuarioId, inicio, fim));
         BigDecimal gramasUsadas = valor(historicoRepository.somarFilamentoProduzidoDesde(usuarioId, inicio));

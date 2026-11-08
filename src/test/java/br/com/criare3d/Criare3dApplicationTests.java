@@ -13,13 +13,24 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Usuario;
+import br.com.criare3d.models.Peca;
+import br.com.criare3d.models.Impressora;
+import br.com.criare3d.models.Embalagem;
+import br.com.criare3d.models.Configuracao;
+import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.Perfil;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.ConfiguracaoRepository;
+import br.com.criare3d.repository.EmbalagemRepository;
 import br.com.criare3d.repository.FilamentoRepository;
+import br.com.criare3d.repository.ImpressoraRepository;
+import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.service.FilamentoServiceImp;
 import br.com.criare3d.service.interfaces.UsuarioService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +50,16 @@ class Criare3dApplicationTests {
 	private UsuarioRepository usuarioRepository;
 	@Autowired
 	private FilamentoRepository filamentoRepository;
+	@Autowired
+	private PecaRepository pecaRepository;
+	@Autowired
+	private ImpressoraRepository impressoraRepository;
+	@Autowired
+	private EmbalagemRepository embalagemRepository;
+	@Autowired
+	private ConfiguracaoRepository configuracaoRepository;
+	@Autowired
+	private CalculoHistoricoRepository calculoHistoricoRepository;
 	@Autowired
 	private FilamentoServiceImp filamentoService;
 	@Autowired
@@ -60,17 +81,45 @@ class Criare3dApplicationTests {
 	}
 
 	@Test
-	void usuarioNaoConsegueBuscarFilamentoDeOutraConta() {
+	void usuarioNaoConsegueBuscarRegistrosDeOutraContaNasSeisTabelas() {
 		Usuario usuarioA = criarUsuario("a-" + UUID.randomUUID() + "@teste.local");
 		Usuario usuarioB = criarUsuario("b-" + UUID.randomUUID() + "@teste.local");
 		Filamento filamentoA = criarFilamento(usuarioA);
+		Peca pecaA = pecaRepository.saveAndFlush(Peca.builder()
+				.nome("Peça teste").quantidadeFilamentoGramas(new BigDecimal("10"))
+				.tempoImpressaoMinutos(60L).usuario(usuarioA).build());
+		Impressora impressoraA = impressoraRepository.saveAndFlush(Impressora.builder()
+				.nome("Impressora teste").modelo("Modelo teste")
+				.potenciaWatts(new BigDecimal("100")).usuario(usuarioA).build());
+		Embalagem embalagemA = embalagemRepository.saveAndFlush(Embalagem.builder()
+				.nome("Caixa teste").custoUnitario(new BigDecimal("2.00")).usuario(usuarioA).build());
+		Configuracao configuracaoA = configuracaoRepository.saveAndFlush(Configuracao.builder()
+				.markupPercentual(new BigDecimal("100")).tarifaEnergiaKwh(new BigDecimal("0.80"))
+				.embalagemFixa(false).usuario(usuarioA).build());
+		CalculoHistorico calculoA = criarCalculoHistorico(usuarioA);
 
 		try {
 			SecurityContextHolder.getContext().setAuthentication(
 					new UsernamePasswordAuthenticationToken(usuarioB.getEmail(), "", java.util.List.of()));
 			assertThat(filamentoService.fetchById(filamentoA.getId())).isEmpty();
+			assertThat(pecaRepository.findByIdAndUsuario_Id(pecaA.getId(), usuarioB.getId())).isEmpty();
+			assertThat(impressoraRepository.findByIdAndUsuario_Id(impressoraA.getId(), usuarioB.getId())).isEmpty();
+			assertThat(embalagemRepository.findByIdAndUsuario_Id(embalagemA.getId(), usuarioB.getId())).isEmpty();
+			assertThat(configuracaoRepository.findByIdAndUsuario_Id(configuracaoA.getId(), usuarioB.getId())).isEmpty();
+			assertThat(calculoHistoricoRepository.findByIdAndUsuario_Id(calculoA.getId(), usuarioB.getId())).isEmpty();
+
+			assertThat(pecaRepository.findByIdAndUsuario_Id(pecaA.getId(), usuarioA.getId())).isPresent();
+			assertThat(impressoraRepository.findByIdAndUsuario_Id(impressoraA.getId(), usuarioA.getId())).isPresent();
+			assertThat(embalagemRepository.findByIdAndUsuario_Id(embalagemA.getId(), usuarioA.getId())).isPresent();
+			assertThat(configuracaoRepository.findByIdAndUsuario_Id(configuracaoA.getId(), usuarioA.getId())).isPresent();
+			assertThat(calculoHistoricoRepository.findByIdAndUsuario_Id(calculoA.getId(), usuarioA.getId())).isPresent();
 		} finally {
 			SecurityContextHolder.clearContext();
+			calculoHistoricoRepository.deleteById(calculoA.getId());
+			configuracaoRepository.deleteById(configuracaoA.getId());
+			embalagemRepository.deleteById(embalagemA.getId());
+			impressoraRepository.deleteById(impressoraA.getId());
+			pecaRepository.deleteById(pecaA.getId());
 			filamentoRepository.deleteById(filamentoA.getId());
 			usuarioRepository.deleteAllById(java.util.List.of(usuarioA.getId(), usuarioB.getId()));
 		}
@@ -95,6 +144,33 @@ class Criare3dApplicationTests {
 		}
 	}
 
+	@Test
+	void dashboardAgrupaLucroPelaDataDaVendaEnaoPelaDataDoCalculo() {
+		Usuario usuario = criarUsuario("venda-" + UUID.randomUUID() + "@teste.local");
+		LocalDateTime agora = LocalDateTime.now().withNano(0);
+		LocalDateTime dataVenda = agora.minusDays(2);
+		CalculoHistorico calculo = criarCalculoHistorico(usuario);
+		calculo.setDataCalculo(dataVenda.minusMonths(6));
+		calculo.setDataVenda(dataVenda);
+		calculo.setVendido(true);
+		calculo.setLucroLiquido(new BigDecimal("25.00"));
+		calculoHistoricoRepository.saveAndFlush(calculo);
+
+		try {
+			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
+					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1)))
+					.isEqualByComparingTo("25.00");
+			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
+					usuario.getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)))
+					.isEqualByComparingTo("0.00");
+			assertThat(calculoHistoricoRepository.primeiraVendaComLucro(usuario.getId()))
+					.isEqualTo(dataVenda);
+		} finally {
+			calculoHistoricoRepository.deleteById(calculo.getId());
+			usuarioRepository.deleteById(usuario.getId());
+		}
+	}
+
 	private Usuario criarUsuario(String email) {
 		return usuarioRepository.save(Usuario.builder()
 				.email(email).password(passwordEncoder.encode("SenhaTeste123!"))
@@ -111,5 +187,28 @@ class Criare3dApplicationTests {
 		filamento.setPrecoRolo(new BigDecimal("80"));
 		filamento.setUsuario(usuario);
 		return filamentoRepository.saveAndFlush(filamento);
+	}
+
+	private CalculoHistorico criarCalculoHistorico(Usuario usuario) {
+		return calculoHistoricoRepository.saveAndFlush(CalculoHistorico.builder()
+				.nomePeca("Peça do histórico")
+				.nomeFilamento("PLA teste")
+				.precoRoloFilamento(new BigDecimal("80.00"))
+				.pesoRoloGramas(new BigDecimal("1000.00"))
+				.quantidadeFilamentoGramas(new BigDecimal("10.00"))
+				.nomeImpressora("Impressora teste")
+				.potenciaWatts(new BigDecimal("100.00"))
+				.tempoImpressaoMinutos(60L)
+				.tarifaEnergiaKwh(new BigDecimal("0.80"))
+				.custoFilamento(new BigDecimal("0.80"))
+				.custoEnergia(new BigDecimal("0.08"))
+				.nomeEmbalagem("Caixa teste")
+				.custoEmbalagem(new BigDecimal("2.00"))
+				.custoTotal(new BigDecimal("2.88"))
+				.markupPercentual(new BigDecimal("100.00"))
+				.precoSugerido(new BigDecimal("5.76"))
+				.dataCalculo(LocalDateTime.now())
+				.usuario(usuario)
+				.build());
 	}
 }

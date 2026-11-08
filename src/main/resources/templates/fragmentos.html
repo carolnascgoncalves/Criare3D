@@ -33,7 +33,7 @@
     <script th:src="@{/js/validacaoInline.js(v=2)}" defer></script>
     <script th:src="@{/js/calculoEtapas.js(v=7)}" defer></script>
     <script th:src="@{/js/filamentosCalculo.js(v=8)}" defer></script>
-    <script th:src="@{/js/rascunhoCalculo.js(v=7)}" defer></script>
+    <script th:src="@{/js/rascunhoCalculo.js(v=8)}" defer></script>
     <script th:src="@{/js/mercadoLivreFrete.js(v=1)}" defer></script>
     <script th:src="@{/js/detalhesHistorico.js(v=2)}" defer></script>
     <script th:src="@{/js/ordenacaoListagem.js(v=2)}" defer></script>
@@ -82,7 +82,7 @@
             </div>
         </details>
 
-        <form th:action="@{/logout}" method="post">
+        <form id="logoutForm" th:action="@{/logout}" method="post">
             <button type="submit" class="botao-sair">
                 <i class="bi bi-box-arrow-right"></i>
                 Sair

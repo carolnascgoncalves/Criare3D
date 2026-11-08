@@ -193,12 +193,19 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (dados.isEmpty()) return "naoEncontrado";
 
         AjusteEstoqueCalculoResponse historico = dados.get(0);
+        boolean jaVendido = Boolean.TRUE.equals(historico.vendido());
+        if (jaVendido == vendido) return "ok";
+
         boolean produzido = Boolean.TRUE.equals(historico.produzido());
         if (vendido && !produzido) {
             if (!ajustarEstoque(dados, false)) return "estoqueInsuficiente";
             produzido = true;
         }
         calculoHistoricoRepository.atualizarStatus(id, usuarioId, produzido, vendido);
+        LocalDateTime dataVenda = vendido
+                ? LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
+                : null;
+        calculoHistoricoRepository.atualizarDataVenda(id, usuarioId, dataVenda);
         return "ok";
     }
 

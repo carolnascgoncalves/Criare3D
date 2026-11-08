@@ -10,14 +10,13 @@ import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.*;
+import br.com.criare3d.util.HistoricoFiltros;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -38,25 +37,9 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.Map;
-import java.util.Set;
 
 @Controller
 public class CalculoHistoricoController {
-
-    private static final Map<String, Sort> ORDENACOES_HISTORICO = Map.ofEntries(
-            Map.entry("nomeAsc", Sort.by(Sort.Direction.ASC, "nomePeca")),
-            Map.entry("nomeDesc", Sort.by(Sort.Direction.DESC, "nomePeca")),
-            Map.entry("dataAsc", Sort.by(Sort.Direction.ASC, "dataCalculo")),
-            Map.entry("dataDesc", Sort.by(Sort.Direction.DESC, "dataCalculo")),
-            Map.entry("custoAsc", Sort.by(Sort.Direction.ASC, "custoTotal")),
-            Map.entry("custoDesc", Sort.by(Sort.Direction.DESC, "custoTotal")),
-            Map.entry("precoAsc", JpaSort.unsafe(Sort.Direction.ASC, "coalesce(precoVendaPlataforma, precoSugerido)")),
-            Map.entry("precoDesc", JpaSort.unsafe(Sort.Direction.DESC, "coalesce(precoVendaPlataforma, precoSugerido)"))
-    );
-
-    private static final Set<String> PLATAFORMAS_FILTRO = Set.of(
-            "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "SEM_PLATAFORMA");
 
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
@@ -99,25 +82,20 @@ public class CalculoHistoricoController {
             @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
             @PageableDefault(page = 0, size = 5) Pageable pageable) {
 
-        plataforma = plataforma == null ? "" : plataforma.trim().toUpperCase();
-
-        if (!PLATAFORMAS_FILTRO.contains(plataforma)) {
-            plataforma = "";
-        }
-
-        produzido = normalizarFiltroStatus(produzido);
-        vendido = normalizarFiltroStatus(vendido);
+        plataforma = HistoricoFiltros.normalizarPlataforma(plataforma);
+        produzido = HistoricoFiltros.normalizarStatus(produzido);
+        vendido = HistoricoFiltros.normalizarStatus(vendido);
 
         ordem = OrdenacaoPaginada.validarOrdem(
                 ordem,
                 "dataDesc",
-                ORDENACOES_HISTORICO
+                HistoricoFiltros.ORDENACOES
         );
 
         pageable = OrdenacaoPaginada.aplicar(
                 pageable,
                 ordem,
-                ORDENACOES_HISTORICO
+                HistoricoFiltros.ORDENACOES
         );
 
         ModelAndView mv = new ModelAndView("historico/listar");
@@ -141,19 +119,6 @@ public class CalculoHistoricoController {
         mv.addObject("ordem", ordem);
 
         return mv;
-    }
-
-    private String normalizarFiltroStatus(String status) {
-        if (status == null) {
-            return "TODOS";
-        }
-
-        String valor = status.trim().toUpperCase();
-
-        return switch (valor) {
-            case "SIM", "NAO" -> valor;
-            default -> "TODOS";
-        };
     }
 
     @GetMapping("/historico/novo")
@@ -741,124 +706,4 @@ public class CalculoHistoricoController {
         mv.addObject("configuracao", configuracaoService.buscarOuCriarConfiguracao());
     }
 
-    @PostMapping("/historico/remover/{id}")
-    public ModelAndView deleteById(@PathVariable UUID id) {
-        if (!calculoHistoricoService.existsById(id)) {
-            return new ModelAndView("redirect:/historico/listar?erro=naoEncontrado");
-        }
-        calculoHistoricoService.delete(id);
-
-        return new ModelAndView(
-                "redirect:/historico/listar?sucesso=historicoRemovido"
-        );
-    }
-
-    @PostMapping("/historico/remover-lote")
-    public ModelAndView deleteSelected(@RequestParam(name = "ids", required = false) List<UUID> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return new ModelAndView("redirect:/historico/listar?erro=nenhumSelecionado");
-        }
-        calculoHistoricoService.deleteAll(ids);
-        return new ModelAndView("redirect:/historico/listar?sucesso=historicosRemovidos");
-    }
-
-    @PostMapping("/historico/{id}/produzido")
-    public ModelAndView atualizarProduzido(
-            @PathVariable UUID id,
-            @RequestParam boolean valor,
-            @RequestParam(name = "busca", defaultValue = "") String busca,
-            @RequestParam(name = "data", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
-            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
-            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
-            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
-            @RequestParam(name = "page", defaultValue = "0") int page) {
-
-        String resultado = calculoHistoricoService.atualizarProduzido(id, valor);
-
-        if (!"ok".equals(resultado)) {
-            return redirecionarHistoricoComFiltros(
-                    "erro", resultado, busca, data, plataforma,
-                    produzido, vendido, ordem, page
-            );
-        }
-
-        return redirecionarHistoricoComFiltros(
-                "sucesso", "producaoAtualizada", busca, data, plataforma,
-                produzido, vendido, ordem, page
-        );
-    }
-
-    @PostMapping("/historico/{id}/vendido")
-    public ModelAndView atualizarVendido(
-            @PathVariable UUID id,
-            @RequestParam boolean valor,
-            @RequestParam(name = "busca", defaultValue = "") String busca,
-            @RequestParam(name = "data", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
-            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
-            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
-            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
-            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
-            @RequestParam(name = "page", defaultValue = "0") int page) {
-
-        String resultado = calculoHistoricoService.atualizarVendido(id, valor);
-
-        if (!"ok".equals(resultado)) {
-            return redirecionarHistoricoComFiltros(
-                    "erro", resultado, busca, data, plataforma,
-                    produzido, vendido, ordem, page
-            );
-        }
-
-        return redirecionarHistoricoComFiltros(
-                "sucesso", "vendaAtualizada", busca, data, plataforma,
-                produzido, vendido, ordem, page
-        );
-    }
-
-    private ModelAndView redirecionarHistoricoComFiltros(
-            String tipoMensagem,
-            String mensagem,
-            String busca,
-            LocalDate data,
-            String plataforma,
-            String produzido,
-            String vendido,
-            String ordem,
-            int page) {
-
-        ModelAndView mv = new ModelAndView("redirect:/historico/listar");
-
-        String plataformaFiltro = plataforma == null
-                ? ""
-                : plataforma.trim().toUpperCase();
-
-        if (!PLATAFORMAS_FILTRO.contains(plataformaFiltro)) {
-            plataformaFiltro = "";
-        }
-
-        mv.addObject("busca", busca == null ? "" : busca);
-
-        if (data != null) {
-            mv.addObject("data", data.toString());
-        }
-
-        mv.addObject("plataforma", plataformaFiltro);
-        mv.addObject("produzido", normalizarFiltroStatus(produzido));
-        mv.addObject("vendido", normalizarFiltroStatus(vendido));
-        mv.addObject(
-                "ordem",
-                OrdenacaoPaginada.validarOrdem(
-                        ordem,
-                        "dataDesc",
-                        ORDENACOES_HISTORICO
-                )
-        );
-        mv.addObject("page", Math.max(page, 0));
-        mv.addObject(tipoMensagem, mensagem);
-
-        return mv;
-    }
 }

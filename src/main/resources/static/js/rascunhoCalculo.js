@@ -3,6 +3,7 @@
     const CHAVE_RASCUNHO = "rascunhoCriare3D";
 
     let formularioInicializado = null;
+    let logoutEmAndamento = false;
 
     function obterFormulario() {
         return document.getElementById("formCalculo");
@@ -14,6 +15,8 @@
     }
 
     function salvarRascunho() {
+        if (logoutEmAndamento) return;
+
         const formulario = obterFormulario();
 
         if (!formulario) return;
@@ -341,6 +344,13 @@
     }
 
     // Salva antes de navegar, inclusive para os cadastros rápidos.
+    document.addEventListener("submit", event => {
+        if (event.target?.id !== "logoutForm") return;
+
+        logoutEmAndamento = true;
+        sessionStorage.removeItem(CHAVE_RASCUNHO);
+    }, true);
+
     document.addEventListener("turbo:before-visit", salvarRascunho);
     document.addEventListener("turbo:before-cache", salvarRascunho);
     window.addEventListener("pagehide", salvarRascunho);

@@ -140,6 +140,9 @@ public class CalculoHistorico {
     @Column(name = "data_hist", nullable = false)
     private @Getter @Setter LocalDateTime dataCalculo;
 
+    @Column(name = "data_venda_hist")
+    private @Getter @Setter LocalDateTime dataVenda;
+
     // Dados da plataforma: snapshots do momento do cálculo
 
     @Column(name = "plataformaVenda_hist", length = 30)

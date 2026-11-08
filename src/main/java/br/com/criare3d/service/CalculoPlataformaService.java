@@ -43,7 +43,7 @@ public class CalculoPlataformaService {
         boolean taxaCpf = false;
         boolean freteGratis = false;
         boolean mais450 = false;
-        boolean isencaoTikTok = false;
+        boolean isencaoTikTok = false;git
 
         String tipoPessoa = null;
         String tipoAnuncio = null;
