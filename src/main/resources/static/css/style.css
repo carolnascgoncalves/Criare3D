@@ -2351,12 +2351,41 @@ input[type="color"]:focus {
 .orcamento-marca h2 { margin: 6px 0; }
 .orcamento-marca p { margin: 0; color: var(--marrom-claro); }
 .orcamento-cliente { max-width: 420px; margin: 24px 0; }
+.orcamento-editor { display: grid; gap: 14px; width: min(100%, 820px); margin: 16px auto 0; padding: 18px; border: 1px solid var(--borda); border-radius: 12px; background: #fffaf7; }
+.orcamento-ajuda-editor { margin: 0; color: var(--marrom-claro); font-size: 0.9rem; }
+.orcamento-condicoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.orcamento-editor textarea { width: 100%; max-width: none; min-height: 260px; padding: 12px 14px; border: 1px solid var(--borda); border-radius: 10px; background: #fff; color: var(--marrom); font: inherit; line-height: 1.55; resize: vertical; }
+.orcamento-editor textarea:focus { border-color: var(--destaque); outline: 3px solid rgba(233, 166, 149, 0.2); }
+.orcamento-editor small { color: var(--marrom-claro); line-height: 1.45; }
+.orcamento-acoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; width: 100%; margin-top: 30px; }
+.orcamento-acoes .botao { width: 100%; min-height: 48px; padding: 12px 14px; text-align: center; }
+.filamento-compra-inline { display: grid; flex: 1 1 100%; gap: 14px; width: 100%; }
+.filamento-compra-inline > summary { justify-self: start; width: fit-content; list-style: none; }
+.filamento-compra-inline > summary::-webkit-details-marker { display: none; }
+.filamento-compra-formulario { display: grid; gap: 14px; width: min(840px, calc(100% - 12px)); margin: 0 auto; padding: 18px; border: 1px solid var(--borda); border-radius: 12px; background: #fffaf7; }
+.filamento-compra-formulario > p { margin: 0; color: var(--marrom-claro); }
+.filamento-compra-formulario .campo { min-width: 0; }
+.filamento-compra-formulario .formulario-acoes { margin-top: 2px; }
+.pagina-compra-filamento { width: min(760px, calc(100% - 48px)); }
+.pagina-compra-filamento .cartao { max-width: 100%; }
+.pagina-detalhes-filamento { width: min(880px, calc(100% - 48px)); }
+.estoque-ajuste-botao { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 0; border: 0; background: transparent; color: var(--marrom-claro); font: inherit; font-size: 0.78rem; cursor: pointer; }
+.estoque-ajuste-botao:hover { color: var(--marrom); text-decoration: underline; }
+.modal-estoque-conteudo { overflow: hidden; border: 1px solid var(--borda); border-radius: 16px; color: var(--marrom); }
+.modal-estoque-conteudo .modal-header { align-items: flex-start; border-bottom: 1px solid var(--borda); background: #fffaf7; }
+.modal-estoque-conteudo .modal-header .texto-apoio { margin-bottom: 5px; font-size: 0.68rem; }
+.modal-estoque-conteudo .modal-title { margin: 0; color: var(--marrom); font-size: 1.15rem; }
+.modal-estoque-conteudo .modal-body > p { margin: 0 0 16px; color: var(--marrom-claro); line-height: 1.5; }
+.modal-estoque-conteudo .formulario-acoes { justify-content: flex-end; margin-top: 18px; }
 .orcamento-produto { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 18px; padding: 20px 0; border-bottom: 1px solid var(--borda); }
 .orcamento-produto > div { display: grid; gap: 5px; }
 .orcamento-produto span, .orcamento-nota { color: var(--marrom-claro); }
 .orcamento-total { display: flex; justify-content: space-between; gap: 18px; padding: 20px 0; color: var(--marrom); font-size: 1.15rem; }
 .orcamento-total strong { color: #588247; font-size: 1.35rem; }
 .orcamento-nota { margin: 0 0 20px; }
+@media (max-width: 700px) { .orcamento-condicoes { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .orcamento-acoes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } }
+@media (max-width: 575.98px) { .orcamento-acoes { grid-template-columns: 1fr; gap: 10px; margin-top: 24px; } }
 @media (max-width: 575.98px) { .orcamento-produto { grid-template-columns: 1fr; gap: 14px; } }
 @media print {
   body { background: #fff !important; }

@@ -259,20 +259,12 @@
                                 </div>
                                 <strong th:text="|${percentualEstoque[filamento.id]}%|">0%</strong>
                             </div>
-                            <details class="estoque-ajuste-rapido">
-                                <summary><i class="bi bi-plus-circle" aria-hidden="true"></i> Ajustar estoque</summary>
-                                <form th:action="@{/filamento/estoque/{id}(id=${filamento.id})}" method="post">
-                                    <input type="hidden" name="busca" th:value="${busca}">
-                                    <input type="hidden" name="ordem" th:value="${ordem}">
-                                    <input type="hidden" name="page" th:value="${pagina.number}">
-                                    <label th:for="|estoque-${filamento.id}|">Quantidade disponível (g)</label>
-                                    <div>
-                                        <input type="number" name="estoqueGramas" min="0" step="0.01" required
-                                               th:id="|estoque-${filamento.id}|" th:value="${filamento.estoqueGramas}">
-                                        <button type="submit" class="botao botao-secundario">Salvar</button>
-                                    </div>
-                                </form>
-                            </details>
+                            <button type="button"
+                                    class="estoque-ajuste-botao"
+                                    data-bs-toggle="modal"
+                                    th:attr="data-bs-target=|#modalAjusteEstoque-${filamento.id}|">
+                                <i class="bi bi-sliders" aria-hidden="true"></i> Corrigir saldo
+                            </button>
                         </div>
                     </td>
 
@@ -387,6 +379,43 @@
             </a>
         </div>
     </section>
+
+    <div class="modal fade"
+         th:each="filamento : ${filamentos}"
+         th:id="|modalAjusteEstoque-${filamento.id}|"
+         tabindex="-1"
+         th:attr="aria-labelledby=|tituloModalAjusteEstoque-${filamento.id}|"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-estoque-conteudo">
+                <div class="modal-header">
+                    <div>
+                        <span class="texto-apoio">ESTOQUE DO FILAMENTO</span>
+                        <h2 class="modal-title" th:id="|tituloModalAjusteEstoque-${filamento.id}|" th:text="|Corrigir saldo · ${filamento.nome}|">Corrigir saldo</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Use esta opção para corrigir uma contagem ou registrar perda. O valor informado substitui o saldo atual e não altera o preço do rolo.</p>
+                    <form th:action="@{/filamento/estoque/{id}(id=${filamento.id})}" method="post" class="formulario">
+                        <input type="hidden" name="busca" th:value="${busca}">
+                        <input type="hidden" name="ordem" th:value="${ordem}">
+                        <input type="hidden" name="page" th:value="${pagina.number}">
+                        <div class="campo">
+                            <label th:for="|estoque-modal-${filamento.id}|">Saldo atual: <strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 'POINT', 2, 'COMMA')} g|">0 g</strong></label>
+                            <input type="number" name="estoqueGramas" min="0" step="0.01" required
+                                   th:id="|estoque-modal-${filamento.id}|" th:value="${filamento.estoqueGramas}">
+                        </div>
+                        <div class="formulario-acoes">
+                            <button type="button" class="botao botao-secundario" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="botao botao-principal">Salvar saldo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
+<script th:replace="~{fragmentos :: bootstrap-script}"></script>
 </body>
 </html>

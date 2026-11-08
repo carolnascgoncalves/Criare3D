@@ -49,13 +49,41 @@
             <button type="button" class="botao botao-secundario" data-copiar-orcamento>
                 <i class="bi bi-copy"></i> Copiar mensagem
             </button>
+            <button type="button" class="botao botao-secundario" data-alternar-personalizacao aria-expanded="false">
+                <i class="bi bi-pencil-square"></i> Personalizar mensagem
+            </button>
             <button type="button" class="botao botao-principal" data-enviar-whatsapp>
                 <i class="bi bi-whatsapp"></i> Abrir WhatsApp
             </button>
             <a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" class="botao botao-secundario">Voltar aos detalhes</a>
         </div>
+        <div class="orcamento-editor campo-oculto" data-editor-personalizacao>
+                <p class="orcamento-ajuda-editor">Ajuste as condições e edite o texto antes de copiar ou abrir no WhatsApp.</p>
+                <div class="orcamento-condicoes">
+                    <div class="campo">
+                        <label for="prazoOrcamento">Prazo de produção/entrega</label>
+                        <input id="prazoOrcamento" type="text" maxlength="100" value="A combinar" placeholder="Ex.: 5 dias úteis">
+                    </div>
+                    <div class="campo">
+                        <label for="pagamentoOrcamento">Forma de pagamento</label>
+                        <input id="pagamentoOrcamento" type="text" maxlength="100" value="A combinar" placeholder="Ex.: PIX ou cartão">
+                    </div>
+                    <div class="campo">
+                        <label for="validadeOrcamento">Validade do orçamento</label>
+                        <input id="validadeOrcamento" type="text" maxlength="100" value="A combinar" placeholder="Ex.: 7 dias">
+                    </div>
+                </div>
+                <div class="campo">
+                    <label for="mensagemOrcamento">Mensagem enviada</label>
+                    <textarea id="mensagemOrcamento" rows="14" maxlength="5000" aria-describedby="dicaMensagemOrcamento"></textarea>
+                    <small id="dicaMensagemOrcamento">Você pode alterar o texto livremente. Ao mudar as condições acima, o texto é atualizado até você editá-lo manualmente.</small>
+                </div>
+                <button type="button" class="botao botao-secundario" data-restaurar-mensagem>
+                    <i class="bi bi-arrow-counterclockwise"></i> Restaurar mensagem padrão
+                </button>
+        </div>
     </section>
 </main>
-<script th:src="@{/js/orcamento.js(v=1)}" defer></script>
+<script th:src="@{/js/orcamento.js(v=2)}" defer></script>
 </body>
 </html>
