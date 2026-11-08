@@ -12,5 +12,6 @@ public record HistoricoExportacaoResponse(
         BigDecimal lucroLiquido,
         Boolean produzido,
         Boolean vendido,
-        Integer unidades
+        Integer unidades,
+        Integer fornadas
 ) { }

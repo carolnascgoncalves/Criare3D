@@ -1919,6 +1919,20 @@ input[type="search"] {
     color: var(--marrom-claro);
 }
 
+.resultado-unidade-contexto {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 15px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: #fff8f3;
+    color: var(--marrom);
+}
+.resultado-unidade-contexto > i { flex: 0 0 auto; margin-top: 2px; color: var(--destaque); }
+.resultado-unidade-contexto > div { display: grid; gap: 2px; }
+.resultado-unidade-contexto span { color: var(--marrom-claro); font-size: .92rem; line-height: 1.4; }
+
 /* FOTO E CARDS DE CUSTO */
 
 .resultado-conteudo-layout {
@@ -2805,6 +2819,38 @@ main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select {
 main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select:focus {
     border-color: var(--destaque);
     outline: 3px solid rgba(233, 166, 149, 0.2);
+}
+
+/* Evita que plataforma e ordenação invadam o botão Pesquisar em larguras médias. */
+@media (min-width: 701px) and (max-width: 1100px) {
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > .busca-filamentos-campo {
+        grid-column: span 2;
+    }
+
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > .busca-listagem-data {
+        min-width: 0;
+    }
+
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select {
+        min-width: 0;
+        padding-inline: 8px;
+        font-size: 0.9rem;
+    }
+
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > .historico-pesquisar {
+        grid-column: auto;
+        min-width: 0;
+    }
+
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > .historico-filtro-plataforma,
+    main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > .historico-ordenar {
+        justify-self: center;
+    }
 }
 
 /* ALERTAS */
@@ -3743,5 +3789,161 @@ a:focus-visible {
 .notificacao-flutuante.alerta-configuracao-ocultando {
     opacity: 0;
     transform: translate(-50%, -8px);
+}
+
+/* Botões de retorno com o mesmo tamanho, estilo e alinhamento nas telas internas. */
+.pagina-intro > a.botao-secundario,
+.pagina-intro > a.botao-voltar,
+.detalhes-acoes > a.botao-voltar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 158px;
+    min-height: 46px;
+    padding: 11px 16px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: var(--fundo);
+    color: var(--marrom);
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.pagina-intro > a.botao-secundario:hover,
+.pagina-intro > a.botao-voltar:hover,
+.detalhes-acoes > a.botao-voltar:hover {
+    background: var(--borda);
+    color: var(--marrom);
+}
+
+.detalhes-acoes { justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* Filtros do histórico: em desktop ficam numa linha; em tablet, os ícones ficam juntos. */
+@media (min-width: 1251px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros > label[for="tamanhoPagina"] { display: none; }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros {
+        grid-template-columns: minmax(220px, 1.8fr) minmax(150px, 1fr)
+            minmax(140px, 1fr) minmax(140px, 1fr) minmax(125px, .9fr)
+            minmax(118px, auto) minmax(100px, auto);
+    }
+}
+
+@media (min-width: 701px) and (max-width: 1250px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros > label[for="tamanhoPagina"] { display: none; }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-areas:
+            "busca busca data produzido vendido"
+            "tamanho pesquisar controles controles .";
+        gap: 8px;
+    }
+
+    main.pagina:has(> .cartao form.historico-filtros) .busca-filamentos-campo { grid-area: busca; }
+    main.pagina:has(> .cartao form.historico-filtros) .busca-listagem-data { grid-area: data; min-width: 0; }
+    main.pagina:has(> .cartao form.historico-filtros) select[name="produzido"] { grid-area: produzido; }
+    main.pagina:has(> .cartao form.historico-filtros) select[name="vendido"] { grid-area: vendido; }
+    main.pagina:has(> .cartao form.historico-filtros) select[name="size"] { grid-area: tamanho; }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-pesquisar { grid-area: pesquisar; min-width: 0; }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-controles-rapidos { grid-area: controles; }
+    main.pagina:has(> .cartao form.historico-filtros) .busca-listagem-data input { min-width: 0; padding-inline: 7px; font-size: .84rem; }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros > select { min-width: 0; padding-inline: 7px; font-size: .84rem; }
+}
+
+.historico-controles-rapidos { display: flex; align-items: center; justify-content: flex-start; gap: 6px; min-width: 100px; }
+.historico-controles-rapidos > .controle-ordenacao { flex: 0 0 46px; width: 46px; margin: 0; }
+
+@media (max-width: 700px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-controles-rapidos {
+        grid-column: 2 / 4;
+        justify-self: start;
+        gap: 6px;
+    }
+}
+
+/* Menu recolhível também em tablets e notebooks menores. */
+@media (max-width: 1100px) {
+    .menu-principal {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        padding: 10px 20px;
+    }
+
+    .menu-principal > .marca { order: 1; }
+    .menu-principal > .menu-acoes { order: 2; margin-left: auto; }
+    .menu-principal > .menu-links {
+        order: 3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1 0 100%;
+        width: 100%;
+        max-width: 100%;
+        gap: 12px;
+        padding: 0;
+        overflow: visible;
+        flex-wrap: nowrap;
+    }
+    .menu-links-dropdown { position: relative; display: block; flex: 1 1 auto; min-width: 0; }
+    .menu-links-resumo {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-width: 120px;
+        min-height: 44px;
+        padding: 8px 16px;
+        border: 1px solid rgb(245 231 218 / 45%);
+        border-radius: 9px;
+        color: var(--fundo);
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+    }
+    .menu-links-resumo::-webkit-details-marker { display: none; }
+    .menu-links-opcoes,
+    .menu-links-dropdown[open] .menu-links-opcoes {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        z-index: 1010;
+        display: none;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 10px;
+        width: min(380px, calc(100vw - 32px));
+        padding: 12px;
+        border: 1px solid rgb(245 231 218 / 28%);
+        border-radius: 12px;
+        background: var(--marrom);
+        box-shadow: 0 12px 28px rgb(0 0 0 / 22%);
+    }
+    .menu-links-dropdown[open] .menu-links-opcoes { display: grid; }
+    .menu-links-opcoes .menu-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        min-height: 42px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        text-align: center;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+    .menu-principal .menu-calcular { flex: 0 0 auto; align-self: center; min-height: 44px; margin: 0; }
+}
+
+@media (max-width: 375px) {
+    .menu-principal { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 10px; padding: 8px 14px; }
+    .menu-principal > .marca { grid-column: 1 / -1; grid-row: 1; }
+    .menu-principal > .menu-acoes { grid-column: 1 / -1; grid-row: 2; justify-self: end; }
+    .menu-principal > .menu-links { grid-column: 1 / -1; grid-row: 3; }
+    .menu-links-resumo { min-width: 0; width: 100%; }
+    .menu-principal .menu-calcular { min-width: 0; padding-inline: 12px; }
 }
 

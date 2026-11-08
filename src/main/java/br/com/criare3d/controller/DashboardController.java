@@ -1,6 +1,7 @@
 package br.com.criare3d.controller;
 
 import br.com.criare3d.models.Filamento;
+import br.com.criare3d.service.DashboardService;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.UsuarioLogadoService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
@@ -35,6 +36,7 @@ public class DashboardController {
 
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private final CalculoHistoricoRepository historicoRepository;
+    private final DashboardService dashboardService;
     private final UsuarioLogadoService usuarioLogadoService;
     private final PecaService pecaService;
     private final FilamentoService filamentoService;
@@ -43,12 +45,14 @@ public class DashboardController {
 
     public DashboardController(
             CalculoHistoricoRepository historicoRepository,
+            DashboardService dashboardService,
             UsuarioLogadoService usuarioLogadoService,
             PecaService pecaService,
             FilamentoService filamentoService,
             ImpressoraService impressoraService,
             EmbalagemService embalagemService) {
         this.historicoRepository = historicoRepository;
+        this.dashboardService = dashboardService;
         this.usuarioLogadoService = usuarioLogadoService;
         this.pecaService = pecaService;
         this.filamentoService = filamentoService;
@@ -73,12 +77,14 @@ public class DashboardController {
         LocalDateTime fim = hoje.plusDays(1).atStartOfDay();
         var usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
-        long calculos = historicoRepository.contarUnidadesCalculadasDesde(usuarioId, inicio);
-        long produzidos = historicoRepository.contarUnidadesProduzidasDesde(usuarioId, inicio);
-        long vendidos = historicoRepository.contarVendasEntre(usuarioId, inicio, fim);
-        BigDecimal lucroVendido = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
-        long minutosVendidos = numero(historicoRepository.somarMinutosDasVendasEntre(usuarioId, inicio, fim));
-        BigDecimal gramasUsadas = valor(historicoRepository.somarFilamentoProduzidoDesde(usuarioId, inicio));
+        var resumo = dashboardService.resumir(usuarioId, inicio, fim);
+        long calculos = resumo.calculadas();
+        long produzidos = resumo.produzidas();
+        long vendidos = resumo.vendidas();
+        BigDecimal lucroVendido = resumo.lucroVendido();
+        long minutosVendidos = resumo.minutosVendidos();
+        long minutosProduzidos = resumo.minutosProduzidos();
+        BigDecimal gramasUsadas = resumo.gramasFilamento();
         BigDecimal lucroPorHora = minutosVendidos <= 0
                 ? ZERO
                 : lucroVendido.multiply(BigDecimal.valueOf(60))
@@ -94,7 +100,6 @@ public class DashboardController {
         model.addAttribute("percentualVendidoProduzido", percentual(vendidos, produzidos));
         model.addAttribute("lucroVendido", lucroVendido);
         model.addAttribute("lucroPorHora", lucroPorHora);
-        long minutosProduzidos = numero(historicoRepository.somarMinutosProduzidosDesde(usuarioId, inicio));
         model.addAttribute("horasProduzidas", BigDecimal.valueOf(minutosProduzidos)
                 .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP));
         model.addAttribute("filamentoUsadoKg", gramasUsadas
@@ -113,7 +118,7 @@ public class DashboardController {
         model.addAttribute("lucroPlataformaNomes", plataformas.stream().map(item -> item.get("nome")).toList());
         model.addAttribute("lucroPlataformaValores", plataformas.stream().map(item -> item.get("lucro")).toList());
         model.addAttribute("lucroPlataformaCores", plataformas.stream().map(item -> item.get("cor")).toList());
-        adicionarSerieLucro(model, usuarioId, periodo, hoje, inicio, fim);
+        adicionarSerieLucro(model, usuarioId, periodo, hoje, inicio, fim, lucroVendido);
         List<Map<String, Object>> composicao = montarComposicao(
                 historicoRepository.somarComposicaoCustosProduzidosDesde(usuarioId, inicio));
         model.addAttribute("composicaoCustos", composicao);
@@ -155,7 +160,7 @@ public class DashboardController {
     }
 
     private void adicionarSerieLucro(Model model, UUID usuarioId, String periodo, LocalDate hoje,
-                                     LocalDateTime inicio, LocalDateTime fim) {
+                                     LocalDateTime inicio, LocalDateTime fim, BigDecimal lucroPeriodoAtual) {
         List<String> rotulos = new ArrayList<>();
         List<BigDecimal> valores = new ArrayList<>();
         BigDecimal lucroAtual;
@@ -176,7 +181,7 @@ public class DashboardController {
                 rotulos.add(dia.format(formatoDia));
                 valores.add(lucroPorDia.getOrDefault(dia, ZERO));
             }
-            lucroAtual = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicio, fim));
+            lucroAtual = lucroPeriodoAtual;
             lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(
                     usuarioId, inicio.minusDays(dias), inicio));
             comparacao = "vs período anterior";
@@ -222,13 +227,13 @@ public class DashboardController {
     }
 
     private String corPlataforma(String codigo) {
-        if (codigo == null) return "#a98a76";
+        if (codigo == null) return "--dashboard-mercado-livre";
         return switch (codigo) {
-            case "TIKTOK", "TIKTOK_SHOP" -> "#492e1e";
-            case "SHOPEE" -> "#e9a695";
-            case "MERCADO_LIVRE" -> "#a98a76";
-            case "NENHUMA" -> "#d9b69c";
-            default -> "#816252";
+            case "TIKTOK", "TIKTOK_SHOP" -> "--dashboard-tiktok";
+            case "SHOPEE" -> "--dashboard-shopee";
+            case "MERCADO_LIVRE" -> "--dashboard-mercado-livre";
+            case "NENHUMA" -> "--dashboard-sem-plataforma";
+            default -> "--dashboard-outro";
         };
     }
 
@@ -244,7 +249,7 @@ public class DashboardController {
 
     private List<Map<String, Object>> montarComposicao(List<Object[]> consultas) {
         String[] nomes = {"Filamento", "Falhas", "Energia", "Depreciação", "Embalagem", "Mão de obra", "Manutenção"};
-        String[] cores = {"#4b2d1d", "#f4d0c5", "#d9b69c", "#c97460", "#eda895", "#816252", "#b18e7b"};
+        String[] cores = {"--dashboard-custo-filamento", "--dashboard-custo-falhas", "--dashboard-custo-energia", "--dashboard-custo-depreciacao", "--dashboard-custo-embalagem", "--dashboard-custo-mao-obra", "--dashboard-custo-manutencao"};
         List<Map<String, Object>> resultado = new ArrayList<>();
         Object[] totais = consultas.isEmpty() ? new Object[0] : consultas.getFirst();
         BigDecimal total = ZERO;
@@ -313,7 +318,7 @@ public class DashboardController {
             String codigoCor = filamento.getCodigoCor();
             item.put("cor", codigoCor != null && codigoCor.matches("#[0-9A-Fa-f]{6}")
                     ? codigoCor : "#b18e7b");
-            item.put("anelCor", restante <= 34 ? "#c4514b" : (restante <= 64 ? "#d7a43b" : "#668d70"));
+            item.put("anelCor", restante <= 34 ? "var(--dashboard-estoque-baixo)" : (restante <= 64 ? "var(--dashboard-estoque-medio)" : "var(--dashboard-estoque-ok)"));
             item.put("gramas", estoque);
             item.put("restante", Math.max(0, Math.min(100, restante)));
             resultado.add(item);

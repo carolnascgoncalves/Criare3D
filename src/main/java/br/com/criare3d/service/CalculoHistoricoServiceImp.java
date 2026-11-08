@@ -9,6 +9,7 @@ import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.*;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.CalculoFotoRepository;
 import br.com.criare3d.repository.ItemCalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
@@ -44,6 +45,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     private static final BigDecimal CEM = new BigDecimal("100");
 
     private final CalculoHistoricoRepository calculoHistoricoRepository;
+    private final CalculoFotoRepository calculoFotoRepository;
     private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
     private final CalculoPlataformaService calculoPlataformaService;
     private final PecaService pecaService;
@@ -56,6 +58,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     public CalculoHistoricoServiceImp(
             CalculoHistoricoRepository calculoHistoricoRepository,
+            CalculoFotoRepository calculoFotoRepository,
             ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
             CalculoPlataformaService calculoPlataformaService,
             PecaService pecaService,
@@ -67,6 +70,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             ManutencaoImpressoraService manutencaoImpressoraService
     ) {
         this.calculoHistoricoRepository = calculoHistoricoRepository;
+        this.calculoFotoRepository = calculoFotoRepository;
         this.itemCalculoHistoricoRepository = itemCalculoHistoricoRepository;
         this.calculoPlataformaService = calculoPlataformaService;
         this.pecaService = pecaService;
@@ -134,6 +138,65 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         calculoHistorico.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
 
         return calculoHistoricoRepository.save(calculoHistorico);
+    }
+
+    @Override
+    public CalculoHistorico create(CalculoHistorico calculoHistorico, String tipoFoto, byte[] bytesFoto) {
+        CalculoHistorico salvo = create(calculoHistorico);
+        if (bytesFoto == null || bytesFoto.length == 0) return salvo;
+        CalculoFoto foto = new CalculoFoto();
+        foto.setCalculoId(salvo.getId());
+        foto.setTipo(tipoFoto);
+        foto.setBytes(bytesFoto);
+        foto.setMiniatura(null);
+        calculoFotoRepository.save(foto);
+        return salvo;
+    }
+
+    @Override
+    public Optional<CalculoFoto> buscarFoto(UUID calculoId) {
+        if (!existsById(calculoId)) return Optional.empty();
+        return calculoFotoRepository.findById(calculoId);
+    }
+
+    @Override
+    public Optional<br.com.criare3d.dto.FotoConteudo> buscarConteudoFoto(UUID calculoId, boolean miniatura) {
+        if (!existsById(calculoId)) return Optional.empty();
+        if (miniatura) {
+            var miniSalva = calculoFotoRepository.buscarMiniatura(calculoId);
+            if (miniSalva.isPresent()) return Optional.of(new br.com.criare3d.dto.FotoConteudo("image/jpeg", miniSalva.get()));
+        }
+        return calculoFotoRepository.findById(calculoId).map(foto -> {
+            if (!miniatura) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
+            byte[] mini = gerarMiniatura(foto.getBytes());
+            if (mini == null) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
+            foto.setMiniatura(mini);
+            calculoFotoRepository.save(foto);
+            return new br.com.criare3d.dto.FotoConteudo("image/jpeg", mini);
+        });
+    }
+
+    private byte[] gerarMiniatura(byte[] originalBytes) {
+        try {
+            java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(
+                    new java.io.ByteArrayInputStream(originalBytes));
+            if (original == null) return null;
+            double escala = Math.min(1d, 320d / Math.max(original.getWidth(), original.getHeight()));
+            int largura = Math.max(1, (int) Math.round(original.getWidth() * escala));
+            int altura = Math.max(1, (int) Math.round(original.getHeight() * escala));
+            java.awt.image.BufferedImage mini = new java.awt.image.BufferedImage(
+                    largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = mini.createGraphics();
+            g.setColor(java.awt.Color.WHITE);
+            g.fillRect(0, 0, largura, altura);
+            g.drawImage(original, 0, 0, largura, altura, null);
+            g.dispose();
+            java.io.ByteArrayOutputStream saida = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(mini, "jpg", saida);
+            return saida.toByteArray();
+        } catch (java.io.IOException ignored) {
+            return null;
+        }
     }
 
     @Override
@@ -326,6 +389,17 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (request.getUnidades() == null || request.getUnidades() < 1 || request.getUnidades() > 10000) {
             throw new IllegalArgumentException("Informe uma quantidade entre 1 e 10.000 unidades.");
         }
+        int unidades = request.getUnidades();
+        int fornadas = request.getFornadas() == null ? unidades : request.getFornadas();
+        if (fornadas < 1 || fornadas > unidades) {
+            throw new IllegalArgumentException("A quantidade de fornadas deve ficar entre 1 e o número de unidades.");
+        }
+        long minutosImpressaoLote;
+        try {
+            minutosImpressaoLote = Math.multiplyExact(request.getTempoImpressaoMinutos(), (long) fornadas);
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException("O tempo total das fornadas ultrapassa o limite permitido.");
+        }
 
         BigDecimal markup = request.getMarkupPercentual();
 
@@ -338,7 +412,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .build();
 
         BigDecimal custoFilamentoTotal = ZERO;
-        Map<UUID, BigDecimal> consumoPorFilamento = new HashMap<>();
 
         java.util.Set<UUID> idsFilamentosSolicitados = new LinkedHashSet<>();
         for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
@@ -367,20 +440,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             Filamento filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
             if (filamento == null) {
                 throw new IllegalArgumentException("Filamento não encontrado");
-            }
-
-            BigDecimal consumoTotal = consumoPorFilamento.merge(
-                    filamento.getId(), quantidade.multiply(BigDecimal.valueOf(request.getUnidades())), BigDecimal::add);
-            BigDecimal disponivel = filamento.getEstoqueGramas() == null
-                    ? ZERO : filamento.getEstoqueGramas();
-            if (consumoTotal.compareTo(disponivel) > 0) {
-                String quantidadeDisponivel = disponivel
-                        .setScale(2, RoundingMode.HALF_UP)
-                        .toPlainString()
-                        .replace('.', ',');
-                throw new IllegalArgumentException(
-                        "Estoque insuficiente de " + filamento.getNome()
-                                + ". Há " + quantidadeDisponivel + " g disponíveis.");
             }
 
             if (filamento.getPesoRoloGramas() == null
@@ -425,9 +484,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
         historico.setCustoFilamento(custoFilamentoTotal);
 
-        BigDecimal custoEnergia = CalculoFinanceiro.energia(
-                impressora.getPotenciaWatts(), request.getTempoImpressaoMinutos(),
-                configuracao.getTarifaEnergiaKwh());
+        BigDecimal custoEnergia = ratearPorUnidades(CalculoFinanceiro.energia(
+                impressora.getPotenciaWatts(), minutosImpressaoLote,
+                configuracao.getTarifaEnergiaKwh()), unidades);
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
                 ? configuracao.getTempoMaoObraFixoMinutos()
@@ -451,8 +510,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (manutencaoPorHora == null || manutencaoPorHora.signum() < 0) {
             throw new IllegalArgumentException("A estimativa de manutenção por hora é inválida.");
         }
-        BigDecimal custoManutencao = CalculoFinanceiro.manutencao(
-                manutencaoPorHora, request.getTempoImpressaoMinutos());
+        BigDecimal custoManutencao = ratearPorUnidades(CalculoFinanceiro.manutencao(
+                manutencaoPorHora, minutosImpressaoLote), unidades);
 
         BigDecimal custoDepreciacao = ZERO;
         if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
@@ -466,8 +525,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "e o tempo de impressão para incluir esse custo no cálculo."
                 );
             }
-            custoDepreciacao = CalculoFinanceiro.depreciacao(
-                    valorImpressora, vidaUtilHoras, request.getTempoImpressaoMinutos());
+            custoDepreciacao = ratearPorUnidades(CalculoFinanceiro.depreciacao(
+                    valorImpressora, vidaUtilHoras, minutosImpressaoLote), unidades);
         }
 
         BigDecimal custoFalha = ZERO;
@@ -528,7 +587,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setEmbalagem(embalagem);
 
         historico.setNomePeca(peca.getNome());
-        historico.setUnidades(request.getUnidades());
+        historico.setUnidades(unidades);
+        historico.setFornadas(fornadas);
         historico.setNomeImpressora(impressora.getNome());
         historico.setPotenciaWatts(impressora.getPotenciaWatts());
         historico.setTempoImpressaoMinutos(request.getTempoImpressaoMinutos());
@@ -640,6 +700,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return calculoHistoricoRepository.buscarPorIdComItens(
                 id, usuarioId
         );
+    }
+
+    private BigDecimal ratearPorUnidades(BigDecimal custoLote, int unidades) {
+        return moeda(custoLote.divide(BigDecimal.valueOf(unidades), 8, RoundingMode.HALF_UP));
     }
 
     @Override

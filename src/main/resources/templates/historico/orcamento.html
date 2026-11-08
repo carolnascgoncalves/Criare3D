@@ -4,16 +4,17 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 <main class="pagina pagina-orcamento"
-      th:attr="data-peca=${calculo.nomePeca},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote}">
+      th:attr="data-peca=${calculo.nomePeca},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote},data-foto-url=${calculo.temFoto ? '/historico/' + calculo.id + '/foto' : ''}">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">ORÇAMENTO</span>
             <h1>Prepare uma proposta</h1>
             <p>Confira os valores, personalize a mensagem e imprima ou envie pelo WhatsApp.</p>
         </div>
-        <button type="button" class="botao botao-secundario" onclick="window.print()">
-            <i class="bi bi-printer"></i> Imprimir / salvar PDF
-        </button>
+        <a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}"
+           class="botao botao-secundario" data-turbo="false">
+            <i class="bi bi-arrow-left"></i> Voltar aos detalhes
+        </a>
     </section>
 
     <section class="cartao orcamento-cartao">
@@ -55,8 +56,14 @@
             <button type="button" class="botao botao-principal" data-enviar-whatsapp>
                 <i class="bi bi-whatsapp"></i> Abrir WhatsApp
             </button>
-            <a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" class="botao botao-secundario">Voltar aos detalhes</a>
+            <button type="button" class="botao botao-secundario" onclick="window.print()">
+                <i class="bi bi-printer"></i> Imprimir / salvar PDF
+            </button>
         </div>
+        <label class="orcamento-anexar-foto" th:if="${calculo.temFoto}">
+            <input type="checkbox" data-incluir-foto>
+            <span><strong>Incluir foto da peça</strong><small>No celular, você pode compartilhar a foto pelo menu do aparelho. No computador, ela será baixada para anexar manualmente no WhatsApp.</small></span>
+        </label>
         <div class="orcamento-editor campo-oculto" data-editor-personalizacao>
                 <p class="orcamento-ajuda-editor">Ajuste as condições e edite o texto antes de copiar ou abrir no WhatsApp.</p>
                 <div class="orcamento-condicoes">
@@ -84,6 +91,5 @@
         </div>
     </section>
 </main>
-<script th:src="@{/js/orcamento.js(v=2)}" defer></script>
 </body>
 </html>

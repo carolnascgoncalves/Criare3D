@@ -78,7 +78,56 @@
             }
         });
 
-        document.querySelector('[data-enviar-whatsapp]')?.addEventListener('click', () => {
+        const caixaIncluirFoto = document.querySelector('[data-incluir-foto]');
+        const avisarFotoManual = () => window.mostrarNotificacao?.(
+            'Este navegador não permite anexar a foto diretamente. A imagem foi baixada; anexe-a na conversa do WhatsApp.',
+            'info'
+        );
+
+        async function baixarFoto(url) {
+            const resposta = await fetch(url, { credentials: 'same-origin' });
+            if (!resposta.ok) throw new Error('Não foi possível carregar a foto.');
+            const blob = await resposta.blob();
+            const extensao = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg';
+            const arquivo = new File([blob], `foto-peca.${extensao}`, { type: blob.type || 'image/jpeg' });
+            return { blob, arquivo };
+        }
+
+        document.querySelector('[data-enviar-whatsapp]')?.addEventListener('click', async () => {
+            const urlFoto = painel.dataset.fotoUrl;
+            if (caixaIncluirFoto?.checked && urlFoto) {
+                const abaWhatsApp = window.open('about:blank', '_blank');
+                try {
+                    const { blob, arquivo } = await baixarFoto(urlFoto);
+                    if (navigator.share && navigator.canShare?.({ files: [arquivo] })) {
+                        abaWhatsApp?.close();
+                        await navigator.share({ title: 'Orçamento Criare 3D', text: obterMensagem(), files: [arquivo] });
+                        return;
+                    }
+
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = arquivo.name;
+                    link.click();
+                    window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+                    const destino = `https://wa.me/?text=${encodeURIComponent(obterMensagem())}`;
+                    if (abaWhatsApp) abaWhatsApp.location.href = destino;
+                    else window.location.href = destino;
+                    avisarFotoManual();
+                    return;
+                } catch (erro) {
+                    if (erro?.name === 'AbortError') {
+                        abaWhatsApp?.close();
+                        return;
+                    }
+                    window.mostrarNotificacao?.('Não foi possível preparar a foto. O WhatsApp será aberto somente com a mensagem.', 'erro');
+                    const destino = `https://wa.me/?text=${encodeURIComponent(obterMensagem())}`;
+                    if (abaWhatsApp) abaWhatsApp.location.href = destino;
+                    else window.open(destino, '_blank', 'noopener,noreferrer');
+                    return;
+                }
+            }
+
             window.open(`https://wa.me/?text=${encodeURIComponent(obterMensagem())}`, '_blank', 'noopener,noreferrer');
         });
     }

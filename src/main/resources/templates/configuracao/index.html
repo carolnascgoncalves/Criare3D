@@ -7,6 +7,10 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+    <div class="alerta-erro notificacao-flutuante" role="alert"
+         th:if="${mensagemErro != null}" th:text="${mensagemErro}">
+        Revise os campos destacados antes de salvar.
+    </div>
     <div class="main-alerta alerta-sucesso alerta-configuracao-flutuante" role="status" th:if="${param.sucesso}">
         <i class="bi bi-check-circle"></i> Configurações salvas com sucesso!
     </div>

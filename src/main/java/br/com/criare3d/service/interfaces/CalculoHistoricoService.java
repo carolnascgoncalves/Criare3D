@@ -1,6 +1,8 @@
 package br.com.criare3d.service.interfaces;
 
 import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.CalculoFoto;
+import br.com.criare3d.dto.FotoConteudo;
 
 
 import java.math.BigDecimal;
@@ -16,6 +18,9 @@ import java.util.List;
 
 public interface CalculoHistoricoService {
     CalculoHistorico create(CalculoHistorico calculoHistorico);
+    CalculoHistorico create(CalculoHistorico calculoHistorico, String tipoFoto, byte[] bytesFoto);
+    Optional<CalculoFoto> buscarFoto(UUID calculoId);
+    Optional<FotoConteudo> buscarConteudoFoto(UUID calculoId, boolean miniatura);
     List<CalculoRecenteResponse> fetchRecentes(int limite);
     long contarProduzidos();
     long contarVendidos();

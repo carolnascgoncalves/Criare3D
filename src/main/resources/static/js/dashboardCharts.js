@@ -115,7 +115,11 @@
                     labels: dados.plataformas,
                     datasets: [{
                         data: dados.lucroPlataformas,
-                        backgroundColor: dados.coresPlataformas,
+                        backgroundColor: dados.coresPlataformas.map(function (cor) {
+                            return cor.startsWith('--')
+                                ? getComputedStyle(document.documentElement).getPropertyValue(cor).trim()
+                                : cor;
+                        }),
                         borderColor: '#ffffff',
                         borderWidth: 2
                     }]

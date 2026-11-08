@@ -47,11 +47,27 @@
             || /^\/filamento\/[^/]+\/historico$/.test(caminhoAtual);
     }
 
+    function origemValidaDoHistorico(url) {
+        try {
+            return new URL(url, window.location.origin).pathname === "/historico/listar";
+        } catch {
+            return false;
+        }
+    }
+
     function atualizarLinksVoltar() {
         const origem = lerEstado(CHAVE_ORIGEM);
 
         if (!origem || !origem.url) return;
         if (!ehDetalhes(window.location.pathname)) return;
+
+        // Em detalhes de cálculo, o retorno deve vir da listagem. Ao abrir
+        // detalhes a partir do orçamento, não transforme o link em orçamento.
+        if (window.location.pathname.startsWith("/historico/detalhes/")
+            && !origemValidaDoHistorico(origem.url)) {
+            sessionStorage.removeItem(CHAVE_ORIGEM);
+            return;
+        }
 
         document.querySelectorAll("main.pagina a[href]").forEach(link => {
             const destino = new URL(link.href, window.location.origin);
@@ -151,7 +167,7 @@
             destino.pathname.includes("/detalhes/")
             || /^\/filamento\/[^/]+\/historico$/.test(destino.pathname);
 
-        if (abrindoDetalhes) {
+        if (abrindoDetalhes && window.location.pathname === "/historico/listar") {
             salvarOrigemDetalhes(window.location.href);
         }
 

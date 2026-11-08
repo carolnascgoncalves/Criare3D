@@ -150,10 +150,18 @@
                    name="plataforma"
                    th:value="${plataforma}">
 
+            <label class="visually-hidden" for="tamanhoPagina">Itens por página</label>
+            <select id="tamanhoPagina" name="size" aria-label="Itens por página">
+                <option value="10" th:selected="${tamanhoPagina == 10}">10 por página</option>
+                <option value="20" th:selected="${tamanhoPagina == 20}">20 por página</option>
+                <option value="50" th:selected="${tamanhoPagina == 50}">50 por página</option>
+            </select>
+
             <button type="submit" class="botao botao-principal historico-pesquisar">
                 Pesquisar
             </button>
 
+            <div class="historico-controles-rapidos">
             <details class="controle-ordenacao controle-plataforma historico-filtro-plataforma"
                      th:classappend="${plataforma != null and !plataforma.isBlank()} ? ' filtro-plataforma-ativo' : ''">
 
@@ -241,6 +249,7 @@
                 </div>
             </details>
 
+            </div>
             <a th:if="${(busca != null and !busca.isBlank())
                         or data != null
                         or (plataforma != null and !plataforma.isBlank())
@@ -376,7 +385,7 @@
                             <div class="peca-historico">
                                 <img th:if="${historico.temFoto}"
                                      class="peca-historico-foto"
-                                     th:src="@{/historico/{id}/foto(id=${historico.id})}"
+                                     th:src="@{/historico/{id}/foto(id=${historico.id},miniatura=true)}"
                                      loading="lazy"
                                      decoding="async"
                                      th:alt="|Foto de ${historico.nomePeca}|">
@@ -509,7 +518,7 @@
                  th:if="${pagina.totalPages > 1}">
 
                 <a th:if="${pagina.hasPrevious()}"
-                   th:href="@{/historico/listar(page=${pagina.number - 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
+                   th:href="@{/historico/listar(page=${pagina.number - 1}, size=${tamanhoPagina}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
                    title="Página anterior"
                    aria-label="Página anterior">
                     <i class="bi bi-chevron-left"></i>
@@ -526,7 +535,7 @@
                 </span>
 
                 <a th:if="${pagina.hasNext()}"
-                   th:href="@{/historico/listar(page=${pagina.number + 1}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
+                   th:href="@{/historico/listar(page=${pagina.number + 1}, size=${tamanhoPagina}, busca=${busca}, data=${data}, ordem=${ordem}, plataforma=${plataforma}, produzido=${produzido}, vendido=${vendido})}"
                    title="Próxima página"
                    aria-label="Próxima página">
                     <i class="bi bi-chevron-right"></i>

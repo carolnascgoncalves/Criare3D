@@ -43,6 +43,11 @@ public class ConfiguracaoController {
             ModelAndView mv = new ModelAndView("configuracao/index");
             mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
             mv.addObject("configuracao", request);
+            mv.addObject("mensagemErro", bd.getAllErrors().stream()
+                    .map(org.springframework.validation.ObjectError::getDefaultMessage)
+                    .filter(java.util.Objects::nonNull)
+                    .findFirst()
+                    .orElse("Revise os campos destacados antes de salvar."));
             return mv;
         }
 

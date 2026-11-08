@@ -12,11 +12,38 @@ function inicializarCalculoEtapas() {
     const conteudos = document.querySelectorAll("[data-conteudo]");
     const pecaSelect = document.getElementById("pecaId");
     const tempoInput = document.getElementById("tempoImpressaoMinutos");
+    const unidadesInput = document.getElementById("unidades");
+    const fornadasInput = document.getElementById("fornadas");
     const impressoraSelect = document.getElementById("impressoraId");
     const embalagemSelect = document.getElementById("embalagemId");
     const listaFilamentos = document.getElementById("listaFilamentos");
     const plataformaSelect = document.getElementById("plataformaVenda");
     const blocosPlataforma = document.querySelectorAll("[data-opcoes-plataforma]");
+
+    function atualizarLimiteFornadas(sincronizar = false) {
+        if (!unidadesInput || !fornadasInput) return;
+        const unidades = Math.max(1, Number(unidadesInput.value) || 1);
+        fornadasInput.max = String(unidades);
+        if (sincronizar && fornadasInput.dataset.fornadasManual !== "true") {
+            fornadasInput.value = String(unidades);
+        }
+        fornadasInput.setCustomValidity(
+            Number(fornadasInput.value) > unidades
+                ? "O número de fornadas não pode ser maior que a quantidade de unidades."
+                : ""
+        );
+    }
+
+    atualizarLimiteFornadas(true);
+    unidadesInput?.addEventListener("input", () => {
+        atualizarLimiteFornadas(true);
+        salvarRascunho();
+    });
+    fornadasInput?.addEventListener("input", event => {
+        if (event.isTrusted) fornadasInput.dataset.fornadasManual = "true";
+        atualizarLimiteFornadas();
+        salvarRascunho();
+    });
 
     let etapaAtual = 1;
 
@@ -161,6 +188,12 @@ function inicializarCalculoEtapas() {
                 return false;
             }
 
+            if (unidadesInput && !unidadesInput.checkValidity()) {
+                focarCampo(unidadesInput);
+                salvarRascunho();
+                return false;
+            }
+
             return validarFilamentos();
         }
 
@@ -173,6 +206,12 @@ function inicializarCalculoEtapas() {
 
             if (!tempoInput?.checkValidity()) {
                 focarCampo(tempoInput);
+                salvarRascunho();
+                return false;
+            }
+
+            if (fornadasInput && !fornadasInput.checkValidity()) {
+                focarCampo(fornadasInput);
                 salvarRascunho();
                 return false;
             }
@@ -387,13 +426,14 @@ function inicializarCalculoEtapas() {
     const fotoPreview = document.getElementById("fotoPecaPreview");
     const fotoMiniatura = document.getElementById("fotoPecaMiniatura");
     const removerFoto = document.getElementById("removerFotoPeca");
-    const fotoBase64 = document.getElementById("fotoPecaBase64");
-    const fotoContentType = document.getElementById("fotoPecaContentType");
+    const fotoRemovida = document.getElementById("fotoRemovida");
+    let fotoUrlTemporaria = null;
 
     function limparFoto() {
         if (fotoInput) fotoInput.value = "";
-        if (fotoBase64) fotoBase64.value = "";
-        if (fotoContentType) fotoContentType.value = "";
+        if (fotoRemovida) fotoRemovida.value = "true";
+        if (fotoUrlTemporaria) URL.revokeObjectURL(fotoUrlTemporaria);
+        fotoUrlTemporaria = null;
 
         fotoControle?.classList.remove("com-foto");
         fotoPreview?.classList.remove("visivel");
@@ -407,17 +447,23 @@ function inicializarCalculoEtapas() {
         if (!src || !fotoMiniatura) return;
 
         fotoMiniatura.src = src;
+        fotoMiniatura.onload = () => {
+            fotoPreview?.classList.add("visivel");
+            fotoControle?.classList.add("com-foto");
+        };
+        fotoMiniatura.onerror = () => {
+            fotoPreview?.classList.remove("visivel");
+            fotoControle?.classList.remove("com-foto");
+            window.mostrarNotificacao?.("Não foi possível exibir a prévia desta foto.", "erro");
+        };
         fotoPreview?.classList.add("visivel");
         fotoControle?.classList.add("com-foto");
     }
 
-    fotoInput?.addEventListener("change", () => {
+    fotoInput?.addEventListener("change", async () => {
         const arquivo = fotoInput.files[0];
 
         if (!arquivo) return;
-
-        if (fotoBase64) fotoBase64.value = "";
-        if (fotoContentType) fotoContentType.value = "";
 
         const formatos = ["image/jpeg", "image/png", "image/webp"];
 
@@ -427,66 +473,40 @@ function inicializarCalculoEtapas() {
             return;
         }
 
-        if (arquivo.size > 3 * 1024 * 1024) {
-            window.mostrarNotificacao?.("A foto deve ter no máximo 3 MB.", "erro");
+        try {
+            const bitmap = await createImageBitmap(arquivo, { imageOrientation: "from-image" });
+            const escala = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+            canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+            const contexto = canvas.getContext("2d");
+            if (!contexto) throw new Error("canvas indisponível");
+            contexto.fillStyle = "#fff";
+            contexto.fillRect(0, 0, canvas.width, canvas.height);
+            contexto.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+            bitmap.close();
+            const blob = await new Promise((resolve, reject) => canvas.toBlob(
+                resultado => resultado ? resolve(resultado) : reject(new Error("compressão falhou")),
+                "image/jpeg", 0.8));
+            if (blob.size > 3 * 1024 * 1024) throw new Error("foto grande demais após compressão");
+            const reduzido = new File([blob], "foto.jpg", { type: "image/jpeg" });
+            const transferencia = new DataTransfer();
+            transferencia.items.add(reduzido);
+            fotoInput.files = transferencia.files;
+            if (fotoRemovida) fotoRemovida.value = "false";
+            if (fotoUrlTemporaria) URL.revokeObjectURL(fotoUrlTemporaria);
+            fotoUrlTemporaria = URL.createObjectURL(blob);
+            mostrarFoto(fotoUrlTemporaria);
+            salvarRascunho();
+        } catch (erro) {
+            window.mostrarNotificacao?.("Não foi possível preparar essa foto. Tente selecionar outra imagem JPG, PNG ou WEBP.", "erro");
             limparFoto();
-            return;
         }
-
-        const leitor = new FileReader();
-
-        leitor.onerror = () => {
-            window.mostrarNotificacao?.("Não foi possível abrir essa foto. Tente escolher outra.", "erro");
-            limparFoto();
-        };
-
-        leitor.onload = evento => {
-            const imagem = new Image();
-
-            imagem.onerror = () => {
-                window.mostrarNotificacao?.("Não foi possível abrir essa foto. Tente escolher outra.", "erro");
-                limparFoto();
-            };
-
-            imagem.onload = () => {
-                const limite = 1000;
-                const escala = Math.min(1, limite / Math.max(imagem.width, imagem.height));
-                const canvas = document.createElement("canvas");
-                canvas.width = Math.max(1, Math.round(imagem.width * escala));
-                canvas.height = Math.max(1, Math.round(imagem.height * escala));
-
-                const contexto = canvas.getContext("2d");
-                if (!contexto) {
-                    window.mostrarNotificacao?.("Não foi possível preparar essa foto. Tente outra imagem.", "erro");
-                    limparFoto();
-                    return;
-                }
-
-                // JPEG não preserva transparência; usar fundo branco evita áreas pretas.
-                contexto.fillStyle = "#fff";
-                contexto.fillRect(0, 0, canvas.width, canvas.height);
-                contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
-
-                const resultado = canvas.toDataURL("image/jpeg", 0.82);
-                mostrarFoto(resultado);
-
-                if (fotoBase64) fotoBase64.value = resultado.split(",")[1] || "";
-                if (fotoContentType) fotoContentType.value = "image/jpeg";
-
-                salvarRascunho();
-            };
-
-            imagem.src = evento.target.result;
-        };
-
-        leitor.readAsDataURL(arquivo);
     });
 
     removerFoto?.addEventListener("click", limparFoto);
 
-    if (fotoBase64?.value && fotoContentType?.value) {
-        mostrarFoto(`data:${fotoContentType.value};base64,${fotoBase64.value}`);
-    }
+    if (fotoMiniatura?.getAttribute("src")) fotoPreview?.classList.add("visivel");
 
     formulario.addEventListener("rascunhoCalculoRestaurado", evento => {
         mostrarEtapa(evento.detail.etapa || 1);

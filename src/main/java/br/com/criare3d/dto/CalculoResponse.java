@@ -24,6 +24,7 @@ public class CalculoResponse {
     private BigDecimal pesoRoloGramas;
     private BigDecimal quantidadeFilamentoGramas;
     private Integer unidades;
+    private Integer fornadas;
 
     private String nomeImpressora;
     private BigDecimal potenciaWatts;
@@ -53,8 +54,7 @@ public class CalculoResponse {
     private BigDecimal precoSugerido;
     private LocalDateTime dataCalculo;
 
-    private String fotoPecaBase64;
-    private String fotoPecaContentType;
+    private Boolean temFoto;
 
     private List<ItemCalculoResponse> itensFilamento;
 
@@ -94,6 +94,7 @@ public class CalculoResponse {
                 .pesoRoloGramas(calculo.getPesoRoloGramas())
                 .quantidadeFilamentoGramas(calculo.getQuantidadeFilamentoGramas())
                 .unidades(calculo.getUnidades() == null ? 1 : calculo.getUnidades())
+                .fornadas(calculo.getFornadas() == null ? 1 : calculo.getFornadas())
                 .nomeImpressora(calculo.getNomeImpressora())
                 .potenciaWatts(calculo.getPotenciaWatts())
                 .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
@@ -121,8 +122,7 @@ public class CalculoResponse {
                 .dataCalculo(calculo.getDataCalculo())
                 .itensFilamento(itens)
                 .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
-                .fotoPecaBase64(calculo.getFotoPecaBase64())
-                .fotoPecaContentType(calculo.getFotoPecaContentType())
+                .temFoto(Boolean.TRUE.equals(calculo.getTemFoto()))
                 .plataformaVenda(calculo.getPlataformaVenda())
                 .tipoAnuncio(calculo.getTipoAnuncio())
                 .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())

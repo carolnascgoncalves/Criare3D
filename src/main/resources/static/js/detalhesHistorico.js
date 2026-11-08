@@ -1,6 +1,15 @@
 
 (function () {
 
+    document.addEventListener("click", event => {
+        const botao = event.target.closest?.("[data-recalculo-bloqueado]");
+        if (!botao) return;
+        window.mostrarNotificacao?.(
+            "Este cálculo já está salvo no histórico e não pode ser recalculado. Para usar os preços atuais, inicie um novo cálculo.",
+            "info"
+        );
+    });
+
     function inicializarZoomFoto() {
 
         const botaoAbrir = document.getElementById("abrirFotoPeca");

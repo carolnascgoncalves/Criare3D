@@ -20,6 +20,15 @@
         </a>
     </section>
 
+    <div class="aviso-info" role="status" th:if="${avisoValoresAtualizados}">
+        Os valores mudaram desde o cálculo. Confira o resultado atualizado antes de salvar.
+    </div>
+
+    <div class="aviso-info" role="status" th:each="aviso : ${avisosEstoque}">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        <span th:text="${aviso}">Aviso de estoque</span>
+    </div>
+
     <section class="cartao">
         <div class="formulario-conteudo">
 
@@ -32,18 +41,26 @@
                     <p>Revise os valores abaixo e salve o cálculo para consultá-lo depois.</p>
                 </div>
 
+                <div class="resultado-unidade-contexto" role="note">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
+                    <div>
+                        <strong>Custos e preço por unidade</strong>
+                        <span>Os custos são por unidade. Energia, depreciação e manutenção consideram o tempo total das <strong th:text="${resultado.fornadas}">1</strong> fornadas e são divididas pelas <strong th:text="${unidades}">1</strong> unidades.</span>
+                    </div>
+                </div>
+
                 <!-- FOTO E CUSTOS -->
                 <div class="resultado-conteudo-layout">
 
                     <div class="resumo-peca">
 
-                        <img th:if="${fotoPecaPreview != null}"
-                             th:src="${fotoPecaPreview}"
+                        <img th:if="${resultado.temFoto}"
+                             th:src="@{/historico/resultado/foto}"
                              alt="Foto da peça calculada"
                              class="resultado-foto-peca">
 
                         <!-- NOVO: ESTADO SEM FOTO -->
-                        <div th:unless="${fotoPecaPreview != null}"
+                        <div th:unless="${resultado.temFoto}"
                              class="resultado-foto-vazia">
                             <i class="bi bi-image"></i>
                             <strong>Nenhuma foto adicionada</strong>
@@ -70,12 +87,12 @@
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
-                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Depreciação da impressora</span>
+                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.manutencaoHoraImpressora != null and resultado.manutencaoHoraImpressora.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h)'}">Manutenção da impressora</span>
+                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoManutencao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
@@ -90,7 +107,7 @@
                         </div>
 
                         <div class="resultado-item resultado-total">
-                            <span>Custo total de produção</span>
+                            <span>Custo total de produção · por unidade</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
@@ -117,17 +134,21 @@
             </div>
 
             <section class="cartao resumo-lote">
-                <div class="cartao-cabecalho">
+                <div class="cartao-cabecalho resumo-lote-cabecalho">
                     <div>
-                        <h3 th:text="|Resumo do lote · ${unidades} ${unidades == 1 ? 'unidade' : 'unidades'}|">Resumo do lote</h3>
-                        <p>Os valores unitários abaixo multiplicados pela quantidade selecionada.</p>
+                        <h3>Resumo do lote</h3>
+                        <p>Totais estimados para toda a quantidade selecionada.</p>
+                    </div>
+                    <div class="resumo-lote-indicadores">
+                        <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
+                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'fornada' : 'fornadas'}">fornadas</small></span>
                     </div>
                 </div>
-                <div class="detalhes-conteudo">
-                    <div class="detalhe-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                <div class="detalhes-conteudo resumo-lote-grade">
+                    <div class="detalhe-item resumo-lote-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-destaque"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-lucro"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
                 </div>
             </section>
 
@@ -256,8 +277,13 @@
                 </div>
 
                 <div class="detalhe-linha">
-                    <span>Tempo de impressão</span>
+                    <span>Tempo por fornada</span>
                     <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">120 minutos</strong>
+                </div>
+
+                <div class="detalhe-linha">
+                    <span>Fornadas de impressão</span>
+                    <strong th:text="${resultado.fornadas + ' (' + (resultado.tempoImpressaoMinutos * resultado.fornadas) + ' minutos no total)'}">1 fornada</strong>
                 </div>
             </div>
 
@@ -385,8 +411,8 @@
                 </div>
 
                 <small>
-                    Estimativa com as taxas cadastradas no sistema.
-                    Confira as condições atuais da sua conta em cada plataforma.
+                    Estimativa com as tarifas cadastradas. Última conferência: <strong th:text="${dataConferenciaTarifas}">não informada</strong>.
+                    <span th:if="${tarifasPrecisamConferencia}">Confira as condições atuais no painel da plataforma antes de publicar.</span>
                 </small>
 
             </section>
@@ -396,8 +422,8 @@
 
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-                    <input type="hidden" th:field="*{fotoPecaBase64}">
-                    <input type="hidden" th:field="*{fotoPecaContentType}">
+                    <input type="hidden" th:field="*{unidades}">
+                    <input type="hidden" th:field="*{fornadas}">
 
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"
@@ -439,8 +465,8 @@
 
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
-                    <input type="hidden" th:field="*{fotoPecaBase64}">
-                    <input type="hidden" th:field="*{fotoPecaContentType}">
+                    <input type="hidden" th:field="*{unidades}">
+                    <input type="hidden" th:field="*{fornadas}">
 
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"

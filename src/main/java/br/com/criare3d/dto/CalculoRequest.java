@@ -30,9 +30,15 @@ public class CalculoRequest {
     @Max(value = 10000, message = "A quantidade máxima é 10.000 unidades.")
     private Integer unidades = 1;
 
-    private String fotoPecaBase64;
+    @NotNull(message = "Informe quantas fornadas de impressão serão necessárias.")
+    @Min(value = 1, message = "Deve haver pelo menos 1 fornada.")
+    @Max(value = 10000, message = "O máximo é 10.000 fornadas.")
+    private Integer fornadas = 1;
+
+    private byte[] fotoPecaBytes;
 
     private String fotoPecaContentType;
+    private boolean fotoRemovida;
 
     @NotNull(message = "A impressora é obrigatória")
     private UUID impressoraId;
@@ -87,6 +93,8 @@ public class CalculoRequest {
         return CalculoHistorico.builder()
                 .quantidadeFilamentoGramas(request.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(request.getTempoImpressaoMinutos())
+                .unidades(request.getUnidades())
+                .fornadas(request.getFornadas())
                 .markupPercentual(request.getMarkupPercentual())
                 .build();
     }

@@ -13,7 +13,7 @@
             <h1>Detalhes do cálculo</h1>
             <p>Confira os custos e os dados da impressão registrados no histórico.</p>
         </div>
-        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+        <a th:href="@{/historico/listar}" class="botao botao-secundario botao-voltar" data-turbo="false">Voltar ao histórico</a>
     </section>
 
     <section class="detalhes-cartao">
@@ -21,15 +21,15 @@
 
             <div class="detalhes-identificacao-peca">
 
-                <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}" aria-label="Ampliar foto da peça" aria-controls="modalFotoPeca">
-                    <img th:src="@{/historico/{id}/foto(id=${historico.id})}" alt="Foto da peça" class="detalhes-foto-peca" decoding="async">
+                <button type="button" class="detalhes-foto-abrir" id="abrirFotoPeca" th:if="${historico.temFoto}" aria-label="Ampliar foto da peça" aria-controls="modalFotoPeca">
+                    <img th:src="@{/historico/{id}/foto(id=${historico.id},miniatura=true)}" alt="Foto da peça" class="detalhes-foto-peca" decoding="async">
                     <span class="detalhes-foto-lupa"><i class="bi bi-search"></i></span>
                 </button>
 
                 <div class="detalhes-identificacao-texto">
                     <span class="detalhes-etiqueta">PEÇA</span>
                     <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
-                    <span class="texto-apoio" th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'} no lote|">1 unidade</span>
+                    <span class="texto-apoio" th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'} em ${fornadas} ${fornadas == 1 ? 'fornada' : 'fornadas'}|">1 unidade em 1 fornada</span>
                 </div>
 
             </div>
@@ -93,10 +93,15 @@
                     </div>
 
                     <div class="detalhes-item">
-                        <span>Tempo de impressão</span>
+                        <span>Tempo por fornada</span>
                         <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">
                             3h 20min
                         </strong>
+                    </div>
+
+                    <div class="detalhes-item">
+                        <span>Fornadas de impressão</span>
+                        <strong th:text="${fornadas + ' (' + (historico.tempoImpressaoMinutos * fornadas) + ' min no total)'}">1 fornada</strong>
                     </div>
 
                     <div class="detalhes-item">
@@ -155,7 +160,7 @@
                     <div class="detalhes-custo">
                         <div class="detalhes-custo-info">
                             <strong>Manutenção da impressora</strong>
-                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal(historico.tempoImpressaoMinutos / 60.0, 1, 'COMMA', 2, 'POINT') + ' h' : '—'}">—</span>
+                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal(historico.tempoImpressaoMinutos * fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total' : '—'}">—</span>
                         </div>
                         <strong class="detalhes-valor" th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.custoManutencao, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>
@@ -191,17 +196,21 @@
             </section>
 
             <section class="cartao resumo-lote">
-                <div class="cartao-cabecalho">
+                <div class="cartao-cabecalho resumo-lote-cabecalho">
                     <div>
-                        <h3 th:text="|Lote registrado · ${unidades} ${unidades == 1 ? 'unidade' : 'unidades'}|">Lote registrado</h3>
-                        <p>Os valores de custo e preço do histórico são por unidade.</p>
+                        <h3>Resumo do lote</h3>
+                        <p>Totais estimados para toda a quantidade registrada.</p>
+                    </div>
+                    <div class="resumo-lote-indicadores">
+                        <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
+                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'fornada' : 'fornadas'}">fornadas</small></span>
                     </div>
                 </div>
-                <div class="detalhes-conteudo">
-                    <div class="detalhe-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                <div class="detalhes-conteudo resumo-lote-grade">
+                    <div class="detalhe-item resumo-lote-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-destaque"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-lucro"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
                 </div>
                 <div class="formulario-acoes">
                     <a th:href="@{/historico/{id}/orcamento(id=${historico.id})}" class="botao botao-principal">
@@ -374,7 +383,12 @@
     </section>
 
     <div class="detalhes-acoes">
-        <a th:href="@{/historico/listar}" class="botao-voltar">Voltar ao histórico</a>
+        <div>
+            <button type="button" class="botao botao-secundario" data-recalculo-bloqueado>
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Recalcular com valores atuais
+            </button>
+        </div>
+        <a th:href="@{/historico/listar}" class="botao botao-secundario botao-voltar" data-turbo="false">Voltar ao histórico</a>
     </div>
 
     <!-- MODAL DA FOTO DA PEÇA -->
@@ -383,7 +397,7 @@
          role="dialog"
          aria-modal="true"
          aria-label="Foto ampliada da peça"
-         th:if="${historico.fotoPecaBase64 != null and !#strings.isEmpty(historico.fotoPecaBase64)}"
+         th:if="${historico.temFoto}"
          hidden>
 
         <button type="button"

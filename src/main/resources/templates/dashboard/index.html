@@ -75,7 +75,7 @@
             <p class="dashboard-vazio dashboard-rosca-vazia" th:if="${vendasPlataformas == 0}">Ainda não há vendas marcadas como vendidas no período.</p>
             <div class="dashboard-plataforma-legenda" th:if="${vendasPlataformas > 0}">
                 <div th:each="item : ${lucrosPorPlataforma}">
-                    <span><i th:style="|background: ${item.cor}|"></i><span th:text="${item.nome}">Shopee</span></span>
+                    <span><i th:style="|background: var(${item.cor})|"></i><span th:text="${item.nome}">Shopee</span></span>
                     <strong th:text="|R$ ${#numbers.formatDecimal(item.lucro, 1, 'POINT', 0, 'COMMA')} · ${item.vendas} vendas|">R$ 0 · 0 vendas</strong>
                 </div>
             </div>
@@ -102,11 +102,11 @@
             <div class="dashboard-bloco-titulo"><div><h2>Para onde vai o custo</h2><p>Média do período</p></div></div>
             <div class="dashboard-custos-trilho" th:if="${totalCustos.signum() > 0}" role="img" aria-label="Composição dos custos">
                 <span th:each="item : ${composicaoCustos}" th:if="${item.percentual > 0}"
-                      th:style="|width: ${item.percentual}%; background: ${item.cor}|"></span>
+                      th:style="|width: ${item.percentual}%; background: var(${item.cor})|"></span>
             </div>
             <div class="dashboard-legenda-custos" th:if="${totalCustos.signum() > 0}">
                 <div th:each="item : ${composicaoCustos}" th:if="${item.valor.signum() > 0}">
-                    <span><i th:style="|background: ${item.cor}|"></i><span th:text="|${item.nome} ${item.percentual}%|">Filamento 0%</span></span>
+                    <span><i th:style="|background: var(${item.cor})|"></i><span th:text="|${item.nome} ${item.percentual}%|">Filamento 0%</span></span>
                 </div>
             </div>
             <p class="dashboard-vazio" th:if="${totalCustos.signum() == 0}">Marque cálculos como produzidos para acompanhar a composição dos custos.</p>

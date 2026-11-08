@@ -20,6 +20,7 @@ import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.ItemCalculoHistorico;
 import br.com.criare3d.dto.CompraFilamentoRequest;
+import br.com.criare3d.dto.DashboardResumo;
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.ConfiguracaoRepository;
@@ -163,16 +164,14 @@ class Criare3dApplicationTests {
 		calculoHistoricoRepository.saveAndFlush(calculo);
 
 		try {
-			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
-					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1)))
-					.isEqualByComparingTo("75.00");
-			assertThat(calculoHistoricoRepository.contarVendasEntre(
-					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1))).isEqualTo(3);
-			assertThat(calculoHistoricoRepository.somarMinutosDasVendasEntre(
-					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1))).isEqualTo(180L);
-			assertThat(calculoHistoricoRepository.somarLucroVendidoEntre(
-					usuario.getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)))
-					.isEqualByComparingTo("0.00");
+		DashboardResumo resumoVenda = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
+					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1)));
+			assertThat(resumoVenda.vendidas()).isEqualTo(3);
+			assertThat(resumoVenda.lucroVendido()).isEqualByComparingTo("75.00");
+			assertThat(resumoVenda.minutosVendidos()).isEqualTo(180L);
+			DashboardResumo resumoDataCalculo = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
+					usuario.getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
+			assertThat(resumoDataCalculo.lucroVendido()).isEqualByComparingTo("0.00");
 			assertThat(calculoHistoricoRepository.primeiraVendaComLucro(usuario.getId()))
 					.isEqualTo(dataVenda);
 		} finally {

@@ -98,6 +98,16 @@
             campo.value = valor ?? "";
         });
 
+        // Rascunhos criados antes do campo de fornadas devem manter o comportamento antigo:
+        // uma fornada por unidade.
+        if (campos?.fornadas === undefined && campos?.unidades !== undefined) {
+            const fornadas = formulario.elements.namedItem("fornadas");
+            if (fornadas) {
+                fornadas.value = campos.unidades;
+                fornadas.dataset.fornadasManual = "false";
+            }
+        }
+
         formulario.querySelectorAll("select").forEach(campo => {
             campo.dispatchEvent(new Event("change", { bubbles: true }));
         });
@@ -154,21 +164,8 @@
     }
 
     function restaurarFoto() {
-        const base64 = document.getElementById("fotoPecaBase64")?.value;
-        const contentType = document.getElementById("fotoPecaContentType")?.value;
-
-        if (!base64 || !contentType) return;
-
-        const miniatura = document.getElementById("fotoPecaMiniatura");
-        const preview = document.getElementById("fotoPecaPreview");
-        const controle = document.getElementById("fotoPecaControle");
-
-        if (miniatura) {
-            miniatura.src = `data:${contentType};base64,${base64}`;
-        }
-
-        preview?.classList.add("visivel");
-        controle?.classList.add("com-foto");
+        // Arquivos de foto não são guardados no rascunho local; o servidor mantém a foto
+        // temporária durante o fluxo calcular -> resultado -> salvar.
     }
 
     function aplicarCadastrosRecentes() {
@@ -295,6 +292,12 @@
             sessionStorage.removeItem(CHAVE_RASCUNHO);
         }
 
+        // Ao reabrir um cálculo salvo para recalcular com preços atuais, os dados
+        // carregados pelo servidor devem prevalecer sobre um rascunho anterior.
+        if (parametros.has("editar")) {
+            sessionStorage.removeItem(CHAVE_RASCUNHO);
+        }
+
         const respostaCalculoComErro =
             document.getElementById("respostaCalculoComErro")?.value === "true";
 
@@ -304,7 +307,7 @@
             sessionStorage.removeItem(CHAVE_RASCUNHO);
         }
 
-        const salvo = respostaCalculoComErro
+        const salvo = respostaCalculoComErro || parametros.has("editar")
             ? null
             : sessionStorage.getItem(CHAVE_RASCUNHO);
 

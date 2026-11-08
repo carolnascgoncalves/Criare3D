@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title th:text="${titulo}">Criare 3D</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/criare3d-128.jpg}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
@@ -14,8 +15,8 @@
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <link th:href="@{/css/style.css(v=28)}" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/cssCalculo.css(v=36)}">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
 
     <meta name="turbo-cache-control" content="no-preview">
 
@@ -23,31 +24,37 @@
     <meta name="csrf-token" th:content="${_csrf.token}">
 
     <script defer src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.js"></script>
-    <script th:src="@{/js/dashboardCharts.js(v=3)}" defer></script>
+    <script th:src="@{/js/dashboardCharts.js}" defer></script>
+    <script th:src="@{/js/menuMobile.js}" defer></script>
 
-    <script th:src="@{/js/placeholders.js(v=1)}" defer></script>
-    <script th:src="@{/js/configuracao.js(v=8)}" defer></script>
-    <script th:src="@{/js/notificacoes.js(v=7)}" defer></script>
-    <script th:src="@{/js/selecaoListagem.js(v=2)}" defer></script>
-    <script th:src="@{/js/restaurarRolagem.js(v=4)}" defer></script>
-    <script th:src="@{/js/validacaoInline.js(v=2)}" defer></script>
-    <script th:src="@{/js/calculoEtapas.js(v=7)}" defer></script>
-    <script th:src="@{/js/filamentosCalculo.js(v=8)}" defer></script>
-    <script th:src="@{/js/rascunhoCalculo.js(v=8)}" defer></script>
-    <script th:src="@{/js/mercadoLivreFrete.js(v=1)}" defer></script>
-    <script th:src="@{/js/detalhesHistorico.js(v=2)}" defer></script>
-    <script th:src="@{/js/ordenacaoListagem.js(v=2)}" defer></script>
+    <script th:src="@{/js/placeholders.js}" defer></script>
+    <script th:src="@{/js/configuracao.js}" defer></script>
+    <script th:src="@{/js/notificacoes.js}" defer></script>
+    <script th:src="@{/js/selecaoListagem.js}" defer></script>
+    <script th:src="@{/js/restaurarRolagem.js}" defer></script>
+    <script th:src="@{/js/validacaoInline.js}" defer></script>
+    <script th:src="@{/js/calculoEtapas.js}" defer></script>
+    <script th:src="@{/js/filamentosCalculo.js}" defer></script>
+    <script th:src="@{/js/rascunhoCalculo.js}" defer></script>
+    <script th:src="@{/js/mercadoLivreFrete.js}" defer></script>
+    <script th:src="@{/js/detalhesHistorico.js}" defer></script>
+    <script th:src="@{/js/orcamento.js}" defer></script>
+    <script th:src="@{/js/ordenacaoListagem.js}" defer></script>
 </head>
 
 <body>
 
 <nav th:fragment="menu" class="menu-principal">
     <a th:href="@{/}" class="marca">
-        <img th:src="@{/images/criare3d.jpg}" alt="Criare 3D" class="marca-icone">
+        <img th:src="@{/images/criare3d-128.jpg}" alt="Criare 3D" class="marca-icone"
+             width="42" height="42" decoding="async">
         <span>Criare 3D</span>
     </a>
 
     <div class="menu-links">
+    <details class="menu-links-dropdown" open>
+        <summary class="menu-links-resumo"><i class="bi bi-list" aria-hidden="true"></i> Menu</summary>
+        <div class="menu-links-opcoes">
         <a th:href="@{/}" class="menu-link" th:classappend="${paginaAtiva == 'inicio' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'inicio' ? 'page' : null}">Início</a>
         <a th:href="@{/dashboard}" class="menu-link" th:classappend="${paginaAtiva == 'dashboard' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'dashboard' ? 'page' : null}">Dashboard</a>
         <a th:href="@{/peca/listar}" class="menu-link" th:classappend="${paginaAtiva == 'pecas' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'pecas' ? 'page' : null}">Peças</a>
@@ -62,10 +69,12 @@
            th:classappend="${paginaAtiva == 'usuarios' ? ' menu-link-ativo' : ''}"
            th:attr="aria-current=${paginaAtiva == 'usuarios' ? 'page' : null}">Usuários</a>
 
-        <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
-            <i class="bi bi-calculator"></i>
-            Calcular peça
-        </a>
+        </div>
+    </details>
+    <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
+        <i class="bi bi-calculator"></i>
+        Calcular peça
+    </a>
     </div>
 
     <div class="menu-acoes">

@@ -8,6 +8,7 @@ import java.util.Map;
 
 /** Cria paginação usando apenas opções de ordenação definidas pelo servidor. */
 public final class OrdenacaoPaginada {
+    private static final int TAMANHO_MAXIMO = 50;
 
     private OrdenacaoPaginada() {
     }
@@ -18,6 +19,7 @@ public final class OrdenacaoPaginada {
 
     public static Pageable aplicar(Pageable pageable, String ordem, Map<String, Sort> opcoes) {
         Sort sort = opcoes.get(ordem).and(Sort.by(Sort.Order.asc("id")));
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        int tamanho = Math.max(1, Math.min(pageable.getPageSize(), TAMANHO_MAXIMO));
+        return PageRequest.of(pageable.getPageNumber(), tamanho, sort);
     }
 }

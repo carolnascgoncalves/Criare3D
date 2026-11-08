@@ -64,7 +64,7 @@
 
         const aviso = document.createElement('div');
 
-        aviso.className = `alerta-${tipo} notificacao-flutuante`;
+        aviso.className = `${tipo === 'info' ? 'aviso-info' : `alerta-${tipo}`} notificacao-flutuante`;
         aviso.setAttribute('role', tipo === 'erro' ? 'alert' : 'status');
         aviso.textContent = mensagem;
 
