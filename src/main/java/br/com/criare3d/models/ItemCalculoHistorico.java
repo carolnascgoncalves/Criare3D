@@ -36,7 +36,11 @@ public class ItemCalculoHistorico {
     @Column(name = "quantidade_item", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
 
-    @Column(name = "custoFilamento_item", nullable = false, precision = 10, scale = 2)
+    @Column(name = "purga_gramas_item", nullable = false, precision = 12, scale = 6)
+    @Builder.Default
+    private @Getter @Setter BigDecimal purgaGramas = BigDecimal.ZERO;
+
+    @Column(name = "custoFilamento_item", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoFilamento;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

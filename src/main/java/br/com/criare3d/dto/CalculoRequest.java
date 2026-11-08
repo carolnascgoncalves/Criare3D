@@ -30,10 +30,10 @@ public class CalculoRequest {
     @Max(value = 10000, message = "A quantidade máxima é 10.000 unidades.")
     private Integer unidades = 1;
 
-    @NotNull(message = "Informe quantas fornadas de impressão serão necessárias.")
-    @Min(value = 1, message = "Deve haver pelo menos 1 fornada.")
-    @Max(value = 10000, message = "O máximo é 10.000 fornadas.")
-    private Integer fornadas = 1;
+    @NotNull(message = "Informe quantas peças cabem em cada impressão.")
+    @Min(value = 1, message = "A capacidade mínima é 1 peça por impressão.")
+    @Max(value = 10000, message = "A capacidade máxima é 10.000 peças por impressão.")
+    private Integer pecasPorImpressao = 1;
 
     private byte[] fotoPecaBytes;
 
@@ -94,7 +94,7 @@ public class CalculoRequest {
                 .quantidadeFilamentoGramas(request.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(request.getTempoImpressaoMinutos())
                 .unidades(request.getUnidades())
-                .fornadas(request.getFornadas())
+                .pecasPorImpressao(request.getPecasPorImpressao())
                 .markupPercentual(request.getMarkupPercentual())
                 .build();
     }

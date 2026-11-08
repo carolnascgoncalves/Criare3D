@@ -13,35 +13,56 @@ function inicializarCalculoEtapas() {
     const pecaSelect = document.getElementById("pecaId");
     const tempoInput = document.getElementById("tempoImpressaoMinutos");
     const unidadesInput = document.getElementById("unidades");
-    const fornadasInput = document.getElementById("fornadas");
+    const pecasPorImpressaoInput = document.getElementById("pecasPorImpressao");
     const impressoraSelect = document.getElementById("impressoraId");
     const embalagemSelect = document.getElementById("embalagemId");
     const listaFilamentos = document.getElementById("listaFilamentos");
     const plataformaSelect = document.getElementById("plataformaVenda");
     const blocosPlataforma = document.querySelectorAll("[data-opcoes-plataforma]");
 
-    function atualizarLimiteFornadas(sincronizar = false) {
-        if (!unidadesInput || !fornadasInput) return;
-        const unidades = Math.max(1, Number(unidadesInput.value) || 1);
-        fornadasInput.max = String(unidades);
-        if (sincronizar && fornadasInput.dataset.fornadasManual !== "true") {
-            fornadasInput.value = String(unidades);
-        }
-        fornadasInput.setCustomValidity(
-            Number(fornadasInput.value) > unidades
-                ? "O número de fornadas não pode ser maior que a quantidade de unidades."
-                : ""
-        );
+    function numeroImpressoes() {
+        const unidades = Math.max(1, Number(unidadesInput?.value) || 1);
+        const capacidade = Math.max(1, Number(pecasPorImpressaoInput?.value) || 1);
+        return Math.ceil(unidades / capacidade);
     }
 
-    atualizarLimiteFornadas(true);
+    function atualizarResumoProducao(atualizarTempo = false) {
+        const unidades = Math.max(1, Number(unidadesInput?.value) || 1);
+        const capacidade = Math.max(1, Number(pecasPorImpressaoInput?.value) || 1);
+        const impressoes = numeroImpressoes();
+        const resumo = document.getElementById("resumoImpressoes");
+        if (resumo) {
+            const tamanhos = Array.from({length: impressoes}, (_, i) =>
+                Math.min(capacidade, Math.max(0, unidades - i * capacidade)));
+            resumo.textContent = `${unidades} ${unidades === 1 ? "unidade" : "unidades"} → ${impressoes} ${impressoes === 1 ? "impressão" : "impressões"} (${tamanhos.join(" + ")})`;
+        }
+        const previsto = Number(pecaSelect?.selectedOptions[0]?.dataset.tempo) || 0;
+        if (atualizarTempo && tempoInput && tempoInput.dataset.tempoManual !== "true" && previsto > 0) {
+            tempoInput.value = String(previsto * Math.min(capacidade, unidades));
+        }
+        const uni = document.getElementById("previaUnidades");
+        const imp = document.getElementById("previaImpressoes");
+        const temp = document.getElementById("previaTempo");
+        if (uni) uni.textContent = `${unidades} ${unidades === 1 ? "unidade" : "unidades"}`;
+        if (imp) imp.textContent = `${impressoes} ${impressoes === 1 ? "impressão" : "impressões"}`;
+        if (temp) temp.textContent = `${(Number(tempoInput?.value) || 0) * impressoes} min de máquina`;
+        const material = document.getElementById("previaMaterial");
+        if (material) {
+            const gramas = [...(listaFilamentos?.querySelectorAll("[data-filamento-item]") || [])]
+                .filter(item => item.dataset.confirmado === "true")
+                .reduce((total, item) => total + (Number(item.querySelector("[data-campo-quantidade]")?.value) || 0), 0)
+                * unidades;
+            material.textContent = `${new Intl.NumberFormat("pt-BR", {maximumFractionDigits: 1}).format(gramas)} g${gramas > 0 ? " + purga estimada" : ""}`;
+        }
+        atualizarResumoTempo();
+    }
+
     unidadesInput?.addEventListener("input", () => {
-        atualizarLimiteFornadas(true);
+        atualizarResumoProducao(true);
         salvarRascunho();
     });
-    fornadasInput?.addEventListener("input", event => {
-        if (event.isTrusted) fornadasInput.dataset.fornadasManual = "true";
-        atualizarLimiteFornadas();
+    pecasPorImpressaoInput?.addEventListener("input", () => {
+        atualizarResumoProducao(true);
         salvarRascunho();
     });
 
@@ -70,6 +91,10 @@ function inicializarCalculoEtapas() {
 
         if (salvar) {
             salvarRascunho();
+        }
+        if (numero >= 3) {
+            clearTimeout(temporizadorPrevia);
+            temporizadorPrevia = setTimeout(atualizarPreviaCustos, 150);
         }
     }
 
@@ -210,8 +235,8 @@ function inicializarCalculoEtapas() {
                 return false;
             }
 
-            if (fornadasInput && !fornadasInput.checkValidity()) {
-                focarCampo(fornadasInput);
+            if (pecasPorImpressaoInput && !pecasPorImpressaoInput.checkValidity()) {
+                focarCampo(pecasPorImpressaoInput);
                 salvarRascunho();
                 return false;
             }
@@ -296,7 +321,10 @@ function inicializarCalculoEtapas() {
         }
 
         if (tempoInput) {
-            tempoInput.value = opcao.dataset.tempo || "";
+            tempoInput.dataset.tempoManual = "false";
+            tempoInput.value = (Number(opcao.dataset.tempo) || 0)
+                * Math.min(Math.max(1, Number(pecasPorImpressaoInput?.value) || 1),
+                    Math.max(1, Number(unidadesInput?.value) || 1)) || "";
         }
 
 
@@ -313,7 +341,9 @@ function inicializarCalculoEtapas() {
         if (!resumoTempo || !statusTempo || !tempoInput || !pecaSelect) return;
 
         const opcao = pecaSelect.selectedOptions[0];
-        const previsto = Number(opcao?.dataset.tempo) || 0;
+        const previsto = (Number(opcao?.dataset.tempo) || 0)
+            * Math.min(Math.max(1, Number(pecasPorImpressaoInput?.value) || 1),
+                Math.max(1, Number(unidadesInput?.value) || 1));
         const informado = Number(tempoInput.value) || 0;
 
         if (!pecaSelect.value || previsto <= 0 || informado <= 0) {
@@ -323,7 +353,7 @@ function inicializarCalculoEtapas() {
 
         resumoTempo.hidden = false;
         tempoInformadoResumo.textContent = `${informado} min`;
-        tempoPrevistoResumo.textContent = `${previsto} min`;
+        tempoPrevistoResumo.textContent = `${previsto} min por impressão`;
 
         let classe;
         let mensagem;
@@ -354,11 +384,55 @@ function inicializarCalculoEtapas() {
             const tempoTrabalhoInput = document.getElementById("tempoTrabalhoMinutos");
             if (tempoTrabalhoInput) tempoTrabalhoInput.value = "";
         }
-        atualizarResumoTempo();
+        atualizarResumoProducao(false);
     });
 
-    tempoInput?.addEventListener("input", atualizarResumoTempo);
+    tempoInput?.addEventListener("input", event => {
+        if (event.isTrusted) tempoInput.dataset.tempoManual = "true";
+        atualizarResumoProducao(false);
+        atualizarResumoTempo();
+    });
     atualizarResumoTempo();
+    // A comparação de tempo já está inicializada; agora podemos atualizar
+    // o resumo sem interromper a configuração dos eventos abaixo.
+    atualizarResumoProducao(true);
+
+    const custoPrevio = document.getElementById("previaCustoUnidade");
+    let temporizadorPrevia;
+    async function atualizarPreviaCustos() {
+        if (!custoPrevio || etapaAtual < 3) return;
+        const dados = new FormData(formulario);
+        // A foto não altera o custo e não deve ser reenviada em cada prévia.
+        dados.delete("fotoPeca");
+        dados.delete("fotoRemovida");
+        try {
+            const resposta = await fetch("/historico/previa", {
+                method: "POST",
+                body: dados,
+                headers: {"X-Requested-With": "XMLHttpRequest"}
+            });
+            if (!resposta.ok) return;
+            const valores = await resposta.json();
+            custoPrevio.textContent = new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL"})
+                .format(Number(valores.custoUnidade));
+            const lote = document.getElementById("previaCustoLote");
+            if (lote) lote.textContent = new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL"})
+                .format(Number(valores.custoLote));
+        } catch (_) {
+            // A prévia é informativa; a conclusão do cálculo continua disponível.
+        }
+    }
+    formulario.addEventListener("input", () => {
+        clearTimeout(temporizadorPrevia);
+        temporizadorPrevia = setTimeout(atualizarPreviaCustos, 600);
+    });
+    formulario.addEventListener("change", () => {
+        clearTimeout(temporizadorPrevia);
+        temporizadorPrevia = setTimeout(atualizarPreviaCustos, 600);
+    });
+    formulario.addEventListener("click", event => {
+        if (event.target.closest?.("[data-confirmar-filamento]")) atualizarResumoProducao(false);
+    });
 
     function configurarCadastroRapido(idSelect, rota) {
         const select = document.getElementById(idSelect);

@@ -29,7 +29,7 @@
                 <div class="detalhes-identificacao-texto">
                     <span class="detalhes-etiqueta">PEÇA</span>
                     <h2 th:text="${historico.nomePeca}">Nome da peça</h2>
-                    <span class="texto-apoio" th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'} em ${fornadas} ${fornadas == 1 ? 'fornada' : 'fornadas'}|">1 unidade em 1 fornada</span>
+                    <span class="texto-apoio" th:text="|${unidades} ${unidades == 1 ? 'unidade' : 'unidades'} em ${fornadas} ${fornadas == 1 ? 'impressão' : 'impressões'}|">1 unidade em 1 impressão</span>
                 </div>
 
             </div>
@@ -93,15 +93,20 @@
                     </div>
 
                     <div class="detalhes-item">
-                        <span>Tempo por fornada</span>
+                        <span>Tempo por impressão</span>
                         <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">
                             3h 20min
                         </strong>
                     </div>
 
                     <div class="detalhes-item">
-                        <span>Fornadas de impressão</span>
-                        <strong th:text="${fornadas + ' (' + (historico.tempoImpressaoMinutos * fornadas) + ' min no total)'}">1 fornada</strong>
+                        <span>Impressões necessárias</span>
+                        <strong th:text="${fornadas + ' (' + ((historico.tempoImpressaoMinutos + historico.tempoAquecimentoMinutos) * fornadas) + ' min incluindo aquecimento)'}">1 impressão</strong>
+                    </div>
+
+                    <div class="detalhes-item">
+                        <span>Peças por impressão</span>
+                        <strong th:text="${historico.pecasPorImpressao}">1</strong>
                     </div>
 
                     <div class="detalhes-item">
@@ -115,6 +120,7 @@
 
             <section class="detalhes-secao">
                 <h3>Composição dos custos</h3>
+                <p class="texto-apoio">Os valores desta composição são por unidade; o resumo abaixo mostra os totais do lote.</p>
 
                 <div class="detalhes-custos-grupo">
                     <h4>Custos da peça</h4>
@@ -127,8 +133,15 @@
                     </div>
                     <div class="detalhes-custo">
                         <div class="detalhes-custo-info">
+                            <strong>Purga estimada</strong>
+                            <span th:text="${historico.purgaGramasPorImpressao != null and historico.purgaGramasPorImpressao.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? #numbers.formatDecimal(historico.purgaGramasPorImpressao.multiply(T(java.math.BigDecimal).valueOf(fornadas)), 1, 'COMMA', 2, 'POINT') + ' g no lote' : 'Não incluída neste cálculo'}">Purga</span>
+                        </div>
+                        <strong class="detalhes-valor" th:text="${historico.custoPurga != null and historico.custoPurga.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 'R$ ' + #numbers.formatDecimal(historico.custoPurga, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
+                    </div>
+                    <div class="detalhes-custo">
+                        <div class="detalhes-custo-info">
                             <strong>Custo de energia</strong>
-                            <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 2, 'POINT') + '/kWh' : 'Tarifa não informada'}">Tarifa de energia</span>
+                            <span th:text="${historico.tarifaEnergiaKwh != null ? 'Tarifa de R$ ' + #numbers.formatDecimal(historico.tarifaEnergiaKwh, 1, 'COMMA', 2, 'POINT') + '/kWh; ' + fornadas + ' impressões com aquecimento' : 'Tarifa não informada'}">Tarifa de energia</span>
                         </div>
                         <strong class="detalhes-valor" th:text="${historico.custoEnergia != null ? 'R$ ' + #numbers.formatDecimal(historico.custoEnergia, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">R$ 0,00</strong>
                     </div>
@@ -146,7 +159,7 @@
                     <div class="detalhes-custo">
                         <div class="detalhes-custo-info">
                             <strong>Mão de obra</strong>
-                            <span th:text="${historico.custoMaoObra != null ? (historico.maoObraAtivada == true ? historico.tempoTrabalhoMinutos + ' min × R$ ' + #numbers.formatDecimal(historico.valorMaoObraHora, 1, 'POINT', 2, 'COMMA') + '/h' : 'Não incluída neste cálculo') : '—'}">—</span>
+                            <span th:text="${historico.custoMaoObra != null ? (historico.maoObraAtivada == true ? historico.tempoTrabalhoMinutos + ' min da encomenda ÷ ' + unidades + ' unidades; R$ ' + #numbers.formatDecimal(historico.valorMaoObraHora, 1, 'POINT', 2, 'COMMA') + '/h' : 'Não incluída neste cálculo') : '—'}">—</span>
                         </div>
                         <strong class="detalhes-valor" th:text="${historico.maoObraAtivada == true and historico.custoMaoObra != null ? 'R$ ' + #numbers.formatDecimal(historico.custoMaoObra, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>
@@ -160,7 +173,7 @@
                     <div class="detalhes-custo">
                         <div class="detalhes-custo-info">
                             <strong>Manutenção da impressora</strong>
-                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal(historico.tempoImpressaoMinutos * fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total' : '—'}">—</span>
+                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal((historico.tempoImpressaoMinutos + historico.tempoAquecimentoMinutos) * fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total' : '—'}">—</span>
                         </div>
                         <strong class="detalhes-valor" th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.custoManutencao, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>
@@ -203,7 +216,7 @@
                     </div>
                     <div class="resumo-lote-indicadores">
                         <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
-                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'fornada' : 'fornadas'}">fornadas</small></span>
+                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'impressão' : 'impressões'}">impressões</small></span>
                     </div>
                 </div>
                 <div class="detalhes-conteudo resumo-lote-grade">

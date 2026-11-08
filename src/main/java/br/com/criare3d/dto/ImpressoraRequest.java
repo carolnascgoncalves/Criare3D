@@ -38,6 +38,10 @@ public class ImpressoraRequest {
     @DecimalMin(value = "0.0", message = "A vida útil não pode ser negativa")
     private @Getter @Setter BigDecimal vidaUtilHoras;
 
+    @jakarta.validation.constraints.Min(value = 0, message = "O aquecimento não pode ser negativo.")
+    @jakarta.validation.constraints.Max(value = 10000, message = "O aquecimento deve ser de até 10.000 minutos.")
+    private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
+
     @AssertTrue(message = "Para calcular o custo da máquina, informe o valor de compra e uma vida útil maior que zero.")
     public boolean isDadosDepreciacaoValidos() {
         boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
@@ -52,6 +56,7 @@ public class ImpressoraRequest {
                 .potenciaWatts(impressora.getPotenciaWatts())
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
+                .tempoAquecimentoMinutos(impressora.getTempoAquecimentoMinutos())
                 .build();
     }
 
@@ -62,6 +67,7 @@ public class ImpressoraRequest {
                 .potenciaWatts(dto.getPotenciaWatts())
                 .valorCompra(dto.getValorCompra())
                 .vidaUtilHoras(dto.getVidaUtilHoras())
+                .tempoAquecimentoMinutos(dto.getTempoAquecimentoMinutos() == null ? 0 : dto.getTempoAquecimentoMinutos())
                 .build();
     }
 }

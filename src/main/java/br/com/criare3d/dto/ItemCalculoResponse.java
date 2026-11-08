@@ -21,6 +21,7 @@ public class ItemCalculoResponse {
     private BigDecimal precoRoloFilamento;
     private BigDecimal pesoRoloGramas;
     private BigDecimal quantidadeFilamentoGramas;
+    private BigDecimal purgaGramas;
     private BigDecimal custoFilamento;
     private BigDecimal precoRoloAtual;
     private BigDecimal pesoRoloAtual;
@@ -34,6 +35,7 @@ public class ItemCalculoResponse {
                 .precoRoloFilamento(item.getPrecoRoloFilamento())
                 .pesoRoloGramas(item.getPesoRoloGramas())
                 .quantidadeFilamentoGramas(item.getQuantidadeFilamentoGramas())
+                .purgaGramas(item.getPurgaGramas())
                 .custoFilamento(item.getCustoFilamento())
                 .precoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPrecoRolo())
                 .pesoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPesoRoloGramas())

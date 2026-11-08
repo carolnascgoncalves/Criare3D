@@ -22,7 +22,7 @@ class CalculoFinanceiroTest {
     }
 
     @Test
-    void calculaCustosDeProducaoComArredondamentoMonetario() {
+    void mantémPrecisaoInternaEApenasArredondaOResultadoFinal() {
         BigDecimal filamento = new BigDecimal("10.00");
         BigDecimal energia = CalculoFinanceiro.energia(
                 new BigDecimal("220"), 300, new BigDecimal("0.68"));
@@ -33,17 +33,40 @@ class CalculoFinanceiroTest {
                 new BigDecimal("2500"), new BigDecimal("5000"), 300);
         BigDecimal manutencao = CalculoFinanceiro.manutencao(new BigDecimal("0.20"), 300);
 
-        BigDecimal total = CalculoFinanceiro.moeda(filamento.add(energia).add(embalagem)
-                .add(falha).add(maoDeObra).add(depreciacao).add(manutencao));
+        BigDecimal total = filamento.add(energia).add(embalagem)
+                .add(falha).add(maoDeObra).add(depreciacao).add(manutencao);
 
-        assertThat(energia).isEqualByComparingTo("0.75");
-        assertThat(falha).isEqualByComparingTo("1.08");
+        assertThat(CalculoFinanceiro.moeda(energia)).isEqualByComparingTo("0.75");
+        assertThat(CalculoFinanceiro.moeda(falha)).isEqualByComparingTo("1.07");
         assertThat(maoDeObra).isEqualByComparingTo("5.00");
         assertThat(depreciacao).isEqualByComparingTo("2.50");
         assertThat(manutencao).isEqualByComparingTo("1.00");
-        assertThat(total).isEqualByComparingTo("22.33");
+        assertThat(CalculoFinanceiro.moeda(total)).isEqualByComparingTo("22.32");
         assertThat(CalculoFinanceiro.markup(total, new BigDecimal("100")))
-                .isEqualByComparingTo("44.66");
+                .isEqualByComparingTo("44.65");
+    }
+
+    @Test
+    void rateiaMaoDeObraDoLotePorDezUnidadesSemMultiplicarOCusto() {
+        BigDecimal maoDeObraDoLote = CalculoFinanceiro.maoDeObra(new BigDecimal("20"), 15);
+        BigDecimal maoDeObraPorUnidade = CalculoFinanceiro.ratear(maoDeObraDoLote, 10);
+
+        assertThat(maoDeObraPorUnidade).isEqualByComparingTo("0.50000000");
+        assertThat(maoDeObraPorUnidade.multiply(BigDecimal.TEN))
+                .isEqualByComparingTo("5.00000000");
+    }
+
+    @Test
+    void conservaCentavosFracionariosDeEnergiaAoRatearUmLote() {
+        BigDecimal custoEnergiaLote = CalculoFinanceiro.energia(
+                new BigDecimal("220"), 1, new BigDecimal("0.68"));
+        BigDecimal custoPorUnidade = CalculoFinanceiro.ratear(custoEnergiaLote, 10);
+
+        assertThat(custoEnergiaLote).isEqualByComparingTo("0.00249333");
+        assertThat(custoPorUnidade).isEqualByComparingTo("0.00024933");
+        assertThat(CalculoFinanceiro.moeda(custoPorUnidade)).isEqualByComparingTo("0.00");
+        assertThat(custoPorUnidade.multiply(BigDecimal.TEN))
+                .isEqualByComparingTo("0.00249330");
     }
 
     @Test
@@ -58,5 +81,27 @@ class CalculoFinanceiroTest {
     void arredondaMeioCentavoParaCima() {
         assertThat(CalculoFinanceiro.moeda(new BigDecimal("1.075")))
                 .isEqualByComparingTo("1.08");
+    }
+
+    @Test
+    void calculaTresImpressoesParaDezUnidadesComQuatroPecasPorImpressao() {
+        int impressoes = ModeloImpressao.quantidadeImpressoes(10, 4);
+
+        assertThat(impressoes).isEqualTo(3);
+        assertThat(ModeloImpressao.minutosTotais(240, 5, impressoes)).isEqualTo(735);
+    }
+
+    @Test
+    void calculadoraRateiaMaoDeObraEConservaEnergiaFracionariaDoLote() {
+        CalculadoraProducao.Resultado resultado = CalculadoraProducao.calcular(
+                new CalculadoraProducao.Entrada(10, new BigDecimal("2.00"), BigDecimal.ZERO,
+                        new BigDecimal("0.00249333"), BigDecimal.ZERO, new BigDecimal("5.00"),
+                        BigDecimal.ZERO, BigDecimal.ZERO, false, BigDecimal.ZERO,
+                        new BigDecimal("100")));
+
+        assertThat(resultado.custoMaoObra()).isEqualByComparingTo("0.50000000");
+        assertThat(resultado.custoEnergia()).isEqualByComparingTo("0.00024933");
+        assertThat(resultado.custoTotal()).isEqualByComparingTo("2.50024933");
+        assertThat(resultado.precoSugerido()).isEqualByComparingTo("5.00");
     }
 }

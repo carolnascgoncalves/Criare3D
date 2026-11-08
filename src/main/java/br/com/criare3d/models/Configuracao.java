@@ -67,6 +67,10 @@ public class Configuracao {
     @Column(name = "percentual_falha", precision = 5, scale = 2)
     private @Getter @Setter BigDecimal percentualFalha;
 
+    @Column(name = "purga_gramas_por_impressao", nullable = false, precision = 12, scale = 6)
+    @Builder.Default
+    private @Getter @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private @Getter @Setter Usuario usuario;

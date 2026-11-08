@@ -25,10 +25,13 @@ public class CalculoResponse {
     private BigDecimal quantidadeFilamentoGramas;
     private Integer unidades;
     private Integer fornadas;
+    private Integer pecasPorImpressao;
 
     private String nomeImpressora;
     private BigDecimal potenciaWatts;
     private Long tempoImpressaoMinutos;
+    private Integer tempoAquecimentoMinutos;
+    private BigDecimal purgaGramasPorImpressao;
     private Long tempoTrabalhoMinutos;
     private BigDecimal tarifaEnergiaKwh;
 
@@ -38,6 +41,7 @@ public class CalculoResponse {
     private BigDecimal custoDepreciacao;
     private BigDecimal custoManutencao;
     private BigDecimal custoFalha;
+    private BigDecimal custoPurga;
     private Boolean maoObraAtivada;
     private Boolean depreciacaoAtivada;
     private Boolean taxaFalhaAtivada;
@@ -95,9 +99,12 @@ public class CalculoResponse {
                 .quantidadeFilamentoGramas(calculo.getQuantidadeFilamentoGramas())
                 .unidades(calculo.getUnidades() == null ? 1 : calculo.getUnidades())
                 .fornadas(calculo.getFornadas() == null ? 1 : calculo.getFornadas())
+                .pecasPorImpressao(calculo.getPecasPorImpressao() == null ? 1 : calculo.getPecasPorImpressao())
                 .nomeImpressora(calculo.getNomeImpressora())
                 .potenciaWatts(calculo.getPotenciaWatts())
                 .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
+                .tempoAquecimentoMinutos(calculo.getTempoAquecimentoMinutos() == null ? 0 : calculo.getTempoAquecimentoMinutos())
+                .purgaGramasPorImpressao(calculo.getPurgaGramasPorImpressao())
                 .tempoTrabalhoMinutos(calculo.getTempoTrabalhoMinutos())
                 .tarifaEnergiaKwh(calculo.getTarifaEnergiaKwh())
                 .custoFilamento(calculo.getCustoFilamento())
@@ -106,6 +113,7 @@ public class CalculoResponse {
                 .custoDepreciacao(calculo.getCustoDepreciacao())
                 .custoManutencao(calculo.getCustoManutencao())
                 .custoFalha(calculo.getCustoFalha())
+                .custoPurga(calculo.getCustoPurga())
                 .maoObraAtivada(calculo.getMaoObraAtivada())
                 .depreciacaoAtivada(calculo.getDepreciacaoAtivada())
                 .taxaFalhaAtivada(calculo.getTaxaFalhaAtivada())

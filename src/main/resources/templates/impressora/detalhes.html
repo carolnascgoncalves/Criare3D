@@ -56,6 +56,11 @@
             </div>
 
             <div class="detalhe-item">
+                <span>Aquecimento antes de imprimir</span>
+                <strong th:text="${(impressora.tempoAquecimentoMinutos != null ? impressora.tempoAquecimentoMinutos : 0) + ' min por impressão'}"></strong>
+            </div>
+
+            <div class="detalhe-item">
                 <span>Valor de compra</span>
                 <strong th:text="${impressora.valorCompra != null ? 'R$ ' + #numbers.formatDecimal(impressora.valorCompra, 1, 'POINT', 2, 'COMMA') : 'Não informado'}"></strong>
             </div>

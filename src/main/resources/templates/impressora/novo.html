@@ -70,6 +70,13 @@
                 </div>
 
                 <div class="campo">
+                    <label for="tempoAquecimentoMinutos">Aquecimento antes de imprimir (minutos) <span class="etiqueta-opcional">Opcional</span></label>
+                    <input type="number" id="tempoAquecimentoMinutos" th:field="*{tempoAquecimentoMinutos}" min="0" max="10000" step="1" placeholder="Ex.: 5">
+                    <small>Esse tempo entra no consumo de energia e nos custos de máquina de cada impressão.</small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('tempoAquecimentoMinutos')}" th:errors="*{tempoAquecimentoMinutos}"></div>
+                </div>
+
+                <div class="campo">
                     <label for="valorCompra">Valor de compra da impressora (R$) <span class="etiqueta-opcional">Opcional</span></label>
                     <input type="number" id="valorCompra" th:field="*{valorCompra}" min="0" step="0.01">
                     <div class="erro-campo" th:if="${#fields.hasErrors('valorCompra')}" th:errors="*{valorCompra}"></div>

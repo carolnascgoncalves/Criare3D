@@ -98,13 +98,13 @@
             campo.value = valor ?? "";
         });
 
-        // Rascunhos criados antes do campo de fornadas devem manter o comportamento antigo:
-        // uma fornada por unidade.
-        if (campos?.fornadas === undefined && campos?.unidades !== undefined) {
-            const fornadas = formulario.elements.namedItem("fornadas");
-            if (fornadas) {
-                fornadas.value = campos.unidades;
-                fornadas.dataset.fornadasManual = "false";
+        // Compatibilidade com rascunhos antigos que guardavam o número de fornadas.
+        if (campos?.pecasPorImpressao === undefined && campos?.unidades !== undefined) {
+            const capacidade = formulario.elements.namedItem("pecasPorImpressao");
+            if (capacidade) {
+                const unidades = Math.max(1, Number(campos.unidades) || 1);
+                const impressoesAntigas = Math.max(1, Number(campos.fornadas) || unidades);
+                capacidade.value = String(Math.max(1, Math.ceil(unidades / impressoesAntigas)));
             }
         }
 
@@ -117,6 +117,7 @@
 
             if (tempo && campos?.tempoImpressaoMinutos !== undefined) {
                 tempo.value = campos.tempoImpressaoMinutos;
+                tempo.dataset.tempoManual = "true";
                 tempo.dispatchEvent(new Event("input", { bubbles: true }));
             }
         }

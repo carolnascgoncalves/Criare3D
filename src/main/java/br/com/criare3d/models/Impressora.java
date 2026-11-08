@@ -43,6 +43,10 @@ public class Impressora {
     @Column(name = "manutencao_hora_imp", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal manutencaoPorHora;
 
+    @Column(name = "tempo_aquecimento_min_imp", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
+
 
     @OneToMany(mappedBy = "impressora")
     private Set<CalculoHistorico> historicos;

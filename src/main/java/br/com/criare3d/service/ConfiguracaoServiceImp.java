@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 @Transactional
@@ -18,6 +20,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     private final ConfiguracaoRepository configuracaoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
+    private final ConcurrentMap<UUID, Configuracao> configuracoesPorUsuario = new ConcurrentHashMap<>();
 
     public ConfiguracaoServiceImp(ConfiguracaoRepository configuracaoRepository,
                                   UsuarioLogadoService usuarioLogadoService) {
@@ -41,7 +44,9 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setFormularioAvancado(false);
         }
 
-        return configuracaoRepository.save(configuracao);
+        Configuracao salva = configuracaoRepository.save(configuracao);
+        configuracoesPorUsuario.put(salva.getUsuario().getId(), salva);
+        return salva;
     }
 
     @Override
@@ -86,8 +91,12 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
                 atual.setTaxaFalhaAtivada(configuracao.getTaxaFalhaAtivada());
             }
             atual.setPercentualFalha(configuracao.getPercentualFalha());
+            atual.setPurgaGramasPorImpressao(configuracao.getPurgaGramasPorImpressao() != null
+                    ? configuracao.getPurgaGramasPorImpressao() : BigDecimal.ZERO);
 
-            return configuracaoRepository.save(atual);
+            Configuracao salva = configuracaoRepository.save(atual);
+            configuracoesPorUsuario.put(usuarioLogadoService.buscarIdUsuarioAtual(), salva);
+            return salva;
         });
     }
 
@@ -114,8 +123,12 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
     @Override
     public Optional<Configuracao> buscarConfiguracao() {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return configuracaoRepository.findFirstByUsuario_Id(usuarioId);
+        Configuracao emCache = configuracoesPorUsuario.get(usuarioId);
+        if (emCache != null) return Optional.of(emCache);
+        return configuracaoRepository.findFirstByUsuario_Id(usuarioId).map(configuracao -> {
+            Configuracao anterior = configuracoesPorUsuario.putIfAbsent(usuarioId, configuracao);
+            return anterior == null ? configuracao : anterior;
+        });
     }
 
     @Override
@@ -136,8 +149,11 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setDepreciacaoAtivada(false);
             configuracao.setTaxaFalhaAtivada(false);
             configuracao.setPercentualFalha(new BigDecimal("5.00"));
+            configuracao.setPurgaGramasPorImpressao(BigDecimal.ZERO);
 
-            return configuracaoRepository.save(configuracao);
+            Configuracao salva = configuracaoRepository.save(configuracao);
+            configuracoesPorUsuario.put(usuarioLogadoService.buscarIdUsuarioAtual(), salva);
+            return salva;
         });
     }
 }

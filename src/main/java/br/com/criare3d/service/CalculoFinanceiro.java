@@ -12,20 +12,19 @@ final class CalculoFinanceiro {
     private CalculoFinanceiro() {}
 
     static BigDecimal energia(BigDecimal potenciaWatts, long minutos, BigDecimal tarifaKwh) {
-        BigDecimal kwh = potenciaWatts.divide(MIL, 8, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(minutos))
-                .divide(SESSENTA, 8, RoundingMode.HALF_UP);
-        return moeda(kwh.multiply(tarifaKwh));
+        // Mantém a fração até a divisão final para não arredondar kWh no meio da fórmula.
+        BigDecimal numerador = potenciaWatts.multiply(BigDecimal.valueOf(minutos)).multiply(tarifaKwh);
+        return precisao(numerador.divide(MIL.multiply(SESSENTA), 12, RoundingMode.HALF_UP));
     }
 
     static BigDecimal filamento(BigDecimal quantidadeGramas, BigDecimal precoRolo,
                                 BigDecimal pesoRoloGramas) {
-        return moeda(quantidadeGramas.multiply(precoRolo).divide(pesoRoloGramas, 8,
+        return precisao(quantidadeGramas.multiply(precoRolo).divide(pesoRoloGramas, 8,
                 RoundingMode.HALF_UP));
     }
 
     static BigDecimal maoDeObra(BigDecimal valorHora, long minutos) {
-        return moeda(valorHora.multiply(BigDecimal.valueOf(minutos))
+        return precisao(valorHora.multiply(BigDecimal.valueOf(minutos))
                 .divide(SESSENTA, 8, RoundingMode.HALF_UP));
     }
 
@@ -35,12 +34,16 @@ final class CalculoFinanceiro {
 
     static BigDecimal depreciacao(BigDecimal valorCompra, BigDecimal vidaUtilHoras, long minutos) {
         BigDecimal horas = BigDecimal.valueOf(minutos).divide(SESSENTA, 8, RoundingMode.HALF_UP);
-        return moeda(horas.multiply(valorCompra.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP)));
+        return precisao(horas.multiply(valorCompra.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP)));
     }
 
     static BigDecimal falhas(BigDecimal custoFilamento, BigDecimal custoEnergia, BigDecimal percentual) {
-        return moeda(custoFilamento.add(custoEnergia).multiply(percentual)
+        return precisao(custoFilamento.add(custoEnergia).multiply(percentual)
                 .divide(CEM, 8, RoundingMode.HALF_UP));
+    }
+
+    static BigDecimal ratear(BigDecimal custoTotal, int unidades) {
+        return precisao(custoTotal.divide(BigDecimal.valueOf(unidades), 8, RoundingMode.HALF_UP));
     }
 
     static BigDecimal markup(BigDecimal custoTotal, BigDecimal percentual) {
@@ -50,5 +53,9 @@ final class CalculoFinanceiro {
 
     static BigDecimal moeda(BigDecimal valor) {
         return valor.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    static BigDecimal precisao(BigDecimal valor) {
+        return valor.setScale(8, RoundingMode.HALF_UP);
     }
 }

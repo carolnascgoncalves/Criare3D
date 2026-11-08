@@ -46,8 +46,12 @@ public class CalculoHistorico {
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
     @NotNull(message = "A quantidade de filamento é obrigatória")
-    @Column(name = "qntdFil_hist", nullable = false, precision = 10, scale = 2)
+    @Column(name = "qntdFil_hist", nullable = false, precision = 12, scale = 6)
     private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
+
+    @Column(name = "gramas_totais_lote_hist", nullable = false, precision = 14, scale = 6)
+    @Builder.Default
+    private @Getter @Setter BigDecimal gramasTotaisLote = BigDecimal.ZERO;
 
     @NotBlank(message = "O nome da impressora é obrigatório")
     @Size(min = 2, max = 150)
@@ -62,29 +66,45 @@ public class CalculoHistorico {
     @Column(name = "temp_hist", nullable = false)
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    @Column(name = "pecas_por_impressao_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Integer pecasPorImpressao = 1;
+
+    @Column(name = "tempo_aquecimento_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
+
+    @Column(name = "purga_gramas_hist", nullable = false, precision = 12, scale = 6)
+    @Builder.Default
+    private @Getter @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
+
     @NotNull(message = "A tarifa de energia é obrigatória")
     @Column(name = "tarifa_hist", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "O custo do filamento é obrigatório")
-    @Column(name = "custoFil_hist", nullable = false, precision = 10, scale = 2)
+    @Column(name = "custoFil_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoFilamento;
 
     @NotNull(message = "O custo da energia é obrigatório")
-    @Column(name = "custoEnergia_hist", nullable = false, precision = 10, scale = 2)
+    @Column(name = "custoEnergia_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoEnergia;
 
-    @Column(name = "custo_mao_obra_hist", precision = 10, scale = 2)
+    @Column(name = "custo_mao_obra_hist", precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoMaoObra;
 
-    @Column(name = "custo_depreciacao_hist", precision = 10, scale = 2)
+    @Column(name = "custo_depreciacao_hist", precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoDepreciacao;
 
-    @Column(name = "custo_manutencao_hist", precision = 10, scale = 2)
+    @Column(name = "custo_manutencao_hist", precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoManutencao;
 
-    @Column(name = "custo_falha_hist", precision = 10, scale = 2)
+    @Column(name = "custo_falha_hist", precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoFalha;
+
+    @Column(name = "custo_purga_hist", nullable = false, precision = 16, scale = 8)
+    @Builder.Default
+    private @Getter @Setter BigDecimal custoPurga = BigDecimal.ZERO;
 
     @Column(name = "mao_obra_ativada_hist")
     private @Getter @Setter Boolean maoObraAtivada;
@@ -119,11 +139,11 @@ public class CalculoHistorico {
     private @Getter @Setter String nomeEmbalagem;
 
     @NotNull(message = "O custo da embalagem é obrigatório")
-    @Column(name = "custoEmb_hist", nullable = false, precision = 10, scale = 2)
+    @Column(name = "custoEmb_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoEmbalagem;
 
     @NotNull(message = "O custo total é obrigatório")
-    @Column(name = "custoTotal_hist", nullable = false, precision = 10, scale = 2)
+    @Column(name = "custoTotal_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoTotal;
 
     @NotNull(message = "O markup é obrigatório")

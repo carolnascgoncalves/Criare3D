@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collection;
@@ -35,7 +34,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import static br.com.criare3d.service.CalculoFinanceiro.moeda;
+import static br.com.criare3d.service.CalculoFinanceiro.precisao;
+import static br.com.criare3d.service.CalculoFinanceiro.ratear;
 
 @Service
 @Transactional
@@ -390,15 +390,19 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             throw new IllegalArgumentException("Informe uma quantidade entre 1 e 10.000 unidades.");
         }
         int unidades = request.getUnidades();
-        int fornadas = request.getFornadas() == null ? unidades : request.getFornadas();
-        if (fornadas < 1 || fornadas > unidades) {
-            throw new IllegalArgumentException("A quantidade de fornadas deve ficar entre 1 e o número de unidades.");
+        int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
+        if (pecasPorImpressao < 1 || pecasPorImpressao > 10000) {
+            throw new IllegalArgumentException("Informe uma capacidade de 1 a 10.000 peças por impressão.");
         }
-        long minutosImpressaoLote;
+        int fornadas = ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
+        int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null
+                ? 0 : impressora.getTempoAquecimentoMinutos();
+        long minutosMaquinaLote;
         try {
-            minutosImpressaoLote = Math.multiplyExact(request.getTempoImpressaoMinutos(), (long) fornadas);
+            minutosMaquinaLote = ModeloImpressao.minutosTotais(
+                    request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas);
         } catch (ArithmeticException e) {
-            throw new IllegalArgumentException("O tempo total das fornadas ultrapassa o limite permitido.");
+            throw new IllegalArgumentException("O tempo total de impressão ultrapassa o limite permitido.");
         }
 
         BigDecimal markup = request.getMarkupPercentual();
@@ -412,6 +416,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 .build();
 
         BigDecimal custoFilamentoTotal = ZERO;
+        BigDecimal quantidadeFilamentoTotal = ZERO;
 
         java.util.Set<UUID> idsFilamentosSolicitados = new LinkedHashSet<>();
         for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
@@ -471,9 +476,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
             historico.getItensFilamento().add(item);
             custoFilamentoTotal = custoFilamentoTotal.add(custoIndividual);
+            quantidadeFilamentoTotal = quantidadeFilamentoTotal.add(quantidade);
         }
 
-        custoFilamentoTotal = moeda(custoFilamentoTotal);
+        custoFilamentoTotal = precisao(custoFilamentoTotal);
 
         ItemCalculoHistorico primeiroItem = historico.getItensFilamento().get(0);
 
@@ -484,9 +490,33 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
         historico.setCustoFilamento(custoFilamentoTotal);
 
-        BigDecimal custoEnergia = ratearPorUnidades(CalculoFinanceiro.energia(
-                impressora.getPotenciaWatts(), minutosImpressaoLote,
-                configuracao.getTarifaEnergiaKwh()), unidades);
+        BigDecimal energiaLote = CalculoFinanceiro.energia(
+                impressora.getPotenciaWatts(), minutosMaquinaLote,
+                configuracao.getTarifaEnergiaKwh());
+
+        BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null
+                ? ZERO : configuracao.getPurgaGramasPorImpressao();
+        BigDecimal purgaGramasLote = precisao(purgaGramasPorImpressao.multiply(BigDecimal.valueOf(fornadas)));
+        BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
+        BigDecimal custoPurgaLote = quantidadeFilamentoTotal.signum() > 0
+                ? purgaGramasLote.multiply(custoFilamentoTotal)
+                    .divide(quantidadeFilamentoTotal, 8, java.math.RoundingMode.HALF_UP)
+                : ZERO;
+        BigDecimal gramasPurgaAlocadas = ZERO;
+        List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
+        for (int i = 0; i < itensHistorico.size(); i++) {
+            ItemCalculoHistorico item = itensHistorico.get(i);
+            BigDecimal gramasDaPurga;
+            if (i == itensHistorico.size() - 1) {
+                gramasDaPurga = precisao(purgaGramasUnidade.subtract(gramasPurgaAlocadas));
+            } else {
+                gramasDaPurga = precisao(purgaGramasUnidade
+                        .multiply(item.getQuantidadeFilamentoGramas())
+                        .divide(quantidadeFilamentoTotal, 8, java.math.RoundingMode.HALF_UP));
+                gramasPurgaAlocadas = gramasPurgaAlocadas.add(gramasDaPurga);
+            }
+            item.setPurgaGramas(gramasDaPurga);
+        }
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
                 ? configuracao.getTempoMaoObraFixoMinutos()
@@ -497,23 +527,24 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             throw new IllegalArgumentException("Informe um tempo de trabalho manual válido.");
         }
 
-        BigDecimal custoMaoObra = ZERO;
+        BigDecimal custoMaoObraLote = ZERO;
         if (Boolean.TRUE.equals(configuracao.getMaoObraAtivada())) {
             BigDecimal valorHora = configuracao.getValorMaoObraHora();
             if (valorHora == null || valorHora.signum() < 0) {
                 throw new IllegalArgumentException("Configure um custo por hora válido para a mão de obra.");
             }
-            custoMaoObra = CalculoFinanceiro.maoDeObra(valorHora, tempoTrabalhoMinutos);
+            // O campo de trabalho manual descreve o tempo da encomenda inteira.
+            custoMaoObraLote = CalculoFinanceiro.maoDeObra(valorHora, tempoTrabalhoMinutos);
         }
 
         BigDecimal manutencaoPorHora = manutencaoImpressoraService.custoPorHora(impressora.getId());
         if (manutencaoPorHora == null || manutencaoPorHora.signum() < 0) {
             throw new IllegalArgumentException("A estimativa de manutenção por hora é inválida.");
         }
-        BigDecimal custoManutencao = ratearPorUnidades(CalculoFinanceiro.manutencao(
-                manutencaoPorHora, minutosImpressaoLote), unidades);
+        BigDecimal custoManutencaoLote = CalculoFinanceiro.manutencao(
+                manutencaoPorHora, minutosMaquinaLote);
 
-        BigDecimal custoDepreciacao = ZERO;
+        BigDecimal custoDepreciacaoLote = ZERO;
         if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
             BigDecimal valorImpressora = impressora.getValorCompra();
             BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
@@ -525,18 +556,19 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "e o tempo de impressão para incluir esse custo no cálculo."
                 );
             }
-            custoDepreciacao = ratearPorUnidades(CalculoFinanceiro.depreciacao(
-                    valorImpressora, vidaUtilHoras, minutosImpressaoLote), unidades);
+            custoDepreciacaoLote = CalculoFinanceiro.depreciacao(
+                    valorImpressora, vidaUtilHoras, minutosMaquinaLote);
         }
 
-        BigDecimal custoFalha = ZERO;
-        if (Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada())) {
-            BigDecimal percentualFalha = configuracao.getPercentualFalha();
+        boolean taxaFalhaAtivada = Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada());
+        BigDecimal percentualFalha = configuracao.getPercentualFalha();
+        if (taxaFalhaAtivada) {
             if (percentualFalha == null || percentualFalha.signum() < 0
                     || percentualFalha.compareTo(CEM) > 0) {
                 throw new IllegalArgumentException("Configure um percentual de falhas entre zero e 100.");
             }
-            custoFalha = CalculoFinanceiro.falhas(custoFilamentoTotal, custoEnergia, percentualFalha);
+        } else if (percentualFalha == null) {
+            percentualFalha = ZERO;
         }
 
         BigDecimal custoEmbalagem;
@@ -573,14 +605,20 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             nomeEmbalagem = embalagem.getNome();
         }
 
-        custoEmbalagem = moeda(custoEmbalagem);
+        custoEmbalagem = precisao(custoEmbalagem);
 
-        BigDecimal custoTotal = moeda(
-                custoFilamentoTotal.add(custoEnergia).add(custoEmbalagem)
-                        .add(custoMaoObra).add(custoDepreciacao).add(custoManutencao).add(custoFalha)
-        );
-
-        BigDecimal precoSugerido = CalculoFinanceiro.markup(custoTotal, markup);
+        CalculadoraProducao.Resultado custos = CalculadoraProducao.calcular(
+                new CalculadoraProducao.Entrada(unidades, custoFilamentoTotal, custoPurgaLote,
+                        energiaLote, custoEmbalagem, custoMaoObraLote, custoDepreciacaoLote,
+                        custoManutencaoLote, taxaFalhaAtivada, percentualFalha, markup));
+        BigDecimal custoPurga = custos.custoPurga();
+        BigDecimal custoEnergia = custos.custoEnergia();
+        BigDecimal custoMaoObra = custos.custoMaoObra();
+        BigDecimal custoDepreciacao = custos.custoDepreciacao();
+        BigDecimal custoManutencao = custos.custoManutencao();
+        BigDecimal custoFalha = custos.custoFalha();
+        BigDecimal custoTotal = custos.custoTotal();
+        BigDecimal precoSugerido = custos.precoSugerido();
 
         historico.setPeca(peca);
         historico.setImpressora(impressora);
@@ -588,7 +626,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         historico.setNomePeca(peca.getNome());
         historico.setUnidades(unidades);
+        historico.setGramasTotaisLote(precisao(quantidadeFilamentoTotal.multiply(BigDecimal.valueOf(unidades))
+                .add(purgaGramasLote)));
         historico.setFornadas(fornadas);
+        historico.setPecasPorImpressao(pecasPorImpressao);
+        historico.setTempoAquecimentoMinutos(tempoAquecimentoMinutos);
+        historico.setPurgaGramasPorImpressao(purgaGramasPorImpressao);
         historico.setNomeImpressora(impressora.getNome());
         historico.setPotenciaWatts(impressora.getPotenciaWatts());
         historico.setTempoImpressaoMinutos(request.getTempoImpressaoMinutos());
@@ -601,6 +644,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setCustoDepreciacao(custoDepreciacao);
         historico.setCustoManutencao(custoManutencao);
         historico.setCustoFalha(custoFalha);
+        historico.setCustoPurga(custoPurga);
         historico.setMaoObraAtivada(Boolean.TRUE.equals(configuracao.getMaoObraAtivada()));
         historico.setValorMaoObraHora(configuracao.getValorMaoObraHora());
         historico.setDepreciacaoAtivada(Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()));
@@ -700,10 +744,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         return calculoHistoricoRepository.buscarPorIdComItens(
                 id, usuarioId
         );
-    }
-
-    private BigDecimal ratearPorUnidades(BigDecimal custoLote, int unidades) {
-        return moeda(custoLote.divide(BigDecimal.valueOf(unidades), 8, RoundingMode.HALF_UP));
     }
 
     @Override

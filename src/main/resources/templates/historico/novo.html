@@ -317,23 +317,24 @@
                     </div>
 
                     <div class="campo">
-                        <label for="fornadas">Fornadas de impressão</label>
-                        <input type="number" id="fornadas" th:field="*{fornadas}"
-                               min="1" max="10000" step="1" required
-                               th:attr="data-fornadas-manual=${calculo.fornadas != null and calculo.fornadas != calculo.unidades}">
-                        <small>Uma fornada é uma impressão. Começa igual à quantidade de unidades; reduza se imprimir várias peças juntas.</small>
-                        <span class="erro-campo" th:if="${#fields.hasErrors('fornadas')}" th:errors="*{fornadas}"></span>
+                        <label for="pecasPorImpressao">Peças por impressão</label>
+                        <input type="number" id="pecasPorImpressao" th:field="*{pecasPorImpressao}"
+                               min="1" max="10000" step="1" required>
+                        <small>O Criare calcula quantas impressões serão necessárias. Ex.: 10 unidades com 4 por impressão = 3 impressões (4 + 4 + 2).</small>
+                        <strong id="resumoImpressoes" class="texto-apoio" aria-live="polite"></strong>
+                        <span class="erro-campo" th:if="${#fields.hasErrors('pecasPorImpressao')}" th:errors="*{pecasPorImpressao}"></span>
                     </div>
 
                     <div class="campo">
-                        <label for="tempoImpressaoMinutos">Tempo por fornada (minutos)</label>
+                        <label for="tempoImpressaoMinutos">Tempo por impressão (minutos)</label>
                         <input type="number"
                                id="tempoImpressaoMinutos"
                                th:field="*{tempoImpressaoMinutos}"
+                               th:attr="data-tempo-manual=${calculo.tempoImpressaoMinutos != null}"
                                min="1"
                                step="1"
                                required>
-                        <small>Informe quanto tempo a impressora trabalha em cada fornada. O cálculo considera o total de fornadas.</small>
+                        <small>Estimativa inicial: tempo cadastrado da peça × peças por impressão. Ajuste pelo tempo indicado no fatiador; o aquecimento é acrescentado automaticamente.</small>
                         <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
                     </div>
 
@@ -406,10 +407,12 @@
                              th:errors="*{embalagemId}"></div>
                     </div>
 
-                    <div class="resumo-revisao">
-                        <h3>Antes de continuar</h3>
-                        <p>Confira os dados da impressão e os custos que serão considerados no cálculo.</p>
-                        <p>Na próxima etapa, você poderá definir o markup e as condições de venda.</p>
+                    <div class="resumo-revisao resumo-producao-previa">
+                        <h3>Resumo da produção</h3>
+                        <p><strong id="previaUnidades">1 unidade</strong> em <strong id="previaImpressoes">1 impressão</strong>, com tempo de máquina estimado em <strong id="previaTempo">0 min</strong>.</p>
+                        <p>Filamento informado: <strong id="previaMaterial">—</strong>.</p>
+                        <p>O custo estimado por unidade é <strong id="previaCustoUnidade">preencha os dados para calcular</strong>; lote: <strong id="previaCustoLote">—</strong>.</p>
+                        <small>O valor usa a mesma regra do cálculo final e inclui purga, aquecimento e custos adicionais ativados.</small>
                     </div>
 
                     <div class="formulario-acoes">
@@ -453,7 +456,7 @@
                              class="campo">
 
                             <div class="campo">
-                                <span class="rotulo" id="rotuloMarkup">Escolha o markup</span>
+                                <span class="rotulo" id="rotuloMarkup">Escolha o aumento sobre o custo (markup)</span>
 
                                 <div class="markup-opcoes" role="radiogroup" aria-labelledby="rotuloMarkup">
 
@@ -682,12 +685,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="resumo-revisao">
-                        <h3>Como o preço será calculado?</h3>
-                        <p>Primeiro, somamos os custos de filamento, energia e embalagem.</p>
-                        <p>Depois, aplicamos o markup e consideramos as taxas e os custos da plataforma selecionada.</p>
                     </div>
 
                     <div class="formulario-acoes">

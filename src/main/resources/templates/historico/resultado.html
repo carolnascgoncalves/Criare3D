@@ -45,7 +45,7 @@
                     <i class="bi bi-info-circle" aria-hidden="true"></i>
                     <div>
                         <strong>Custos e preço por unidade</strong>
-                        <span>Os custos são por unidade. Energia, depreciação e manutenção consideram o tempo total das <strong th:text="${resultado.fornadas}">1</strong> fornadas e são divididas pelas <strong th:text="${unidades}">1</strong> unidades.</span>
+                        <span>Os custos são por unidade. Energia, depreciação e manutenção consideram <strong th:text="${resultado.fornadas}">1</strong><span th:text="${resultado.fornadas == 1 ? ' impressão' : ' impressões'}"> impressões</span>, com aquecimento incluído, e são rateadas pelas <strong th:text="${unidades}">1</strong> <span th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</span>.</span>
                     </div>
                 </div>
 
@@ -76,6 +76,11 @@
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoFilamento, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
+                        <div class="resultado-item" th:if="${resultado.custoPurga != null and resultado.custoPurga.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
+                            <span>Purga estimada</span>
+                            <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoPurga, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+                        </div>
+
                         <div class="resultado-item">
                             <span>Custo de energia</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoEnergia, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
@@ -87,12 +92,12 @@
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
-                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
+                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.manutencaoHoraImpressora != null and resultado.manutencaoHoraImpressora.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.tempoImpressaoMinutos * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>
+                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoManutencao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
@@ -122,13 +127,15 @@
                         R$ 0,00
                     </strong>
 
-                    <small th:text="${'Markup aplicado: ' + resultado.markupPercentual + '%'}">
-                        Markup aplicado: 30%
+                    <small th:text="${'Aumento sobre o custo (markup): ' + resultado.markupPercentual + '%'}">
+                        Aumento sobre o custo (markup): 30%
                     </small>
 
                     <small th:text="${'Lucro estimado antes das taxas: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
                         Lucro estimado: R$ 0,00
                     </small>
+                    <small th:if="${resultado.precoSugerido != null and resultado.precoSugerido.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+                           th:text="${'Margem sobre o preço: ' + #numbers.formatDecimal(resultado.lucroEstimado.multiply(T(java.math.BigDecimal).TEN).multiply(T(java.math.BigDecimal).TEN).divide(resultado.precoSugerido, 4, T(java.math.RoundingMode).HALF_UP), 1, 'COMMA', 1, 'POINT') + '% antes das taxas'}">Margem sobre o preço</small>
                 </div>
 
             </div>
@@ -141,7 +148,7 @@
                     </div>
                     <div class="resumo-lote-indicadores">
                         <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
-                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'fornada' : 'fornadas'}">fornadas</small></span>
+                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'impressão' : 'impressões'}">impressões</small></span>
                     </div>
                 </div>
                 <div class="detalhes-conteudo resumo-lote-grade">
@@ -277,13 +284,13 @@
                 </div>
 
                 <div class="detalhe-linha">
-                    <span>Tempo por fornada</span>
+                    <span>Tempo por impressão</span>
                     <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">120 minutos</strong>
                 </div>
 
                 <div class="detalhe-linha">
-                    <span>Fornadas de impressão</span>
-                    <strong th:text="${resultado.fornadas + ' (' + (resultado.tempoImpressaoMinutos * resultado.fornadas) + ' minutos no total)'}">1 fornada</strong>
+                    <span>Impressões necessárias</span>
+                    <strong th:text="${resultado.fornadas + (resultado.fornadas == 1 ? ' impressão, ' : ' impressões, ') + ((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas) + ' minutos incluindo aquecimento'}">1 impressão</strong>
                 </div>
             </div>
 
@@ -423,7 +430,7 @@
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
-                    <input type="hidden" th:field="*{fornadas}">
+                    <input type="hidden" th:field="*{pecasPorImpressao}">
 
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"
@@ -466,7 +473,7 @@
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
-                    <input type="hidden" th:field="*{fornadas}">
+                    <input type="hidden" th:field="*{pecasPorImpressao}">
 
                     <th:block th:each="item, stat : *{filamentos}">
                         <input type="hidden"

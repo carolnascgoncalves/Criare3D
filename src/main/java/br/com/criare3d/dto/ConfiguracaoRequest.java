@@ -39,6 +39,9 @@ public class ConfiguracaoRequest {
     private Boolean taxaFalhaAtivada = false;
     private BigDecimal percentualFalha = new BigDecimal("5.00");
 
+    @DecimalMin(value = "0.0", message = "A purga não pode ser negativa.")
+    private BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
+
     @AssertTrue(message = "Informe um custo por hora igual ou maior que zero para a mão de obra.")
     public boolean isMaoObraValida() {
         return !Boolean.TRUE.equals(maoObraAtivada)
@@ -79,6 +82,8 @@ public class ConfiguracaoRequest {
         dto.setTaxaFalhaAtivada(Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada()));
         dto.setPercentualFalha(configuracao.getPercentualFalha() != null
                 ? configuracao.getPercentualFalha() : new BigDecimal("5.00"));
+        dto.setPurgaGramasPorImpressao(configuracao.getPurgaGramasPorImpressao() != null
+                ? configuracao.getPurgaGramasPorImpressao() : BigDecimal.ZERO);
 
         return dto;
     }
@@ -101,6 +106,8 @@ public class ConfiguracaoRequest {
                 .depreciacaoAtivada(Boolean.TRUE.equals(request.getDepreciacaoAtivada()))
                 .taxaFalhaAtivada(Boolean.TRUE.equals(request.getTaxaFalhaAtivada()))
                 .percentualFalha(request.getPercentualFalha())
+                .purgaGramasPorImpressao(request.getPurgaGramasPorImpressao() != null
+                        ? request.getPurgaGramasPorImpressao() : BigDecimal.ZERO)
                 .build();
     }
 }

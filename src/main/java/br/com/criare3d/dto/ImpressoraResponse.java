@@ -26,6 +26,7 @@ public class ImpressoraResponse {
 
     private @Getter @Setter BigDecimal valorCompra;
     private @Getter @Setter BigDecimal vidaUtilHoras;
+    private @Getter @Setter Integer tempoAquecimentoMinutos;
 
     public boolean isDadosDepreciacaoValidos() {
         boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
@@ -41,6 +42,7 @@ public class ImpressoraResponse {
                 .potenciaWatts(impressora.getPotenciaWatts())
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
+                .tempoAquecimentoMinutos(impressora.getTempoAquecimentoMinutos())
                 .build();
     }
 }

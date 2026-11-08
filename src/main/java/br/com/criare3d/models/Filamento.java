@@ -47,7 +47,7 @@ public class Filamento {
     private @Getter @Setter BigDecimal pesoRoloGramas;
 
     @NotNull
-    @Column(name = "estoque_gramas", nullable = false, precision = 10, scale = 2)
+    @Column(name = "estoque_gramas", nullable = false, precision = 12, scale = 6)
     private @Getter @Setter BigDecimal estoqueGramas;
 
     @Column(name = "data_cadastro", nullable = false, updatable = false)

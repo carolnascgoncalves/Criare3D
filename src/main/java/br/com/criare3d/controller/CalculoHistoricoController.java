@@ -6,7 +6,6 @@ import br.com.criare3d.dto.CalculoResponse;
 import br.com.criare3d.dto.HistoricoListaResponse;
 import br.com.criare3d.dto.ComparacaoPlataforma;
 import br.com.criare3d.dto.ItemCalculoRequest;
-import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CatalogoBuscaService;
@@ -34,7 +33,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
@@ -47,8 +45,6 @@ import java.util.Map;
 @Controller
 public class CalculoHistoricoController {
 
-    private static final DateTimeFormatter FORMATO_DATA_CSV =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"));
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
     private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
@@ -133,50 +129,6 @@ public class CalculoHistoricoController {
         mv.addObject("tamanhoPagina", pageable.getPageSize());
 
         return mv;
-    }
-
-    @GetMapping(value = "/historico/exportar.csv", produces = "text/csv")
-    @ResponseBody
-    public ResponseEntity<byte[]> exportarHistoricoCsv() {
-        StringBuilder csv = new StringBuilder("\uFEFFPeça;Data do cálculo;Plataforma;Custo unitário;Preço sugerido por unidade;Lucro líquido por unidade;Unidades;Fornadas;Produzido;Vendido\r\n");
-        for (HistoricoExportacaoResponse item : calculoHistoricoService.exportarHistorico()) {
-            csv.append(campoCsv(item.nomePeca())).append(';')
-                    .append(campoCsv(item.dataCalculo() == null
-                            ? "" : item.dataCalculo().format(FORMATO_DATA_CSV))).append(';')
-                    .append(campoCsv(nomePlataformaCsv(item.plataforma()))).append(';')
-                    .append(numeroCsv(item.custoTotal())).append(';')
-                    .append(numeroCsv(item.precoSugerido())).append(';')
-                    .append(numeroCsv(item.lucroLiquido())).append(';')
-                    .append(item.unidades() == null ? 1 : item.unidades()).append(';')
-                    .append(item.fornadas() == null ? (item.unidades() == null ? 1 : item.unidades()) : item.fornadas()).append(';')
-                    .append(Boolean.TRUE.equals(item.produzido()) ? "Sim" : "Não").append(';')
-                    .append(Boolean.TRUE.equals(item.vendido()) ? "Sim" : "Não").append("\r\n");
-        }
-        return ResponseEntity.ok()
-                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"historico-calculos.csv\"")
-                .contentType(new org.springframework.http.MediaType("text", "csv", java.nio.charset.StandardCharsets.UTF_8))
-                .body(csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-    }
-
-    private String campoCsv(String valor) {
-        if (valor == null) return "\"\"";
-        String seguro = valor.stripLeading().matches("^[=+@\\-].*") ? "'" + valor : valor;
-        return "\"" + seguro.replace("\"", "\"\"") + "\"";
-    }
-
-    private String numeroCsv(BigDecimal valor) {
-        return valor == null ? "" : valor.toPlainString().replace('.', ',');
-    }
-
-    private String nomePlataformaCsv(String plataforma) {
-        if (plataforma == null || plataforma.isBlank() || "NENHUMA".equals(plataforma)) return "Sem plataforma";
-        return switch (plataforma) {
-            case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
-            case "SHOPEE" -> "Shopee";
-            case "MERCADO_LIVRE" -> "Mercado Livre";
-            default -> plataforma;
-        };
     }
 
     @GetMapping("/historico/novo")
@@ -321,6 +273,21 @@ public class CalculoHistoricoController {
             carregarDadosFormulario(mv);
 
             return mv;
+        }
+    }
+
+    @PostMapping("/historico/previa")
+    @ResponseBody
+    public ResponseEntity<?> previaCustos(@ModelAttribute CalculoRequest request) {
+        try {
+            if (request.getMarkupPercentual() == null) request.setMarkupPercentual(BigDecimal.ZERO);
+            CalculoHistorico previa = calculoHistoricoService.calcular(request);
+            return ResponseEntity.ok(java.util.Map.of(
+                    "custoUnidade", previa.getCustoTotal().setScale(2, RoundingMode.HALF_UP),
+                    "custoLote", previa.getCustoTotal().multiply(BigDecimal.valueOf(request.getUnidades()))
+                            .setScale(2, RoundingMode.HALF_UP)));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.unprocessableEntity().body(java.util.Map.of("erro", ex.getMessage()));
         }
     }
 
@@ -502,7 +469,7 @@ public class CalculoHistoricoController {
         copia.setEmbalagemId(original.getEmbalagemId());
         copia.setTempoImpressaoMinutos(original.getTempoImpressaoMinutos());
         copia.setUnidades(original.getUnidades());
-        copia.setFornadas(original.getFornadas());
+        copia.setPecasPorImpressao(original.getPecasPorImpressao());
         copia.setTempoTrabalhoMinutos(original.getTempoTrabalhoMinutos());
         copia.setMarkupPercentual(original.getMarkupPercentual());
 
@@ -705,19 +672,6 @@ public class CalculoHistoricoController {
                 .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
     }
 
-    @GetMapping("/historico/{id}/orcamento")
-    public ModelAndView abrirOrcamento(@PathVariable UUID id) {
-        return calculoHistoricoService.fetchById(id)
-                .map(entidade -> {
-                    CalculoResponse calculo = CalculoResponse.toDto(entidade);
-                    ModelAndView mv = new ModelAndView("historico/orcamento");
-                    mv.addObject("calculo", calculo);
-                    adicionarResumoLote(mv, calculo);
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/historico/listar?erro=naoEncontrado"));
-    }
-
     private void adicionarResumoLote(ModelAndView mv, CalculoResponse calculo) {
         int unidades = calculo.getUnidades() == null ? 1 : calculo.getUnidades();
         int fornadas = calculo.getFornadas() == null ? unidades : calculo.getFornadas();
@@ -735,14 +689,34 @@ public class CalculoHistoricoController {
 
     private List<String> avisosEstoque(CalculoRequest request) {
         Map<UUID, BigDecimal> consumo = new LinkedHashMap<>();
+        int unidades = request.getUnidades() == null ? 1 : request.getUnidades();
+        int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
+        int impressoes = Math.max(1, (unidades + pecasPorImpressao - 1) / pecasPorImpressao);
+        BigDecimal gramasBaseTotal = request.getFilamentos() == null ? BigDecimal.ZERO : request.getFilamentos().stream()
+                .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
+                .map(ItemCalculoRequest::getQuantidadeFilamentoGramas)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         if (request.getFilamentos() != null) {
             request.getFilamentos().forEach(item -> {
                 if (item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null) {
                     consumo.merge(item.getFilamentoId(), item.getQuantidadeFilamentoGramas()
-                            .multiply(BigDecimal.valueOf(request.getUnidades() == null ? 1 : request.getUnidades())),
+                            .multiply(BigDecimal.valueOf(unidades)),
                             BigDecimal::add);
                 }
             });
+            if (gramasBaseTotal.signum() > 0) {
+                BigDecimal purgaLote = configuracaoService.buscarOuCriarConfiguracao()
+                        .getPurgaGramasPorImpressao();
+                if (purgaLote != null && purgaLote.signum() > 0) {
+                    purgaLote = purgaLote.multiply(BigDecimal.valueOf(impressoes));
+                    BigDecimal purgaTotal = purgaLote;
+                    request.getFilamentos().stream()
+                            .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
+                            .forEach(item -> consumo.merge(item.getFilamentoId(), purgaTotal
+                                    .multiply(item.getQuantidadeFilamentoGramas())
+                                    .divide(gramasBaseTotal, 8, java.math.RoundingMode.HALF_UP), BigDecimal::add));
+                }
+            }
         }
         List<String> avisos = new ArrayList<>();
         filamentoService.fetchByIds(consumo.keySet()).forEach(filamento -> {
