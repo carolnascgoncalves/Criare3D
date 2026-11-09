@@ -1,0 +1,178 @@
+:root {
+    /* Paleta neutra provisória; concentre aqui a futura identidade da plataforma. */
+    --login-fundo: #f3f4f6;
+    --login-superficie: #ffffff;
+    --login-texto: #202631;
+    --login-texto-suave: #687180;
+    --login-borda: #d9dee5;
+    --login-acao: #344256;
+    --login-acao-hover: #263345;
+    --login-foco: #7b8798;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body.login-pagina {
+    min-width: 320px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 24px;
+    display: grid;
+    place-items: center;
+    background: var(--login-fundo);
+    color: var(--login-texto);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.login-cartao {
+    width: min(100%, 420px);
+    padding: 40px;
+    background: var(--login-superficie);
+    border: 1px solid var(--login-borda);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgb(32 38 49 / 8%);
+}
+
+.login-cabecalho {
+    margin-bottom: 28px;
+}
+
+.login-etiqueta {
+    display: inline-block;
+    margin-bottom: 12px;
+    color: var(--login-texto-suave);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.login-cabecalho h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.6rem, 5vw, 1.9rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+}
+
+.login-cabecalho p {
+    margin: 0;
+    color: var(--login-texto-suave);
+    font-size: 0.96rem;
+    line-height: 1.5;
+}
+
+.login-formulario {
+    display: grid;
+    gap: 20px;
+}
+
+.login-campo {
+    display: grid;
+    gap: 8px;
+}
+
+.login-campo label {
+    color: var(--login-texto);
+    font-size: 0.9rem;
+    font-weight: 650;
+}
+
+.login-campo input {
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 13px;
+    border: 1px solid var(--login-borda);
+    border-radius: 9px;
+    background: #fff;
+    color: var(--login-texto);
+    font: inherit;
+    font-size: 0.95rem;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.login-campo input::placeholder {
+    color: #929aa6;
+}
+
+.login-campo input:focus-visible {
+    border-color: var(--login-foco);
+    outline: 0;
+    box-shadow: 0 0 0 3px rgb(123 135 152 / 18%);
+}
+
+.login-botao {
+    min-height: 48px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 9px;
+    background: var(--login-acao);
+    color: #fff;
+    font: inherit;
+    font-size: 0.96rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.login-botao:hover {
+    background: var(--login-acao-hover);
+}
+
+.login-botao:active {
+    transform: translateY(1px);
+}
+
+.login-botao:focus-visible {
+    outline: 3px solid var(--login-foco);
+    outline-offset: 3px;
+}
+
+.login-aviso {
+    margin: -8px 0 22px;
+    padding: 12px 14px;
+    border: 1px solid;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.login-aviso-erro {
+    border-color: #e8b9b6;
+    background: #fff5f4;
+    color: #8f302b;
+}
+
+.login-aviso-sucesso {
+    border-color: #b8d7c1;
+    background: #f2faf4;
+    color: #27613a;
+}
+
+.login-rodape {
+    margin-top: 26px;
+    color: var(--login-texto-suave);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    body.login-pagina {
+        padding: 16px;
+    }
+
+    .login-cartao {
+        padding: 30px 24px;
+        border-radius: 13px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
