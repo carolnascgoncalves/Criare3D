@@ -11,6 +11,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
@@ -37,15 +39,18 @@ public class ClienteAdminService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
+    private final TenantTemaCache tenantTemaCache;
 
     public ClienteAdminService(TenantRepository tenantRepository,
                                UsuarioRepository usuarioRepository,
                                PasswordEncoder passwordEncoder,
-                               JdbcTemplate jdbcTemplate) {
+                               JdbcTemplate jdbcTemplate,
+                               TenantTemaCache tenantTemaCache) {
         this.tenantRepository = tenantRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.jdbcTemplate = jdbcTemplate;
+        this.tenantTemaCache = tenantTemaCache;
     }
 
     @Transactional(readOnly = true)
@@ -137,12 +142,14 @@ public class ClienteAdminService {
         usuario.setEmail(request.getEmail());
         tenantRepository.save(tenant);
         usuarioRepository.save(usuario);
+        invalidarTemaDepoisDoCommit(id);
     }
 
     public boolean alternarAtivo(UUID id) {
         Tenant tenant = buscarTenant(id);
         tenant.setAtivo(!tenant.isAtivo());
         tenantRepository.save(tenant);
+        invalidarTemaDepoisDoCommit(id);
         return tenant.isAtivo();
     }
 
@@ -168,6 +175,7 @@ public class ClienteAdminService {
         jdbcTemplate.update("DELETE FROM peca WHERE tenant_id = ?", id);
         jdbcTemplate.update("DELETE FROM usuario WHERE id = ? AND tenant_id = ?", usuario.getId(), id);
         jdbcTemplate.update("DELETE FROM tenant WHERE id = ?", id);
+        invalidarTemaDepoisDoCommit(id);
         return tenant.getNome();
     }
 
@@ -321,6 +329,19 @@ public class ClienteAdminService {
 
     private boolean mesmo(String a, String b) {
         return a == null ? b == null : a.equals(b);
+    }
+
+    private void invalidarTemaDepoisDoCommit(UUID tenantId) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            tenantTemaCache.invalidar(tenantId);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                tenantTemaCache.invalidar(tenantId);
+            }
+        });
     }
 
     public record ClienteCriado(UUID tenantId, String senhaTemporaria) { }

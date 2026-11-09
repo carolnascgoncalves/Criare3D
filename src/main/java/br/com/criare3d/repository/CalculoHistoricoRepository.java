@@ -41,6 +41,10 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         FROM calculo_historico h
         WHERE h.usuario_id = :usuarioId
           AND h.tenant_id = :tenantId
+          AND (h.data_hist >= :inicio
+               OR (h.vendido_hist = TRUE
+                   AND h.data_venda_hist >= :inicio
+                   AND h.data_venda_hist < :fim))
         """, nativeQuery = true)
     DashboardResumoProjection resumirDashboard(@Param("usuarioId") UUID usuarioId,
                                                 @Param("tenantId") UUID tenantId,

@@ -12,6 +12,8 @@ public interface ConfiguracaoRepository extends JpaRepository<Configuracao, UUID
 
     Optional<Configuracao> findFirstByUsuario_Id(UUID usuarioId);
 
+    Optional<Configuracao> findFirstByTenantIdAndUsuario_Id(UUID tenantId, UUID usuarioId);
+
     Optional<Configuracao> findByIdAndUsuario_Id(UUID id, UUID usuarioId);
 
     boolean existsByIdAndUsuario_Id(UUID id, UUID usuarioId);

@@ -2,7 +2,6 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Usuario;
-import br.com.criare3d.repository.TenantRepository;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.service.interfaces.UsuarioDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,11 +16,11 @@ import java.util.Locale;
 public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
 
     private final UsuarioRepository usuarioRepository;
-    private final TenantRepository tenantRepository;
+    private final TenantTemaCache tenantTemaCache;
 
-    public UsuarioDetailsServiceImp(UsuarioRepository usuarioRepository, TenantRepository tenantRepository) {
+    public UsuarioDetailsServiceImp(UsuarioRepository usuarioRepository, TenantTemaCache tenantTemaCache) {
         this.usuarioRepository = usuarioRepository;
-        this.tenantRepository = tenantRepository;
+        this.tenantTemaCache = tenantTemaCache;
     }
 
     @Override
@@ -33,7 +32,7 @@ public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
 
         var tenantId = usuario.getTenant() == null ? null : usuario.getTenant().getId();
-        var tema = tenantId == null ? null : tenantRepository.buscarTema(tenantId).orElse(null);
+        var tema = tenantId == null ? null : tenantTemaCache.buscarTema(tenantId).orElse(null);
         return new br.com.criare3d.security.UsuarioPrincipal(usuario, tema);
     }
 }

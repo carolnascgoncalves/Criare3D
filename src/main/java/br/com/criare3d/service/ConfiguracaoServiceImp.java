@@ -3,16 +3,19 @@ package br.com.criare3d.service;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.repository.ConfiguracaoRepository;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Service
 @Transactional
@@ -20,7 +23,10 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     private final ConfiguracaoRepository configuracaoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
-    private final ConcurrentMap<UUID, Configuracao> configuracoesPorUsuario = new ConcurrentHashMap<>();
+    private final Cache<UUID, Optional<Configuracao>> configuracoesPorTenant = Caffeine.newBuilder()
+            .maximumSize(1_000)
+            .expireAfterWrite(Duration.ofMinutes(10))
+            .build();
 
     public ConfiguracaoServiceImp(ConfiguracaoRepository configuracaoRepository,
                                   UsuarioLogadoService usuarioLogadoService) {
@@ -45,7 +51,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         }
 
         Configuracao salva = configuracaoRepository.save(configuracao);
-        configuracoesPorUsuario.put(salva.getUsuario().getId(), salva);
+        invalidarCacheDepoisDoCommit(usuarioLogadoService.buscarTenantIdAtual());
         return salva;
     }
 
@@ -95,7 +101,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
                     ? configuracao.getPurgaGramasPorImpressao() : BigDecimal.ZERO);
 
             Configuracao salva = configuracaoRepository.save(atual);
-            configuracoesPorUsuario.put(usuarioLogadoService.buscarIdUsuarioAtual(), salva);
+            invalidarCacheDepoisDoCommit(usuarioLogadoService.buscarTenantIdAtual());
             return salva;
         });
     }
@@ -123,12 +129,10 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
     @Override
     public Optional<Configuracao> buscarConfiguracao() {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        Configuracao emCache = configuracoesPorUsuario.get(usuarioId);
-        if (emCache != null) return Optional.of(emCache);
-        return configuracaoRepository.findFirstByUsuario_Id(usuarioId).map(configuracao -> {
-            Configuracao anterior = configuracoesPorUsuario.putIfAbsent(usuarioId, configuracao);
-            return anterior == null ? configuracao : anterior;
-        });
+        UUID tenantId = usuarioLogadoService.buscarTenantIdAtual();
+        if (tenantId == null) return configuracaoRepository.findFirstByUsuario_Id(usuarioId);
+        return configuracoesPorTenant.get(tenantId,
+                ignorado -> configuracaoRepository.findFirstByTenantIdAndUsuario_Id(tenantId, usuarioId));
     }
 
     @Override
@@ -152,8 +156,27 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setPurgaGramasPorImpressao(BigDecimal.ZERO);
 
             Configuracao salva = configuracaoRepository.save(configuracao);
-            configuracoesPorUsuario.put(usuarioLogadoService.buscarIdUsuarioAtual(), salva);
+            UUID tenantId = usuarioLogadoService.buscarTenantIdAtual();
+            invalidarCacheDepoisDoCommit(tenantId);
             return salva;
+        });
+    }
+
+    private void invalidarCache(UUID tenantId) {
+        if (tenantId != null) configuracoesPorTenant.invalidate(tenantId);
+    }
+
+    private void invalidarCacheDepoisDoCommit(UUID tenantId) {
+        if (tenantId == null) return;
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            invalidarCache(tenantId);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                invalidarCache(tenantId);
+            }
         });
     }
 }

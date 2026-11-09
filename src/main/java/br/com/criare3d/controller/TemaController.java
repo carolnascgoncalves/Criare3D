@@ -1,8 +1,7 @@
 package br.com.criare3d.controller;
 
-import br.com.criare3d.models.Tenant;
 import br.com.criare3d.security.UsuarioPrincipal;
-import br.com.criare3d.repository.TenantRepository;
+import br.com.criare3d.service.TenantTemaCache;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,10 +20,10 @@ public class TemaController {
     private static final String FUNDO_PADRAO = "#f5e7da";
     private static final String CACHE_TEMA = "private, max-age=31536000, immutable";
 
-    private final TenantRepository tenantRepository;
+    private final TenantTemaCache tenantTemaCache;
 
-    public TemaController(TenantRepository tenantRepository) {
-        this.tenantRepository = tenantRepository;
+    public TemaController(TenantTemaCache tenantTemaCache) {
+        this.tenantTemaCache = tenantTemaCache;
     }
 
     @GetMapping(value = "/tema/{tenantId}/{versao}.css", produces = "text/css")
@@ -88,12 +87,8 @@ public class TemaController {
             return ResponseEntity.notFound().build();
         }
 
-        Tenant tenant = tenantRepository.findById(tenantId).orElse(null);
-        if (tenant == null || tenant.getLogo() == null || tenant.getLogo().length == 0) {
-            return ResponseEntity.notFound().build();
-        }
-
-        byte[] bytes = tenant.getLogo();
+        byte[] bytes = tenantTemaCache.buscarLogo(tenantId, versao).orElse(null);
+        if (bytes == null || bytes.length == 0) return ResponseEntity.notFound().build();
         MediaType tipo = tipoLogo(bytes);
         if (tipo == null) return ResponseEntity.notFound().build();
 
