@@ -134,30 +134,11 @@
                     <small th:text="${'Lucro estimado antes das taxas: R$ ' + #numbers.formatDecimal(resultado.lucroEstimado, 1, 'POINT', 2, 'COMMA')}">
                         Lucro estimado: R$ 0,00
                     </small>
-                    <small th:if="${resultado.precoSugerido != null and resultado.precoSugerido.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
-                           th:text="${'Margem sobre o preço: ' + #numbers.formatDecimal(resultado.lucroEstimado.multiply(T(java.math.BigDecimal).TEN).multiply(T(java.math.BigDecimal).TEN).divide(resultado.precoSugerido, 4, T(java.math.RoundingMode).HALF_UP), 1, 'COMMA', 1, 'POINT') + '% antes das taxas'}">Margem sobre o preço</small>
+                    <small th:if="${resultado.margemSobrePreco != null}"
+                           th:text="${'Margem sobre o preço: ' + #numbers.formatDecimal(resultado.margemSobrePreco, 1, 'COMMA', 1, 'POINT') + '% antes das taxas'}">Margem sobre o preço</small>
                 </div>
 
             </div>
-
-            <section class="cartao resumo-lote">
-                <div class="cartao-cabecalho resumo-lote-cabecalho">
-                    <div>
-                        <h3>Resumo do lote</h3>
-                        <p>Totais estimados para toda a quantidade selecionada.</p>
-                    </div>
-                    <div class="resumo-lote-indicadores">
-                        <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
-                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'impressão' : 'impressões'}">impressões</small></span>
-                    </div>
-                </div>
-                <div class="detalhes-conteudo resumo-lote-grade">
-                    <div class="detalhe-item resumo-lote-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item resumo-lote-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item resumo-lote-item resumo-lote-destaque"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                    <div class="detalhe-item resumo-lote-item resumo-lote-lucro"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
-                </div>
-            </section>
 
             <!-- DETALHES DA PLATAFORMA SELECIONADA -->
             <section class="detalhes-calculo"
@@ -250,6 +231,25 @@
                 </div>
             </section>
 
+            <section class="cartao resumo-lote">
+                <div class="cartao-cabecalho resumo-lote-cabecalho">
+                    <div>
+                        <h3>Resumo do lote</h3>
+                        <p>Totais estimados para toda a quantidade selecionada.</p>
+                    </div>
+                    <div class="resumo-lote-indicadores">
+                        <span class="resumo-lote-quantidade"><strong th:text="${unidades}">1</strong><small th:text="${unidades == 1 ? 'unidade' : 'unidades'}">unidades</small></span>
+                        <span class="resumo-lote-quantidade"><strong th:text="${fornadas}">1</strong><small th:text="${fornadas == 1 ? 'impressão' : 'impressões'}">impressões</small></span>
+                    </div>
+                </div>
+                <div class="detalhes-conteudo resumo-lote-grade">
+                    <div class="detalhe-item resumo-lote-item"><span>Custo de produção do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(custoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item"><span>Preço por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-destaque"><span>Preço total do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="detalhe-item resumo-lote-item resumo-lote-lucro"><span>Lucro estimado do lote</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                </div>
+            </section>
+
             <!-- FILAMENTOS UTILIZADOS -->
             <div class="detalhes-calculo">
                 <h3>Filamentos utilizados</h3>
@@ -291,6 +291,11 @@
                 <div class="detalhe-linha">
                     <span>Impressões necessárias</span>
                     <strong th:text="${resultado.fornadas + (resultado.fornadas == 1 ? ' impressão, ' : ' impressões, ') + ((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas) + ' minutos incluindo aquecimento'}">1 impressão</strong>
+                </div>
+
+                <div class="detalhe-linha" th:if="${resultado.tempoAquecimentoMinutos != null and resultado.tempoAquecimentoMinutos > 0}">
+                    <span>Aquecimento considerado</span>
+                    <strong th:text="${resultado.tempoAquecimentoMinutos + ' min × ' + resultado.fornadas + (resultado.fornadas == 1 ? ' impressão' : ' impressões') + ' (' + (resultado.tempoAquecimentoMinutos * resultado.fornadas) + ' min no total)'}">5 min × 1 impressão (5 min no total)</strong>
                 </div>
             </div>
 

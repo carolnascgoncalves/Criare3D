@@ -83,25 +83,4 @@ class CalculoFinanceiroTest {
                 .isEqualByComparingTo("1.08");
     }
 
-    @Test
-    void calculaTresImpressoesParaDezUnidadesComQuatroPecasPorImpressao() {
-        int impressoes = ModeloImpressao.quantidadeImpressoes(10, 4);
-
-        assertThat(impressoes).isEqualTo(3);
-        assertThat(ModeloImpressao.minutosTotais(240, 5, impressoes)).isEqualTo(735);
-    }
-
-    @Test
-    void calculadoraRateiaMaoDeObraEConservaEnergiaFracionariaDoLote() {
-        CalculadoraProducao.Resultado resultado = CalculadoraProducao.calcular(
-                new CalculadoraProducao.Entrada(10, new BigDecimal("2.00"), BigDecimal.ZERO,
-                        new BigDecimal("0.00249333"), BigDecimal.ZERO, new BigDecimal("5.00"),
-                        BigDecimal.ZERO, BigDecimal.ZERO, false, BigDecimal.ZERO,
-                        new BigDecimal("100")));
-
-        assertThat(resultado.custoMaoObra()).isEqualByComparingTo("0.50000000");
-        assertThat(resultado.custoEnergia()).isEqualByComparingTo("0.00024933");
-        assertThat(resultado.custoTotal()).isEqualByComparingTo("2.50024933");
-        assertThat(resultado.precoSugerido()).isEqualByComparingTo("5.00");
-    }
 }

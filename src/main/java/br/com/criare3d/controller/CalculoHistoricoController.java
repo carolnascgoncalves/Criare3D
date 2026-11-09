@@ -282,10 +282,20 @@ public class CalculoHistoricoController {
         try {
             if (request.getMarkupPercentual() == null) request.setMarkupPercentual(BigDecimal.ZERO);
             CalculoHistorico previa = calculoHistoricoService.calcular(request);
+            int unidades = request.getUnidades() == null ? 1 : request.getUnidades();
+            int impressoes = previa.getFornadas() == null ? 1 : previa.getFornadas();
+            int aquecimento = previa.getTempoAquecimentoMinutos() == null
+                    ? 0 : previa.getTempoAquecimentoMinutos();
+            long minutosMaquina = br.com.criare3d.service.ModeloImpressao.minutosTotais(
+                    previa.getTempoImpressaoMinutos() == null ? 0 : previa.getTempoImpressaoMinutos(),
+                    aquecimento, impressoes);
             return ResponseEntity.ok(java.util.Map.of(
                     "custoUnidade", previa.getCustoTotal().setScale(2, RoundingMode.HALF_UP),
-                    "custoLote", previa.getCustoTotal().multiply(BigDecimal.valueOf(request.getUnidades()))
-                            .setScale(2, RoundingMode.HALF_UP)));
+                    "custoLote", previa.getCustoTotal().multiply(BigDecimal.valueOf(unidades))
+                            .setScale(2, RoundingMode.HALF_UP),
+                    "impressoes", impressoes,
+                    "minutosMaquina", minutosMaquina,
+                    "tempoAquecimentoPorImpressao", aquecimento));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.unprocessableEntity().body(java.util.Map.of("erro", ex.getMessage()));
         }
@@ -681,6 +691,10 @@ public class CalculoHistoricoController {
                 ? calculo.getLucroLiquido() : calculo.getLucroEstimado();
         mv.addObject("unidades", unidades);
         mv.addObject("fornadas", fornadas);
+        BigDecimal purgaGramasTotal = calculo.getPurgaGramasPorImpressao() == null
+                ? BigDecimal.ZERO
+                : calculo.getPurgaGramasPorImpressao().multiply(BigDecimal.valueOf((long) fornadas));
+        mv.addObject("purgaGramasTotal", purgaGramasTotal);
         mv.addObject("custoTotalLote", calculo.getCustoTotal().multiply(BigDecimal.valueOf(unidades)));
         mv.addObject("precoUnitario", precoUnitario);
         mv.addObject("precoTotalLote", precoUnitario.multiply(BigDecimal.valueOf(unidades)));

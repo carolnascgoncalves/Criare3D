@@ -7,6 +7,8 @@ function inicializarCalculoEtapas() {
     if (!formulario || formulario === formularioEtapasInicializado) return;
 
     formularioEtapasInicializado = formulario;
+    let temporizadorPrevia = null;
+    let requisicaoPrevia = null;
 
     const etapas = document.querySelectorAll("[data-etapa]");
     const conteudos = document.querySelectorAll("[data-conteudo]");
@@ -40,20 +42,25 @@ function inicializarCalculoEtapas() {
         if (atualizarTempo && tempoInput && tempoInput.dataset.tempoManual !== "true" && previsto > 0) {
             tempoInput.value = String(previsto * Math.min(capacidade, unidades));
         }
-        const uni = document.getElementById("previaUnidades");
-        const imp = document.getElementById("previaImpressoes");
-        const temp = document.getElementById("previaTempo");
-        if (uni) uni.textContent = `${unidades} ${unidades === 1 ? "unidade" : "unidades"}`;
-        if (imp) imp.textContent = `${impressoes} ${impressoes === 1 ? "impressão" : "impressões"}`;
-        if (temp) temp.textContent = `${(Number(tempoInput?.value) || 0) * impressoes} min de máquina`;
-        const material = document.getElementById("previaMaterial");
-        if (material) {
-            const gramas = [...(listaFilamentos?.querySelectorAll("[data-filamento-item]") || [])]
-                .filter(item => item.dataset.confirmado === "true")
-                .reduce((total, item) => total + (Number(item.querySelector("[data-campo-quantidade]")?.value) || 0), 0)
-                * unidades;
-            material.textContent = `${new Intl.NumberFormat("pt-BR", {maximumFractionDigits: 1}).format(gramas)} g${gramas > 0 ? " + purga estimada" : ""}`;
+        const tempoPorImpressao = Number(tempoInput?.value) || 0;
+        const aquecimento = Number(impressoraSelect?.selectedOptions[0]?.dataset.tempoAquecimento) || 0;
+        const minutosTotais = (tempoPorImpressao + aquecimento) * impressoes;
+        const resumoTempoTotal = document.getElementById("tempoTotalLoteResumo");
+        if (resumoTempoTotal) {
+            resumoTempoTotal.hidden = tempoPorImpressao <= 0;
+            if (tempoPorImpressao > 0) {
+                const horasTotais = Math.floor(minutosTotais / 60);
+                const minutosRestantes = minutosTotais % 60;
+                const tempoFormatado = horasTotais > 0
+                    ? `${horasTotais} h${minutosRestantes > 0 ? ` ${minutosRestantes} min` : ""}`
+                    : `${minutosRestantes} min`;
+                const quantidadeFormatada = new Intl.NumberFormat("pt-BR").format(minutosTotais);
+                resumoTempoTotal.textContent = `Tempo total estimado: ${quantidadeFormatada} min (${tempoFormatado}) em ${impressoes} ${impressoes === 1 ? "impressão" : "impressões"}, incluindo ${aquecimento} min de aquecimento por impressão.`;
+            }
         }
+        const parcial = impressoes > 1 && unidades % capacidade !== 0;
+        const avisoParcial = document.getElementById("avisoImpressaoParcial");
+        if (avisoParcial) avisoParcial.hidden = !parcial;
         atualizarResumoTempo();
     }
 
@@ -92,7 +99,7 @@ function inicializarCalculoEtapas() {
         if (salvar) {
             salvarRascunho();
         }
-        if (numero >= 3) {
+        if (numero === 4) {
             clearTimeout(temporizadorPrevia);
             temporizadorPrevia = setTimeout(atualizarPreviaCustos, 150);
         }
@@ -378,6 +385,18 @@ function inicializarCalculoEtapas() {
         statusTempo.classList.add(classe);
     }
 
+    function atualizarAvisoAquecimento() {
+        const aviso = document.getElementById("avisoAquecimentoImpressora");
+        const link = document.getElementById("linkEditarAquecimento");
+        const opcao = impressoraSelect?.selectedOptions[0];
+        const aquecimento = Number(opcao?.dataset.tempoAquecimento) || 0;
+        const selecionada = Boolean(impressoraSelect?.value);
+        if (aviso) aviso.hidden = !selecionada || aquecimento > 0;
+        if (link && impressoraSelect?.value) {
+            link.href = `/impressora/editar/${encodeURIComponent(impressoraSelect.value)}`;
+        }
+    }
+
     pecaSelect?.addEventListener("change", event => {
         preencherDadosPeca();
         if (event.isTrusted) {
@@ -392,44 +411,69 @@ function inicializarCalculoEtapas() {
         atualizarResumoProducao(false);
         atualizarResumoTempo();
     });
+    impressoraSelect?.addEventListener("change", () => {
+        atualizarAvisoAquecimento();
+        atualizarResumoProducao(false);
+    });
+    atualizarAvisoAquecimento();
     atualizarResumoTempo();
     // A comparação de tempo já está inicializada; agora podemos atualizar
     // o resumo sem interromper a configuração dos eventos abaixo.
     atualizarResumoProducao(true);
 
     const custoPrevio = document.getElementById("previaCustoUnidade");
-    let temporizadorPrevia;
     async function atualizarPreviaCustos() {
-        if (!custoPrevio || etapaAtual < 3) return;
+        if (!custoPrevio || etapaAtual !== 4) return;
         const dados = new FormData(formulario);
         // A foto não altera o custo e não deve ser reenviada em cada prévia.
         dados.delete("fotoPeca");
         dados.delete("fotoRemovida");
+        requisicaoPrevia?.abort();
+        const controle = new AbortController();
+        requisicaoPrevia = controle;
         try {
             const resposta = await fetch("/historico/previa", {
                 method: "POST",
                 body: dados,
-                headers: {"X-Requested-With": "XMLHttpRequest"}
+                headers: {"X-Requested-With": "XMLHttpRequest"},
+                signal: controle.signal
             });
-            if (!resposta.ok) return;
-            const valores = await resposta.json();
+            const valores = await resposta.json().catch(() => ({}));
+            if (controle.signal.aborted || requisicaoPrevia !== controle) return;
+            if (!resposta.ok) {
+                const mensagem = valores.erro || "Confira os dados de impressão para calcular a prévia.";
+                custoPrevio.textContent = mensagem;
+                const custoLote = document.getElementById("previaCustoLote");
+                if (custoLote) custoLote.textContent = "—";
+                custoPrevio.setAttribute("aria-invalid", "true");
+                return;
+            }
             custoPrevio.textContent = new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL"})
                 .format(Number(valores.custoUnidade));
             const lote = document.getElementById("previaCustoLote");
             if (lote) lote.textContent = new Intl.NumberFormat("pt-BR", {style: "currency", currency: "BRL"})
                 .format(Number(valores.custoLote));
-        } catch (_) {
-            // A prévia é informativa; a conclusão do cálculo continua disponível.
+            const impressoes = Number(valores.impressoes) || 1;
+            const minutos = Number(valores.minutosMaquina) || 0;
+            const aquecimento = Number(valores.tempoAquecimentoPorImpressao) || 0;
+            const unidadeImpressao = impressoes === 1 ? "impressão" : "impressões";
+            const unidades = Number(document.getElementById("unidades")?.value) || 1;
+            const info = document.getElementById("previaResumoProducao");
+            const horas = Math.floor(minutos / 60);
+            const minutosRestantes = minutos % 60;
+            const tempoFormatado = horas > 0
+                ? `${horas} h ${minutosRestantes} min`
+                : `${minutosRestantes} min`;
+            if (info) {
+                info.textContent = `${unidades} ${unidades === 1 ? "unidade" : "unidades"} · ${impressoes} ${unidadeImpressao} · ${tempoFormatado} de máquina (inclui ${aquecimento} min de aquecimento por impressão)`;
+            }
+            custoPrevio.removeAttribute("aria-invalid");
+        } catch (erro) {
+            if (erro.name === "AbortError") return;
+            custoPrevio.textContent = "Prévia temporariamente indisponível. Você ainda pode continuar o cálculo.";
+            custoPrevio.setAttribute("aria-invalid", "true");
         }
     }
-    formulario.addEventListener("input", () => {
-        clearTimeout(temporizadorPrevia);
-        temporizadorPrevia = setTimeout(atualizarPreviaCustos, 600);
-    });
-    formulario.addEventListener("change", () => {
-        clearTimeout(temporizadorPrevia);
-        temporizadorPrevia = setTimeout(atualizarPreviaCustos, 600);
-    });
     formulario.addEventListener("click", event => {
         if (event.target.closest?.("[data-confirmar-filamento]")) atualizarResumoProducao(false);
     });

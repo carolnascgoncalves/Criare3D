@@ -20,6 +20,8 @@ import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.ItemCalculoHistorico;
 import br.com.criare3d.dto.CompraFilamentoRequest;
+import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.dto.DashboardResumo;
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
@@ -236,6 +238,71 @@ class Criare3dApplicationTests {
 			SecurityContextHolder.clearContext();
 			calculoHistoricoRepository.deleteById(calculo.getId());
 			filamentoRepository.deleteById(filamento.getId());
+			usuarioRepository.deleteById(usuario.getId());
+		}
+	}
+
+	@Test
+	void calculaLoteComDuasMisturasPurgaEAquecimento() {
+		Usuario usuario = criarUsuario("calculo-lote-" + UUID.randomUUID() + "@teste.local");
+		Filamento filamentoA = criarFilamento(usuario);
+		Filamento filamentoB = criarFilamento(usuario);
+		Peca peca = pecaRepository.saveAndFlush(Peca.builder()
+				.nome("Peça para lote integrado")
+				.quantidadeFilamentoGramas(new BigDecimal("100.00"))
+				.tempoImpressaoMinutos(60L).usuario(usuario).build());
+		Impressora impressora = impressoraRepository.saveAndFlush(Impressora.builder()
+				.nome("Impressora lote integrada").modelo("Modelo teste")
+				.potenciaWatts(new BigDecimal("100.00"))
+				.tempoAquecimentoMinutos(5).usuario(usuario).build());
+		Embalagem embalagem = embalagemRepository.saveAndFlush(Embalagem.builder()
+				.nome("Caixa lote integrada").custoUnitario(new BigDecimal("2.00")).usuario(usuario).build());
+		Configuracao configuracao = configuracaoRepository.saveAndFlush(Configuracao.builder()
+				.markupPercentual(new BigDecimal("100.00"))
+				.markupFixo(false).tarifaEnergiaKwh(new BigDecimal("0.80"))
+				.embalagemFixa(false).custoEmbalagemFixa(BigDecimal.ZERO)
+				.purgaGramasPorImpressao(new BigDecimal("0.100000"))
+				.usuario(usuario).build());
+
+		try {
+			SecurityContextHolder.getContext().setAuthentication(
+					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			CalculoRequest request = new CalculoRequest();
+			request.setPecaId(peca.getId());
+			request.setImpressoraId(impressora.getId());
+			request.setEmbalagemId(embalagem.getId());
+			request.setUnidades(10);
+			request.setPecasPorImpressao(4);
+			request.setTempoImpressaoMinutos(240L);
+			request.setMarkupPercentual(new BigDecimal("100.00"));
+			ItemCalculoRequest itemA = new ItemCalculoRequest();
+			itemA.setFilamentoId(filamentoA.getId());
+			itemA.setQuantidadeFilamentoGramas(new BigDecimal("30.00"));
+			ItemCalculoRequest itemB = new ItemCalculoRequest();
+			itemB.setFilamentoId(filamentoB.getId());
+			itemB.setQuantidadeFilamentoGramas(new BigDecimal("70.00"));
+			request.setFilamentos(java.util.List.of(itemA, itemB));
+
+			CalculoHistorico resultado = calculoHistoricoService.calcular(request);
+
+			assertThat(resultado.getUnidades()).isEqualTo(10);
+			assertThat(resultado.getPecasPorImpressao()).isEqualTo(4);
+			assertThat(resultado.getFornadas()).isEqualTo(3);
+			assertThat(resultado.getTempoAquecimentoMinutos()).isEqualTo(5);
+			assertThat(resultado.getCustoEnergia()).isEqualByComparingTo("0.09800000");
+			assertThat(resultado.getItensFilamento()).hasSize(2);
+			assertThat(resultado.getItensFilamento().stream()
+					.map(ItemCalculoHistorico::getPurgaGramas)
+					.reduce(BigDecimal.ZERO, BigDecimal::add))
+				.isEqualByComparingTo("0.03000000");
+			assertThat(resultado.getCustoPurga()).isEqualByComparingTo("0.00240000");
+		} finally {
+			SecurityContextHolder.clearContext();
+			configuracaoRepository.deleteById(configuracao.getId());
+			embalagemRepository.deleteById(embalagem.getId());
+			impressoraRepository.deleteById(impressora.getId());
+			pecaRepository.deleteById(peca.getId());
+			filamentoRepository.deleteAllById(java.util.List.of(filamentoA.getId(), filamentoB.getId()));
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}

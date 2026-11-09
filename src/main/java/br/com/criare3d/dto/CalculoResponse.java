@@ -63,6 +63,7 @@ public class CalculoResponse {
     private List<ItemCalculoResponse> itensFilamento;
 
     private BigDecimal lucroEstimado;
+    private BigDecimal margemSobrePreco;
 
     // Dados da venda pela plataforma
     private String plataformaVenda;
@@ -89,6 +90,14 @@ public class CalculoResponse {
                 .stream()
                 .map(ItemCalculoResponse::toDto)
                 .collect(Collectors.toList());
+
+        BigDecimal lucroEstimado = calculo.getPrecoSugerido() == null || calculo.getCustoTotal() == null
+                ? null : calculo.getPrecoSugerido().subtract(calculo.getCustoTotal());
+        BigDecimal margemSobrePreco = lucroEstimado == null || calculo.getPrecoSugerido() == null
+                || calculo.getPrecoSugerido().signum() <= 0
+                ? null
+                : lucroEstimado.multiply(BigDecimal.valueOf(100))
+                    .divide(calculo.getPrecoSugerido(), 4, java.math.RoundingMode.HALF_UP);
 
         return CalculoResponse.builder()
                 .id(calculo.getId())
@@ -129,7 +138,8 @@ public class CalculoResponse {
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())
                 .itensFilamento(itens)
-                .lucroEstimado(calculo.getPrecoSugerido().subtract(calculo.getCustoTotal()))
+                .lucroEstimado(lucroEstimado)
+                .margemSobrePreco(margemSobrePreco)
                 .temFoto(Boolean.TRUE.equals(calculo.getTemFoto()))
                 .plataformaVenda(calculo.getPlataformaVenda())
                 .tipoAnuncio(calculo.getTipoAnuncio())

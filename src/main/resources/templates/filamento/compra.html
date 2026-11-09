@@ -30,14 +30,15 @@
                     <strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)} g|">0 g</strong>
                 </div>
                 <div class="campo">
-                    <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g)</label>
+                    <label for="gramasCompradas">Quantidade que entrou no estoque (g)</label>
                     <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01" required>
+                    <small>Informe quanto filamento esta compra acrescenta ao saldo disponível. Se comprou um rolo novo e fechado, normalmente é o mesmo peso indicado no rótulo.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
                 </div>
                 <div class="campo">
-                    <label for="pesoRoloGramas">Peso total do rolo comprado (g)</label>
+                    <label for="pesoRoloGramas">Peso de cada rolo (g)</label>
                     <input id="pesoRoloGramas" type="number" th:field="*{pesoRoloGramas}" min="0.01" step="0.01" required>
-                    <small>Exemplo: informe 1.000 g para um rolo de 1 kg.</small>
+                    <small>Este peso serve para calcular o custo por grama nos próximos cálculos. Exemplo: 1.000 g para um rolo de 1 kg. Se a compra acrescenta um rolo inteiro, use o mesmo valor acima.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('pesoRoloGramas')}" th:errors="*{pesoRoloGramas}"></span>
                 </div>
                 <div class="campo">

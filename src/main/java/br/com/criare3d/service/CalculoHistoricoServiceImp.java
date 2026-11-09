@@ -502,21 +502,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                 ? purgaGramasLote.multiply(custoFilamentoTotal)
                     .divide(quantidadeFilamentoTotal, 8, java.math.RoundingMode.HALF_UP)
                 : ZERO;
-        BigDecimal gramasPurgaAlocadas = ZERO;
         List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
-        for (int i = 0; i < itensHistorico.size(); i++) {
-            ItemCalculoHistorico item = itensHistorico.get(i);
-            BigDecimal gramasDaPurga;
-            if (i == itensHistorico.size() - 1) {
-                gramasDaPurga = precisao(purgaGramasUnidade.subtract(gramasPurgaAlocadas));
-            } else {
-                gramasDaPurga = precisao(purgaGramasUnidade
-                        .multiply(item.getQuantidadeFilamentoGramas())
-                        .divide(quantidadeFilamentoTotal, 8, java.math.RoundingMode.HALF_UP));
-                gramasPurgaAlocadas = gramasPurgaAlocadas.add(gramasDaPurga);
-            }
-            item.setPurgaGramas(gramasDaPurga);
-        }
+        DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico);
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
                 ? configuracao.getTempoMaoObraFixoMinutos()

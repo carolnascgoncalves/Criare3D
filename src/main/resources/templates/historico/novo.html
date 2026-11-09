@@ -307,10 +307,15 @@
                             <option th:each="impressora : ${impressoras}"
                                     th:value="${impressora.id}"
                                     th:text="${impressora.nome}"
-                                    th:attr="data-potencia=${impressora.potenciaWatts}">
+                                    th:attr="data-potencia=${impressora.potenciaWatts}, data-tempo-aquecimento=${impressora.tempoAquecimentoMinutos}">
                             </option>
                             <option value="" data-acao="cadastrar-impressora">+ Cadastrar nova impressora</option>
                         </select>
+                        <div id="avisoAquecimentoImpressora" class="aviso-info" hidden>
+                            <i class="bi bi-info-circle"></i>
+                            O tempo de aquecimento está como zero para esta impressora. Se ela aquece antes de imprimir,
+                            <a id="linkEditarAquecimento" href="/impressora/listar" target="_blank" rel="noopener">informe o tempo no cadastro da impressora</a>.
+                        </div>
                         <div class="erro-campo"
                              th:if="${#fields.hasErrors('impressoraId')}"
                              th:errors="*{impressoraId}"></div>
@@ -334,7 +339,9 @@
                                min="1"
                                step="1"
                                required>
-                        <small>Estimativa inicial: tempo cadastrado da peça × peças por impressão. Ajuste pelo tempo indicado no fatiador; o aquecimento é acrescentado automaticamente.</small>
+                        <small>Informe o tempo de uma impressão, conforme o fatiador. O total do lote multiplica esse tempo pelo número de impressões e acrescenta o aquecimento.</small>
+                        <small id="tempoTotalLoteResumo" class="texto-apoio" hidden></small>
+                        <small id="avisoImpressaoParcial" class="texto-apoio" hidden>A última impressão terá menos peças. O tempo informado é uma média por impressão; ajuste pelo tempo total indicado no fatiador.</small>
                         <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
                     </div>
 
@@ -407,14 +414,6 @@
                              th:errors="*{embalagemId}"></div>
                     </div>
 
-                    <div class="resumo-revisao resumo-producao-previa">
-                        <h3>Resumo da produção</h3>
-                        <p><strong id="previaUnidades">1 unidade</strong> em <strong id="previaImpressoes">1 impressão</strong>, com tempo de máquina estimado em <strong id="previaTempo">0 min</strong>.</p>
-                        <p>Filamento informado: <strong id="previaMaterial">—</strong>.</p>
-                        <p>O custo estimado por unidade é <strong id="previaCustoUnidade">preencha os dados para calcular</strong>; lote: <strong id="previaCustoLote">—</strong>.</p>
-                        <small>O valor usa a mesma regra do cálculo final e inclui purga, aquecimento e custos adicionais ativados.</small>
-                    </div>
-
                     <div class="formulario-acoes">
                         <div class="acoes-etapa">
                             <button type="button" class="botao botao-secundario" data-anterior>
@@ -437,6 +436,13 @@
                         <span class="texto-apoio">ETAPA 04</span>
                         <h2>Venda e Markup</h2>
                         <p>Defina o markup e, se desejar, informe onde a peça será vendida.</p>
+                    </div>
+
+                    <div class="resumo-revisao resumo-producao-previa">
+                        <h3>Resumo da produção</h3>
+                        <p id="previaResumoProducao">Calculando impressões e tempo de máquina…</p>
+                        <p>Custo estimado: <strong id="previaCustoUnidade">calculando…</strong> por unidade · <strong id="previaCustoLote">—</strong> no lote.</p>
+                        <small>Inclui purga, aquecimento e custos adicionais ativados.</small>
                     </div>
 
                     <div class="detalhes-calculo">
