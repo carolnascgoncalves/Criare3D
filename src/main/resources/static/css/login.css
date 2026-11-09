@@ -92,6 +92,12 @@ body.login-pagina {
     transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
+.login-senha-controle { position: relative; }
+.login-senha-controle input { padding-right: 52px; }
+.login-mostrar-senha { position: absolute; top: 50%; right: 8px; display: grid; place-items: center; width: 38px; height: 38px; transform: translateY(-50%); border: 0; border-radius: 7px; background: transparent; color: var(--login-texto-suave); cursor: pointer; }
+.login-mostrar-senha:hover { background: var(--login-fundo); color: var(--login-texto); }
+.login-mostrar-senha:focus-visible { outline: 2px solid var(--login-foco); outline-offset: 1px; }
+
 .login-campo input::placeholder {
     color: #929aa6;
 }
@@ -156,6 +162,8 @@ body.login-pagina {
     font-size: 0.8rem;
     text-align: center;
 }
+
+.login-ajuda { margin: 16px 0 0; color: var(--login-texto-suave); font-size: .82rem; line-height: 1.5; text-align: center; }
 
 @media (max-width: 480px) {
     body.login-pagina {

@@ -1,6 +1,7 @@
 package br.com.criare3d.controller;
 
 import br.com.criare3d.security.UsuarioPrincipal;
+import br.com.criare3d.service.TenantTemaCache;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,6 +11,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 @ControllerAdvice
 public class NavegacaoModelAdvice {
+
+    private final TenantTemaCache tenantTemaCache;
+
+    public NavegacaoModelAdvice(TenantTemaCache tenantTemaCache) {
+        this.tenantTemaCache = tenantTemaCache;
+    }
 
     @ModelAttribute
     public void adicionarPaginaAtiva(HttpServletRequest request, Model model) {
@@ -30,18 +37,23 @@ public class NavegacaoModelAdvice {
                 && autenticacao.getPrincipal() instanceof UsuarioPrincipal usuarioPrincipal
                 ? usuarioPrincipal : null;
 
-        String nomeTenant = principal == null || principal.getTenantNome() == null
-                || principal.getTenantNome().isBlank() ? "Criare 3D" : principal.getTenantNome();
-        long temaVersao = principal == null ? 1L : Math.max(1L, principal.getTemaVersao());
-        model.addAttribute("tenantDisponivel", principal != null && principal.getTenantId() != null);
+        var tema = principal == null || principal.getTenantId() == null
+                ? null : tenantTemaCache.buscarTema(principal.getTenantId()).orElse(null);
+        String nomeTenant = tema == null || tema.getNome() == null || tema.getNome().isBlank()
+                ? "Criare 3D" : tema.getNome();
+        long temaVersao = tema == null || tema.getTemaVersao() == null
+                ? 1L : Math.max(1L, tema.getTemaVersao());
+        boolean tenantDisponivel = principal != null && principal.getTenantId() != null;
+        boolean tenantTemLogo = tema != null && Boolean.TRUE.equals(tema.getTemLogo());
+        model.addAttribute("tenantDisponivel", tenantDisponivel);
         model.addAttribute("tenantNome", nomeTenant);
-        model.addAttribute("tenantTemLogo", principal != null && principal.isTenantTemLogo());
-        model.addAttribute("tenantLogoUrl", principal != null && principal.getTenantId() != null
-                && principal.isTenantTemLogo()
+        model.addAttribute("tenantTemLogo", tenantTemLogo);
+        model.addAttribute("tenantLogoUrl", tenantDisponivel
+                && tenantTemLogo
                 ? request.getContextPath() + "/tema/" + principal.getTenantId()
                     + "/" + temaVersao + "/logo"
                 : request.getContextPath() + "/images/criare3d-128.jpg");
-        if (principal != null && principal.getTenantId() != null) {
+        if (tenantDisponivel) {
             model.addAttribute("temaCssUrl", request.getContextPath() + "/tema/"
                     + principal.getTenantId() + "/" + temaVersao + ".css");
         }

@@ -3,6 +3,7 @@ package br.com.criare3d;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,6 +42,7 @@ import br.com.criare3d.repository.ManutencaoImpressoraRepository;
 import br.com.criare3d.repository.CalculoFotoRepository;
 import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.service.FilamentoServiceImp;
+import br.com.criare3d.service.ClienteAdminService;
 import br.com.criare3d.service.interfaces.UsuarioService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 
@@ -90,17 +92,42 @@ class Criare3dApplicationTests {
 	private UsuarioService usuarioService;
 	@Autowired
 	private CalculoHistoricoService calculoHistoricoService;
+	@Autowired
+	private ClienteAdminService clienteAdminService;
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
 
 	@AfterEach
 	void removerTenantsDeTeste() {
+		SecurityContextHolder.clearContext();
 		tenantRepository.findAll().stream()
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
-				.forEach(tenantRepository::delete);
+				.forEach(tenant -> {
+					UUID tenantId = tenant.getId();
+					for (String tabela : java.util.List.of("calculo_foto", "item_calculo_historico",
+							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
+							"filamento", "impressora", "peca", "usuario")) {
+						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
+					}
+					jdbcTemplate.update("DELETE FROM tenant WHERE id = ?", tenantId);
+				});
 	}
 
 	@Test
 	void contextoDaAplicacaoIniciaComBancoDeTeste() {
 		assertThat(passwordEncoder).isNotNull();
+	}
+
+	@Test
+	void migrationRemoveDefaultsDeTenantParaEvitarVinculosSilenciosos() {
+		assertThat(jdbcTemplate.queryForList("""
+				SELECT table_name
+				FROM information_schema.columns
+				WHERE table_schema = current_schema()
+				  AND column_name = 'tenant_id'
+				  AND column_default IS NOT NULL
+				""", String.class))
+				.isEmpty();
 	}
 
 	@Test
@@ -245,6 +272,38 @@ class Criare3dApplicationTests {
 	}
 
 	@Test
+	void excluirUmClienteMantemOsDadosDoOutroTenant() {
+		Usuario usuarioA = criarUsuario("excluir-a-" + UUID.randomUUID() + "@teste.local");
+		Usuario usuarioB = criarUsuario("excluir-b-" + UUID.randomUUID() + "@teste.local");
+		autenticarComo(usuarioA);
+		Peca pecaA = pecaRepository.saveAndFlush(Peca.builder()
+				.nome("Peça do tenant A").quantidadeFilamentoGramas(new BigDecimal("10"))
+				.tempoImpressaoMinutos(30L).usuario(usuarioA).build());
+		autenticarComo(usuarioB);
+		Peca pecaB = pecaRepository.saveAndFlush(Peca.builder()
+				.nome("Peça do tenant B").quantidadeFilamentoGramas(new BigDecimal("20"))
+				.tempoImpressaoMinutos(45L).usuario(usuarioB).build());
+		Usuario admin = Usuario.builder().id(UUID.randomUUID()).email("admin-teste@teste.local")
+				.password("hash").perfil(Perfil.ADMIN).build();
+
+		try {
+			autenticarComo(admin);
+			clienteAdminService.excluir(usuarioA.getTenant().getId(), "Tenant de teste");
+
+			autenticarComo(usuarioB);
+			assertThat(pecaRepository.findById(pecaB.getId())).isPresent();
+			assertThat(tenantRepository.findById(usuarioB.getTenant().getId())).isPresent();
+			assertThat(tenantRepository.findById(usuarioA.getTenant().getId())).isEmpty();
+			assertThat(pecaA.getTenantId()).isNotEqualTo(pecaB.getTenantId());
+		} finally {
+			SecurityContextHolder.clearContext();
+			jdbcTemplate.update("DELETE FROM peca WHERE id = ? AND tenant_id = ?", pecaB.getId(), usuarioB.getTenant().getId());
+			jdbcTemplate.update("DELETE FROM usuario WHERE id = ?", usuarioB.getId());
+			jdbcTemplate.update("DELETE FROM tenant WHERE id = ?", usuarioB.getTenant().getId());
+		}
+	}
+
+	@Test
 	void dashboardAgrupaLucroPelaDataDaVendaEnaoPelaDataDoCalculo() {
 		Usuario usuario = criarUsuario("venda-" + UUID.randomUUID() + "@teste.local");
 		autenticarComo(usuario);
@@ -261,17 +320,17 @@ class Criare3dApplicationTests {
 
 		try {
 		DashboardResumo resumoVenda = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
-				usuario.getId(), usuario.getTenant().getId(), dataVenda.minusDays(1), agora.plusDays(1)));
+				usuario.getTenant().getId(), dataVenda.minusDays(1), agora.plusDays(1)));
 			assertThat(resumoVenda.vendidas()).isEqualTo(3);
 			assertThat(resumoVenda.lucroVendido()).isEqualByComparingTo("75.00");
 			assertThat(resumoVenda.minutosVendidos()).isEqualTo(180L);
 			DashboardResumo resumoDataCalculo = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
-					usuario.getId(), usuario.getTenant().getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
+					usuario.getTenant().getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
 			assertThat(resumoDataCalculo.lucroVendido()).isEqualByComparingTo("0.00");
 			assertThat(calculoHistoricoRepository.primeiraVendaComLucro(usuario.getId()))
 					.isEqualTo(dataVenda);
 			DashboardResumo semTenant = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
-					usuario.getId(), new UUID(0L, 0L), dataVenda.minusDays(1), agora.plusDays(1)));
+					new UUID(0L, 0L), dataVenda.minusDays(1), agora.plusDays(1)));
 			assertThat(semTenant.vendidas()).isZero();
 		} finally {
 			calculoHistoricoRepository.deleteById(calculo.getId());
@@ -426,7 +485,7 @@ class Criare3dApplicationTests {
 	}
 
 	private void autenticarComo(Usuario usuario) {
-		UsuarioPrincipal principal = new UsuarioPrincipal(usuario, true);
+		UsuarioPrincipal principal = new UsuarioPrincipal(usuario);
 		SecurityContextHolder.getContext().setAuthentication(
 				UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
 	}

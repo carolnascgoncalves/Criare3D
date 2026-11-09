@@ -2,6 +2,8 @@ package br.com.criare3d.config;
 
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.security.UsuarioPrincipal;
+import br.com.criare3d.service.TenantTemaCache;
+import br.com.criare3d.dto.TenantTemaProjection;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,13 +17,34 @@ import java.io.IOException;
 /** Impede contas sem tenant de acessar telas que consultam ou gravam dados de cliente. */
 public class TenantObrigatorioFilter extends OncePerRequestFilter {
 
+    private final TenantTemaCache tenantTemaCache;
+
+    public TenantObrigatorioFilter(TenantTemaCache tenantTemaCache) {
+        this.tenantTemaCache = tenantTemaCache;
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao == null || !autenticacao.isAuthenticated()
-                || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)
-                || principal.getTenantId() != null || rotaPermitidaSemTenant(request.getServletPath())) {
+                || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (principal.getTenantId() != null) {
+            TenantTemaProjection tema = tenantTemaCache.buscarTema(principal.getTenantId()).orElse(null);
+            if (tema == null || !Boolean.TRUE.equals(tema.getAtivo())) {
+                encerrarSessao(request);
+                response.sendRedirect(request.getContextPath() + "/login?suspenso");
+                return;
+            }
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (rotaPermitidaSemTenant(request.getServletPath())) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -32,6 +55,12 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
         }
 
         response.sendError(HttpServletResponse.SC_FORBIDDEN);
+    }
+
+    private void encerrarSessao(HttpServletRequest request) {
+        SecurityContextHolder.clearContext();
+        var sessao = request.getSession(false);
+        if (sessao != null) sessao.invalidate();
     }
 
     private boolean rotaPermitidaSemTenant(String caminho) {

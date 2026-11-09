@@ -491,18 +491,17 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
         historico.setCustoFilamento(custoFilamentoTotal);
 
-        BigDecimal energiaLote = CalculoFinanceiro.energia(
+        BigDecimal energiaLote = CalculadoraProducao.energiaLote(
                 impressora.getPotenciaWatts(), minutosMaquinaLote,
                 configuracao.getTarifaEnergiaKwh());
 
         BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null
                 ? ZERO : configuracao.getPurgaGramasPorImpressao();
-        BigDecimal purgaGramasLote = precisao(purgaGramasPorImpressao.multiply(BigDecimal.valueOf(fornadas)));
+        BigDecimal purgaGramasLote = CalculadoraProducao.gramasPurgaLote(
+                purgaGramasPorImpressao, fornadas);
         BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
-        BigDecimal custoPurgaLote = quantidadeFilamentoTotal.signum() > 0
-                ? purgaGramasLote.multiply(custoFilamentoTotal)
-                    .divide(quantidadeFilamentoTotal, 8, java.math.RoundingMode.HALF_UP)
-                : ZERO;
+        BigDecimal custoPurgaLote = CalculadoraProducao.custoPurgaLote(
+                purgaGramasLote, custoFilamentoTotal, quantidadeFilamentoTotal);
         List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
         DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico);
 
@@ -529,7 +528,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (manutencaoPorHora == null || manutencaoPorHora.signum() < 0) {
             throw new IllegalArgumentException("A estimativa de manutenção por hora é inválida.");
         }
-        BigDecimal custoManutencaoLote = CalculoFinanceiro.manutencao(
+        BigDecimal custoManutencaoLote = CalculadoraProducao.manutencaoLote(
                 manutencaoPorHora, minutosMaquinaLote);
 
         BigDecimal custoDepreciacaoLote = ZERO;
@@ -544,7 +543,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "e o tempo de impressão para incluir esse custo no cálculo."
                 );
             }
-            custoDepreciacaoLote = CalculoFinanceiro.depreciacao(
+            custoDepreciacaoLote = CalculadoraProducao.depreciacaoLote(
                     valorImpressora, vidaUtilHoras, minutosMaquinaLote);
         }
 

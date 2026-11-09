@@ -16,12 +16,19 @@
         </a>
     </section>
 
-    <div th:if="${senhaTemporaria}" class="alert alert-warning cliente-senha-aviso" role="status" data-senha-temporaria>
+    <div th:if="${senhaTemporaria}" class="alert alert-warning cliente-senha-aviso" role="status" data-senha-temporaria
+         th:attr="data-email=${emailAcesso},data-login-url=@{/login}">
         <strong>Senha temporária pronta.</strong> Copie e envie ao cliente. Ele precisará criar uma senha nova no próximo acesso.
         <div class="cliente-senha-temporaria">
             <code th:text="${senhaTemporaria}">senha-temporaria</code>
             <button type="button" class="botao botao-secundario" data-copiar-senha>
                 <i class="bi bi-copy"></i> Copiar senha
+            </button>
+            <button type="button" class="botao botao-secundario" data-copiar-acesso>
+                <i class="bi bi-clipboard-check"></i> Copiar mensagem pronta
+            </button>
+            <button type="button" class="botao botao-principal" data-enviar-whatsapp>
+                <i class="bi bi-whatsapp"></i> Enviar pelo WhatsApp
             </button>
         </div>
     </div>
@@ -100,6 +107,7 @@
                         <h3 data-preview-titulo th:text="${cliente.nome != null and !cliente.nome.isBlank() ? cliente.nome : 'Seu espaço de trabalho'}">Seu espaço de trabalho</h3>
                         <p>As telas, os gráficos e os botões usarão as cores selecionadas.</p>
                         <span class="cliente-preview-card">Exemplo de cartão</span>
+                        <span class="cliente-preview-contraste bom" data-contraste-tema aria-live="polite">Contraste bom</span>
                     </div>
                 </div>
 
@@ -141,7 +149,7 @@
         </form>
     </section>
 
-    <section th:if="${modoEdicao}" class="cartao cliente-excluir-cartao">
+    <section th:if="${modoEdicao and !cliente.ativo}" class="cartao cliente-excluir-cartao">
         <div>
             <span class="texto-apoio">ÁREA DE PERIGO</span>
             <h2>Excluir cliente</h2>

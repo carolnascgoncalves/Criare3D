@@ -155,7 +155,8 @@
             <form id="form-remover-embalagens"
                   th:action="@{/embalagem/remover-lote}"
                   method="post"
-                  onsubmit="return confirm('Excluir as embalagens selecionadas? Embalagens vinculadas a cálculos serão mantidas.');">
+                  data-turbo-confirm="Excluir as embalagens selecionadas? As que estiverem vinculadas a cálculos serão mantidas."
+                  data-confirm-label="Excluir selecionadas">
 
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="ordem" th:value="${ordem}">
@@ -232,7 +233,8 @@
                             <form th:action="@{/embalagem/remover/{id}(id=${embalagem.id})}"
                                   method="post"
                                   class="formulario-excluir"
-                                  onsubmit="return confirm('Tem certeza que deseja remover esta embalagem?')">
+                                  data-turbo-confirm="Tem certeza que deseja excluir esta embalagem? Se estiver vinculada a cálculos, ela será mantida."
+                                  data-confirm-label="Excluir">
 
                                 <button type="submit"
                                         class="botao-acao-excluir"

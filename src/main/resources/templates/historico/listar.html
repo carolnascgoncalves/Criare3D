@@ -343,7 +343,8 @@
                 <form id="form-remover-lote"
                       th:action="@{/historico/remover-lote}"
                       method="post"
-                      onsubmit="return confirm('Excluir os cálculos selecionados? O estoque será restaurado para os que estiverem marcados como produzidos.');">
+                      data-turbo-confirm="Excluir os cálculos selecionados? O estoque dos cálculos produzidos será restaurado."
+                      data-confirm-label="Excluir selecionados">
 
                     <input type="hidden" name="busca" th:value="${busca}">
                     <input type="hidden" name="data" th:value="${data}">
@@ -507,7 +508,8 @@
                                 <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
                                       method="post"
                                       class="formulario-excluir"
-                                      onsubmit="return confirm('Tem certeza de que deseja excluir este cálculo do histórico? Esta ação não poderá ser desfeita.');">
+                                      data-turbo-confirm="Tem certeza de que deseja excluir este cálculo do histórico? O estoque será restaurado se ele estiver produzido."
+                                      data-confirm-label="Excluir">
 
                                     <button type="submit"
                                             class="botao-acao-excluir"

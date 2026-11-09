@@ -77,7 +77,7 @@ public class DashboardController {
         LocalDateTime fim = hoje.plusDays(1).atStartOfDay();
         var usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
 
-        var resumo = dashboardService.resumir(usuarioId, usuarioLogadoService.buscarTenantIdAtual(), inicio, fim);
+        var resumo = dashboardService.resumir(usuarioLogadoService.buscarTenantIdAtual(), inicio, fim);
         long calculos = resumo.calculadas();
         long produzidos = resumo.produzidas();
         long vendidos = resumo.vendidas();

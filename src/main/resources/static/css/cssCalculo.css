@@ -133,7 +133,7 @@
     padding: 12px 16px;
     margin-bottom: 20px;
     border-radius: 10px;
-    background: #fff0eb;
+    background: var(--fundo-erro);
     color: #8a3427;
 }
 
@@ -196,7 +196,7 @@
     padding: 7px 10px;
     border: 1px solid var(--destaque-borda);
     border-radius: 8px;
-    background: #fff0eb;
+    background: var(--fundo-erro);
     color: #8a3427;
     cursor: pointer;
 }
@@ -519,7 +519,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico .botao-acao:hover {
     border-color: var(--destaque);
-    background: #fff0eb;
+    background: var(--fundo-erro);
 }
 
 /* EXCLUSÃO DO HISTÓRICO */
@@ -538,8 +538,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     width: 36px;
     height: 36px;
     padding: 0;
-    color: #a23c37;
-    background: #fff0ee;
+    color: var(--cor-erro);
+    background: var(--fundo-erro);
     border: none;
     border-radius: 9px;
     cursor: pointer;
@@ -548,7 +548,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .botao-acao-excluir:hover {
     color: var(--branco);
-    background: #a23c37;
+    background: var(--cor-erro);
 }
 
 /* MENSAGEM DE SUCESSO */
@@ -577,8 +577,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     }
 
     .filamento-calculo-item {
-        background: #f3e9df;
-        border: 1px solid #d9c3af;
+        background: var(--superficie-suave);
+        border: 1px solid var(--borda);
         border-radius: 12px;
         padding: 18px;
     }
@@ -736,7 +736,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 
 .resumo-consumo-progresso.acima-do-previsto {
-    background: #a23c37;
+    background: var(--cor-erro);
 }
 
 .resumo-consumo-total {
@@ -765,8 +765,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 /* Formulário de seleção do filamento */
 #listaFilamentos .filamento-calculo-item {
-    background-color: #f3e9df;
-    border: 1px solid #d9c3af;
+    background-color: var(--superficie-suave);
+    border: 1px solid var(--borda);
     border-radius: 12px;
     padding: 18px;
     margin-bottom: 12px;
@@ -1613,13 +1613,13 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 0;
     border: 1px solid var(--destaque-borda);
     border-radius: 9px;
-    background: #fff0eb;
+    background: var(--fundo-erro);
     color: #8a3427;
     cursor: pointer;
 }
 
 .foto-peca-remover:hover {
-    background: #a23c37;
+    background: var(--cor-erro);
     color: #ffffff;
 }
 
@@ -1837,14 +1837,14 @@ form:has(input[name="busca"]) button {
     margin-left: 8px;
     border: none;
     border-radius: 8px;
-    color: #a23c37;
-    background: #fff0ee;
+    color: var(--cor-erro);
+    background: var(--fundo-erro);
     cursor: pointer;
 }
 
 .foto-peca-remover:hover {
     color: white;
-    background: #a23c37;
+    background: var(--cor-erro);
 }
 
 @media (max-width: 500px) {
@@ -3088,7 +3088,7 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
 
 .painel-ordenacao .ordenacao-aplicar-pendente:hover {
     border-color: var(--destaque);
-    background: #f7eee6;
+    background: var(--superficie-suave);
     color: var(--marrom);
 }
 
@@ -3421,7 +3421,7 @@ a:focus-visible {
 
 .painel-plataforma > a:hover,
 .painel-plataforma > a.selecionada {
-    background: #f7eee6;
+    background: var(--superficie-suave);
 }
 
 /* CABEÇALHOS DAS TABELAS */
@@ -3581,7 +3581,7 @@ a:focus-visible {
     height: 12px;
     overflow: hidden;
     border-radius: 999px;
-    background: #f2e6df;
+    background: var(--superficie-suave);
 }
 
 .estoque-filamento-trilho span {
@@ -3656,7 +3656,7 @@ a:focus-visible {
     height: 8px;
     overflow: hidden;
     border-radius: 999px;
-    background: #f2e6df;
+    background: var(--superficie-suave);
 }
 
 .uso-filamento-trilho span {

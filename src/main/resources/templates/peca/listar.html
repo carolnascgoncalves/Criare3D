@@ -73,7 +73,8 @@
             </button>
             <span data-contador-selecao>0 selecionado(s)</span>
             <form id="form-remover-pecas" th:action="@{/peca/remover-lote}" method="post"
-                  onsubmit="return confirm('Excluir as peças selecionadas?');">
+                  data-turbo-confirm="Excluir as peças selecionadas? Esta ação não poderá ser desfeita."
+                  data-confirm-label="Excluir selecionadas">
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
                 <input type="hidden" name="totalRegistros" th:value="${pagina.totalElements}">
@@ -133,7 +134,8 @@
                             </a>
 
                             <form th:action="@{/peca/remover/{id}(id=${peca.id})}" method="post" class="formulario-excluir"
-                                  onsubmit="return confirm('Tem certeza que deseja remover esta peça?')">
+                                  data-turbo-confirm="Tem certeza que deseja excluir esta peça? Esta ação não poderá ser desfeita."
+                                  data-confirm-label="Excluir">
                                 <button type="submit" class="botao-acao-excluir" title="Remover peça" aria-label="Remover peça">
                                     <i class="bi bi-trash3"></i>
                                 </button>

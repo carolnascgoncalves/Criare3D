@@ -1,6 +1,7 @@
 package br.com.criare3d.controller;
 
 import br.com.criare3d.security.UsuarioPrincipal;
+import br.com.criare3d.dto.TenantTemaProjection;
 import br.com.criare3d.service.TenantTemaCache;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -29,12 +30,12 @@ public class TemaController {
     @GetMapping(value = "/tema/{tenantId}/{versao}.css", produces = "text/css")
     @ResponseBody
     public ResponseEntity<String> css(@PathVariable UUID tenantId, @PathVariable long versao) {
-        UsuarioPrincipal principal = principalAtual();
-        if (!temaPertenceAoUsuario(principal, tenantId, versao)) return ResponseEntity.notFound().build();
+        TenantTemaProjection tema = temaDoUsuario(tenantId, versao);
+        if (tema == null) return ResponseEntity.notFound().build();
 
-        String primaria = corSegura(principal.getCorPrimaria(), PRIMARIA_PADRAO);
-        String destaque = corSegura(principal.getCorDestaque(), DESTAQUE_PADRAO);
-        String fundo = corSegura(principal.getCorFundo(), FUNDO_PADRAO);
+        String primaria = corSegura(tema.getCorPrimaria(), PRIMARIA_PADRAO);
+        String destaque = corSegura(tema.getCorDestaque(), DESTAQUE_PADRAO);
+        String fundo = corSegura(tema.getCorFundo(), FUNDO_PADRAO);
         String textoDestaque = textoContraste(destaque);
         String textoPrimaria = textoContraste(primaria);
         String css = """
@@ -82,8 +83,8 @@ public class TemaController {
 
     @GetMapping(value = "/tema/{tenantId}/{versao}/logo")
     public ResponseEntity<byte[]> logo(@PathVariable UUID tenantId, @PathVariable long versao) {
-        UsuarioPrincipal principal = principalAtual();
-        if (!temaPertenceAoUsuario(principal, tenantId, versao) || !principal.isTenantTemLogo()) {
+        TenantTemaProjection tema = temaDoUsuario(tenantId, versao);
+        if (tema == null || !Boolean.TRUE.equals(tema.getTemLogo())) {
             return ResponseEntity.notFound().build();
         }
 
@@ -99,11 +100,13 @@ public class TemaController {
                 .body(bytes);
     }
 
-    private boolean temaPertenceAoUsuario(UsuarioPrincipal principal, UUID tenantId, long versao) {
-        return principal != null && tenantId.equals(principal.getTenantId())
-                && (versao == principal.getTemaVersao()
-                    // Sessões que já existiam antes da inclusão do tema continuam usando o padrão.
-                    || (principal.getTemaVersao() == 0 && versao == 1));
+    private TenantTemaProjection temaDoUsuario(UUID tenantId, long versao) {
+        UsuarioPrincipal principal = principalAtual();
+        if (principal == null || !tenantId.equals(principal.getTenantId())) return null;
+        TenantTemaProjection tema = tenantTemaCache.buscarTema(tenantId).orElse(null);
+        if (tema == null || !Boolean.TRUE.equals(tema.getAtivo())) return null;
+        long versaoAtual = tema.getTemaVersao() == null ? 1L : Math.max(1L, tema.getTemaVersao());
+        return versao == versaoAtual ? tema : null;
     }
 
     private UsuarioPrincipal principalAtual() {

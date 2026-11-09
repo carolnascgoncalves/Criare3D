@@ -18,10 +18,10 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
-    public DashboardResumo resumir(UUID usuarioId, UUID tenantId, LocalDateTime inicio, LocalDateTime fim) {
+    public DashboardResumo resumir(UUID tenantId, LocalDateTime inicio, LocalDateTime fim) {
         if (tenantId == null) {
             return new DashboardResumo(0, 0, 0, BigDecimal.ZERO, 0, 0, BigDecimal.ZERO);
         }
-        return DashboardResumo.from(historicoRepository.resumirDashboard(usuarioId, tenantId, inicio, fim));
+        return DashboardResumo.from(historicoRepository.resumirDashboard(tenantId, inicio, fim));
     }
 }

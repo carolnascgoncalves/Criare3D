@@ -16,11 +16,8 @@ import java.util.Locale;
 public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
 
     private final UsuarioRepository usuarioRepository;
-    private final TenantTemaCache tenantTemaCache;
-
-    public UsuarioDetailsServiceImp(UsuarioRepository usuarioRepository, TenantTemaCache tenantTemaCache) {
+    public UsuarioDetailsServiceImp(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
-        this.tenantTemaCache = tenantTemaCache;
     }
 
     @Override
@@ -31,8 +28,6 @@ public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
 
-        var tenantId = usuario.getTenant() == null ? null : usuario.getTenant().getId();
-        var tema = tenantId == null ? null : tenantTemaCache.buscarTema(tenantId).orElse(null);
-        return new br.com.criare3d.security.UsuarioPrincipal(usuario, tema);
+        return new br.com.criare3d.security.UsuarioPrincipal(usuario);
     }
 }

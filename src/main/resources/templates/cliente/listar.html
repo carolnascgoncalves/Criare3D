@@ -16,12 +16,19 @@
         </a>
     </section>
 
-    <div th:if="${clienteCriado}" class="alert alert-success" role="status" data-senha-temporaria>
+    <div th:if="${clienteCriado}" class="alert alert-success" role="status" data-senha-temporaria
+         th:attr="data-email=${emailAcesso},data-login-url=@{/login}">
         <strong>Cliente cadastrado.</strong> Copie e envie a senha temporária ao cliente. Ela será mostrada somente agora.
         <div class="cliente-senha-temporaria">
             <code th:text="${senhaTemporaria}">senha-temporaria</code>
             <button type="button" class="botao botao-secundario" data-copiar-senha>
                 <i class="bi bi-copy"></i> Copiar senha
+            </button>
+            <button type="button" class="botao botao-secundario" data-copiar-acesso>
+                <i class="bi bi-clipboard-check"></i> Copiar mensagem pronta
+            </button>
+            <button type="button" class="botao botao-principal" data-enviar-whatsapp>
+                <i class="bi bi-whatsapp"></i> Enviar pelo WhatsApp
             </button>
         </div>
     </div>
@@ -36,7 +43,7 @@
         <div class="cartao-cabecalho">
             <div>
                 <h2>Contas dos clientes</h2>
-                <p>O e-mail é único na plataforma. Cada conta USER acessa somente os dados do próprio cliente.</p>
+                <p>O e-mail é único na plataforma. Cada cliente vê somente os próprios dados.</p>
             </div>
             <span class="clientes-contagem" th:text="|${#lists.size(clientes)} clientes|">0 clientes</span>
         </div>
@@ -73,7 +80,9 @@
                             <a class="botao botao-secundario" th:href="@{/clientes/{id}/editar(id=${cliente.id})}">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>
-                            <form th:action="@{/clientes/{id}/alternar-status(id=${cliente.id})}" method="post">
+                            <form th:action="@{/clientes/{id}/alternar-status(id=${cliente.id})}" method="post"
+                                  th:attr="data-turbo-confirm=${cliente.ativo ? 'Desativar ' + cliente.nome + '? A sessão atual será encerrada e o cliente não poderá acessar os dados até ser reativado.' : 'Ativar ' + cliente.nome + '? O cliente poderá entrar novamente.'}"
+                                  th:data-confirm-label="${cliente.ativo ? 'Desativar' : 'Ativar'}">
                                 <button type="submit" class="botao"
                                         th:classappend="${cliente.ativo ? ' botao-perigo-suave' : ' botao-secundario'}"
                                         th:aria-label="${cliente.ativo ? 'Desativar ' + cliente.nome : 'Ativar ' + cliente.nome}"

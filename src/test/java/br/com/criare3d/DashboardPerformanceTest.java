@@ -4,6 +4,7 @@ import br.com.criare3d.dto.DashboardResumo;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @ActiveProfiles("test")
 @Testcontainers
+@Tag("performance")
 @EnabledIfSystemProperty(named = "criare.dashboard.perf", matches = "true")
 class DashboardPerformanceTest {
 
@@ -51,7 +53,7 @@ class DashboardPerformanceTest {
                    COALESCE(SUM(h.gramas_totais_lote_hist)
                        FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= ?), 0)
               FROM calculo_historico h
-             WHERE h.usuario_id = ? AND h.tenant_id = ?
+             WHERE h.tenant_id = ?
                AND (h.data_hist >= ? OR (h.vendido_hist = TRUE
                     AND h.data_venda_hist >= ? AND h.data_venda_hist < ?))
             """;
@@ -75,26 +77,31 @@ class DashboardPerformanceTest {
         LocalDateTime inicio = fim.minusDays(30);
         for (int i = 0; i < TENANTS; i++) {
             UUID tenantId = tenantIds.get(i);
-            UUID usuarioId = usuarioIds.get(i);
 
             // Aquecimento do plano/cache de páginas antes de registrar as medições.
-            DashboardResumo.from(historicoRepository.resumirDashboard(usuarioId, tenantId, inicio, fim));
+            DashboardResumo.from(historicoRepository.resumirDashboard(tenantId, inicio, fim));
             long menorTempoMs = Long.MAX_VALUE;
             DashboardResumo resumo = null;
             for (int repeticao = 0; repeticao < 5; repeticao++) {
                 long comeco = System.nanoTime();
                 resumo = DashboardResumo.from(
-                        historicoRepository.resumirDashboard(usuarioId, tenantId, inicio, fim));
+                        historicoRepository.resumirDashboard(tenantId, inicio, fim));
                 menorTempoMs = Math.min(menorTempoMs, (System.nanoTime() - comeco) / 1_000_000);
             }
 
             List<String> plano = jdbc.query(SQL_EXPLAIN, (rs, row) -> rs.getString(1),
                     inicio, inicio, inicio, fim, inicio, fim, inicio, fim, inicio,
-                    inicio, usuarioId, tenantId, inicio, inicio, fim);
+                    inicio, tenantId, inicio, inicio, fim);
             System.out.printf("Tenant %s: 20.000 históricos, melhor resumo=%d ms%n%s%n",
                     tenantId, menorTempoMs, String.join(System.lineSeparator(), plano));
             assertThat(resumo).isNotNull();
             assertThat(resumo.calculadas()).isPositive();
+            assertThat(menorTempoMs)
+                    .as("Resumo do dashboard para tenant %s", tenantId)
+                    .isLessThan(2_000);
+            assertThat(String.join("\n", plano))
+                    .as("Plano de consulta do tenant %s", tenantId)
+                    .doesNotContain("Seq Scan on calculo_historico");
         }
     }
 

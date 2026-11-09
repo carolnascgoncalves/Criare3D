@@ -7,7 +7,9 @@
     <meta name="theme-color" content="#f3f4f6">
     <meta name="turbo-cache-control" content="no-cache">
     <title>Acessar conta</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <script th:src="@{/js/login.js}" defer></script>
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js"></script>
 </head>
 
@@ -21,6 +23,10 @@
 
     <div th:if="${param.erro}" class="login-aviso login-aviso-erro" role="alert">
         E-mail ou senha incorretos. Confira os dados e tente novamente.
+    </div>
+
+    <div th:if="${param.suspenso}" class="login-aviso login-aviso-erro" role="alert">
+        O acesso a esta conta está suspenso. Fale com a pessoa que administra sua conta para reativá-la.
     </div>
 
     <div th:if="${param.logout}" class="login-aviso login-aviso-sucesso" role="status">
@@ -45,16 +51,24 @@
 
         <div class="login-campo">
             <label for="password">Senha</label>
-            <input type="password"
-                   id="password"
-                   name="password"
-                   placeholder="Digite sua senha"
-                   autocomplete="current-password"
-                   required>
+            <div class="login-senha-controle">
+                <input type="password"
+                       id="password"
+                       name="password"
+                       placeholder="Digite sua senha"
+                       autocomplete="current-password"
+                       required>
+                <button type="button" class="login-mostrar-senha" data-alternar-senha
+                        aria-label="Mostrar senha" aria-pressed="false">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
 
         <button type="submit" class="login-botao">Entrar</button>
     </form>
+
+    <p class="login-ajuda">Esqueceu a senha? Fale com a pessoa que administra sua conta para pedir uma nova senha temporária.</p>
 
     <footer class="login-rodape">Acesso seguro à plataforma</footer>
 </main>

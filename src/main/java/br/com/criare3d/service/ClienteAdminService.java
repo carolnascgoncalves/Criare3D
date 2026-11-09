@@ -22,7 +22,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -105,7 +104,7 @@ public class ClienteAdminService {
                 .build();
         usuarioRepository.save(usuario);
 
-        return new ClienteCriado(tenantSalvo.getId(), senhaTemporaria);
+        return new ClienteCriado(tenantSalvo.getId(), usuario.getEmail(), senhaTemporaria);
     }
 
     public void atualizar(UUID id, ClienteAdminRequest request, MultipartFile arquivoLogo,
@@ -214,10 +213,15 @@ public class ClienteAdminService {
     }
 
     private void validarTema(ClienteAdminRequest request) {
-        if (!corValida(request.getCorPrimaria()) || !corValida(request.getCorFundo())) return;
+        if (!corValida(request.getCorPrimaria()) || !corValida(request.getCorDestaque())
+                || !corValida(request.getCorFundo())) return;
         if (contraste(request.getCorPrimaria(), request.getCorFundo()) < 4.5) {
             throw new IllegalArgumentException(
                     "A cor principal e a cor de fundo precisam ter contraste de pelo menos 4,5:1 para o texto ficar legível.");
+        }
+        if (contraste(request.getCorDestaque(), request.getCorFundo()) < 3.0) {
+            throw new IllegalArgumentException(
+                    "A cor de destaque e a cor de fundo precisam ter contraste de pelo menos 3:1 para os botões ficarem visíveis.");
         }
     }
 
@@ -322,9 +326,13 @@ public class ClienteAdminService {
     }
 
     private String gerarSenhaTemporaria() {
-        byte[] bytes = new byte[24];
-        GERADOR.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+        final String alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+        StringBuilder senha = new StringBuilder(14);
+        for (int i = 0; i < 12; i++) {
+            if (i == 4 || i == 8) senha.append('-');
+            senha.append(alfabeto.charAt(GERADOR.nextInt(alfabeto.length())));
+        }
+        return senha.toString();
     }
 
     private boolean mesmo(String a, String b) {
@@ -344,6 +352,6 @@ public class ClienteAdminService {
         });
     }
 
-    public record ClienteCriado(UUID tenantId, String senhaTemporaria) { }
+    public record ClienteCriado(UUID tenantId, String emailAcesso, String senhaTemporaria) { }
     public record LogoCliente(byte[] bytes, org.springframework.http.MediaType tipo) { }
 }

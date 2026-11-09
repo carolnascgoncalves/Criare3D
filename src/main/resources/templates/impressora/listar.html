@@ -77,7 +77,8 @@
             </button>
             <span data-contador-selecao>0 selecionado(s)</span>
             <form id="form-remover-impressoras" th:action="@{/impressora/remover-lote}" method="post"
-                  onsubmit="return confirm('Excluir as impressoras selecionadas? Equipamentos vinculados a cálculos ou manutenção serão mantidos.');">
+                  data-turbo-confirm="Excluir as impressoras selecionadas? Equipamentos vinculados a cálculos ou manutenção serão mantidos."
+                  data-confirm-label="Excluir selecionadas">
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="page" th:value="${pagina.number}">
                 <input type="hidden" name="totalRegistros" th:value="${pagina.totalElements}">
@@ -140,7 +141,8 @@
                             </a>
 
                             <form th:action="@{/impressora/remover/{id}(id=${impressora.id})}" method="post" class="formulario-excluir"
-                                  onsubmit="return confirm('Tem certeza que deseja remover esta impressora?')">
+                                  data-turbo-confirm="Tem certeza que deseja excluir esta impressora? Se houver cálculos ou manutenções vinculados, ela será mantida."
+                                  data-confirm-label="Excluir">
 
                                 <button type="submit" class="botao-acao-excluir" title="Remover impressora" aria-label="Remover impressora">
                                     <i class="bi bi-trash3"></i>

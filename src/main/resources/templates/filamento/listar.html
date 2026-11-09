@@ -165,7 +165,8 @@
             <form id="form-remover-filamentos"
                   th:action="@{/filamento/remover-lote}"
                   method="post"
-                  onsubmit="return confirm('Excluir os filamentos selecionados? Filamentos vinculados a cálculos serão mantidos.');">
+                  data-turbo-confirm="Excluir os filamentos selecionados? Os que estiverem vinculados a cálculos serão mantidos."
+                  data-confirm-label="Excluir selecionados">
 
                 <input type="hidden" name="busca" th:value="${busca}">
                 <input type="hidden" name="ordem" th:value="${ordem}">
@@ -297,7 +298,8 @@
                             <form th:action="@{/filamento/remover/{id}(id=${filamento.id})}"
                                   method="post"
                                   class="formulario-excluir"
-                                  onsubmit="return confirm('Tem certeza que deseja remover este filamento?')">
+                                  data-turbo-confirm="Tem certeza que deseja excluir este filamento? Se estiver vinculado a cálculos, ele será mantido."
+                                  data-confirm-label="Excluir">
 
                                 <button type="submit"
                                         class="botao-acao-excluir"

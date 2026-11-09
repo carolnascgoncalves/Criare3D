@@ -6,6 +6,33 @@ import java.math.BigDecimal;
 public final class CalculadoraProducao {
     private CalculadoraProducao() {}
 
+    public static BigDecimal energiaLote(BigDecimal potenciaWatts, long minutos,
+                                         BigDecimal tarifaEnergiaKwh) {
+        return CalculoFinanceiro.energia(potenciaWatts, minutos, tarifaEnergiaKwh);
+    }
+
+    public static BigDecimal manutencaoLote(BigDecimal custoPorHora, long minutos) {
+        return CalculoFinanceiro.manutencao(custoPorHora, minutos);
+    }
+
+    public static BigDecimal depreciacaoLote(BigDecimal valorCompra, BigDecimal vidaUtilHoras,
+                                             long minutos) {
+        return CalculoFinanceiro.depreciacao(valorCompra, vidaUtilHoras, minutos);
+    }
+
+    public static BigDecimal gramasPurgaLote(BigDecimal gramasPorImpressao, int impressoes) {
+        return CalculoFinanceiro.precisao(gramasPorImpressao.multiply(BigDecimal.valueOf(impressoes)));
+    }
+
+    public static BigDecimal custoPurgaLote(BigDecimal gramasPurgaLote,
+                                            BigDecimal custoFilamentoLote,
+                                            BigDecimal gramasFilamentoPorUnidade) {
+        BigDecimal gramasTotais = gramasFilamentoPorUnidade;
+        if (gramasTotais.signum() <= 0) return BigDecimal.ZERO.setScale(8);
+        return gramasPurgaLote.multiply(custoFilamentoLote)
+                .divide(gramasTotais, 8, java.math.RoundingMode.HALF_UP);
+    }
+
     public static Resultado calcular(Entrada entrada) {
         int unidades = entrada.unidades();
         if (unidades < 1) throw new IllegalArgumentException("A quantidade de unidades deve ser positiva.");

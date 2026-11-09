@@ -51,4 +51,23 @@ class CalculadoraProducaoTest {
         assertThat(resultado.custoEnergia()).isEqualByComparingTo("0.25000000");
         assertThat(resultado.custoTotal()).isEqualByComparingTo("4.00000000");
     }
+
+    @Test
+    void calculaPurgaTotalAPartirDaQuantidadePorImpressao() {
+        assertThat(CalculadoraProducao.gramasPurgaLote(new BigDecimal("0.10"), 3))
+                .isEqualByComparingTo("0.30000000");
+        assertThat(CalculadoraProducao.custoPurgaLote(new BigDecimal("0.30"),
+                new BigDecimal("8.00"), new BigDecimal("100.00")))
+                .isEqualByComparingTo("0.02400000");
+    }
+
+    @Test
+    void calculaCustosDaMaquinaComTempoTotalDoLote() {
+        assertThat(CalculadoraProducao.energiaLote(new BigDecimal("100.00"), 120,
+                new BigDecimal("1.00"))).isEqualByComparingTo("0.20000000");
+        assertThat(CalculadoraProducao.manutencaoLote(new BigDecimal("0.20"), 120))
+                .isEqualByComparingTo("0.40000000");
+        assertThat(CalculadoraProducao.depreciacaoLote(new BigDecimal("2500.00"),
+                new BigDecimal("5000.00"), 120)).isEqualByComparingTo("1.00000000");
+    }
 }

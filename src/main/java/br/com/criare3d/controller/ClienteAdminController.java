@@ -60,6 +60,7 @@ public class ClienteAdminController {
         try {
             ClienteAdminService.ClienteCriado criado = clienteAdminService.criar(request, logo);
             redirectAttributes.addFlashAttribute("clienteCriado", true);
+            redirectAttributes.addFlashAttribute("emailAcesso", criado.emailAcesso());
             redirectAttributes.addFlashAttribute("senhaTemporaria", criado.senhaTemporaria());
             return "redirect:/clientes/listar";
         } catch (IllegalArgumentException erro) {
@@ -135,8 +136,10 @@ public class ClienteAdminController {
     @PostMapping("/{id}/gerar-senha")
     public String gerarSenha(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
         try {
+            String emailAcesso = clienteAdminService.carregarFormulario(id).getEmail();
             String senha = clienteAdminService.gerarNovaSenhaTemporaria(id);
             redirectAttributes.addFlashAttribute("senhaTemporaria", senha);
+            redirectAttributes.addFlashAttribute("emailAcesso", emailAcesso);
             redirectAttributes.addFlashAttribute("senhaDoCliente", id);
         } catch (IllegalArgumentException | IllegalStateException erro) {
             redirectAttributes.addFlashAttribute("erroCliente", erro.getMessage());

@@ -41,15 +41,13 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
           COALESCE(SUM(h.gramas_totais_lote_hist)
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "gramasFilamento"
         FROM calculo_historico h
-        WHERE h.usuario_id = :usuarioId
-          AND h.tenant_id = :tenantId
+        WHERE h.tenant_id = :tenantId
           AND (h.data_hist >= :inicio
                OR (h.vendido_hist = TRUE
                    AND h.data_venda_hist >= :inicio
                    AND h.data_venda_hist < :fim))
         """, nativeQuery = true)
-    DashboardResumoProjection resumirDashboard(@Param("usuarioId") UUID usuarioId,
-                                                @Param("tenantId") UUID tenantId,
+    DashboardResumoProjection resumirDashboard(@Param("tenantId") UUID tenantId,
                                                 @Param("inicio") LocalDateTime inicio,
                                                 @Param("fim") LocalDateTime fim);
 

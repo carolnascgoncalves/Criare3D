@@ -20,6 +20,12 @@
         return escuro >= claro ? "#2b211d" : "#ffffff";
     }
 
+    function contraste(hexA, hexB) {
+        const a = luminancia(hexA);
+        const b = luminancia(hexB);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }
+
     function atualizarPrevia(formulario) {
         const previa = document.getElementById("clientePreview");
         if (!previa) return;
@@ -28,6 +34,7 @@
         const corDestaque = formulario.querySelector("#corDestaque")?.value;
         const corFundo = formulario.querySelector("#corFundo")?.value;
         const nome = formulario.querySelector("#nome")?.value.trim();
+        const indicadorContraste = previa.querySelector("[data-contraste-tema]");
         if (/^#[\da-f]{6}$/i.test(corPrimaria || "")) {
             previa.style.setProperty("--cliente-cor-primaria", corPrimaria);
             previa.style.setProperty("--cliente-texto-primaria", textoSobre(corPrimaria));
@@ -37,6 +44,18 @@
             previa.style.setProperty("--cliente-texto-destaque", textoSobre(corDestaque));
         }
         if (/^#[\da-f]{6}$/i.test(corFundo || "")) previa.style.setProperty("--cliente-cor-fundo", corFundo);
+
+        if (indicadorContraste && /^#[\da-f]{6}$/i.test(corPrimaria || "")
+                && /^#[\da-f]{6}$/i.test(corDestaque || "")
+                && /^#[\da-f]{6}$/i.test(corFundo || "")) {
+            const contrasteTexto = contraste(corPrimaria, corFundo);
+            const contrasteBotao = contraste(corDestaque, corFundo);
+            const bom = contrasteTexto >= 4.5 && contrasteBotao >= 3;
+            const formatar = valor => valor.toFixed(1).replace(".", ",");
+            indicadorContraste.classList.toggle("bom", bom);
+            indicadorContraste.classList.toggle("baixo", !bom);
+            indicadorContraste.textContent = `${bom ? "Contraste bom" : "Contraste baixo"} · texto ${formatar(contrasteTexto)}:1 · botão ${formatar(contrasteBotao)}:1`;
+        }
 
         const nomeVisivel = nome || "Nome do cliente";
         previa.querySelectorAll("[data-preview-nome], [data-preview-titulo]")
@@ -85,6 +104,30 @@
     }
 
     document.addEventListener("click", async evento => {
+        const botaoCopiarAcesso = evento.target.closest("[data-copiar-acesso]");
+        const botaoWhatsapp = evento.target.closest("[data-enviar-whatsapp]");
+        if (botaoCopiarAcesso || botaoWhatsapp) {
+            const aviso = evento.target.closest("[data-senha-temporaria]");
+            const senha = aviso?.querySelector("code")?.textContent?.trim();
+            const email = aviso?.dataset.email;
+            const caminhoLogin = aviso?.dataset.loginUrl;
+            if (!senha || !email || !caminhoLogin) return;
+            const enderecoLogin = new URL(caminhoLogin, window.location.origin).href;
+            const mensagem = `Olá! Seu acesso ao Criare 3D está pronto.\n\nAcesse: ${enderecoLogin}\nE-mail: ${email}\nSenha temporária: ${senha}\n\nNo primeiro acesso, você criará uma nova senha.`;
+
+            if (botaoWhatsapp) {
+                window.open(`https://wa.me/?text=${encodeURIComponent(mensagem)}`, "_blank", "noopener,noreferrer");
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(mensagem);
+                botaoCopiarAcesso.innerHTML = '<i class="bi bi-check2"></i> Mensagem copiada';
+            } catch (_) {
+                botaoCopiarAcesso.title = "Não foi possível copiar automaticamente. Selecione e copie a senha.";
+            }
+            return;
+        }
+
         const botao = evento.target.closest("[data-copiar-senha]");
         if (!botao) return;
         const texto = botao.closest(".cliente-senha-temporaria")?.querySelector("code")?.textContent?.trim();
