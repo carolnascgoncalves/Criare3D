@@ -52,8 +52,10 @@
             <li th:classappend="${totalPecas > 0 and totalEmbalagens > 0} ? ' passo-concluido' : ''">
                 <i th:class="${totalPecas > 0 and totalEmbalagens > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
                 <span>Cadastre uma peça e uma embalagem</span>
-                <a th:if="${totalPecas == 0}" th:href="@{/peca/novo}">Cadastrar peça</a>
-                <a th:if="${totalEmbalagens == 0}" th:href="@{/embalagem/novo}">Cadastrar embalagem</a>
+                <div class="inicio-passo-acoes">
+                    <a th:if="${totalPecas == 0}" th:href="@{/peca/novo}">Cadastrar peça</a>
+                    <a th:if="${totalEmbalagens == 0}" th:href="@{/embalagem/novo}">Cadastrar embalagem</a>
+                </div>
             </li>
             <li th:classappend="${!#lists.isEmpty(ultimosCalculos)} ? ' passo-concluido' : ''">
                 <i th:class="${!#lists.isEmpty(ultimosCalculos)} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>

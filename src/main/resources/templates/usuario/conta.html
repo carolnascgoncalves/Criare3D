@@ -50,6 +50,11 @@
             <a th:href="@{/senha}" class="botao botao-secundario">
                 <i class="bi bi-key"></i> Alterar senha
             </a>
+            <form th:action="@{/logout}" method="post" class="conta-sair-form">
+                <button type="submit" class="botao botao-excluir">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sair da conta
+                </button>
+            </form>
         </div>
     </section>
 </main>
