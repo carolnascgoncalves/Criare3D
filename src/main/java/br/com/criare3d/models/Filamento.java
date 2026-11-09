@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,6 +21,10 @@ public class Filamento {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private @Getter @Setter UUID id;
+
+    @TenantId
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private @Getter UUID tenantId;
 
     @Version
     @Column(name = "versao", nullable = false)

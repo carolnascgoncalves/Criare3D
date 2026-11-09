@@ -19,6 +19,9 @@ import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.ItemCalculoHistorico;
+import br.com.criare3d.models.ManutencaoImpressora;
+import br.com.criare3d.models.CalculoFoto;
+import br.com.criare3d.models.Tenant;
 import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.ItemCalculoRequest;
@@ -31,12 +34,18 @@ import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.repository.ImpressoraRepository;
 import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.repository.UsuarioRepository;
+import br.com.criare3d.repository.TenantRepository;
+import br.com.criare3d.repository.ItemCalculoHistoricoRepository;
+import br.com.criare3d.repository.ManutencaoImpressoraRepository;
+import br.com.criare3d.repository.CalculoFotoRepository;
+import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.service.FilamentoServiceImp;
 import br.com.criare3d.service.interfaces.UsuarioService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +64,8 @@ class Criare3dApplicationTests {
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 	@Autowired
+	private TenantRepository tenantRepository;
+	@Autowired
 	private FilamentoRepository filamentoRepository;
 	@Autowired
 	private PecaRepository pecaRepository;
@@ -66,6 +77,12 @@ class Criare3dApplicationTests {
 	private ConfiguracaoRepository configuracaoRepository;
 	@Autowired
 	private CalculoHistoricoRepository calculoHistoricoRepository;
+	@Autowired
+	private ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
+	@Autowired
+	private ManutencaoImpressoraRepository manutencaoImpressoraRepository;
+	@Autowired
+	private CalculoFotoRepository calculoFotoRepository;
 	@Autowired
 	private FilamentoServiceImp filamentoService;
 	@Autowired
@@ -89,47 +106,119 @@ class Criare3dApplicationTests {
 	}
 
 	@Test
-	void usuarioNaoConsegueBuscarRegistrosDeOutraContaNasSeisTabelas() {
+	void usuarioNaoConsegueBuscarRegistrosDeOutraOrganizacaoNasNoveTabelas() {
 		Usuario usuarioA = criarUsuario("a-" + UUID.randomUUID() + "@teste.local");
 		Usuario usuarioB = criarUsuario("b-" + UUID.randomUUID() + "@teste.local");
-		Filamento filamentoA = criarFilamento(usuarioA);
-		Peca pecaA = pecaRepository.saveAndFlush(Peca.builder()
+		Tenant tenantB = criarTenant("b-" + UUID.randomUUID());
+		usuarioB.setTenant(tenantB);
+		usuarioB = usuarioRepository.saveAndFlush(usuarioB);
+
+		Filamento filamentoA;
+		Peca pecaA;
+		Impressora impressoraA;
+		Embalagem embalagemA;
+		Configuracao configuracaoA;
+		CalculoHistorico calculoA;
+		ManutencaoImpressora manutencaoA;
+		ItemCalculoHistorico itemA;
+		CalculoFoto fotoA;
+
+		autenticarComo(usuarioA);
+		filamentoA = criarFilamento(usuarioA);
+		pecaA = pecaRepository.saveAndFlush(Peca.builder()
 				.nome("Peça teste").quantidadeFilamentoGramas(new BigDecimal("10"))
 				.tempoImpressaoMinutos(60L).usuario(usuarioA).build());
-		Impressora impressoraA = impressoraRepository.saveAndFlush(Impressora.builder()
+		impressoraA = impressoraRepository.saveAndFlush(Impressora.builder()
 				.nome("Impressora teste").modelo("Modelo teste")
 				.potenciaWatts(new BigDecimal("100")).usuario(usuarioA).build());
-		Embalagem embalagemA = embalagemRepository.saveAndFlush(Embalagem.builder()
+		embalagemA = embalagemRepository.saveAndFlush(Embalagem.builder()
 				.nome("Caixa teste").custoUnitario(new BigDecimal("2.00")).usuario(usuarioA).build());
-		Configuracao configuracaoA = configuracaoRepository.saveAndFlush(Configuracao.builder()
+		configuracaoA = configuracaoRepository.saveAndFlush(Configuracao.builder()
 				.markupPercentual(new BigDecimal("100")).tarifaEnergiaKwh(new BigDecimal("0.80"))
 				.embalagemFixa(false).usuario(usuarioA).build());
-		CalculoHistorico calculoA = criarCalculoHistorico(usuarioA);
+		calculoA = criarCalculoHistorico(usuarioA);
+		calculoA.setFilamento(filamentoA);
+		calculoA.setImpressora(impressoraA);
+		calculoA.setEmbalagem(embalagemA);
+		calculoA.setPeca(pecaA);
+		calculoHistoricoRepository.saveAndFlush(calculoA);
+
+		manutencaoA = manutencaoImpressoraRepository.saveAndFlush(ManutencaoImpressora.builder()
+				.impressora(impressoraA).descricao("Manutenção teste").valor(new BigDecimal("10.00"))
+				.data(LocalDate.now()).build());
+		itemA = itemCalculoHistoricoRepository.saveAndFlush(ItemCalculoHistorico.builder()
+				.calculoHistorico(calculoA).filamento(filamentoA).nomeFilamento(filamentoA.getNome())
+				.corFilamento(filamentoA.getCor()).precoRoloFilamento(filamentoA.getPrecoRolo())
+				.pesoRoloGramas(filamentoA.getPesoRoloGramas()).quantidadeFilamentoGramas(new BigDecimal("10.00"))
+				.custoFilamento(new BigDecimal("0.80")).build());
+		fotoA = new CalculoFoto();
+		fotoA.setCalculoId(calculoA.getId());
+		fotoA.setTipo("image/jpeg");
+		fotoA.setBytes(new byte[]{1, 2, 3});
+		calculoFotoRepository.saveAndFlush(fotoA);
 
 		try {
-			SecurityContextHolder.getContext().setAuthentication(
-					new UsernamePasswordAuthenticationToken(usuarioB.getEmail(), "", java.util.List.of()));
+			autenticarComo(usuarioB);
+			assertThat(pecaRepository.findAll()).noneMatch(peca -> peca.getId().equals(pecaA.getId()));
 			assertThat(filamentoService.fetchById(filamentoA.getId())).isEmpty();
-			assertThat(pecaRepository.findByIdAndUsuario_Id(pecaA.getId(), usuarioB.getId())).isEmpty();
-			assertThat(impressoraRepository.findByIdAndUsuario_Id(impressoraA.getId(), usuarioB.getId())).isEmpty();
-			assertThat(embalagemRepository.findByIdAndUsuario_Id(embalagemA.getId(), usuarioB.getId())).isEmpty();
-			assertThat(configuracaoRepository.findByIdAndUsuario_Id(configuracaoA.getId(), usuarioB.getId())).isEmpty();
-			assertThat(calculoHistoricoRepository.findByIdAndUsuario_Id(calculoA.getId(), usuarioB.getId())).isEmpty();
+			assertThat(pecaRepository.findById(pecaA.getId())).isEmpty();
+			assertThat(impressoraRepository.findById(impressoraA.getId())).isEmpty();
+			assertThat(embalagemRepository.findById(embalagemA.getId())).isEmpty();
+			assertThat(configuracaoRepository.findById(configuracaoA.getId())).isEmpty();
+			assertThat(calculoHistoricoRepository.findById(calculoA.getId())).isEmpty();
+			assertThat(manutencaoImpressoraRepository.findById(manutencaoA.getId())).isEmpty();
+			assertThat(itemCalculoHistoricoRepository.findById(itemA.getId())).isEmpty();
+			assertThat(calculoFotoRepository.findById(fotoA.getCalculoId())).isEmpty();
+			pecaRepository.deleteById(pecaA.getId());
 
-			assertThat(pecaRepository.findByIdAndUsuario_Id(pecaA.getId(), usuarioA.getId())).isPresent();
-			assertThat(impressoraRepository.findByIdAndUsuario_Id(impressoraA.getId(), usuarioA.getId())).isPresent();
-			assertThat(embalagemRepository.findByIdAndUsuario_Id(embalagemA.getId(), usuarioA.getId())).isPresent();
-			assertThat(configuracaoRepository.findByIdAndUsuario_Id(configuracaoA.getId(), usuarioA.getId())).isPresent();
-			assertThat(calculoHistoricoRepository.findByIdAndUsuario_Id(calculoA.getId(), usuarioA.getId())).isPresent();
+			autenticarComo(usuarioA);
+			assertThat(filamentoService.fetchById(filamentoA.getId())).isPresent();
+			assertThat(pecaRepository.findById(pecaA.getId())).isPresent();
+			assertThat(impressoraRepository.findById(impressoraA.getId())).isPresent();
+			assertThat(embalagemRepository.findById(embalagemA.getId())).isPresent();
+			assertThat(configuracaoRepository.findById(configuracaoA.getId())).isPresent();
+			assertThat(calculoHistoricoRepository.findById(calculoA.getId())).isPresent();
+			assertThat(manutencaoImpressoraRepository.findById(manutencaoA.getId())).isPresent();
+			assertThat(itemCalculoHistoricoRepository.findById(itemA.getId())).isPresent();
+			assertThat(calculoFotoRepository.findById(fotoA.getCalculoId())).isPresent();
 		} finally {
-			SecurityContextHolder.clearContext();
+			autenticarComo(usuarioA);
+			calculoFotoRepository.deleteById(fotoA.getCalculoId());
+			itemCalculoHistoricoRepository.deleteById(itemA.getId());
+			manutencaoImpressoraRepository.deleteById(manutencaoA.getId());
 			calculoHistoricoRepository.deleteById(calculoA.getId());
 			configuracaoRepository.deleteById(configuracaoA.getId());
 			embalagemRepository.deleteById(embalagemA.getId());
 			impressoraRepository.deleteById(impressoraA.getId());
 			pecaRepository.deleteById(pecaA.getId());
 			filamentoRepository.deleteById(filamentoA.getId());
+			SecurityContextHolder.clearContext();
 			usuarioRepository.deleteAllById(java.util.List.of(usuarioA.getId(), usuarioB.getId()));
+			tenantRepository.deleteById(tenantB.getId());
+		}
+	}
+
+	@Test
+	void requisicaoSemTenantNaoConsegueListarDadosDeNegocio() {
+		Usuario semTenant = Usuario.builder()
+				.id(UUID.randomUUID())
+				.email("sem-tenant@teste.local")
+				.password("irrelevante")
+				.perfil(Perfil.USER)
+				.build();
+		autenticarComo(semTenant);
+		try {
+			assertThat(pecaRepository.findAll()).isEmpty();
+			assertThat(filamentoRepository.findAll()).isEmpty();
+			assertThat(impressoraRepository.findAll()).isEmpty();
+			assertThat(embalagemRepository.findAll()).isEmpty();
+			assertThat(configuracaoRepository.findAll()).isEmpty();
+			assertThat(calculoHistoricoRepository.findAll()).isEmpty();
+			assertThat(manutencaoImpressoraRepository.findAll()).isEmpty();
+			assertThat(itemCalculoHistoricoRepository.findAll()).isEmpty();
+			assertThat(calculoFotoRepository.findAll()).isEmpty();
+		} finally {
+			SecurityContextHolder.clearContext();
 		}
 	}
 
@@ -142,8 +231,7 @@ class Criare3dApplicationTests {
 			assertThat(passwordEncoder.matches("TemporariaTeste123!", atualizado.getPassword())).isTrue();
 			assertThat(atualizado.isTrocaSenhaObrigatoria()).isTrue();
 
-			SecurityContextHolder.getContext().setAuthentication(
-					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			autenticarComo(usuario);
 			usuarioService.alterarSenhaAtual("TemporariaTeste123!", "NovaSenhaTeste123!");
 			assertThat(usuarioRepository.findById(usuario.getId()).orElseThrow().isTrocaSenhaObrigatoria()).isFalse();
 		} finally {
@@ -155,6 +243,7 @@ class Criare3dApplicationTests {
 	@Test
 	void dashboardAgrupaLucroPelaDataDaVendaEnaoPelaDataDoCalculo() {
 		Usuario usuario = criarUsuario("venda-" + UUID.randomUUID() + "@teste.local");
+		autenticarComo(usuario);
 		LocalDateTime agora = LocalDateTime.now().withNano(0);
 		LocalDateTime dataVenda = agora.minusDays(2);
 		CalculoHistorico calculo = criarCalculoHistorico(usuario);
@@ -168,15 +257,18 @@ class Criare3dApplicationTests {
 
 		try {
 		DashboardResumo resumoVenda = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
-					usuario.getId(), dataVenda.minusDays(1), agora.plusDays(1)));
+				usuario.getId(), usuario.getTenant().getId(), dataVenda.minusDays(1), agora.plusDays(1)));
 			assertThat(resumoVenda.vendidas()).isEqualTo(3);
 			assertThat(resumoVenda.lucroVendido()).isEqualByComparingTo("75.00");
 			assertThat(resumoVenda.minutosVendidos()).isEqualTo(180L);
 			DashboardResumo resumoDataCalculo = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
-					usuario.getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
+					usuario.getId(), usuario.getTenant().getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
 			assertThat(resumoDataCalculo.lucroVendido()).isEqualByComparingTo("0.00");
 			assertThat(calculoHistoricoRepository.primeiraVendaComLucro(usuario.getId()))
 					.isEqualTo(dataVenda);
+			DashboardResumo semTenant = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
+					usuario.getId(), new UUID(0L, 0L), dataVenda.minusDays(1), agora.plusDays(1)));
+			assertThat(semTenant.vendidas()).isZero();
 		} finally {
 			calculoHistoricoRepository.deleteById(calculo.getId());
 			usuarioRepository.deleteById(usuario.getId());
@@ -186,10 +278,10 @@ class Criare3dApplicationTests {
 	@Test
 	void compraDeFilamentoSomaEstoqueEAtualizaPrecoDeReferencia() {
 		Usuario usuario = criarUsuario("compra-" + UUID.randomUUID() + "@teste.local");
+		autenticarComo(usuario);
 		Filamento filamento = criarFilamento(usuario);
 		try {
-			SecurityContextHolder.getContext().setAuthentication(
-					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			autenticarComo(usuario);
 			CompraFilamentoRequest compra = new CompraFilamentoRequest();
 			compra.setGramasCompradas(new BigDecimal("1000"));
 			compra.setPesoRoloGramas(new BigDecimal("1000"));
@@ -200,8 +292,9 @@ class Criare3dApplicationTests {
 			assertThat(atualizado.getEstoqueGramas()).isEqualByComparingTo("2000.00");
 			assertThat(atualizado.getPrecoRolo()).isEqualByComparingTo("95.50");
 		} finally {
-			SecurityContextHolder.clearContext();
+			autenticarComo(usuario);
 			filamentoRepository.deleteById(filamento.getId());
+			SecurityContextHolder.clearContext();
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}
@@ -209,6 +302,7 @@ class Criare3dApplicationTests {
 	@Test
 	void produzirLoteDescontaEDevolverLoteRestauraEstoqueMultiplicadoPelasUnidades() {
 		Usuario usuario = criarUsuario("lote-" + UUID.randomUUID() + "@teste.local");
+		autenticarComo(usuario);
 		Filamento filamento = criarFilamento(usuario);
 		CalculoHistorico calculo = criarCalculoHistorico(usuario);
 		calculo.setUnidades(3);
@@ -225,8 +319,7 @@ class Criare3dApplicationTests {
 		calculoHistoricoRepository.saveAndFlush(calculo);
 
 		try {
-			SecurityContextHolder.getContext().setAuthentication(
-					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			autenticarComo(usuario);
 			assertThat(calculoHistoricoService.atualizarProduzido(calculo.getId(), true)).isEqualTo("ok");
 			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
 					.isEqualByComparingTo("850.00");
@@ -235,9 +328,10 @@ class Criare3dApplicationTests {
 			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
 					.isEqualByComparingTo("1000.00");
 		} finally {
-			SecurityContextHolder.clearContext();
+			autenticarComo(usuario);
 			calculoHistoricoRepository.deleteById(calculo.getId());
 			filamentoRepository.deleteById(filamento.getId());
+			SecurityContextHolder.clearContext();
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}
@@ -245,6 +339,7 @@ class Criare3dApplicationTests {
 	@Test
 	void calculaLoteComDuasMisturasPurgaEAquecimento() {
 		Usuario usuario = criarUsuario("calculo-lote-" + UUID.randomUUID() + "@teste.local");
+		autenticarComo(usuario);
 		Filamento filamentoA = criarFilamento(usuario);
 		Filamento filamentoB = criarFilamento(usuario);
 		Peca peca = pecaRepository.saveAndFlush(Peca.builder()
@@ -265,8 +360,7 @@ class Criare3dApplicationTests {
 				.usuario(usuario).build());
 
 		try {
-			SecurityContextHolder.getContext().setAuthentication(
-					new UsernamePasswordAuthenticationToken(usuario.getEmail(), "", java.util.List.of()));
+			autenticarComo(usuario);
 			CalculoRequest request = new CalculoRequest();
 			request.setPecaId(peca.getId());
 			request.setImpressoraId(impressora.getId());
@@ -297,20 +391,39 @@ class Criare3dApplicationTests {
 				.isEqualByComparingTo("0.03000000");
 			assertThat(resultado.getCustoPurga()).isEqualByComparingTo("0.00240000");
 		} finally {
-			SecurityContextHolder.clearContext();
+			autenticarComo(usuario);
 			configuracaoRepository.deleteById(configuracao.getId());
 			embalagemRepository.deleteById(embalagem.getId());
 			impressoraRepository.deleteById(impressora.getId());
 			pecaRepository.deleteById(peca.getId());
 			filamentoRepository.deleteAllById(java.util.List.of(filamentoA.getId(), filamentoB.getId()));
+			SecurityContextHolder.clearContext();
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}
 
 	private Usuario criarUsuario(String email) {
+		Tenant tenant = tenantRepository.findBySlug("criare3d").orElseThrow();
 		return usuarioRepository.save(Usuario.builder()
 				.email(email).password(passwordEncoder.encode("SenhaTeste123!"))
-				.perfil(Perfil.USER).build());
+				.perfil(Perfil.USER).tenant(tenant).build());
+	}
+
+	private Tenant criarTenant(String slug) {
+		Tenant tenant = new Tenant();
+		tenant.setNome("Tenant de teste");
+		tenant.setSlug(slug);
+		tenant.setAtivo(true);
+		tenant.setCorPrimaria("#492e1e");
+		tenant.setCorDestaque("#e9a695");
+		tenant.setCorFundo("#f5e7da");
+		return tenantRepository.saveAndFlush(tenant);
+	}
+
+	private void autenticarComo(Usuario usuario) {
+		UsuarioPrincipal principal = new UsuarioPrincipal(usuario, true);
+		SecurityContextHolder.getContext().setAuthentication(
+				UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
 	}
 
 	private Filamento criarFilamento(Usuario usuario) {

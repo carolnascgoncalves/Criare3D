@@ -57,10 +57,16 @@ public class AdminBootstrap implements ApplicationRunner {
         var usuarioExistente = usuarioRepository.findByEmail(email);
 
         if (usuarioExistente.isPresent()) {
-            if (usuarioExistente.get().getPerfil() != Perfil.ADMIN) {
+            Usuario adminExistente = usuarioExistente.get();
+            if (adminExistente.getPerfil() != Perfil.ADMIN) {
                 throw new IllegalStateException(
                         "O e-mail configurado em ADMIN_EMAIL já existe e não é ADMIN."
                 );
+            }
+
+            if (adminExistente.getTenant() != null) {
+                adminExistente.setTenant(null);
+                usuarioRepository.save(adminExistente);
             }
 
             return;

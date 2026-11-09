@@ -40,8 +40,10 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "gramasFilamento"
         FROM calculo_historico h
         WHERE h.usuario_id = :usuarioId
+          AND h.tenant_id = :tenantId
         """, nativeQuery = true)
     DashboardResumoProjection resumirDashboard(@Param("usuarioId") UUID usuarioId,
+                                                @Param("tenantId") UUID tenantId,
                                                 @Param("inicio") LocalDateTime inicio,
                                                 @Param("fim") LocalDateTime fim);
 

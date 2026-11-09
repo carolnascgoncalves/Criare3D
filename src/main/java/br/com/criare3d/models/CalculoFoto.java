@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.TenantId;
 
 import java.util.UUID;
 
@@ -19,6 +20,10 @@ public class CalculoFoto {
     @Id
     @Column(name = "calculo_id")
     private UUID calculoId;
+
+    @TenantId
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private UUID tenantId;
 
     @Column(nullable = false, length = 30)
     private String tipo;

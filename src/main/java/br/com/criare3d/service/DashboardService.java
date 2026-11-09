@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -17,7 +18,10 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
-    public DashboardResumo resumir(UUID usuarioId, LocalDateTime inicio, LocalDateTime fim) {
-        return DashboardResumo.from(historicoRepository.resumirDashboard(usuarioId, inicio, fim));
+    public DashboardResumo resumir(UUID usuarioId, UUID tenantId, LocalDateTime inicio, LocalDateTime fim) {
+        if (tenantId == null) {
+            return new DashboardResumo(0, 0, 0, BigDecimal.ZERO, 0, 0, BigDecimal.ZERO);
+        }
+        return DashboardResumo.from(historicoRepository.resumirDashboard(usuarioId, tenantId, inicio, fim));
     }
 }

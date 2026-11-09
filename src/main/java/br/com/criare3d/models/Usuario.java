@@ -30,6 +30,10 @@ public class Usuario {
     @Builder.Default
     private boolean trocaSenhaObrigatoria = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tenant_id")
+    private Tenant tenant;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Perfil perfil;

@@ -3,6 +3,7 @@ package br.com.criare3d.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -17,6 +18,10 @@ public class Configuracao {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private @Getter @Setter UUID id;
+
+    @TenantId
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private @Getter UUID tenantId;
 
     @NotNull(message = "A porcentagem de markup da configuração é obrigatória")
     @Column(name = "markup_conf", nullable = false, precision = 10, scale = 2)

@@ -1,6 +1,7 @@
 package br.com.criare3d.config;
 
 import br.com.criare3d.repository.UsuarioRepository;
+import br.com.criare3d.security.UsuarioPrincipal;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,9 +22,14 @@ public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSucces
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        boolean trocaObrigatoria = usuarioRepository.findByEmail(authentication.getName())
-                .map(usuario -> usuario.isTrocaSenhaObrigatoria())
-                .orElse(false);
+        boolean trocaObrigatoria;
+        if (authentication.getPrincipal() instanceof UsuarioPrincipal principal) {
+            trocaObrigatoria = principal.isTrocaSenhaObrigatoria();
+        } else {
+            trocaObrigatoria = usuarioRepository.findByEmail(authentication.getName())
+                    .map(usuario -> usuario.isTrocaSenhaObrigatoria())
+                    .orElse(false);
+        }
         if (trocaObrigatoria) {
             request.getSession(true).setAttribute(
                     PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA, true);

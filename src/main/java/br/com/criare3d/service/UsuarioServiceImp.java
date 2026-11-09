@@ -5,6 +5,7 @@ import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.models.Usuario;
 import br.com.criare3d.dto.UsuarioResumoResponse;
 import br.com.criare3d.repository.UsuarioRepository;
+import br.com.criare3d.repository.TenantRepository;
 import br.com.criare3d.service.UsuarioLogadoService;
 import br.com.criare3d.service.interfaces.UsuarioService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,12 +21,15 @@ public class UsuarioServiceImp implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioLogadoService usuarioLogadoService;
+    private final TenantRepository tenantRepository;
 
     public UsuarioServiceImp(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder,
-                             UsuarioLogadoService usuarioLogadoService) {
+                             UsuarioLogadoService usuarioLogadoService,
+                             TenantRepository tenantRepository) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.usuarioLogadoService = usuarioLogadoService;
+        this.tenantRepository = tenantRepository;
     }
 
     @Override
@@ -42,6 +46,8 @@ public class UsuarioServiceImp implements UsuarioService {
                 .password(passwordEncoder.encode(password))
                 .perfil(Perfil.USER)
                 .trocaSenhaObrigatoria(true)
+                .tenant(tenantRepository.findBySlug("criare3d")
+                        .orElseThrow(() -> new IllegalStateException("A organização inicial não foi encontrada.")))
                 .build();
 
         return usuarioRepository.save(usuario);
@@ -57,7 +63,8 @@ public class UsuarioServiceImp implements UsuarioService {
 
     @Override
     public void alterarSenhaAtual(String senhaAtual, String novaSenha) {
-        Usuario usuario = usuarioLogadoService.buscarUsuarioAtual();
+        Usuario usuario = usuarioRepository.findById(usuarioLogadoService.buscarIdUsuarioAtual())
+                .orElseThrow(() -> new IllegalStateException("Não foi possível localizar a conta autenticada."));
         if (!passwordEncoder.matches(senhaAtual, usuario.getPassword())) {
             throw new IllegalArgumentException("A senha atual está incorreta.");
         }

@@ -3,6 +3,7 @@ package br.com.criare3d.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.TenantId;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -17,6 +18,10 @@ public class ItemCalculoHistorico {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private @Getter @Setter UUID id;
+
+    @TenantId
+    @Column(name = "tenant_id", nullable = false, updatable = false)
+    private @Getter UUID tenantId;
 
     @Column(name = "nomeFilamento_item", nullable = false, length = 150)
     private @Getter @Setter String nomeFilamento;

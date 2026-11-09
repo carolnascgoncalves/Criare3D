@@ -40,6 +40,7 @@ public class ImpressoraRequest {
 
     @jakarta.validation.constraints.Min(value = 0, message = "O aquecimento não pode ser negativo.")
     @jakarta.validation.constraints.Max(value = 10000, message = "O aquecimento deve ser de até 10.000 minutos.")
+    @Builder.Default
     private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
 
     @AssertTrue(message = "Para calcular o custo da máquina, informe o valor de compra e uma vida útil maior que zero.")

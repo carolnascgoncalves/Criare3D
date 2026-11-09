@@ -4,7 +4,6 @@ package br.com.criare3d.service;
 import br.com.criare3d.models.Usuario;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.service.interfaces.UsuarioDetailsService;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -30,9 +29,7 @@ public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
 
-        return User.withUsername(usuario.getEmail())
-                .password(usuario.getPassword())
-                .roles(usuario.getPerfil().name())
-                .build();
+        boolean tenantAtivo = usuario.getTenant() != null && usuario.getTenant().isAtivo();
+        return new br.com.criare3d.security.UsuarioPrincipal(usuario, tenantAtivo);
     }
 }
