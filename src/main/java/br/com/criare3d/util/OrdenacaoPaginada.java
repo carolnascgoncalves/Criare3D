@@ -22,4 +22,11 @@ public final class OrdenacaoPaginada {
         int tamanho = Math.max(1, Math.min(pageable.getPageSize(), TAMANHO_MAXIMO));
         return PageRequest.of(pageable.getPageNumber(), tamanho, sort);
     }
+
+    public static int ajustarPaginaAposExclusao(int pagina, long totalAntes, int removidos, int tamanhoPagina) {
+        long totalDepois = Math.max(0, totalAntes - Math.max(0, removidos));
+        int tamanho = Math.max(1, tamanhoPagina);
+        long ultimaPagina = totalDepois == 0 ? 0 : (totalDepois - 1) / tamanho;
+        return (int) Math.max(0, Math.min(Math.max(0, pagina), ultimaPagina));
+    }
 }

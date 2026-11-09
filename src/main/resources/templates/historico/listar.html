@@ -352,6 +352,8 @@
                     <input type="hidden" name="vendido" th:value="${vendido}">
                     <input type="hidden" name="ordem" th:value="${ordem}">
                     <input type="hidden" name="page" th:value="${pagina.number}">
+                    <input type="hidden" name="totalRegistros" th:value="${pagina.totalElements}">
+                    <input type="hidden" name="tamanhoPagina" th:value="${pagina.size}">
                 </form>
 
                 <table class="tabela-historico">

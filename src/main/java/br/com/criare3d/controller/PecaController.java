@@ -8,12 +8,14 @@ import br.com.criare3d.models.Peca;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
+import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +69,7 @@ public class PecaController {
     public ModelAndView create(@Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("peca/novo");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("peca", request);
             mv.addObject("origem", origem);
             return mv;
@@ -128,10 +130,14 @@ public class PecaController {
             @RequestParam(name = "ids", required = false) List<UUID> ids,
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/peca/listar?erro=nenhumaPecaSelecionada");
         List<UUID> bloqueadas = pecaService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
+                page, totalRegistros, ids.size() - bloqueadas.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("page", page);
         if (!bloqueadas.isEmpty()) redirect.addAttribute("erro", "pecasEmUso");
@@ -144,7 +150,7 @@ public class PecaController {
         if (bd.hasErrors()) {
             if (!pecaService.existsById(id)) return new ModelAndView("redirect:/peca/listar");
             ModelAndView mv = new ModelAndView("peca/edicao");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("peca", request);
             mv.addObject("id", id);
             return mv;

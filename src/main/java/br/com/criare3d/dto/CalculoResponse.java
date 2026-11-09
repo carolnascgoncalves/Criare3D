@@ -30,6 +30,7 @@ public class CalculoResponse {
     private String nomeImpressora;
     private BigDecimal potenciaWatts;
     private Long tempoImpressaoMinutos;
+    private Long minutosMaquinaLote;
     private Integer tempoAquecimentoMinutos;
     private BigDecimal purgaGramasPorImpressao;
     private Long tempoTrabalhoMinutos;
@@ -112,6 +113,7 @@ public class CalculoResponse {
                 .nomeImpressora(calculo.getNomeImpressora())
                 .potenciaWatts(calculo.getPotenciaWatts())
                 .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
+                .minutosMaquinaLote(calculo.getMinutosMaquinaLote())
                 .tempoAquecimentoMinutos(calculo.getTempoAquecimentoMinutos() == null ? 0 : calculo.getTempoAquecimentoMinutos())
                 .purgaGramasPorImpressao(calculo.getPurgaGramasPorImpressao())
                 .tempoTrabalhoMinutos(calculo.getTempoTrabalhoMinutos())

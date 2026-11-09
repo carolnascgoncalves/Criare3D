@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -82,7 +83,7 @@ public class EmbalagemController {
     public ModelAndView create(@Valid @ModelAttribute("embalagem") EmbalagemRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("embalagem/novo");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("embalagem", request);
             mv.addObject("origem", origem);
             return mv;
@@ -129,7 +130,7 @@ public class EmbalagemController {
         if (bd.hasErrors()) {
             if (!embalagemService.existsById(id)) return new ModelAndView("redirect:/embalagem/listar");
             ModelAndView mv = new ModelAndView("embalagem/edicao");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("embalagem", request);
             mv.addObject("id", id);
             return mv;
@@ -164,10 +165,14 @@ public class EmbalagemController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
             @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/embalagem/listar?erro=nenhumaEmbalagemSelecionada");
         List<UUID> bloqueadas = embalagemService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
+                page, totalRegistros, ids.size() - bloqueadas.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);
         redirect.addAttribute("page", page);

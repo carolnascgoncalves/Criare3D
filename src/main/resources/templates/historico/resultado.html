@@ -92,12 +92,12 @@
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
-                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
+                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.manutencaoHoraImpressora != null and resultado.manutencaoHoraImpressora.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>
+                            <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoManutencao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
 
@@ -284,13 +284,13 @@
                 </div>
 
                 <div class="detalhe-linha">
-                    <span>Tempo por impressão</span>
+                    <span>Tempo de impressão por unidade</span>
                     <strong th:text="${resultado.tempoImpressaoMinutos + ' minutos'}">120 minutos</strong>
                 </div>
 
                 <div class="detalhe-linha">
                     <span>Impressões necessárias</span>
-                    <strong th:text="${resultado.fornadas + (resultado.fornadas == 1 ? ' impressão, ' : ' impressões, ') + ((resultado.tempoImpressaoMinutos + resultado.tempoAquecimentoMinutos) * resultado.fornadas) + ' minutos incluindo aquecimento'}">1 impressão</strong>
+                    <strong th:text="${resultado.fornadas + (resultado.fornadas == 1 ? ' impressão, ' : ' impressões, ') + resultado.minutosMaquinaLote + ' minutos no total, incluindo aquecimento'}">1 impressão</strong>
                 </div>
 
                 <div class="detalhe-linha" th:if="${resultado.tempoAquecimentoMinutos != null and resultado.tempoAquecimentoMinutos > 0}">

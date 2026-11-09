@@ -331,7 +331,7 @@
                     </div>
 
                     <div class="campo">
-                        <label for="tempoImpressaoMinutos">Tempo por impressão (minutos)</label>
+                        <label for="tempoImpressaoMinutos">Tempo de impressão por unidade (minutos)</label>
                         <input type="number"
                                id="tempoImpressaoMinutos"
                                th:field="*{tempoImpressaoMinutos}"
@@ -339,9 +339,9 @@
                                min="1"
                                step="1"
                                required>
-                        <small>Informe o tempo de uma impressão, conforme o fatiador. O total do lote multiplica esse tempo pelo número de impressões e acrescenta o aquecimento.</small>
+                        <small>Informe quantos minutos a impressora leva para produzir uma unidade. O Criare multiplica esse tempo pelas unidades e adiciona o aquecimento de cada impressão.</small>
                         <small id="tempoTotalLoteResumo" class="texto-apoio" hidden></small>
-                        <small id="avisoImpressaoParcial" class="texto-apoio" hidden>A última impressão terá menos peças. O tempo informado é uma média por impressão; ajuste pelo tempo total indicado no fatiador.</small>
+                        <small id="avisoImpressaoParcial" class="texto-apoio" hidden></small>
                         <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
                     </div>
 
@@ -467,20 +467,20 @@
                                 <div class="markup-opcoes" role="radiogroup" aria-labelledby="rotuloMarkup">
 
                                     <label class="markup-opcao">
-                                        <input type="radio" th:field="*{markupPercentual}" value="30" required>
+                                        <input type="radio" th:field="*{markupPercentual}" th:value="${configuracao.markupOpcao1}" required>
 
-                                        <span class="markup-quadrado"><strong>30%</strong><small>Markup</small></span>
+                                        <span class="markup-quadrado"><strong th:text="|${#strings.replace(configuracao.markupOpcao1.stripTrailingZeros().toPlainString(), '.', ',')}%|">30%</strong><small>Markup</small></span>
                                     </label>
 
                                     <label class="markup-opcao">
-                                        <input type="radio" th:field="*{markupPercentual}" value="40">
-                                        <span class="markup-quadrado"><strong>40%</strong><small>Markup</small></span>
+                                        <input type="radio" th:field="*{markupPercentual}" th:value="${configuracao.markupOpcao2}">
+                                        <span class="markup-quadrado"><strong th:text="|${#strings.replace(configuracao.markupOpcao2.stripTrailingZeros().toPlainString(), '.', ',')}%|">40%</strong><small>Markup</small></span>
                                     </label>
 
                                     <label class="markup-opcao">
-                                        <input type="radio" th:field="*{markupPercentual}" value="50">
+                                        <input type="radio" th:field="*{markupPercentual}" th:value="${configuracao.markupOpcao3}">
 
-                                        <span class="markup-quadrado"><strong>50%</strong><small>Markup</small></span>
+                                        <span class="markup-quadrado"><strong th:text="|${#strings.replace(configuracao.markupOpcao3.stripTrailingZeros().toPlainString(), '.', ',')}%|">50%</strong><small>Markup</small></span>
                                     </label>
                                 </div>
 

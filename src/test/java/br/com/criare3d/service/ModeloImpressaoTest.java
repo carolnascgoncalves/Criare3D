@@ -23,4 +23,19 @@ class ModeloImpressaoTest {
         assertThat(impressoes).isEqualTo(10);
         assertThat(ModeloImpressao.minutosTotais(120, 0, impressoes)).isEqualTo(1200);
     }
+
+    @Test
+    void multiplicaTempoPorUnidadePeloTotalDeUnidadesEmImpressaoParcial() {
+        assertThat(ModeloImpressao.minutosTotais(120, 0, 5, 3)).isEqualTo(600);
+    }
+
+    @Test
+    void adicionaAquecimentoEmCadaImpressaoMesmoComUltimaParcial() {
+        assertThat(ModeloImpressao.minutosTotais(120, 5, 5, 3)).isEqualTo(610);
+    }
+
+    @Test
+    void preservaTempoInformadoQuandoSoExisteUmaImpressaoParcial() {
+        assertThat(ModeloImpressao.minutosTotais(120, 0, 5, 10)).isEqualTo(600);
+    }
 }

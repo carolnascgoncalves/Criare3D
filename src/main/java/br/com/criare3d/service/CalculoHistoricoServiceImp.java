@@ -400,7 +400,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         long minutosMaquinaLote;
         try {
             minutosMaquinaLote = ModeloImpressao.minutosTotais(
-                    request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas);
+                    request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos,
+                    unidades, pecasPorImpressao);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException("O tempo total de impressão ultrapassa o limite permitido.");
         }
@@ -622,6 +623,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setNomeImpressora(impressora.getNome());
         historico.setPotenciaWatts(impressora.getPotenciaWatts());
         historico.setTempoImpressaoMinutos(request.getTempoImpressaoMinutos());
+        historico.setMinutosMaquinaLote(minutosMaquinaLote);
         historico.setTarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh());
 
         historico.setNomeEmbalagem(nomeEmbalagem);

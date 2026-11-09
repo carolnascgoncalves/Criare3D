@@ -19,4 +19,21 @@ public final class ModeloImpressao {
         return Math.multiplyExact(Math.addExact(minutosPorImpressao, tempoAquecimentoMinutos),
                 (long) quantidadeImpressoes);
     }
+
+    /**
+     * O tempo informado é por unidade. Cada unidade soma seu tempo de máquina;
+     * o aquecimento é cobrado uma vez por impressão, inclusive a parcial.
+     */
+    public static long minutosTotais(long minutosImpressaoCheia, int aquecimentoPorImpressao,
+                                     int unidades, int pecasPorImpressao) {
+        if (minutosImpressaoCheia < 0 || aquecimentoPorImpressao < 0
+                || unidades < 1 || pecasPorImpressao < 1) {
+            throw new IllegalArgumentException("Informe tempos, unidades e capacidade válidos.");
+        }
+
+        int impressoes = quantidadeImpressoes(unidades, pecasPorImpressao);
+        long minutosUnidades = Math.multiplyExact(minutosImpressaoCheia, (long) unidades);
+        long minutosAquecimento = Math.multiplyExact((long) aquecimentoPorImpressao, impressoes);
+        return Math.addExact(minutosUnidades, minutosAquecimento);
+    }
 }

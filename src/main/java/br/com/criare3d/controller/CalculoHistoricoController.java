@@ -21,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -164,7 +165,7 @@ public class CalculoHistoricoController {
             if (Boolean.TRUE.equals(configuracao.getMarkupFixo())) {
                 request.setMarkupPercentual(configuracao.getMarkupPercentual());
             } else {
-                request.setMarkupPercentual(new BigDecimal("30.00"));
+                request.setMarkupPercentual(configuracao.getMarkupOpcao1());
             }
         }
 
@@ -221,7 +222,7 @@ public class CalculoHistoricoController {
 
             if (bd.hasErrors()) {
                 ModelAndView mv = new ModelAndView("historico/novo");
-                mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+                mv.setStatus(HttpStatusCode.valueOf(422));
                 mv.addObject("calculo", request);
                 mv.addObject("respostaCalculoComErro", true);
                 adicionarPreviewFoto(mv, request, session);
@@ -259,7 +260,7 @@ public class CalculoHistoricoController {
             }
 
             ModelAndView mv = new ModelAndView("historico/novo");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("calculo", request);
             mv.addObject("respostaCalculoComErro", true);
 
@@ -286,9 +287,12 @@ public class CalculoHistoricoController {
             int impressoes = previa.getFornadas() == null ? 1 : previa.getFornadas();
             int aquecimento = previa.getTempoAquecimentoMinutos() == null
                     ? 0 : previa.getTempoAquecimentoMinutos();
-            long minutosMaquina = br.com.criare3d.service.ModeloImpressao.minutosTotais(
-                    previa.getTempoImpressaoMinutos() == null ? 0 : previa.getTempoImpressaoMinutos(),
-                    aquecimento, impressoes);
+            long minutosMaquina = previa.getMinutosMaquinaLote() == null
+                    ? br.com.criare3d.service.ModeloImpressao.minutosTotais(
+                        previa.getTempoImpressaoMinutos() == null ? 0 : previa.getTempoImpressaoMinutos(),
+                        aquecimento, unidades,
+                        request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao())
+                    : previa.getMinutosMaquinaLote();
             return ResponseEntity.ok(java.util.Map.of(
                     "custoUnidade", previa.getCustoTotal().setScale(2, RoundingMode.HALF_UP),
                     "custoLote", previa.getCustoTotal().multiply(BigDecimal.valueOf(unidades))
@@ -621,7 +625,7 @@ public class CalculoHistoricoController {
         mv.addObject("calculo", request);
 
         if (bd.hasErrors()) {
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             adicionarPreviewFoto(mv, request, session);
             carregarDadosFormulario(mv);
             return mv;
@@ -659,7 +663,7 @@ public class CalculoHistoricoController {
             return new ModelAndView("redirect:/historico/listar?sucesso=historicoSalvo");
 
         } catch (IllegalArgumentException e) {
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("erro", e.getMessage());
             adicionarPreviewFoto(mv, request, session);
             carregarDadosFormulario(mv);

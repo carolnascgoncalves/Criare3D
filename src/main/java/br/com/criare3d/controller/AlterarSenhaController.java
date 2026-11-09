@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,7 +63,7 @@ public class AlterarSenhaController {
         }
 
         if (resultado.hasErrors()) {
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            response.setStatus(HttpStatusCode.valueOf(422).value());
             return "usuario/alterar-senha";
         }
 
@@ -71,7 +72,7 @@ public class AlterarSenhaController {
         } catch (IllegalArgumentException e) {
             String campo = e.getMessage().contains("senha atual") ? "senhaAtual" : "novaSenha";
             resultado.rejectValue(campo, "senha.invalida", e.getMessage());
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+            response.setStatus(HttpStatusCode.valueOf(422).value());
             return "usuario/alterar-senha";
         }
 

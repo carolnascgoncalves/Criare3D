@@ -93,7 +93,7 @@
                     </div>
 
                     <div class="detalhes-item">
-                        <span>Tempo por impressão</span>
+                        <span>Tempo de impressão por unidade</span>
                         <strong th:text="${historico.tempoImpressaoMinutos != null ? (historico.tempoImpressaoMinutos / 60) + 'h ' + (historico.tempoImpressaoMinutos % 60) + 'min' : 'Não informado'}">
                             3h 20min
                         </strong>
@@ -101,7 +101,7 @@
 
                     <div class="detalhes-item">
                         <span>Impressões necessárias</span>
-                        <strong th:text="${fornadas + ' (' + ((historico.tempoImpressaoMinutos + historico.tempoAquecimentoMinutos) * fornadas) + ' min incluindo aquecimento)'}">1 impressão</strong>
+                        <strong th:text="${fornadas + ' (' + historico.minutosMaquinaLote + ' min incluindo aquecimento)'}">1 impressão</strong>
                     </div>
 
                     <div class="detalhes-item">
@@ -173,7 +173,7 @@
                     <div class="detalhes-custo">
                         <div class="detalhes-custo-info">
                             <strong>Manutenção da impressora</strong>
-                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal((historico.tempoImpressaoMinutos + historico.tempoAquecimentoMinutos) * fornadas / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total' : '—'}">—</span>
+                            <span th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.manutencaoHoraImpressora != null ? historico.manutencaoHoraImpressora : T(java.math.BigDecimal).ZERO, 1, 'POINT', 2, 'COMMA') + '/h, aplicada por ' + #numbers.formatDecimal(historico.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total' : '—'}">—</span>
                         </div>
                         <strong class="detalhes-valor" th:text="${historico.custoManutencao != null ? 'R$ ' + #numbers.formatDecimal(historico.custoManutencao, 1, 'POINT', 2, 'COMMA') : '—'}">—</strong>
                     </div>

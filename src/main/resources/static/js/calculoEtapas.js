@@ -44,7 +44,8 @@ function inicializarCalculoEtapas() {
         }
         const tempoPorImpressao = Number(tempoInput?.value) || 0;
         const aquecimento = Number(impressoraSelect?.selectedOptions[0]?.dataset.tempoAquecimento) || 0;
-        const minutosTotais = (tempoPorImpressao + aquecimento) * impressoes;
+        const minutosImpressao = tempoPorImpressao * unidades;
+        const minutosTotais = minutosImpressao + aquecimento * impressoes;
         const resumoTempoTotal = document.getElementById("tempoTotalLoteResumo");
         if (resumoTempoTotal) {
             resumoTempoTotal.hidden = tempoPorImpressao <= 0;
@@ -60,7 +61,13 @@ function inicializarCalculoEtapas() {
         }
         const parcial = impressoes > 1 && unidades % capacidade !== 0;
         const avisoParcial = document.getElementById("avisoImpressaoParcial");
-        if (avisoParcial) avisoParcial.hidden = !parcial;
+        if (avisoParcial) {
+            avisoParcial.hidden = !parcial;
+            if (parcial && tempoPorImpressao > 0) {
+                const minutosParciais = Math.ceil(tempoPorImpressao * (unidades % capacidade) / capacidade);
+                avisoParcial.textContent = `A última impressão terá ${unidades % capacidade} peças; estimamos ${minutosParciais} min para ela (${tempoPorImpressao} min por unidade × ${unidades % capacidade} unidades).`;
+            }
+        }
         atualizarResumoTempo();
     }
 
@@ -329,9 +336,7 @@ function inicializarCalculoEtapas() {
 
         if (tempoInput) {
             tempoInput.dataset.tempoManual = "false";
-            tempoInput.value = (Number(opcao.dataset.tempo) || 0)
-                * Math.min(Math.max(1, Number(pecasPorImpressaoInput?.value) || 1),
-                    Math.max(1, Number(unidadesInput?.value) || 1)) || "";
+            tempoInput.value = Number(opcao.dataset.tempo) || "";
         }
 
 
@@ -348,9 +353,7 @@ function inicializarCalculoEtapas() {
         if (!resumoTempo || !statusTempo || !tempoInput || !pecaSelect) return;
 
         const opcao = pecaSelect.selectedOptions[0];
-        const previsto = (Number(opcao?.dataset.tempo) || 0)
-            * Math.min(Math.max(1, Number(pecasPorImpressaoInput?.value) || 1),
-                Math.max(1, Number(unidadesInput?.value) || 1));
+        const previsto = Number(opcao?.dataset.tempo) || 0;
         const informado = Number(tempoInput.value) || 0;
 
         if (!pecaSelect.value || previsto <= 0 || informado <= 0) {
@@ -360,7 +363,7 @@ function inicializarCalculoEtapas() {
 
         resumoTempo.hidden = false;
         tempoInformadoResumo.textContent = `${informado} min`;
-        tempoPrevistoResumo.textContent = `${previsto} min por impressão`;
+        tempoPrevistoResumo.textContent = `${previsto} min por unidade`;
 
         let classe;
         let mensagem;

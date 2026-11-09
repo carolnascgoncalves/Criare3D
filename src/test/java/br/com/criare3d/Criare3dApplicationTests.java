@@ -387,7 +387,8 @@ class Criare3dApplicationTests {
 			assertThat(resultado.getPecasPorImpressao()).isEqualTo(4);
 			assertThat(resultado.getFornadas()).isEqualTo(3);
 			assertThat(resultado.getTempoAquecimentoMinutos()).isEqualTo(5);
-			assertThat(resultado.getCustoEnergia()).isEqualByComparingTo("0.09800000");
+			assertThat(resultado.getMinutosMaquinaLote()).isEqualTo(2415L);
+			assertThat(resultado.getCustoEnergia()).isEqualByComparingTo("0.32200000");
 			assertThat(resultado.getItensFilamento()).hasSize(2);
 			assertThat(resultado.getItensFilamento().stream()
 					.map(ItemCalculoHistorico::getPurgaGramas)

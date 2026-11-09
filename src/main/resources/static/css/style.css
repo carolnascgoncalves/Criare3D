@@ -235,7 +235,19 @@ a {
 }
 .menu-usuario-legenda { color: var(--marrom-claro); font-size: 12px; }
 .menu-usuario-email { overflow-wrap: anywhere; font-size: 14px; }
-.menu-usuario-painel a { color: var(--marrom); font-weight: 600; }
+.menu-usuario-acoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.menu-usuario-acoes form { min-width: 0; margin: 0; }
+.menu-usuario-acoes .botao { display: inline-flex; width: 100%; min-width: 0; min-height: 42px; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; white-space: nowrap; font-size: 13px; }
+.confirmacao-logout { width: min(420px, calc(100vw - 32px)); padding: 0; border: 1px solid var(--borda); border-radius: 16px; background: var(--branco); color: var(--marrom); box-shadow: 0 18px 48px rgba(40, 24, 15, .28); }
+.confirmacao-logout::backdrop { background: rgba(35, 23, 17, .48); }
+.confirmacao-logout-conteudo { display: grid; gap: 12px; padding: 24px; }
+.confirmacao-logout-conteudo h2, .confirmacao-logout-conteudo p { margin: 0; }
+.confirmacao-logout-conteudo p { color: var(--marrom-claro); }
+.confirmacao-logout-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+@media (max-width: 600px) {
+    .menu-usuario-painel { position: fixed; top: var(--menu-conta-topo, 88px); right: 8px; left: 8px; width: auto; max-width: 360px; margin-inline: auto; }
+    .confirmacao-logout-acoes > .botao { flex: 1 1 145px; }
+}
 
 /* CONTEÚDO GERAL */
 
@@ -1640,6 +1652,35 @@ tr:nth-child(even) {
     box-sizing: border-box;
 }
 
+.configuracao-conteudo > .aviso-info {
+    grid-column: 1 / -1;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.configuracao-markup-atalhos {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 16px;
+    padding: 18px;
+    border: 1px solid var(--borda);
+    border-radius: 12px;
+    background: var(--superficie-suave);
+}
+
+.configuracao-markup-atalhos > div:first-child {
+    display: grid;
+    gap: 5px;
+}
+
+.configuracao-markup-atalhos > div:first-child small { color: var(--marrom-claro); }
+
+.configuracao-markup-atalhos-grade {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+
 .configuracao-conteudo .campo small,
 .configuracao-opcao small {
     color: var(--marrom-claro);
@@ -1752,6 +1793,10 @@ tr:nth-child(even) {
 
     .configuracao-opcao {
         grid-column: auto;
+    }
+
+    .configuracao-markup-atalhos-grade {
+        grid-template-columns: 1fr;
     }
 
     .configuracao-acoes {

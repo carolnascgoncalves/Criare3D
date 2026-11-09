@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -106,7 +107,7 @@ public class FilamentoController {
 
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("filamento/novo");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("filamento", request);
             mv.addObject("origem", origem);
             return mv;
@@ -152,6 +153,8 @@ public class FilamentoController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
             @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
             RedirectAttributes redirect) {
 
         if (estoqueGramas == null || estoqueGramas.signum() < 0
@@ -198,7 +201,7 @@ public class FilamentoController {
 
         if (erros.hasErrors()) {
             ModelAndView mv = new ModelAndView("filamento/compra");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("filamento", filamento.get());
             mv.addObject("compra", compra);
             mv.addObject("erroFormulario", true);
@@ -236,7 +239,7 @@ public class FilamentoController {
         if (bd.hasErrors()) {
             if (!filamentoService.existsById(id)) return new ModelAndView("redirect:/filamento/listar");
             ModelAndView mv = new ModelAndView("filamento/edicao");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("filamento", request);
             mv.addObject("id", id);
             return mv;
@@ -271,10 +274,14 @@ public class FilamentoController {
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
             @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/filamento/listar?erro=nenhumFilamentoSelecionado");
         List<UUID> bloqueados = filamentoService.deleteUnused(ids);
         if (!bloqueados.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueados);
+        page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
+                page, totalRegistros, ids.size() - bloqueados.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);
         redirect.addAttribute("page", page);

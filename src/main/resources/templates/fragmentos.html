@@ -27,6 +27,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-umd.js"></script>
     <script th:src="@{/js/dashboardCharts.js}" defer></script>
     <script th:src="@{/js/menuMobile.js}" defer></script>
+    <script th:src="@{/js/menuConta.js}" defer></script>
 
     <script th:src="@{/js/placeholders.js}" defer></script>
     <script th:src="@{/js/configuracao.js}" defer></script>
@@ -89,7 +90,16 @@
             <div class="menu-usuario-painel">
                 <span class="menu-usuario-legenda">Conta conectada</span>
                 <strong sec:authentication="name" class="menu-usuario-email"></strong>
-                <a th:href="@{/conta}">Minha conta</a>
+                <div class="menu-usuario-acoes">
+                    <a th:href="@{/conta}" class="botao botao-secundario">
+                        <i class="bi bi-person-gear" aria-hidden="true"></i> Minha conta
+                    </a>
+                    <form th:action="@{/logout}" method="post" data-logout-form>
+                        <button type="button" class="botao botao-perigo-suave" data-abrir-confirmacao-logout>
+                            <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Sair
+                        </button>
+                    </form>
+                </div>
             </div>
         </details>
 
@@ -101,6 +111,17 @@
         </a>
 
     </div>
+
+    <dialog class="confirmacao-logout" aria-labelledby="tituloConfirmacaoLogout">
+        <div class="confirmacao-logout-conteudo">
+            <h2 id="tituloConfirmacaoLogout">Sair da conta?</h2>
+            <p>Você precisará entrar novamente para acessar o Criare 3D.</p>
+            <div class="confirmacao-logout-acoes">
+                <button type="button" class="botao botao-secundario" data-cancelar-logout>Continuar conectado</button>
+                <button type="button" class="botao botao-perigo-suave" data-confirmar-logout>Sair</button>
+            </div>
+        </div>
+    </dialog>
 </nav>
 
 <script th:fragment="bootstrap-script"

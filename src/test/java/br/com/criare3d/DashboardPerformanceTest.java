@@ -41,10 +41,12 @@ class DashboardPerformanceTest {
                        AND h.data_venda_hist >= ? AND h.data_venda_hist < ?), 0),
                    COALESCE(SUM(h.lucro_liquido_hist * h.unidades_hist) FILTER (WHERE h.vendido_hist = TRUE
                        AND h.data_venda_hist >= ? AND h.data_venda_hist < ?), 0),
-                   COALESCE(SUM((h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist)
+                   COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
+                       ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
                        FILTER (WHERE h.vendido_hist = TRUE
                        AND h.data_venda_hist >= ? AND h.data_venda_hist < ?), 0),
-                   COALESCE(SUM((h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist)
+                   COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
+                       ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
                        FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= ?), 0),
                    COALESCE(SUM(h.gramas_totais_lote_hist)
                        FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= ?), 0)
@@ -118,7 +120,7 @@ class DashboardPerformanceTest {
                         custo_energia_hist, nome_emb_hist, custo_emb_hist, custo_total_hist,
                         markup_hist, preco_sug_hist, data_hist, usuario_id, tenant_id,
                         produzido_hist, vendido_hist, data_venda_hist, unidades_hist,
-                        fornadas_hist, gramas_totais_lote_hist
+                        fornadas_hist, gramas_totais_lote_hist, minutos_maquina_lote_hist
                     )
                     SELECT md5(? || ':' || serie::text)::uuid, 'Peça de benchmark', 'PLA', 100, 1000, 10,
                            'Impressora', 100, 60, 0.8, 1, 0.01, 'Embalagem', 1, 2,
@@ -126,7 +128,7 @@ class DashboardPerformanceTest {
                            serie % 3 = 0,
                            CASE WHEN serie % 3 = 0
                                 THEN now() - (serie % 730) * interval '1 day' ELSE NULL END,
-                           1, 1, 10
+                           1, 1, 10, 60
                       FROM generate_series(1, ?) AS serie
                     """, tenantId.toString(), usuarioId, tenantId, HISTORICOS_POR_TENANT);
         }

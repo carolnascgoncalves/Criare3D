@@ -31,6 +31,18 @@ public class Configuracao {
     @Builder.Default
     private @Getter @Setter Boolean markupFixo = false;
 
+    @Column(name = "markup_opcao_1_conf", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private @Getter @Setter BigDecimal markupOpcao1 = new BigDecimal("30.00");
+
+    @Column(name = "markup_opcao_2_conf", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private @Getter @Setter BigDecimal markupOpcao2 = new BigDecimal("40.00");
+
+    @Column(name = "markup_opcao_3_conf", nullable = false, precision = 10, scale = 2)
+    @Builder.Default
+    private @Getter @Setter BigDecimal markupOpcao3 = new BigDecimal("50.00");
+
     @NotNull(message = "A tarifa de energia da configuração é obrigatória")
     @Column(name = "qntFil_peca", nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal tarifaEnergiaKwh;

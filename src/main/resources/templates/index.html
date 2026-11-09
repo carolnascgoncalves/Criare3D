@@ -37,17 +37,17 @@
             <li th:classappend="${configuracaoBasicaOk} ? ' passo-concluido' : ''">
                 <i th:class="${configuracaoBasicaOk} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
                 <span>Configure a tarifa de energia e confira o markup</span>
-                <a th:href="@{/configuracao}">Configurações</a>
+                <a th:if="${!configuracaoBasicaOk}" th:href="@{/configuracao}">Configurações</a>
             </li>
             <li th:classappend="${totalImpressoras > 0} ? ' passo-concluido' : ''">
                 <i th:class="${totalImpressoras > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
                 <span>Cadastre uma impressora</span>
-                <a th:href="@{/impressora/novo}">Cadastrar</a>
+                <a th:if="${totalImpressoras == 0}" th:href="@{/impressora/novo}">Cadastrar</a>
             </li>
             <li th:classappend="${totalFilamentos > 0} ? ' passo-concluido' : ''">
                 <i th:class="${totalFilamentos > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
                 <span>Cadastre um filamento</span>
-                <a th:href="@{/filamento/novo}">Cadastrar</a>
+                <a th:if="${totalFilamentos == 0}" th:href="@{/filamento/novo}">Cadastrar</a>
             </li>
             <li th:classappend="${totalPecas > 0 and totalEmbalagens > 0} ? ' passo-concluido' : ''">
                 <i th:class="${totalPecas > 0 and totalEmbalagens > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
@@ -60,7 +60,7 @@
             <li th:classappend="${!#lists.isEmpty(ultimosCalculos)} ? ' passo-concluido' : ''">
                 <i th:class="${!#lists.isEmpty(ultimosCalculos)} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
                 <span>Faça seu primeiro cálculo</span>
-                <a th:href="@{/historico/novo}">Começar</a>
+                <a th:if="${#lists.isEmpty(ultimosCalculos)}" th:href="@{/historico/novo}">Começar</a>
             </li>
         </ol>
     </section>

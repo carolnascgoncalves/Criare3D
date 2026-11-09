@@ -6,6 +6,7 @@ import br.com.criare3d.models.Impressora;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
+import br.com.criare3d.util.OrdenacaoPaginada;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.UUID;
 import java.util.List;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 @Controller
 public class ImpressoraController {
@@ -69,7 +71,7 @@ public class ImpressoraController {
     public ModelAndView create(@Valid @ModelAttribute("impressora") ImpressoraRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("impressora/novo");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("impressora", request);
             mv.addObject("origem", origem);
             return mv;
@@ -109,7 +111,7 @@ public class ImpressoraController {
             return manutencaoImpressoraService.resumo(id)
                     .map(resumo -> {
                         ModelAndView mv = new ModelAndView("impressora/detalhes");
-                        mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+                        mv.setStatus(HttpStatusCode.valueOf(422));
                         mv.addObject("impressora", resumo.impressora());
                         mv.addObject("manutencao", request);
                         mv.addObject("manutencoes", resumo.registros());
@@ -172,10 +174,14 @@ public class ImpressoraController {
             @RequestParam(name = "ids", required = false) List<UUID> ids,
             @RequestParam(name = "busca", defaultValue = "") String busca,
             @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
             RedirectAttributes redirect) {
         if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/impressora/listar?erro=nenhumaImpressoraSelecionada");
         List<UUID> bloqueadas = impressoraService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
+        page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
+                page, totalRegistros, ids.size() - bloqueadas.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("page", page);
         if (!bloqueadas.isEmpty()) redirect.addAttribute("erro", "impressorasEmUso");
@@ -192,7 +198,7 @@ public class ImpressoraController {
         if (bd.hasErrors()) {
             if (!impressoraService.existsById(id)) return new ModelAndView("redirect:/impressora/listar");
             ModelAndView mv = new ModelAndView("impressora/edicao");
-            mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+            mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("impressora", request);
             mv.addObject("id", id);
             return mv;

@@ -1,0 +1,4 @@
+ALTER TABLE configuracao
+    ADD COLUMN markup_opcao_1_conf NUMERIC(10, 2) NOT NULL DEFAULT 30.00,
+    ADD COLUMN markup_opcao_2_conf NUMERIC(10, 2) NOT NULL DEFAULT 40.00,
+    ADD COLUMN markup_opcao_3_conf NUMERIC(10, 2) NOT NULL DEFAULT 50.00;

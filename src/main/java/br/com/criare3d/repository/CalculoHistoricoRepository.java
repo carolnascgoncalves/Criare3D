@@ -32,9 +32,11 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "vendidas",
           COALESCE(SUM(h.lucro_liquido_hist * h.unidades_hist) FILTER (WHERE h.vendido_hist = TRUE
               AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "lucro",
-          COALESCE(SUM((h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist)
+          COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
+              ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
               FILTER (WHERE h.vendido_hist = TRUE AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "minutosVendidos",
-          COALESCE(SUM((h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist)
+          COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
+              ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "minutosProduzidos",
           COALESCE(SUM(h.gramas_totais_lote_hist)
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "gramasFilamento"
@@ -215,10 +217,13 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                                         @Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT h.nomeImpressora, COALESCE(SUM((h.tempoImpressaoMinutos + h.tempoAquecimentoMinutos) * h.fornadas), 0), COALESCE(SUM(h.unidades), 0)
+        SELECT h.nomeImpressora, COALESCE(SUM(CASE WHEN h.minutosMaquinaLote > 0 THEN h.minutosMaquinaLote
+            ELSE (h.tempoImpressaoMinutos + h.tempoAquecimentoMinutos) * h.fornadas END), 0), COALESCE(SUM(h.unidades), 0)
         FROM CalculoHistorico h
         WHERE h.usuario.id = :usuarioId AND h.produzido = true AND h.dataCalculo >= :inicio
-        GROUP BY h.nomeImpressora ORDER BY SUM((h.tempoImpressaoMinutos + h.tempoAquecimentoMinutos) * h.fornadas) DESC
+        GROUP BY h.nomeImpressora
+        ORDER BY SUM(CASE WHEN h.minutosMaquinaLote > 0 THEN h.minutosMaquinaLote
+            ELSE (h.tempoImpressaoMinutos + h.tempoAquecimentoMinutos) * h.fornadas END) DESC
         """)
     List<Object[]> somarHorasPorImpressoraDesde(@Param("usuarioId") UUID usuarioId,
                                                 @Param("inicio") LocalDateTime inicio);
@@ -275,7 +280,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     long countByImpressora_IdAndUsuario_Id(UUID impressoraId, UUID usuarioId);
 
     @Query("""
-    SELECT COALESCE(SUM((c.tempoImpressaoMinutos + c.tempoAquecimentoMinutos) * c.fornadas), 0)
+    SELECT COALESCE(SUM(CASE WHEN c.minutosMaquinaLote > 0 THEN c.minutosMaquinaLote
+        ELSE (c.tempoImpressaoMinutos + c.tempoAquecimentoMinutos) * c.fornadas END), 0)
     FROM CalculoHistorico c
     WHERE c.impressora.id = :impressoraId
       AND c.usuario.id = :usuarioId

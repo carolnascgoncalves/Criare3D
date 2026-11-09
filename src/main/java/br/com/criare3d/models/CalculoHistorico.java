@@ -71,6 +71,10 @@ public class CalculoHistorico {
     @Column(name = "temp_hist", nullable = false)
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    @Column(name = "minutos_maquina_lote_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Long minutosMaquinaLote = 0L;
+
     @Column(name = "pecas_por_impressao_hist", nullable = false)
     @Builder.Default
     private @Getter @Setter Integer pecasPorImpressao = 1;

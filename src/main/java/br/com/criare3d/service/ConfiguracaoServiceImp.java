@@ -66,6 +66,10 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
                 atual.setMarkupFixo(configuracao.getMarkupFixo());
             }
 
+            if (configuracao.getMarkupOpcao1() != null) atual.setMarkupOpcao1(configuracao.getMarkupOpcao1());
+            if (configuracao.getMarkupOpcao2() != null) atual.setMarkupOpcao2(configuracao.getMarkupOpcao2());
+            if (configuracao.getMarkupOpcao3() != null) atual.setMarkupOpcao3(configuracao.getMarkupOpcao3());
+
             if (configuracao.getTarifaEnergiaKwh() != null) {
                 atual.setTarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh());
             }
@@ -85,10 +89,13 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             if (configuracao.getMaoObraAtivada() != null) {
                 atual.setMaoObraAtivada(configuracao.getMaoObraAtivada());
             }
-            atual.setValorMaoObraHora(configuracao.getValorMaoObraHora());
+            if (configuracao.getValorMaoObraHora() != null) {
+                atual.setValorMaoObraHora(configuracao.getValorMaoObraHora());
+            }
             atual.setMaoObraTempoFixo(Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo()));
-            atual.setTempoMaoObraFixoMinutos(configuracao.getTempoMaoObraFixoMinutos() != null
-                    ? configuracao.getTempoMaoObraFixoMinutos() : 0L);
+            if (configuracao.getTempoMaoObraFixoMinutos() != null) {
+                atual.setTempoMaoObraFixoMinutos(configuracao.getTempoMaoObraFixoMinutos());
+            }
 
             if (configuracao.getDepreciacaoAtivada() != null) {
                 atual.setDepreciacaoAtivada(configuracao.getDepreciacaoAtivada());
@@ -96,9 +103,12 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             if (configuracao.getTaxaFalhaAtivada() != null) {
                 atual.setTaxaFalhaAtivada(configuracao.getTaxaFalhaAtivada());
             }
-            atual.setPercentualFalha(configuracao.getPercentualFalha());
-            atual.setPurgaGramasPorImpressao(configuracao.getPurgaGramasPorImpressao() != null
-                    ? configuracao.getPurgaGramasPorImpressao() : BigDecimal.ZERO);
+            if (configuracao.getPercentualFalha() != null) {
+                atual.setPercentualFalha(configuracao.getPercentualFalha());
+            }
+            if (configuracao.getPurgaGramasPorImpressao() != null) {
+                atual.setPurgaGramasPorImpressao(configuracao.getPurgaGramasPorImpressao());
+            }
 
             Configuracao salva = configuracaoRepository.save(atual);
             invalidarCacheDepoisDoCommit(usuarioLogadoService.buscarTenantIdAtual());
@@ -143,6 +153,9 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             configuracao.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
             configuracao.setMarkupPercentual(BigDecimal.ZERO);
             configuracao.setMarkupFixo(false);
+            configuracao.setMarkupOpcao1(new BigDecimal("30.00"));
+            configuracao.setMarkupOpcao2(new BigDecimal("40.00"));
+            configuracao.setMarkupOpcao3(new BigDecimal("50.00"));
             configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
             configuracao.setEmbalagemFixa(false);
             configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);

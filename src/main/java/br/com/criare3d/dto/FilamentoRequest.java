@@ -50,10 +50,16 @@ public class FilamentoRequest {
                 .cor(filamento.getCor())
                 .codigoCor(filamento.getCodigoCor())
                 .marca(filamento.getMarca())
-                .pesoRoloGramas(filamento.getPesoRoloGramas())
-                .estoqueGramas(filamento.getEstoqueGramas())
-                .precoRolo(filamento.getPrecoRolo())
+                .pesoRoloGramas(numeroSemZerosFinais(filamento.getPesoRoloGramas()))
+                .estoqueGramas(numeroSemZerosFinais(filamento.getEstoqueGramas()))
+                .precoRolo(numeroSemZerosFinais(filamento.getPrecoRolo()))
                 .build();
+    }
+
+    private static BigDecimal numeroSemZerosFinais(BigDecimal valor) {
+        if (valor == null) return null;
+        BigDecimal normalizado = valor.stripTrailingZeros();
+        return normalizado.signum() == 0 ? BigDecimal.ZERO : normalizado;
     }
 
     public static Filamento toEntity(FilamentoRequest dto){

@@ -2,6 +2,7 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.util.HistoricoFiltros;
+import br.com.criare3d.util.OrdenacaoPaginada;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,12 +32,27 @@ public class CalculoHistoricoAcoesController {
     }
 
     @PostMapping("/historico/remover-lote")
-    public ModelAndView removerSelecionados(@RequestParam(name = "ids", required = false) List<UUID> ids) {
+    public ModelAndView removerSelecionados(
+            @RequestParam(name = "ids", required = false) List<UUID> ids,
+            @RequestParam(name = "busca", defaultValue = "") String busca,
+            @RequestParam(name = "data", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data,
+            @RequestParam(name = "plataforma", defaultValue = "") String plataforma,
+            @RequestParam(name = "produzido", defaultValue = "TODOS") String produzido,
+            @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
+            @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina) {
         if (ids == null || ids.isEmpty()) {
-            return new ModelAndView("redirect:/historico/listar?erro=nenhumSelecionado");
+            return HistoricoFiltros.redirecionarComFiltros(
+                    "erro", "nenhumSelecionado", busca, data, plataforma, produzido, vendido, ordem, page);
         }
         calculoHistoricoService.deleteAll(ids);
-        return new ModelAndView("redirect:/historico/listar?sucesso=historicosRemovidos");
+        page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
+                page, totalRegistros, ids.size(), tamanhoPagina);
+        return HistoricoFiltros.redirecionarComFiltros(
+                "sucesso", "historicosRemovidos", busca, data, plataforma, produzido, vendido, ordem, page);
     }
 
     @PostMapping("/historico/{id}/produzido")

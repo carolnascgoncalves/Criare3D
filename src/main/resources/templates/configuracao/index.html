@@ -74,8 +74,32 @@
 
                 <p class="aviso-info" id="avisoMarkupVariavel">
                     <i class="bi bi-info-circle"></i>
-                    Com o markup variável, você poderá escolher entre 30%, 40% e 50% durante o cálculo.
+                    Com o markup variável, os três percentuais abaixo aparecerão como atalhos durante o cálculo.
                 </p>
+
+                <div class="configuracao-markup-atalhos">
+                    <div>
+                        <strong>Atalhos de markup</strong>
+                        <small>Personalize os três aumentos sobre o custo usados no cálculo.</small>
+                    </div>
+                    <div class="configuracao-markup-atalhos-grade">
+                        <div class="campo">
+                            <label for="markupOpcao1">Atalho 1 (%)</label>
+                            <input type="number" id="markupOpcao1" th:field="*{markupOpcao1}" min="0" step="0.01" required>
+                            <span class="mensagem-erro" th:if="${#fields.hasErrors('markupOpcao1')}" th:errors="*{markupOpcao1}"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="markupOpcao2">Atalho 2 (%)</label>
+                            <input type="number" id="markupOpcao2" th:field="*{markupOpcao2}" min="0" step="0.01" required>
+                            <span class="mensagem-erro" th:if="${#fields.hasErrors('markupOpcao2')}" th:errors="*{markupOpcao2}"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="markupOpcao3">Atalho 3 (%)</label>
+                            <input type="number" id="markupOpcao3" th:field="*{markupOpcao3}" min="0" step="0.01" required>
+                            <span class="mensagem-erro" th:if="${#fields.hasErrors('markupOpcao3')}" th:errors="*{markupOpcao3}"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -281,12 +305,13 @@
                     <label for="percentualFalha">Margem para falhas (%)</label>
                     <input type="number" id="percentualFalha" th:field="*{percentualFalha}"
                            min="0" max="100" step="0.01" placeholder="Ex.: 5">
-                    <div class="aviso-info">
-                        <i class="bi bi-info-circle"></i>
-                        Essa margem ajuda a cobrir peças que precisam ser impressas novamente. Ela é aplicada ao filamento e à energia; a embalagem fica de fora. Se não souber o valor, pode começar com 5%.
-                    </div>
                     <span class="erro-campo" th:if="${#fields.hasErrors('percentualFalhaValido')}"
                           th:errors="*{percentualFalhaValido}"></span>
+                </div>
+                <div class="aviso-info" id="avisoTaxaFalha"
+                     th:hidden="${!configuracao.taxaFalhaAtivada}">
+                    <i class="bi bi-info-circle"></i>
+                    Essa margem ajuda a cobrir peças que precisam ser impressas novamente. Ela é aplicada ao filamento e à energia; a embalagem fica de fora. Se não souber o valor, pode começar com 5%.
                 </div>
             </div>
         </section>

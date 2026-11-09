@@ -47,6 +47,11 @@ function atualizarCustoOpcional(idCheckbox, idCampo, idsInputs) {
     campo.hidden = !ativo;
     campo.classList.toggle("campo-oculto", !ativo);
 
+    if (idCheckbox === "taxaFalhaAtivada") {
+        const aviso = document.getElementById("avisoTaxaFalha");
+        if (aviso) aviso.hidden = !ativo;
+    }
+
     if (ativo && idCheckbox === "taxaFalhaAtivada") {
         const percentual = document.getElementById("percentualFalha");
         if (percentual && !percentual.value) percentual.value = "5";
