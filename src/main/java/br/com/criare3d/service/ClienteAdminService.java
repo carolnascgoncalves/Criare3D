@@ -52,7 +52,7 @@ public class ClienteAdminService {
     @Transactional(readOnly = true)
     public ClienteAdminRequest carregarFormulario(UUID id) {
         Tenant tenant = buscarTenant(id);
-        Usuario usuario = usuarioRepository.findFirstByTenant_IdAndPerfil(id, Perfil.USER)
+        Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
                 .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
 
         ClienteAdminRequest request = new ClienteAdminRequest();
@@ -106,7 +106,7 @@ public class ClienteAdminService {
         Tenant tenant = buscarTenant(id);
         validarSlugParaEdicao(request.getSlug(), tenant);
 
-        Usuario usuario = usuarioRepository.findFirstByTenant_IdAndPerfil(id, Perfil.USER)
+        Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
                 .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
         validarEmailParaEdicao(request.getEmail(), usuario);
 
@@ -144,7 +144,7 @@ public class ClienteAdminService {
 
     public String gerarNovaSenhaTemporaria(UUID id) {
         buscarTenant(id);
-        Usuario usuario = usuarioRepository.findFirstByTenant_IdAndPerfil(id, Perfil.USER)
+        Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
                 .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
         String senhaTemporaria = gerarSenhaTemporaria();
         usuario.setPassword(passwordEncoder.encode(senhaTemporaria));
@@ -154,12 +154,12 @@ public class ClienteAdminService {
     }
 
     @Transactional(readOnly = true)
-    public byte[] buscarLogo(UUID id) {
+    public LogoCliente buscarLogo(UUID id) {
         byte[] logo = buscarTenant(id).getLogo();
-        if (logo == null || logo.length == 0 || !assinaturaPng(logo)) {
-            throw new IllegalArgumentException("Este cliente não possui um logo PNG válido.");
+        if (logo == null || logo.length == 0) {
+            throw new IllegalArgumentException("Este cliente não possui um logo válido.");
         }
-        return logo;
+        return new LogoCliente(logo, tipoImagem(logo));
     }
 
     private Tenant buscarTenant(UUID id) {
@@ -221,19 +221,19 @@ public class ClienteAdminService {
         }
         try {
             byte[] bytes = arquivo.getBytes();
-            if (!assinaturaPng(bytes)) throw new IllegalArgumentException("Envie uma imagem PNG válida.");
-            validarDimensoesPng(bytes);
+            tipoImagem(bytes);
+            validarDimensoesImagem(bytes);
             return bytes;
         } catch (IOException ex) {
             throw new IllegalArgumentException("Não foi possível ler o arquivo do logo.");
         }
     }
 
-    private void validarDimensoesPng(byte[] bytes) throws IOException {
+    private void validarDimensoesImagem(byte[] bytes) throws IOException {
         try (ImageInputStream entrada = ImageIO.createImageInputStream(new ByteArrayInputStream(bytes))) {
-            if (entrada == null) throw new IllegalArgumentException("O arquivo enviado não é uma imagem PNG válida.");
+            if (entrada == null) throw new IllegalArgumentException("Envie uma imagem PNG ou JPG/JPEG válida.");
             Iterator<ImageReader> leitores = ImageIO.getImageReaders(entrada);
-            if (!leitores.hasNext()) throw new IllegalArgumentException("O arquivo enviado não é uma imagem PNG válida.");
+            if (!leitores.hasNext()) throw new IllegalArgumentException("Envie uma imagem PNG ou JPG/JPEG válida.");
             ImageReader leitor = leitores.next();
             try {
                 leitor.setInput(entrada, true, true);
@@ -248,11 +248,18 @@ public class ClienteAdminService {
         }
     }
 
-    private boolean assinaturaPng(byte[] bytes) {
+    private org.springframework.http.MediaType tipoImagem(byte[] bytes) {
         byte[] assinatura = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-        if (bytes.length < assinatura.length) return false;
-        for (int i = 0; i < assinatura.length; i++) if (bytes[i] != assinatura[i]) return false;
-        return true;
+        if (bytes.length >= assinatura.length) {
+            boolean png = true;
+            for (int i = 0; i < assinatura.length; i++) png &= bytes[i] == assinatura[i];
+            if (png) return org.springframework.http.MediaType.IMAGE_PNG;
+        }
+        if (bytes.length >= 3 && bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8
+                && bytes[2] == (byte) 0xFF) {
+            return org.springframework.http.MediaType.IMAGE_JPEG;
+        }
+        throw new IllegalArgumentException("Envie uma imagem PNG ou JPG/JPEG válida.");
     }
 
     private boolean corValida(String cor) {
@@ -288,4 +295,5 @@ public class ClienteAdminService {
     }
 
     public record ClienteCriado(UUID tenantId, String senhaTemporaria) { }
+    public record LogoCliente(byte[] bytes, org.springframework.http.MediaType tipo) { }
 }

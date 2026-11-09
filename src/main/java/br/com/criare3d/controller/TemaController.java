@@ -81,7 +81,7 @@ public class TemaController {
                 .body(css);
     }
 
-    @GetMapping(value = "/tema/{tenantId}/{versao}/logo.png", produces = "image/png")
+    @GetMapping(value = "/tema/{tenantId}/{versao}/logo")
     public ResponseEntity<byte[]> logo(@PathVariable UUID tenantId, @PathVariable long versao) {
         UsuarioPrincipal principal = principalAtual();
         if (!temaPertenceAoUsuario(principal, tenantId, versao) || !principal.isTenantTemLogo()) {
@@ -94,10 +94,11 @@ public class TemaController {
         }
 
         byte[] bytes = tenant.getLogo();
-        if (!pngValido(bytes)) return ResponseEntity.notFound().build();
+        MediaType tipo = tipoLogo(bytes);
+        if (tipo == null) return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
+                .contentType(tipo)
                 .header("Cache-Control", CACHE_TEMA)
                 .eTag(etag(tenantId, versao, "logo"))
                 .body(bytes);
@@ -135,13 +136,16 @@ public class TemaController {
         return canal <= 0.04045 ? canal / 12.92 : Math.pow((canal + 0.055) / 1.055, 2.4);
     }
 
-    private boolean pngValido(byte[] bytes) {
+    private MediaType tipoLogo(byte[] bytes) {
         byte[] assinatura = {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
-        if (bytes.length < assinatura.length) return false;
-        for (int i = 0; i < assinatura.length; i++) {
-            if (bytes[i] != assinatura[i]) return false;
+        if (bytes.length >= assinatura.length) {
+            boolean png = true;
+            for (int i = 0; i < assinatura.length; i++) png &= bytes[i] == assinatura[i];
+            if (png) return MediaType.IMAGE_PNG;
         }
-        return true;
+        if (bytes.length >= 3 && bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8
+                && bytes[2] == (byte) 0xFF) return MediaType.IMAGE_JPEG;
+        return null;
     }
 
     private String etag(UUID tenantId, long versao, String recurso) {

@@ -54,7 +54,7 @@
         if (logoUrlTemporario) URL.revokeObjectURL(logoUrlTemporario);
         logoUrlTemporario = null;
         const remover = formulario.querySelector("[data-remover-logo]");
-        if (arquivo && arquivo.type === "image/png") {
+        if (arquivo && ["image/png", "image/jpeg"].includes(arquivo.type)) {
             logoUrlTemporario = URL.createObjectURL(arquivo);
             imagem.src = logoUrlTemporario;
             imagem.hidden = false;

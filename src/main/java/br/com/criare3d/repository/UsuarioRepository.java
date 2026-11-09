@@ -16,7 +16,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
 
     boolean existsByEmailAndIdNot(String email, UUID id);
 
-    Optional<Usuario> findFirstByTenant_IdAndPerfil(UUID tenantId, Perfil perfil);
+    Optional<Usuario> findByTenant_IdAndPerfil(UUID tenantId, Perfil perfil);
 
     boolean existsByPerfil(Perfil perfil);
 }

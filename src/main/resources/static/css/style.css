@@ -2323,7 +2323,7 @@ input[type="color"]:focus {
 .cliente-senha-temporaria { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .cliente-senha-temporaria code { display: inline-block; padding: 9px 12px; border: 1px dashed currentColor; border-radius: 8px; color: inherit; font-size: 1rem; font-weight: 700; user-select: all; overflow-wrap: anywhere; }
 .cliente-form-cartao .cartao-cabecalho { margin-bottom: 22px; }
-.cliente-formulario { display: grid; gap: 22px; }
+.cliente-formulario { display: grid; gap: 22px; padding: 0 24px 24px; }
 .cliente-form-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 20px; }
 .cliente-campo-largo { grid-column: 1 / -1; }
 .cliente-tema-campos { display: grid; gap: 16px; min-width: 0; padding: 18px; border: 1px solid var(--borda); border-radius: 14px; }
@@ -2353,9 +2353,10 @@ input[type="color"]:focus {
 .cliente-ativo-controle input { width: 18px; height: 18px; accent-color: var(--destaque-escuro); }
 .cliente-ativo-controle span { display: grid; gap: 3px; }
 .cliente-ativo-controle small { color: var(--marrom-claro); }
-.cliente-form-acoes { margin-top: 2px; }
-.cliente-reset-cartao { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.cliente-reset-cartao h2 { margin: 0 0 5px; font-size: 1.1rem; }
+.cliente-form-acoes { gap: 12px; margin-top: 4px; padding-top: 4px; }
+.cliente-reset-cartao { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px; }
+.cliente-reset-cartao .texto-apoio { display: inline-block; margin-bottom: 8px; }
+.cliente-reset-cartao h2 { margin: 0 0 8px; font-size: 1.1rem; }
 .cliente-reset-cartao p { max-width: 620px; margin: 0; color: var(--marrom-claro); }
 
 @media (max-width: 760px) {
@@ -2364,6 +2365,8 @@ input[type="color"]:focus {
     .cliente-form-grade, .cliente-cores-grade { grid-template-columns: minmax(0, 1fr); }
     .cliente-campo-largo { grid-column: auto; }
     .cliente-tema-campos { padding: 14px; }
+    .cliente-formulario { padding: 0 16px 18px; }
+    .cliente-reset-cartao { padding: 18px; }
     .cliente-preview-menu { gap: 9px; padding-inline: 10px; }
     .cliente-preview-menu-link { display: none; }
     .cliente-preview-menu strong { max-width: 42vw; }

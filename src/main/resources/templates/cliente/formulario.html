@@ -105,8 +105,8 @@
 
                 <div class="campo cliente-logo-campo">
                     <label for="logo">Logo do cliente <span class="etiqueta-opcional">Opcional</span></label>
-                    <input id="logo" name="logo" type="file" accept="image/png" data-logo-input>
-                    <small>PNG, até 1 MB e 1024 × 1024 pixels. Se não enviar um logo, será usado um ícone padrão.</small>
+                    <input id="logo" name="logo" type="file" accept="image/png,image/jpeg,.jpg,.jpeg" data-logo-input>
+                    <small>PNG ou JPG/JPEG, até 1 MB e 1024 × 1024 pixels. Se não enviar um logo, será usado um ícone padrão.</small>
                     <label class="cliente-remover-logo" th:if="${modoEdicao and temLogoExistente}">
                         <input type="checkbox" name="removerLogo" value="true" data-remover-logo>
                         Remover o logo atual

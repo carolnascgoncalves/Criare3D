@@ -144,10 +144,11 @@ public class ClienteAdminController {
         return "redirect:/clientes/" + id + "/editar";
     }
 
-    @GetMapping(value = "/{id}/logo", produces = MediaType.IMAGE_PNG_VALUE)
+    @GetMapping(value = "/{id}/logo")
     public ResponseEntity<byte[]> logo(@PathVariable UUID id) {
         try {
-            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(clienteAdminService.buscarLogo(id));
+            ClienteAdminService.LogoCliente logo = clienteAdminService.buscarLogo(id);
+            return ResponseEntity.ok().contentType(logo.tipo()).body(logo.bytes());
         } catch (IllegalArgumentException erro) {
             return ResponseEntity.notFound().build();
         }

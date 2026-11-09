@@ -39,7 +39,7 @@ public class NavegacaoModelAdvice {
         model.addAttribute("tenantLogoUrl", principal != null && principal.getTenantId() != null
                 && principal.isTenantTemLogo()
                 ? request.getContextPath() + "/tema/" + principal.getTenantId()
-                    + "/" + temaVersao + "/logo.png"
+                    + "/" + temaVersao + "/logo"
                 : request.getContextPath() + "/images/criare3d-128.jpg");
         if (principal != null && principal.getTenantId() != null) {
             model.addAttribute("temaCssUrl", request.getContextPath() + "/tema/"
