@@ -549,10 +549,38 @@ function inicializarCalculoEtapas() {
     const removerFoto = document.getElementById("removerFotoPeca");
     const fotoRemovida = document.getElementById("fotoRemovida");
     let fotoUrlTemporaria = null;
+    let sincronizacaoFotoPendente = Promise.resolve();
+
+    function sincronizarFotoTemporaria(arquivo = null, remover = false) {
+        const dados = new FormData();
+        const tokenCsrf = formulario.querySelector('input[name="_csrf"]')?.value;
+        if (tokenCsrf) dados.append("_csrf", tokenCsrf);
+        if (arquivo) dados.append("fotoPeca", arquivo);
+        if (remover) dados.append("remover", "true");
+
+        sincronizacaoFotoPendente = sincronizacaoFotoPendente
+            .catch(() => {})
+            .then(async () => {
+                const resposta = await fetch("/historico/rascunho/foto", {
+                    method: "POST",
+                    body: dados,
+                    credentials: "same-origin"
+                });
+                if (!resposta.ok) throw new Error("Não foi possível guardar a foto temporária.");
+            });
+
+        sincronizacaoFotoPendente.catch(() => {
+            window.mostrarNotificacao?.(
+                "Não foi possível guardar a foto para continuar depois. Tente selecioná-la novamente.",
+                "erro"
+            );
+        });
+    }
 
     function limparFoto() {
         if (fotoInput) fotoInput.value = "";
         if (fotoRemovida) fotoRemovida.value = "true";
+        sincronizarFotoTemporaria(null, true);
         if (fotoUrlTemporaria) URL.revokeObjectURL(fotoUrlTemporaria);
         fotoUrlTemporaria = null;
 
@@ -615,6 +643,7 @@ function inicializarCalculoEtapas() {
             transferencia.items.add(reduzido);
             fotoInput.files = transferencia.files;
             if (fotoRemovida) fotoRemovida.value = "false";
+            sincronizarFotoTemporaria(reduzido);
             if (fotoUrlTemporaria) URL.revokeObjectURL(fotoUrlTemporaria);
             fotoUrlTemporaria = URL.createObjectURL(blob);
             mostrarFoto(fotoUrlTemporaria);

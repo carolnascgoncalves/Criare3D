@@ -777,6 +777,28 @@ public class CalculoHistoricoController {
         }
     }
 
+    @PostMapping("/historico/rascunho/foto")
+    @ResponseBody
+    public ResponseEntity<Void> sincronizarFotoRascunho(
+            @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca,
+            @RequestParam(value = "remover", defaultValue = "false") boolean remover,
+            HttpSession session) {
+        if (remover) {
+            session.removeAttribute(FOTO_SESSAO);
+            session.removeAttribute(FOTO_TIPO_SESSAO);
+            return ResponseEntity.noContent().build();
+        }
+        if (fotoPeca == null || fotoPeca.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            aplicarFoto(new CalculoRequest(), fotoPeca, session);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException | IOException e) {
+            return ResponseEntity.status(HttpStatusCode.valueOf(422)).build();
+        }
+    }
+
     @GetMapping("/historico/resultado/foto")
     @ResponseBody
     public ResponseEntity<byte[]> buscarFotoTemporaria(HttpSession session) {
