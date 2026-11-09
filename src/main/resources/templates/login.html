@@ -27,6 +27,10 @@
         Você saiu da sua conta com sucesso.
     </div>
 
+    <div th:if="${param.senhaAlterada}" class="login-aviso login-aviso-sucesso" role="status">
+        Senha criada com sucesso. Entre novamente para acessar sua conta.
+    </div>
+
     <form th:action="@{/login}" method="post" class="login-formulario" novalidate>
         <div class="login-campo">
             <label for="email">E-mail</label>

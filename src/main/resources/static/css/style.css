@@ -2358,6 +2358,16 @@ input[type="color"]:focus {
 .cliente-reset-cartao .texto-apoio { display: inline-block; margin-bottom: 8px; }
 .cliente-reset-cartao h2 { margin: 0 0 8px; font-size: 1.1rem; }
 .cliente-reset-cartao p { max-width: 620px; margin: 0; color: var(--marrom-claro); }
+.cliente-excluir-cartao { display: grid; gap: 18px; padding: 24px; border-color: #e8b8b2; }
+.cliente-excluir-cartao h2 { margin: 5px 0 8px; color: #a23c37; font-size: 1.1rem; }
+.cliente-excluir-cartao p { max-width: 760px; margin: 0; color: var(--marrom-claro); line-height: 1.5; }
+.cliente-excluir-detalhes > summary { display: inline-flex; align-items: center; width: fit-content; list-style: none; cursor: pointer; }
+.cliente-excluir-detalhes > summary::-webkit-details-marker { display: none; }
+.cliente-excluir-confirmacao { display: grid; gap: 12px; margin-top: 16px; padding: 16px; border: 1px solid #e8b8b2; border-radius: 12px; background: #fff8f7; }
+.cliente-excluir-formulario { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.cliente-excluir-formulario input { width: min(100%, 420px); padding: 11px 13px; border: 1px solid var(--borda); border-radius: 9px; background: var(--branco); color: var(--marrom); font: inherit; }
+.cliente-excluir-formulario input:focus { border-color: #a23c37; outline: 3px solid rgba(162, 60, 55, 0.12); }
+.cliente-excluir-formulario button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 760px) {
     .clientes-admin-pagina .pagina-intro { align-items: flex-start; flex-direction: column; }
@@ -2367,6 +2377,9 @@ input[type="color"]:focus {
     .cliente-tema-campos { padding: 14px; }
     .cliente-formulario { padding: 0 16px 18px; }
     .cliente-reset-cartao { padding: 18px; }
+    .cliente-excluir-cartao { padding: 18px; }
+    .cliente-excluir-formulario { align-items: stretch; flex-direction: column; }
+    .cliente-excluir-formulario input { width: 100%; }
     .cliente-preview-menu { gap: 9px; padding-inline: 10px; }
     .cliente-preview-menu-link { display: none; }
     .cliente-preview-menu strong { max-width: 42vw; }

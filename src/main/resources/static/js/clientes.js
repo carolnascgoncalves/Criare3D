@@ -97,6 +97,13 @@
         }
     });
 
+    document.addEventListener("input", evento => {
+        const campo = evento.target.closest("[data-nome-esperado]");
+        if (!campo) return;
+        const botao = campo.form?.querySelector("[data-confirmar-exclusao]");
+        if (botao) botao.disabled = campo.value.trim() !== campo.dataset.nomeEsperado;
+    });
+
     document.addEventListener("turbo:load", iniciarFormularioCliente);
     document.addEventListener("DOMContentLoaded", iniciarFormularioCliente, { once: true });
     document.addEventListener("turbo:before-cache", () => {

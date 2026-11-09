@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 @Controller
 public class AlterarSenhaController {
@@ -73,11 +75,18 @@ public class AlterarSenhaController {
             return "usuario/alterar-senha";
         }
 
+        if (primeiroAcesso) {
+            new SecurityContextLogoutHandler().logout(
+                    requisicaoWeb,
+                    response,
+                    SecurityContextHolder.getContext().getAuthentication()
+            );
+            return "redirect:/login?senhaAlterada";
+        }
+
         redirectAttributes.addFlashAttribute("senhaAlterada", true);
         HttpSession sessao = requisicaoWeb.getSession(false);
-        if (sessao != null) {
-            sessao.removeAttribute(PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA);
-        }
+        if (sessao != null) sessao.removeAttribute(PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA);
         return "redirect:/senha";
     }
 }

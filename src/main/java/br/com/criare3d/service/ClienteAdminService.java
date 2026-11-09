@@ -8,6 +8,7 @@ import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.TenantRepository;
 import br.com.criare3d.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,13 +36,16 @@ public class ClienteAdminService {
     private final TenantRepository tenantRepository;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     public ClienteAdminService(TenantRepository tenantRepository,
                                UsuarioRepository usuarioRepository,
-                               PasswordEncoder passwordEncoder) {
+                               PasswordEncoder passwordEncoder,
+                               JdbcTemplate jdbcTemplate) {
         this.tenantRepository = tenantRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Transactional(readOnly = true)
@@ -140,6 +144,31 @@ public class ClienteAdminService {
         tenant.setAtivo(!tenant.isAtivo());
         tenantRepository.save(tenant);
         return tenant.isAtivo();
+    }
+
+    public String excluir(UUID id, String nomeConfirmacao) {
+        Tenant tenant = buscarTenant(id);
+        if (nomeConfirmacao == null || !tenant.getNome().equals(nomeConfirmacao.trim())) {
+            throw new IllegalArgumentException("O nome digitado não corresponde ao cliente. Nenhum dado foi apagado.");
+        }
+
+        Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
+                .orElseThrow(() -> new IllegalStateException("Não foi possível localizar a conta deste cliente."));
+
+        // Usa SQL explícito com tenant_id porque o ADMIN não possui tenant e o filtro
+        // Hibernate @TenantId não deve ser desativado para executar esta operação.
+        jdbcTemplate.update("DELETE FROM calculo_foto WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM item_calculo_historico WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM manutencao_impressora WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM calculo_historico WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM configuracao WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM embalagem WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM filamento WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM impressora WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM peca WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM usuario WHERE id = ? AND tenant_id = ?", usuario.getId(), id);
+        jdbcTemplate.update("DELETE FROM tenant WHERE id = ?", id);
+        return tenant.getNome();
     }
 
     public String gerarNovaSenhaTemporaria(UUID id) {

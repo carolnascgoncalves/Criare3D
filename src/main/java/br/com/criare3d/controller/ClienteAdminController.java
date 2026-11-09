@@ -144,6 +144,20 @@ public class ClienteAdminController {
         return "redirect:/clientes/" + id + "/editar";
     }
 
+    @PostMapping("/{id}/excluir")
+    public String excluir(@PathVariable UUID id,
+                          @RequestParam("confirmacaoNome") String confirmacaoNome,
+                          RedirectAttributes redirectAttributes) {
+        try {
+            String nome = clienteAdminService.excluir(id, confirmacaoNome);
+            redirectAttributes.addFlashAttribute("clienteExcluido", nome);
+        } catch (IllegalArgumentException | IllegalStateException erro) {
+            redirectAttributes.addFlashAttribute("erroCliente", erro.getMessage());
+            return "redirect:/clientes/" + id + "/editar";
+        }
+        return "redirect:/clientes/listar";
+    }
+
     @GetMapping(value = "/{id}/logo")
     public ResponseEntity<byte[]> logo(@PathVariable UUID id) {
         try {

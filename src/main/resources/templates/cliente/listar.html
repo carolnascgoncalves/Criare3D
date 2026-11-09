@@ -26,6 +26,8 @@
         </div>
     </div>
     <div th:if="${clienteSalvo}" class="alert alert-success notificacao-flutuante" role="status">Cliente atualizado com sucesso.</div>
+    <div th:if="${clienteExcluido}" class="alert alert-success notificacao-flutuante" role="status"
+         th:text="|Cliente ${clienteExcluido} e os dados vinculados foram apagados.|">Cliente excluído.</div>
     <div th:if="${statusCliente}" class="alert alert-success notificacao-flutuante" role="status" th:text="${statusCliente}"></div>
     <div th:if="${avisoTema}" class="alert alert-info" role="status" th:text="${avisoTema}"></div>
     <div th:if="${erroCliente}" class="alert alert-danger notificacao-flutuante" role="alert" th:text="${erroCliente}"></div>

@@ -140,6 +140,27 @@
             </button>
         </form>
     </section>
+
+    <section th:if="${modoEdicao}" class="cartao cliente-excluir-cartao">
+        <div>
+            <span class="texto-apoio">ÁREA DE PERIGO</span>
+            <h2>Excluir cliente</h2>
+            <p>A exclusão é permanente e apaga o acesso, a identidade visual e todos os dados do cliente, incluindo cadastros, estoque, cálculos e fotos.</p>
+        </div>
+        <details class="cliente-excluir-detalhes">
+            <summary class="botao botao-perigo-suave">Excluir cliente permanentemente</summary>
+            <div class="cliente-excluir-confirmacao">
+                <p>Para confirmar, digite exatamente o nome <strong th:text="${cliente.nome}">do cliente</strong>.</p>
+                <form th:action="@{/clientes/{id}/excluir(id=${clienteId})}" method="post" class="cliente-excluir-formulario">
+                    <input type="text" name="confirmacaoNome" th:attr="data-nome-esperado=${cliente.nome}"
+                           autocomplete="off" autocapitalize="off" spellcheck="false" required>
+                    <button type="submit" class="botao botao-perigo-suave" data-confirmar-exclusao disabled>
+                        Apagar conta e todos os dados
+                    </button>
+                </form>
+            </div>
+        </details>
+    </section>
 </main>
 </body>
 </html>
