@@ -39,7 +39,7 @@ public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSucces
         if (authentication.getPrincipal() instanceof UsuarioPrincipal principal
                 && principal.getPerfil() == br.com.criare3d.models.enums.Perfil.ADMIN
                 && principal.getTenantId() == null) {
-            response.sendRedirect(request.getContextPath() + "/usuarios/listar");
+            response.sendRedirect(request.getContextPath() + "/clientes/listar");
             return;
         }
         response.sendRedirect(request.getContextPath() + "/");

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho(${modoEdicao ? 'Editar cliente' : 'Novo cliente'})}"></head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina clientes-admin-pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">ADMINISTRAÇÃO DA PLATAFORMA</span>
+            <h1 th:text="${modoEdicao ? 'Editar cliente' : 'Cadastrar cliente'}">Cadastrar cliente</h1>
+            <p>Defina os dados de acesso e a identidade visual que a pessoa verá ao entrar.</p>
+        </div>
+        <a th:href="@{/clientes/listar}" class="botao botao-secundario">
+            <i class="bi bi-arrow-left"></i> Voltar aos clientes
+        </a>
+    </section>
+
+    <div th:if="${senhaTemporaria}" class="alert alert-warning cliente-senha-aviso" role="status" data-senha-temporaria>
+        <strong>Senha temporária pronta.</strong> Copie e envie ao cliente. Ele precisará criar uma senha nova no próximo acesso.
+        <div class="cliente-senha-temporaria">
+            <code th:text="${senhaTemporaria}">senha-temporaria</code>
+            <button type="button" class="botao botao-secundario" data-copiar-senha>
+                <i class="bi bi-copy"></i> Copiar senha
+            </button>
+        </div>
+    </div>
+    <div th:if="${erroCliente}" class="alert alert-danger" role="alert" th:text="${erroCliente}"></div>
+
+    <section class="cartao cliente-form-cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2 th:text="${modoEdicao ? 'Dados do cliente' : 'Novo acesso'}">Novo acesso</h2>
+                <p th:if="${modoEdicao}">Alterar o e-mail também atualiza o login da conta.</p>
+                <p th:unless="${modoEdicao}">A plataforma gera uma senha temporária segura e a mostra uma única vez após salvar.</p>
+            </div>
+        </div>
+
+        <form th:action="@{${acaoSalvar}}" th:object="${cliente}" method="post" enctype="multipart/form-data"
+              class="formulario cliente-formulario" novalidate>
+            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger" role="alert">
+                <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}">Confira os dados informados.</p>
+            </div>
+
+            <div class="cliente-form-grade">
+                <div class="campo">
+                    <label for="nome">Nome exibido</label>
+                    <input id="nome" type="text" th:field="*{nome}" maxlength="120" placeholder="Ex.: Ateliê da Marina" required>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></div>
+                </div>
+                <div class="campo">
+                    <label for="slug">Identificador</label>
+                    <input id="slug" type="text" th:field="*{slug}" maxlength="80" placeholder="atelie-da-marina" pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required>
+                    <small>Uso interno por enquanto. Escreva sem espaços, com letras minúsculas e hífens.</small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('slug')}" th:errors="*{slug}"></div>
+                </div>
+                <div class="campo cliente-campo-largo">
+                    <label for="email">E-mail de acesso</label>
+                    <input id="email" type="email" th:field="*{email}" maxlength="150" placeholder="cliente@email.com" required autocomplete="email">
+                    <small>O e-mail precisa ser único em toda a plataforma.</small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                </div>
+            </div>
+
+            <fieldset class="cliente-tema-campos">
+                <legend>Identidade visual</legend>
+                <p>Escolha três cores. O sistema cria tons complementares e ajusta o texto para manter o contraste.</p>
+                <div class="cliente-form-grade cliente-cores-grade">
+                    <div class="campo cliente-cor-campo">
+                        <label for="corPrimaria">Cor principal</label>
+                        <div class="cliente-cor-linha"><input id="corPrimaria" type="color" th:field="*{corPrimaria}" data-cor-tema><span>Menu e textos principais</span></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('corPrimaria')}" th:errors="*{corPrimaria}"></div>
+                    </div>
+                    <div class="campo cliente-cor-campo">
+                        <label for="corDestaque">Cor de destaque</label>
+                        <div class="cliente-cor-linha"><input id="corDestaque" type="color" th:field="*{corDestaque}" data-cor-tema><span>Botões e ênfases</span></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('corDestaque')}" th:errors="*{corDestaque}"></div>
+                    </div>
+                    <div class="campo cliente-cor-campo">
+                        <label for="corFundo">Cor de fundo</label>
+                        <div class="cliente-cor-linha"><input id="corFundo" type="color" th:field="*{corFundo}" data-cor-tema><span>Fundo das páginas</span></div>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('corFundo')}" th:errors="*{corFundo}"></div>
+                    </div>
+                </div>
+
+                <div id="clientePreview" class="cliente-tema-preview" aria-live="polite">
+                    <div class="cliente-preview-menu">
+                        <span class="cliente-preview-logo" data-logo-caixa>
+                            <img th:if="${temLogoExistente}" th:src="@{/clientes/{id}/logo(id=${clienteId})}" alt="Prévia do logo" data-logo-existente>
+                            <i th:unless="${temLogoExistente}" class="bi bi-box-seam" aria-hidden="true" data-logo-placeholder></i>
+                            <img src="" alt="Prévia do logo enviado" hidden data-logo-arquivo>
+                        </span>
+                        <strong data-preview-nome th:text="${cliente.nome != null and !cliente.nome.isBlank() ? cliente.nome : 'Nome do cliente'}">Nome do cliente</strong>
+                        <span class="cliente-preview-menu-link">Início</span>
+                        <span class="cliente-preview-menu-link">Histórico</span>
+                        <button type="button" data-preview-botao>Calcular peça</button>
+                    </div>
+                    <div class="cliente-preview-conteudo">
+                        <span class="cliente-preview-etiqueta">PRÉVIA DA IDENTIDADE</span>
+                        <h3 data-preview-titulo th:text="${cliente.nome != null and !cliente.nome.isBlank() ? cliente.nome : 'Seu espaço de trabalho'}">Seu espaço de trabalho</h3>
+                        <p>As telas, os gráficos e os botões usarão as cores selecionadas.</p>
+                        <span class="cliente-preview-card">Exemplo de cartão</span>
+                    </div>
+                </div>
+
+                <div class="campo cliente-logo-campo">
+                    <label for="logo">Logo do cliente <span class="etiqueta-opcional">Opcional</span></label>
+                    <input id="logo" name="logo" type="file" accept="image/png" data-logo-input>
+                    <small>PNG, até 1 MB e 1024 × 1024 pixels. Se não enviar um logo, será usado um ícone padrão.</small>
+                    <label class="cliente-remover-logo" th:if="${modoEdicao and temLogoExistente}">
+                        <input type="checkbox" name="removerLogo" value="true" data-remover-logo>
+                        Remover o logo atual
+                    </label>
+                </div>
+            </fieldset>
+
+            <label class="cliente-ativo-controle">
+                <input type="checkbox" th:field="*{ativo}">
+                <span><strong>Cliente ativo</strong><small>Quando desativado, o cliente não poderá iniciar uma nova sessão.</small></span>
+            </label>
+
+            <div class="formulario-acoes cliente-form-acoes">
+                <button type="submit" class="botao botao-principal" th:text="${modoEdicao ? 'Salvar alterações' : 'Criar cliente e acesso'}">
+                    Criar cliente e acesso
+                </button>
+                <a th:href="@{/clientes/listar}" class="botao botao-secundario">Cancelar</a>
+            </div>
+        </form>
+    </section>
+
+    <section th:if="${modoEdicao}" class="cartao cliente-reset-cartao">
+        <div>
+            <span class="texto-apoio">ACESSO</span>
+            <h2>Redefinir senha</h2>
+            <p>Gera uma senha temporária nova. A senha atual deixa de funcionar e o cliente precisará criar outra ao entrar.</p>
+        </div>
+        <form th:action="@{/clientes/{id}/gerar-senha(id=${clienteId})}" method="post">
+            <button type="submit" class="botao botao-secundario">
+                <i class="bi bi-key"></i> Gerar senha temporária
+            </button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

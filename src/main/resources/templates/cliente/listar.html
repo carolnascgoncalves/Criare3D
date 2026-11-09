@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragmentos :: cabecalho('Clientes')}"></head>
+<body>
+<nav th:replace="~{fragmentos :: menu}"></nav>
+
+<main class="pagina clientes-admin-pagina">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">ADMINISTRAÇÃO DA PLATAFORMA</span>
+            <h1>Clientes</h1>
+            <p>Crie contas, personalize a identidade visual e gerencie o acesso de cada cliente.</p>
+        </div>
+        <a th:href="@{/clientes/novo}" class="botao botao-principal">
+            <i class="bi bi-person-plus"></i> Novo cliente
+        </a>
+    </section>
+
+    <div th:if="${clienteCriado}" class="alert alert-success" role="status" data-senha-temporaria>
+        <strong>Cliente cadastrado.</strong> Copie e envie a senha temporária ao cliente. Ela será mostrada somente agora.
+        <div class="cliente-senha-temporaria">
+            <code th:text="${senhaTemporaria}">senha-temporaria</code>
+            <button type="button" class="botao botao-secundario" data-copiar-senha>
+                <i class="bi bi-copy"></i> Copiar senha
+            </button>
+        </div>
+    </div>
+    <div th:if="${clienteSalvo}" class="alert alert-success notificacao-flutuante" role="status">Cliente atualizado com sucesso.</div>
+    <div th:if="${statusCliente}" class="alert alert-success notificacao-flutuante" role="status" th:text="${statusCliente}"></div>
+    <div th:if="${avisoTema}" class="alert alert-info" role="status" th:text="${avisoTema}"></div>
+    <div th:if="${erroCliente}" class="alert alert-danger notificacao-flutuante" role="alert" th:text="${erroCliente}"></div>
+
+    <section class="cartao clientes-lista-cartao">
+        <div class="cartao-cabecalho">
+            <div>
+                <h2>Contas dos clientes</h2>
+                <p>O e-mail é único na plataforma. Cada conta USER acessa somente os dados do próprio cliente.</p>
+            </div>
+            <span class="clientes-contagem" th:text="|${#lists.size(clientes)} clientes|">0 clientes</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 clientes-tabela">
+                <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Identificador</th>
+                    <th>E-mail de acesso</th>
+                    <th>Status</th>
+                    <th class="text-end">Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cliente : ${clientes}">
+                    <td>
+                        <div class="cliente-nome-celula">
+                            <img th:if="${cliente.temLogo}" th:src="@{/clientes/{id}/logo(id=${cliente.id})}"
+                                 alt="" width="38" height="38" loading="lazy">
+                            <span th:unless="${cliente.temLogo}" class="cliente-logo-vazio"><i class="bi bi-building" aria-hidden="true"></i></span>
+                            <strong th:text="${cliente.nome}">Nome do cliente</strong>
+                        </div>
+                    </td>
+                    <td><code th:text="${cliente.slug}">cliente</code></td>
+                    <td th:text="${cliente.email != null ? cliente.email : 'Acesso não vinculado'}">cliente@email.com</td>
+                    <td>
+                        <span class="cliente-status" th:classappend="${cliente.ativo ? ' ativo' : ' inativo'}"
+                              th:text="${cliente.ativo ? 'Ativo' : 'Desativado'}">Ativo</span>
+                    </td>
+                    <td class="text-end">
+                        <div class="cliente-acoes">
+                            <a class="botao botao-secundario" th:href="@{/clientes/{id}/editar(id=${cliente.id})}">
+                                <i class="bi bi-pencil-square"></i> Editar
+                            </a>
+                            <form th:action="@{/clientes/{id}/alternar-status(id=${cliente.id})}" method="post">
+                                <button type="submit" class="botao"
+                                        th:classappend="${cliente.ativo ? ' botao-perigo-suave' : ' botao-secundario'}"
+                                        th:aria-label="${cliente.ativo ? 'Desativar ' + cliente.nome : 'Ativar ' + cliente.nome}"
+                                        th:title="${cliente.ativo ? 'Desativar acesso' : 'Ativar acesso'}">
+                                    <i class="bi" th:classappend="${cliente.ativo ? ' bi-pause-circle' : ' bi-play-circle'}" aria-hidden="true"></i>
+                                    <span th:text="${cliente.ativo ? 'Desativar' : 'Ativar'}">Desativar</span>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(clientes)}">
+                    <td colspan="5" class="text-center py-5">Ainda não há clientes cadastrados.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

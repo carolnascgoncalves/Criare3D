@@ -22,7 +22,7 @@ public class NavegacaoModelAdvice {
         else if (caminho.startsWith("/impressora")) pagina = "impressoras";
         else if (caminho.startsWith("/embalagem")) pagina = "embalagens";
         else if (caminho.startsWith("/historico")) pagina = "historico";
-        else if (caminho.startsWith("/usuarios")) pagina = "usuarios";
+        else if (caminho.startsWith("/usuarios") || caminho.startsWith("/clientes")) pagina = "clientes";
         model.addAttribute("paginaAtiva", pagina);
 
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();

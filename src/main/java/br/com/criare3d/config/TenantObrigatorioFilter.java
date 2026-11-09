@@ -27,7 +27,7 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
         }
 
         if (principal.getPerfil() == Perfil.ADMIN && request.getMethod().equals("GET")) {
-            response.sendRedirect(request.getContextPath() + "/usuarios/listar");
+            response.sendRedirect(request.getContextPath() + "/clientes/listar");
             return;
         }
 
@@ -42,6 +42,8 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
                 || caminho.equals("/senha")
                 || caminho.startsWith("/senha/")
                 || caminho.startsWith("/usuarios/")
+                || caminho.equals("/clientes")
+                || caminho.startsWith("/clientes/")
                 || caminho.startsWith("/css/")
                 || caminho.startsWith("/js/")
                 || caminho.startsWith("/images/");
