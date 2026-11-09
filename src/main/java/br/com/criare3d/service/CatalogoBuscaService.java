@@ -97,7 +97,6 @@ public class CatalogoBuscaService {
         boolean valorVendido = "SIM".equals(vendidoFiltro);
 
         return calculoHistoricoRepository.buscarHistoricoFiltrado(
-                usuarioId,
                 nomeFiltro,
                 filtrarData,
                 inicio,

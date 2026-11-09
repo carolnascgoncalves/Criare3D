@@ -89,7 +89,7 @@ public class FilamentoServiceImp implements FilamentoService {
         List<UUID> existentes = filamentoRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
                 .stream().map(Filamento::getId).toList();
         if (existentes.isEmpty()) return List.of();
-        Set<UUID> bloqueados = Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(usuarioId, existentes));
+        Set<UUID> bloqueados = Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueados.contains(id)).toList();
         if (!removiveis.isEmpty()) filamentoRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueados::contains).toList();

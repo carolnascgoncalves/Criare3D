@@ -77,7 +77,7 @@ public class ImpressoraServiceImp implements ImpressoraService {
         List<UUID> existentes = impressoraRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
                 .stream().map(Impressora::getId).toList();
         if (existentes.isEmpty()) return List.of();
-        Set<UUID> bloqueadas = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsImpressoraComHistorico(usuarioId, existentes));
+        Set<UUID> bloqueadas = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsImpressoraComHistorico(existentes));
         bloqueadas.addAll(manutencaoImpressoraRepository.buscarIdsImpressoraComManutencao(usuarioId, existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();
         if (!removiveis.isEmpty()) impressoraRepository.deleteAllByIdInBatch(removiveis);

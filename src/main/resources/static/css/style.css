@@ -1096,7 +1096,7 @@ a {
 }
 
 .tabela tbody tr:hover {
-    background: #fdfaf8;
+    background: var(--superficie-suave);
 }
 
 .coluna-acoes {
@@ -1147,8 +1147,9 @@ a {
     justify-content: center;
     width: 36px;
     height: 36px;
+    border: 1px solid var(--borda);
     color: var(--marrom);
-    background: #f8f0e9;
+    background: var(--superficie-suave);
     border-radius: 9px;
     text-decoration: none;
     transition: 0.2s ease;
@@ -1156,7 +1157,7 @@ a {
 
 .botao-acao:hover {
     color: var(--marrom);
-    background: var(--destaque);
+    background: var(--destaque-suave);
 }
 
 .botao-excluir {
@@ -1167,6 +1168,31 @@ a {
 .botao-excluir:hover {
     color: var(--branco);
     background: var(--cor-erro);
+}
+
+/* Ações com a mesma superfície do histórico, adaptadas ao tema do cliente. */
+.lista-catalogo .botao-acao {
+    border: 1px solid var(--borda);
+    background: var(--superficie-suave);
+}
+
+.lista-catalogo .botao-acao:hover {
+    border-color: var(--destaque);
+    background: var(--destaque-suave);
+}
+
+.lista-catalogo .botao-acao-excluir,
+.lista-catalogo .botao-excluir {
+    border-color: var(--borda-erro);
+    background: var(--fundo-erro);
+    color: var(--cor-erro);
+}
+
+.lista-catalogo .botao-acao-excluir:hover,
+.lista-catalogo .botao-excluir:hover {
+    border-color: var(--cor-erro);
+    background: var(--cor-erro);
+    color: #fff;
 }
 
 /* ESTADO VAZIO */

@@ -106,7 +106,7 @@ public class DashboardController {
                 .divide(BigDecimal.valueOf(1000), 2, RoundingMode.HALF_UP));
 
         List<Map<String, Object>> plataformas = montarPlataformas(
-                historicoRepository.somarLucroPorPlataformaDesde(usuarioId, inicio));
+                historicoRepository.somarLucroPorPlataformaDesde(inicio));
         model.addAttribute("lucrosPorPlataforma", plataformas);
         BigDecimal lucroPlataformas = plataformas.stream()
                 .map(item -> (BigDecimal) item.get("lucro"))
@@ -118,14 +118,14 @@ public class DashboardController {
         model.addAttribute("lucroPlataformaNomes", plataformas.stream().map(item -> item.get("nome")).toList());
         model.addAttribute("lucroPlataformaValores", plataformas.stream().map(item -> item.get("lucro")).toList());
         model.addAttribute("lucroPlataformaCores", plataformas.stream().map(item -> item.get("cor")).toList());
-        adicionarSerieLucro(model, usuarioId, periodo, hoje, inicio, fim, lucroVendido);
+        adicionarSerieLucro(model, periodo, hoje, inicio, fim, lucroVendido);
         List<Map<String, Object>> composicao = montarComposicao(
-                historicoRepository.somarComposicaoCustosProduzidosDesde(usuarioId, inicio));
+                historicoRepository.somarComposicaoCustosProduzidosDesde(inicio));
         model.addAttribute("composicaoCustos", composicao);
         model.addAttribute("totalCustos", composicao.stream()
                 .map(item -> (BigDecimal) item.get("valor"))
                 .reduce(ZERO, BigDecimal::add));
-        List<Object[]> totaisPorImpressora = historicoRepository.somarHorasPorImpressoraDesde(usuarioId, inicio);
+        List<Object[]> totaisPorImpressora = historicoRepository.somarHorasPorImpressoraDesde(inicio);
         model.addAttribute("horasPorImpressora", montarImpressoras(totaisPorImpressora));
 
         model.addAttribute("estoqueFilamentos", montarEstoque(usuarioId));
@@ -136,7 +136,7 @@ public class DashboardController {
         model.addAttribute("totalEmbalagens", embalagemService.contar());
         model.addAttribute("impressorasSemProducao", Math.max(0, totalImpressoras - totaisPorImpressora.size()));
         model.addAttribute("calculosRecentes", historicoRepository.buscarCalculosRecentes(
-                usuarioId, org.springframework.data.domain.PageRequest.of(0, 5)));
+                org.springframework.data.domain.PageRequest.of(0, 5)));
 
         return "dashboard/index";
     }
@@ -159,7 +159,7 @@ public class DashboardController {
         return resultado;
     }
 
-    private void adicionarSerieLucro(Model model, UUID usuarioId, String periodo, LocalDate hoje,
+    private void adicionarSerieLucro(Model model, String periodo, LocalDate hoje,
                                      LocalDateTime inicio, LocalDateTime fim, BigDecimal lucroPeriodoAtual) {
         List<String> rotulos = new ArrayList<>();
         List<BigDecimal> valores = new ArrayList<>();
@@ -170,7 +170,7 @@ public class DashboardController {
         if (!"tudo".equals(periodo)) {
             int dias = "90".equals(periodo) ? 90 : 30;
             Map<LocalDate, BigDecimal> lucroPorDia = new LinkedHashMap<>();
-            for (Object[] linha : historicoRepository.somarLucroVendidoPorDia(usuarioId, inicio, fim)) {
+            for (Object[] linha : historicoRepository.somarLucroVendidoPorDia(inicio, fim)) {
                 LocalDate data = LocalDate.of((int) numero(linha[0]), (int) numero(linha[1]), (int) numero(linha[2]));
                 lucroPorDia.put(data, valor(linha[3]));
             }
@@ -183,17 +183,17 @@ public class DashboardController {
             }
             lucroAtual = lucroPeriodoAtual;
             lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(
-                    usuarioId, inicio.minusDays(dias), inicio));
+                    inicio.minusDays(dias), inicio));
             comparacao = "vs período anterior";
         } else {
             YearMonth mesAtual = YearMonth.from(hoje);
-            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComLucro(usuarioId);
+            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComLucro();
             YearMonth primeiroMes = primeiraVenda == null
                     ? mesAtual.minusMonths(5)
                     : YearMonth.from(primeiraVenda);
             Map<Integer, BigDecimal> lucroPorMes = new LinkedHashMap<>();
             var linhas = historicoRepository.somarLucroVendidoPorMes(
-                    usuarioId, primeiroMes.atDay(1).atStartOfDay(), mesAtual.plusMonths(1).atDay(1).atStartOfDay());
+                    primeiroMes.atDay(1).atStartOfDay(), mesAtual.plusMonths(1).atDay(1).atStartOfDay());
             for (Object[] linha : linhas) {
                 int chave = Math.toIntExact(numero(linha[0]) * 100 + numero(linha[1]));
                 lucroPorMes.put(chave, valor(linha[2]));
@@ -207,8 +207,8 @@ public class DashboardController {
             }
             LocalDateTime inicioMesAtual = mesAtual.atDay(1).atStartOfDay();
             LocalDateTime inicioMesAnterior = mesAtual.minusMonths(1).atDay(1).atStartOfDay();
-            lucroAtual = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicioMesAtual, fim));
-            lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(usuarioId, inicioMesAnterior, inicioMesAtual));
+            lucroAtual = valor(historicoRepository.somarLucroVendidoEntre(inicioMesAtual, fim));
+            lucroAnterior = valor(historicoRepository.somarLucroVendidoEntre(inicioMesAnterior, inicioMesAtual));
             comparacao = "vs mês anterior";
         }
 
@@ -285,8 +285,8 @@ public class DashboardController {
 
     private List<Map<String, Object>> montarEstoque(UUID usuarioId) {
         Map<UUID, Long> usosPorFilamento = new HashMap<>();
-        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosEmItens(usuarioId));
-        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosSimples(usuarioId));
+        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosEmItens());
+        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosSimples());
 
         List<Filamento> maisUsados = new ArrayList<>(filamentoService.fetchByIds(usosPorFilamento.keySet()));
         maisUsados.sort(Comparator

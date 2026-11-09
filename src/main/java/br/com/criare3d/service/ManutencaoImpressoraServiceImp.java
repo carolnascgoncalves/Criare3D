@@ -60,7 +60,7 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
 
         Impressora impressora = encontrada.get();
         BigDecimal total = manutencaoRepository.somarValoresPorImpressoraEUsuario(impressoraId, usuarioId);
-        Long minutos = historicoRepository.somarMinutosPorImpressoraEUsuario(impressoraId, usuarioId);
+        Long minutos = historicoRepository.somarMinutosPorImpressoraEUsuario(impressoraId);
         if (total == null) total = BigDecimal.ZERO;
         if (minutos == null) minutos = 0L;
 

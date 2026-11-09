@@ -84,53 +84,35 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public long contarPorFilamento(UUID filamentoId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(
-                filamentoId, usuarioId
-        );
+        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId);
     }
 
     @Override
     public List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return calculoHistoricoRepository.buscarUsosDoFilamento(filamentoId, usuarioId);
+        return calculoHistoricoRepository.buscarUsosDoFilamento(filamentoId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Set<UUID> buscarFilamentosComHistoricoProduzido(Collection<UUID> filamentoIds) {
         if (filamentoIds == null || filamentoIds.isEmpty()) return Set.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistoricoProduzido(
-                usuarioId, List.copyOf(filamentoIds)));
+                List.copyOf(filamentoIds)));
     }
 
     @Override
     public long contarPorEmbalagem(UUID embalagemId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.countByEmbalagem_IdAndUsuario_Id(
-                embalagemId, usuarioId
-        );
+        return calculoHistoricoRepository.countByEmbalagem_Id(embalagemId);
     }
 
     @Override
     public long contarPorImpressora(UUID impressoraId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.countByImpressora_IdAndUsuario_Id(
-                impressoraId, usuarioId
-        );
+        return calculoHistoricoRepository.countByImpressora_Id(impressoraId);
     }
 
     @Override
     public long contarPorPeca(UUID pecaId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.countByPeca_IdAndUsuario_Id(
-                pecaId, usuarioId
-        );
+        return calculoHistoricoRepository.countByPeca_Id(pecaId);
     }
 
     @Override
@@ -202,8 +184,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     @Override
     @Transactional(readOnly = true)
     public List<HistoricoExportacaoResponse> exportarHistorico() {
-        return calculoHistoricoRepository.buscarHistoricoParaExportacao(
-                usuarioLogadoService.buscarIdUsuarioAtual());
+        return calculoHistoricoRepository.buscarHistoricoParaExportacao();
     }
 
     @Override
@@ -220,7 +201,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (solicitados.isEmpty()) return;
 
         List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaExclusaoEmLote(solicitados, usuarioId);
+                calculoHistoricoRepository.buscarDadosParaExclusaoEmLote(solicitados);
         if (dados.isEmpty()) return;
 
         ajustarEstoqueEmLote(dados);
@@ -235,7 +216,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public String atualizarProduzido(UUID id, boolean produzido) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id, usuarioId);
+                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
         if (dados.isEmpty()) return "naoEncontrado";
 
         AjusteEstoqueCalculoResponse historico = dados.get(0);
@@ -252,7 +233,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (!produzido) ajustarEstoque(dados, true);
 
         calculoHistoricoRepository.atualizarStatus(
-                id, usuarioId, produzido, Boolean.TRUE.equals(historico.vendido()));
+                id, produzido, Boolean.TRUE.equals(historico.vendido()));
         return "ok";
     }
 
@@ -260,7 +241,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public String atualizarVendido(UUID id, boolean vendido) {
         UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id, usuarioId);
+                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
         if (dados.isEmpty()) return "naoEncontrado";
 
         AjusteEstoqueCalculoResponse historico = dados.get(0);
@@ -272,11 +253,11 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             if (!ajustarEstoque(dados, false)) return "estoqueInsuficiente";
             produzido = true;
         }
-        calculoHistoricoRepository.atualizarStatus(id, usuarioId, produzido, vendido);
+        calculoHistoricoRepository.atualizarStatus(id, produzido, vendido);
         LocalDateTime dataVenda = vendido
                 ? LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
                 : null;
-        calculoHistoricoRepository.atualizarDataVenda(id, usuarioId, dataVenda);
+        calculoHistoricoRepository.atualizarDataVenda(id, dataVenda);
         return "ok";
     }
 
@@ -491,19 +472,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setQuantidadeFilamentoGramas(primeiroItem.getQuantidadeFilamentoGramas());
         historico.setCustoFilamento(custoFilamentoTotal);
 
-        BigDecimal energiaLote = CalculadoraProducao.energiaLote(
-                impressora.getPotenciaWatts(), minutosMaquinaLote,
-                configuracao.getTarifaEnergiaKwh());
-
         BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null
                 ? ZERO : configuracao.getPurgaGramasPorImpressao();
-        BigDecimal purgaGramasLote = CalculadoraProducao.gramasPurgaLote(
-                purgaGramasPorImpressao, fornadas);
-        BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
-        BigDecimal custoPurgaLote = CalculadoraProducao.custoPurgaLote(
-                purgaGramasLote, custoFilamentoTotal, quantidadeFilamentoTotal);
-        List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
-        DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico);
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
                 ? configuracao.getTempoMaoObraFixoMinutos()
@@ -514,24 +484,17 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             throw new IllegalArgumentException("Informe um tempo de trabalho manual válido.");
         }
 
-        BigDecimal custoMaoObraLote = ZERO;
         if (Boolean.TRUE.equals(configuracao.getMaoObraAtivada())) {
             BigDecimal valorHora = configuracao.getValorMaoObraHora();
             if (valorHora == null || valorHora.signum() < 0) {
                 throw new IllegalArgumentException("Configure um custo por hora válido para a mão de obra.");
             }
-            // O campo de trabalho manual descreve o tempo da encomenda inteira.
-            custoMaoObraLote = CalculoFinanceiro.maoDeObra(valorHora, tempoTrabalhoMinutos);
         }
 
         BigDecimal manutencaoPorHora = manutencaoImpressoraService.custoPorHora(impressora.getId());
         if (manutencaoPorHora == null || manutencaoPorHora.signum() < 0) {
             throw new IllegalArgumentException("A estimativa de manutenção por hora é inválida.");
         }
-        BigDecimal custoManutencaoLote = CalculadoraProducao.manutencaoLote(
-                manutencaoPorHora, minutosMaquinaLote);
-
-        BigDecimal custoDepreciacaoLote = ZERO;
         if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
             BigDecimal valorImpressora = impressora.getValorCompra();
             BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
@@ -543,9 +506,27 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         "e o tempo de impressão para incluir esse custo no cálculo."
                 );
             }
-            custoDepreciacaoLote = CalculadoraProducao.depreciacaoLote(
-                    valorImpressora, vidaUtilHoras, minutosMaquinaLote);
         }
+
+        // As entradas já estão validadas; a calculadora concentra as fórmulas e o rateio do lote.
+        CalculadoraProducao.CustosOperacionaisLote custosOperacionais =
+                CalculadoraProducao.calcularCustosOperacionaisLote(
+                        impressora.getPotenciaWatts(), minutosMaquinaLote,
+                        configuracao.getTarifaEnergiaKwh(), purgaGramasPorImpressao, fornadas,
+                        custoFilamentoTotal, quantidadeFilamentoTotal,
+                        Boolean.TRUE.equals(configuracao.getMaoObraAtivada()),
+                        configuracao.getValorMaoObraHora(), tempoTrabalhoMinutos,
+                        manutencaoPorHora, Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()),
+                        impressora.getValorCompra(), impressora.getVidaUtilHoras());
+        BigDecimal energiaLote = custosOperacionais.energia();
+        BigDecimal purgaGramasLote = custosOperacionais.gramasPurga();
+        BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
+        BigDecimal custoPurgaLote = custosOperacionais.custoPurga();
+        BigDecimal custoMaoObraLote = custosOperacionais.maoDeObra();
+        BigDecimal custoManutencaoLote = custosOperacionais.manutencao();
+        BigDecimal custoDepreciacaoLote = custosOperacionais.depreciacao();
+        List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
+        DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico);
 
         boolean taxaFalhaAtivada = Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada());
         BigDecimal percentualFalha = configuracao.getPercentualFalha();
@@ -705,42 +686,29 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     @Transactional(readOnly = true)
     public java.util.List<CalculoRecenteResponse> fetchRecentes(int limite) {
         if (limite <= 0) return java.util.List.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         return calculoHistoricoRepository.buscarCalculosRecentes(
-                usuarioId, PageRequest.of(0, limite)
+                PageRequest.of(0, limite)
         );
     }
 
     @Override
     public long contarProduzidos() {
-        return calculoHistoricoRepository.contarUnidadesProduzidas(
-                usuarioLogadoService.buscarIdUsuarioAtual()
-        );
+        return calculoHistoricoRepository.contarUnidadesProduzidas();
     }
 
     @Override
     public long contarVendidos() {
-        return calculoHistoricoRepository.contarUnidadesVendidas(
-                usuarioLogadoService.buscarIdUsuarioAtual()
-        );
+        return calculoHistoricoRepository.contarUnidadesVendidas();
     }
 
     @Override
     public Optional<CalculoHistorico> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.buscarPorIdComItens(
-                id, usuarioId
-        );
+        return calculoHistoricoRepository.buscarPorIdComItens(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return calculoHistoricoRepository.existsByIdAndUsuario_Id(
-                id, usuarioId
-        );
+        return calculoHistoricoRepository.existsById(id);
     }
 
 

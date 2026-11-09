@@ -327,7 +327,7 @@ class Criare3dApplicationTests {
 			DashboardResumo resumoDataCalculo = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
 					usuario.getTenant().getId(), dataVenda.minusMonths(6).minusDays(1), dataVenda.minusMonths(6).plusDays(1)));
 			assertThat(resumoDataCalculo.lucroVendido()).isEqualByComparingTo("0.00");
-			assertThat(calculoHistoricoRepository.primeiraVendaComLucro(usuario.getId()))
+			assertThat(calculoHistoricoRepository.primeiraVendaComLucro())
 					.isEqualTo(dataVenda);
 			DashboardResumo semTenant = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
 					new UUID(0L, 0L), dataVenda.minusDays(1), agora.plusDays(1)));

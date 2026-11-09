@@ -70,4 +70,21 @@ class CalculadoraProducaoTest {
         assertThat(CalculadoraProducao.depreciacaoLote(new BigDecimal("2500.00"),
                 new BigDecimal("5000.00"), 120)).isEqualByComparingTo("1.00000000");
     }
+
+    @Test
+    void calculaAsParcelasOperacionaisDoLoteEmUmSoLugar() {
+        var custos = CalculadoraProducao.calcularCustosOperacionaisLote(
+                new BigDecimal("100"), 120, new BigDecimal("1.00"),
+                new BigDecimal("0.10"), 3, new BigDecimal("8.00"),
+                new BigDecimal("100.00"), true, new BigDecimal("20.00"), 15,
+                new BigDecimal("0.20"), true, new BigDecimal("2500.00"),
+                new BigDecimal("5000.00"));
+
+        assertThat(custos.energia()).isEqualByComparingTo("0.20000000");
+        assertThat(custos.gramasPurga()).isEqualByComparingTo("0.30000000");
+        assertThat(custos.custoPurga()).isEqualByComparingTo("0.02400000");
+        assertThat(custos.maoDeObra()).isEqualByComparingTo("5.00000000");
+        assertThat(custos.manutencao()).isEqualByComparingTo("0.40000000");
+        assertThat(custos.depreciacao()).isEqualByComparingTo("1.00000000");
+    }
 }

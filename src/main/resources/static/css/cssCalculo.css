@@ -465,7 +465,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 .tabela-historico tbody tr:hover {
-    background: #fffbf8;
+    background: var(--superficie-suave);
 }
 
 .tabela-historico td:nth-child(2),
@@ -3975,4 +3975,68 @@ a:focus-visible {
     display: block;
     margin-top: .5rem;
     color: var(--marrom-claro, var(--marrom-claro));
+}
+
+/* Superfícies do histórico e do cálculo acompanham a identidade visual do tenant. */
+.etapa-numero {
+    background: var(--superficie-suave);
+}
+
+.etapa.ativa .etapa-numero,
+.etapa.concluida .etapa-numero {
+    background: var(--cor-destaque);
+    color: var(--texto-sobre-destaque);
+}
+
+.tabela-historico tbody tr:hover {
+    background: var(--superficie-suave);
+}
+
+.tabela-historico .botao-acao {
+    background: var(--superficie-suave);
+}
+
+.tabela-historico .botao-acao:hover {
+    background: var(--destaque-suave);
+}
+
+.botao-acao-excluir,
+.tabela-historico .botao-acao-excluir {
+    border: 1px solid var(--borda-erro);
+    background: var(--fundo-erro);
+    color: var(--cor-erro);
+}
+
+.botao-acao-excluir:hover,
+.tabela-historico .botao-acao-excluir:hover {
+    border-color: var(--cor-erro);
+    background: var(--cor-erro);
+    color: #fff;
+}
+
+.tabela-comparador thead th {
+    background: var(--destaque-suave);
+    color: var(--marrom-claro);
+}
+
+.comparador-melhor {
+    background: var(--destaque-suave);
+}
+
+.detalhes-cartao-cabecalho {
+    background: var(--destaque-suave);
+}
+
+.detalhes-custos-grupo {
+    background: var(--superficie-suave);
+}
+
+.detalhes-custos-grupo + .detalhes-custos-grupo {
+    background: var(--destaque-suave);
+}
+
+.botao-status-historico {
+    border-color: var(--borda);
+    background: var(--superficie);
+    color: var(--marrom-claro);
 }

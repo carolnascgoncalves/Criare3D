@@ -64,7 +64,7 @@ public class EmbalagemServiceImp implements EmbalagemService {
         List<UUID> existentes = embalagemRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
                 .stream().map(Embalagem::getId).toList();
         if (existentes.isEmpty()) return List.of();
-        Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsEmbalagemComHistorico(usuarioId, existentes));
+        Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsEmbalagemComHistorico(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();
         if (!removiveis.isEmpty()) embalagemRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueadas::contains).toList();

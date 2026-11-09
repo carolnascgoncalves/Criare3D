@@ -68,7 +68,7 @@ public class PecaServiceImp implements PecaService {
         List<UUID> existentes = pecaRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
                 .stream().map(Peca::getId).toList();
         if (existentes.isEmpty()) return List.of();
-        Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsPecaComHistorico(usuarioId, existentes));
+        Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsPecaComHistorico(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();
         if (!removiveis.isEmpty()) pecaRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueadas::contains).toList();
