@@ -5,7 +5,6 @@ import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.FilamentoService;
-import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -83,10 +81,9 @@ public class FilamentoServiceImp implements FilamentoService {
     @Override
     public List<UUID> deleteUnused(Collection<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
-        List<UUID> existentes = filamentoRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+        List<UUID> existentes = filamentoRepository.findAllByIdIn(solicitados)
                 .stream().map(Filamento::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueados = Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(existentes));
@@ -97,21 +94,18 @@ public class FilamentoServiceImp implements FilamentoService {
 
     @Override
     public Page<Filamento> fetchAll(Pageable pageable) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.findAllByUsuario_Id(usuarioId, pageable);
+        return filamentoRepository.findAll(pageable);
     }
 
     @Override
     public long contar() {
-        return filamentoRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
+        return filamentoRepository.count();
     }
 
     @Override
     public Page<Filamento> fetchAll(Pageable pageable, String busca) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
         if (busca == null || busca.isBlank()) {
-            return filamentoRepository.findAllByUsuario_Id(usuarioId, pageable);
+            return filamentoRepository.findAll(pageable);
         }
 
         String[] termos = busca.trim()
@@ -119,29 +113,23 @@ public class FilamentoServiceImp implements FilamentoService {
                 .split("\\s+");
 
         Specification<Filamento> especificacao = (root, query, criteriaBuilder) -> {
-            List<Predicate> filtros = new ArrayList<>();
-
-            filtros.add(criteriaBuilder.equal(
-                    root.get("usuario").get("id"), usuarioId
-            ));
+            List<jakarta.persistence.criteria.Predicate> filtros = new java.util.ArrayList<>();
 
             for (String termo : termos) {
                 String padrao = "%" + termo + "%";
 
-                Predicate correspondeNome = criteriaBuilder.like(
+                var correspondeNome = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("nome")), padrao
                 );
 
-                Predicate correspondeCor = criteriaBuilder.like(
+                var correspondeCor = criteriaBuilder.like(
                         criteriaBuilder.lower(root.get("cor")), padrao
                 );
 
-                filtros.add(criteriaBuilder.or(
-                        correspondeNome, correspondeCor
-                ));
+                filtros.add(criteriaBuilder.or(correspondeNome, correspondeCor));
             }
 
-            return criteriaBuilder.and(filtros.toArray(new Predicate[0]));
+            return criteriaBuilder.and(filtros.toArray(jakarta.persistence.criteria.Predicate[]::new));
         };
 
         return filamentoRepository.findAll(especificacao, pageable);
@@ -149,8 +137,7 @@ public class FilamentoServiceImp implements FilamentoService {
 
     @Override
     public Optional<Filamento> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.findByIdAndUsuario_Id(id, usuarioId);
+        return filamentoRepository.findById(id);
     }
 
     @Override
@@ -158,8 +145,7 @@ public class FilamentoServiceImp implements FilamentoService {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.findAllByIdInAndUsuario_Id(ids, usuarioId);
+        return filamentoRepository.findAllByIdIn(ids);
     }
 
     @Override
@@ -167,22 +153,19 @@ public class FilamentoServiceImp implements FilamentoService {
         if (limite <= 0) {
             return List.of();
         }
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.findByUsuario_IdOrderByDataCadastroDescNomeAsc(
-                usuarioId, PageRequest.of(0, limite));
+        return filamentoRepository.findAllByOrderByDataCadastroDescNomeAsc(PageRequest.of(0, limite));
     }
 
     @Override
     public Optional<Filamento> fetchEstoqueCritico() {
         List<Filamento> encontrados = filamentoRepository.buscarComEstoqueCritico(
-                usuarioLogadoService.buscarIdUsuarioAtual(), PageRequest.of(0, 1));
+                PageRequest.of(0, 1));
         return encontrados.stream().findFirst();
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return filamentoRepository.existsByIdAndUsuario_Id(id, usuarioId);
+        return filamentoRepository.existsById(id);
     }
 
     @Override

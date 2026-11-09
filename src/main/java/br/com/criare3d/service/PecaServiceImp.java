@@ -39,19 +39,17 @@ public class PecaServiceImp implements PecaService {
 
     @Override
     public Page<Peca> fetchAll(Pageable pageable) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return pecaRepository.findAllByUsuario_Id(usuarioId, pageable);
+        return pecaRepository.findAll(pageable);
     }
 
     @Override
     public long contar() {
-        return pecaRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
+        return pecaRepository.count();
     }
 
     @Override
     public Optional<Peca> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return pecaRepository.findByIdAndUsuario_Id(id, usuarioId);
+        return pecaRepository.findById(id);
     }
 
     @Override
@@ -62,10 +60,9 @@ public class PecaServiceImp implements PecaService {
     @Override
     public List<UUID> deleteUnused(Collection<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
-        List<UUID> existentes = pecaRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+        List<UUID> existentes = pecaRepository.findAllByIdIn(solicitados)
                 .stream().map(Peca::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsPecaComHistorico(existentes));
@@ -76,8 +73,7 @@ public class PecaServiceImp implements PecaService {
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return pecaRepository.existsByIdAndUsuario_Id(id, usuarioId);
+        return pecaRepository.existsById(id);
     }
 
     @Override

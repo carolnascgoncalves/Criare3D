@@ -54,7 +54,7 @@ public class ClienteAdminService {
 
     @Transactional(readOnly = true)
     public List<ClienteAdminResumo> listar() {
-        return tenantRepository.listarClientesAdmin(Perfil.USER);
+        return tenantRepository.listarClientesAdmin();
     }
 
     @Transactional(readOnly = true)

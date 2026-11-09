@@ -71,14 +71,13 @@ public class ImpressoraServiceImp implements ImpressoraService {
     @Override
     public List<UUID> deleteUnused(Collection<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
-        List<UUID> existentes = impressoraRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+        List<UUID> existentes = impressoraRepository.findAllByIdIn(solicitados)
                 .stream().map(Impressora::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueadas = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsImpressoraComHistorico(existentes));
-        bloqueadas.addAll(manutencaoImpressoraRepository.buscarIdsImpressoraComManutencao(usuarioId, existentes));
+        bloqueadas.addAll(manutencaoImpressoraRepository.buscarIdsImpressoraComManutencao(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();
         if (!removiveis.isEmpty()) impressoraRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueadas::contains).toList();
@@ -86,24 +85,21 @@ public class ImpressoraServiceImp implements ImpressoraService {
 
     @Override
     public Page<Impressora> fetchAll(Pageable pageable) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return impressoraRepository.findAllByUsuario_Id(usuarioId, pageable);
+        return impressoraRepository.findAll(pageable);
     }
 
     @Override
     public long contar() {
-        return impressoraRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
+        return impressoraRepository.count();
     }
 
     @Override
     public Optional<Impressora> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return impressoraRepository.findByIdAndUsuario_Id(id, usuarioId);
+        return impressoraRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return impressoraRepository.existsByIdAndUsuario_Id(id, usuarioId);
+        return impressoraRepository.existsById(id);
     }
 }

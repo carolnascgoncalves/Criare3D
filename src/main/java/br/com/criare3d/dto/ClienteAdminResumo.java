@@ -1,5 +1,6 @@
 package br.com.criare3d.dto;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface ClienteAdminResumo {
@@ -14,4 +15,6 @@ public interface ClienteAdminResumo {
     Boolean getTemLogo();
     UUID getUsuarioId();
     String getEmail();
+    LocalDateTime getUltimoAcesso();
+    Long getQuantidadeCalculos();
 }

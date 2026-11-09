@@ -58,10 +58,9 @@ public class EmbalagemServiceImp implements EmbalagemService {
     @Override
     public List<UUID> deleteUnused(Collection<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
-        List<UUID> existentes = embalagemRepository.findAllByIdInAndUsuario_Id(solicitados, usuarioId)
+        List<UUID> existentes = embalagemRepository.findAllByIdIn(solicitados)
                 .stream().map(Embalagem::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsEmbalagemComHistorico(existentes));
@@ -72,24 +71,21 @@ public class EmbalagemServiceImp implements EmbalagemService {
 
     @Override
     public Page<Embalagem> fetchAll(Pageable pageable) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return embalagemRepository.findAllByUsuario_Id(usuarioId, pageable);
+        return embalagemRepository.findAll(pageable);
     }
 
     @Override
     public long contar() {
-        return embalagemRepository.countByUsuario_Id(usuarioLogadoService.buscarIdUsuarioAtual());
+        return embalagemRepository.count();
     }
 
     @Override
     public Optional<Embalagem> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return embalagemRepository.findByIdAndUsuario_Id(id, usuarioId);
+        return embalagemRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return embalagemRepository.existsByIdAndUsuario_Id(id, usuarioId);
+        return embalagemRepository.existsById(id);
     }
 }

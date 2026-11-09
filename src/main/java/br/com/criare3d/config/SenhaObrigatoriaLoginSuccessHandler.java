@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Component
 public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSuccessHandler {
@@ -25,6 +26,7 @@ public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSucces
         boolean trocaObrigatoria;
         if (authentication.getPrincipal() instanceof UsuarioPrincipal principal) {
             trocaObrigatoria = principal.isTrocaSenhaObrigatoria();
+            usuarioRepository.registrarUltimoAcesso(principal.getUsuarioId(), LocalDateTime.now());
         } else {
             trocaObrigatoria = usuarioRepository.findByEmail(authentication.getName())
                     .map(usuario -> usuario.isTrocaSenhaObrigatoria())

@@ -34,9 +34,14 @@
             <p>Gerencie suas peças e os dados utilizados nos cálculos de impressão.</p>
         </div>
 
-        <a th:href="@{/peca/novo}" class="botao botao-principal">
-            <span>+</span> Nova peça
-        </a>
+        <div class="formulario-acoes">
+            <a th:href="@{/peca/exportar.csv}" class="botao botao-secundario">
+                <i class="bi bi-download"></i> Exportar CSV
+            </a>
+            <a th:href="@{/peca/novo}" class="botao botao-principal">
+                <span>+</span> Nova peça
+            </a>
+        </div>
     </section>
 
     <section class="cartao" data-lista-selecao>

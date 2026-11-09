@@ -254,16 +254,16 @@
     }
 
     function configurarBotaoRefazer() {
-        document.addEventListener("click", event => {
+        document.addEventListener("click", async event => {
             const botao = event.target.closest?.("[data-refazer-calculo]");
 
             if (!botao) return;
 
             event.preventDefault();
 
-            const confirmar = window.confirm(
-                "Tem certeza de que deseja refazer tudo?\n\n" +
-                "Todos os dados preenchidos neste cálculo serão apagados."
+            const confirmar = await window.confirmarAcao(
+                "Todos os dados preenchidos neste cálculo serão apagados.",
+                { dataset: { confirmTitle: "Refazer o cálculo?", confirmLabel: "Refazer tudo" } }
             );
 
             if (!confirmar) return;

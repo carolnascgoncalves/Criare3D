@@ -118,35 +118,32 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
 
     @Override
     public Page<Configuracao> fetchAll(Pageable pageable) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return configuracaoRepository.findAllByUsuario_Id(usuarioId, pageable);
+        return configuracaoRepository.findAll(pageable);
     }
 
     @Override
     public Optional<Configuracao> fetchById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return configuracaoRepository.findByIdAndUsuario_Id(id, usuarioId);
+        return configuracaoRepository.findById(id);
     }
 
     @Override
     public boolean existsById(UUID id) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-
-        return configuracaoRepository.existsByIdAndUsuario_Id(id, usuarioId);
+        return configuracaoRepository.existsById(id);
     }
 
     @Override
     public Optional<Configuracao> buscarConfiguracao() {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         UUID tenantId = usuarioLogadoService.buscarTenantIdAtual();
-        if (tenantId == null) return configuracaoRepository.findFirstByUsuario_Id(usuarioId);
+        if (tenantId == null) return Optional.empty();
         return configuracoesPorTenant.get(tenantId,
-                ignorado -> configuracaoRepository.findFirstByTenantIdAndUsuario_Id(tenantId, usuarioId));
+                ignorado -> configuracaoRepository.findFirstByTenantId(tenantId));
     }
 
     @Override
     public Configuracao buscarOuCriarConfiguracao() {
+        if (usuarioLogadoService.buscarTenantIdAtual() == null) {
+            throw new IllegalStateException("Configurações estão disponíveis somente para contas de cliente.");
+        }
         return buscarConfiguracao().orElseGet(() -> {
             Configuracao configuracao = new Configuracao();
 

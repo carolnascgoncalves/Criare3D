@@ -5,6 +5,7 @@ import br.com.criare3d.models.enums.Perfil;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +30,9 @@ public class Usuario {
     @Column(name = "troca_senha_obrigatoria", nullable = false)
     @Builder.Default
     private boolean trocaSenhaObrigatoria = false;
+
+    @Column(name = "ultimo_acesso")
+    private LocalDateTime ultimoAcesso;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")

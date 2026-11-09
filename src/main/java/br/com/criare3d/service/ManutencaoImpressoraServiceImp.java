@@ -23,24 +23,20 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     private final ManutencaoImpressoraRepository manutencaoRepository;
     private final ImpressoraRepository impressoraRepository;
     private final CalculoHistoricoRepository historicoRepository;
-    private final UsuarioLogadoService usuarioLogadoService;
 
     public ManutencaoImpressoraServiceImp(
             ManutencaoImpressoraRepository manutencaoRepository,
             ImpressoraRepository impressoraRepository,
-            CalculoHistoricoRepository historicoRepository,
-            UsuarioLogadoService usuarioLogadoService
+            CalculoHistoricoRepository historicoRepository
     ) {
         this.manutencaoRepository = manutencaoRepository;
         this.impressoraRepository = impressoraRepository;
         this.historicoRepository = historicoRepository;
-        this.usuarioLogadoService = usuarioLogadoService;
     }
 
     @Override
     public java.util.Optional<ManutencaoImpressora> registrar(UUID impressoraId, ManutencaoImpressoraRequest request) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        java.util.Optional<Impressora> encontrada = impressoraRepository.findByIdAndUsuario_Id(impressoraId, usuarioId);
+        java.util.Optional<Impressora> encontrada = impressoraRepository.findById(impressoraId);
         if (encontrada.isEmpty()) return java.util.Optional.empty();
         ManutencaoImpressora registro = ManutencaoImpressora.builder()
                 .descricao(request.getDescricao().trim())
@@ -54,13 +50,12 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     @Override
     @Transactional(readOnly = true)
     public java.util.Optional<ResumoManutencaoImpressora> resumo(UUID impressoraId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        java.util.Optional<Impressora> encontrada = impressoraRepository.findByIdAndUsuario_Id(impressoraId, usuarioId);
+        java.util.Optional<Impressora> encontrada = impressoraRepository.findById(impressoraId);
         if (encontrada.isEmpty()) return java.util.Optional.empty();
 
         Impressora impressora = encontrada.get();
-        BigDecimal total = manutencaoRepository.somarValoresPorImpressoraEUsuario(impressoraId, usuarioId);
-        Long minutos = historicoRepository.somarMinutosPorImpressoraEUsuario(impressoraId);
+        BigDecimal total = manutencaoRepository.somarValoresPorImpressora(impressoraId);
+        Long minutos = historicoRepository.somarMinutosPorImpressora(impressoraId);
         if (total == null) total = BigDecimal.ZERO;
         if (minutos == null) minutos = 0L;
 
@@ -80,7 +75,7 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
 
     @Override
     public void excluir(UUID impressoraId, UUID manutencaoId) {
-        buscarImpressoraDoUsuario(impressoraId);
+        buscarImpressoraDoTenant(impressoraId);
         manutencaoRepository.findByIdAndImpressora_Id(manutencaoId, impressoraId)
                 .ifPresent(manutencaoRepository::delete);
     }
@@ -88,19 +83,18 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
     @Override
     @Transactional(readOnly = true)
     public long contar(UUID impressoraId) {
-        buscarImpressoraDoUsuario(impressoraId);
+        buscarImpressoraDoTenant(impressoraId);
         return manutencaoRepository.countByImpressora_Id(impressoraId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public BigDecimal custoPorHora(UUID impressoraId) {
-        Impressora impressora = buscarImpressoraDoUsuario(impressoraId);
+        Impressora impressora = buscarImpressoraDoTenant(impressoraId);
         BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
         if (vidaUtilHoras == null || vidaUtilHoras.signum() <= 0) return BigDecimal.ZERO;
 
-        BigDecimal total = manutencaoRepository.somarValoresPorImpressoraEUsuario(
-                impressoraId, usuarioLogadoService.buscarIdUsuarioAtual());
+        BigDecimal total = manutencaoRepository.somarValoresPorImpressora(impressoraId);
         if (total == null || total.signum() <= 0) return BigDecimal.ZERO;
 
         // Distribui os gastos de manutenção pela vida útil prevista da impressora.
@@ -109,9 +103,8 @@ public class ManutencaoImpressoraServiceImp implements ManutencaoImpressoraServi
         return total.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP);
     }
 
-    private Impressora buscarImpressoraDoUsuario(UUID impressoraId) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
-        return impressoraRepository.findByIdAndUsuario_Id(impressoraId, usuarioId)
+    private Impressora buscarImpressoraDoTenant(UUID impressoraId) {
+        return impressoraRepository.findById(impressoraId)
                 .orElseThrow(() -> new IllegalArgumentException("Impressora não encontrada."));
     }
 }

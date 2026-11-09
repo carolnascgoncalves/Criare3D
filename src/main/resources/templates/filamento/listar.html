@@ -64,9 +64,14 @@
             <p>Gerencie os filamentos utilizados nos seus cálculos de impressão 3D.</p>
         </div>
 
-        <a th:href="@{/filamento/novo}" class="botao botao-principal">
-            <i class="bi bi-plus-lg"></i> Novo filamento
-        </a>
+        <div class="formulario-acoes">
+            <a th:href="@{/filamento/exportar.csv}" class="botao botao-secundario">
+                <i class="bi bi-download"></i> Exportar CSV
+            </a>
+            <a th:href="@{/filamento/novo}" class="botao botao-principal">
+                <i class="bi bi-plus-lg"></i> Novo filamento
+            </a>
+        </div>
     </section>
 
     <section class="cartao" data-lista-selecao>

@@ -15,8 +15,6 @@ public interface ItemCalculoHistoricoRepository extends JpaRepository<ItemCalcul
     @Query("""
         DELETE FROM ItemCalculoHistorico item
         WHERE item.calculoHistorico.id IN :calculoIds
-          AND item.calculoHistorico.usuario.id = :usuarioId
         """)
-    int excluirItensDosCalculos(@Param("calculoIds") Collection<UUID> calculoIds,
-                                @Param("usuarioId") UUID usuarioId);
+    int excluirItensDosCalculos(@Param("calculoIds") Collection<UUID> calculoIds);
 }

@@ -55,6 +55,8 @@
                     <th>Cliente</th>
                     <th>Identificador</th>
                     <th>E-mail de acesso</th>
+                    <th>Último acesso</th>
+                    <th class="text-end">Nº de cálculos</th>
                     <th>Status</th>
                     <th class="text-end">Ações</th>
                 </tr>
@@ -71,6 +73,8 @@
                     </td>
                     <td><code th:text="${cliente.slug}">cliente</code></td>
                     <td th:text="${cliente.email != null ? cliente.email : 'Acesso não vinculado'}">cliente@email.com</td>
+                    <td th:text="${cliente.ultimoAcesso != null ? #temporals.format(cliente.ultimoAcesso, 'dd/MM/yyyy HH:mm') : 'Nunca acessou'}">Nunca acessou</td>
+                    <td class="text-end" th:text="${cliente.quantidadeCalculos != null ? cliente.quantidadeCalculos : 0}">0</td>
                     <td>
                         <span class="cliente-status" th:classappend="${cliente.ativo ? ' ativo' : ' inativo'}"
                               th:text="${cliente.ativo ? 'Ativo' : 'Desativado'}">Ativo</span>
@@ -95,7 +99,7 @@
                     </td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(clientes)}">
-                    <td colspan="5" class="text-center py-5">Ainda não há clientes cadastrados.</td>
+                    <td colspan="7" class="text-center py-5">Ainda não há clientes cadastrados.</td>
                 </tr>
                 </tbody>
             </table>

@@ -5,7 +5,7 @@
 
         window.criareCarregamentoChart = new Promise(function (resolve, reject) {
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+            script.src = '/vendor/chart.umd.min.js';
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);

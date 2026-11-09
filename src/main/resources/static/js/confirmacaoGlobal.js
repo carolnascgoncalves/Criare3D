@@ -10,7 +10,7 @@
             dialogo.innerHTML = `
                 <form method="dialog" class="confirmacao-global-conteudo">
                     <span class="confirmacao-global-icone" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
-                    <h2>Confirmar ação</h2>
+                    <h2 data-confirmacao-titulo>Confirmar ação</h2>
                     <p data-confirmacao-mensagem></p>
                     <div class="confirmacao-global-acoes">
                         <button type="submit" value="cancelar" class="botao botao-secundario" data-confirmacao-cancelar>Cancelar</button>
@@ -20,6 +20,8 @@
         }
         if (!dialogo.isConnected) document.body.append(dialogo);
 
+        dialogo.querySelector("[data-confirmacao-titulo]").textContent =
+            elemento?.dataset.confirmTitle || "Confirmar ação";
         dialogo.querySelector("[data-confirmacao-mensagem]").textContent = mensagem || "Deseja continuar com esta ação?";
         dialogo.querySelector("[data-confirmacao-aceitar]").textContent =
             elemento?.dataset.confirmLabel || "Confirmar";
@@ -42,6 +44,7 @@
         configurado = true;
     }
 
+    window.confirmarAcao = confirmarAcao;
     document.addEventListener("DOMContentLoaded", configurarTurbo, { once: true });
     document.addEventListener("turbo:load", configurarTurbo);
 })();

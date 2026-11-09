@@ -5,22 +5,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 public interface EmbalagemRepository extends JpaRepository<Embalagem, UUID> {
 
-    Page<Embalagem> findAllByUsuario_Id(UUID usuarioId, Pageable pageable);
+    List<Embalagem> findAllByIdIn(Collection<UUID> ids);
 
-    long countByUsuario_Id(UUID usuarioId);
-
-    List<Embalagem> findAllByIdInAndUsuario_Id(Collection<UUID> ids, UUID usuarioId);
-
-    Page<Embalagem> findByNomeContainingIgnoreCaseAndUsuario_Id(String nome, UUID usuarioId, Pageable pageable);
-
-    Optional<Embalagem> findByIdAndUsuario_Id(UUID id, UUID usuarioId);
-
-    boolean existsByIdAndUsuario_Id(UUID id, UUID usuarioId);
+    Page<Embalagem> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 }

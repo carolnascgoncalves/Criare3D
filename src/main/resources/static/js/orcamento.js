@@ -8,7 +8,9 @@
         const campoPrazo = document.querySelector('#prazoOrcamento');
         const campoPagamento = document.querySelector('#pagamentoOrcamento');
         const campoValidade = document.querySelector('#validadeOrcamento');
+        const campoFrete = document.querySelector('#freteOrcamento');
         const campoMensagem = document.querySelector('#mensagemOrcamento');
+        const totalVisivel = document.querySelector('[data-total-orcamento]');
         const editor = document.querySelector('[data-editor-personalizacao]');
         const botaoEditor = document.querySelector('[data-alternar-personalizacao]');
 
@@ -23,6 +25,7 @@
             const textoQuantidade = `${quantidade} ${quantidade === 1 ? 'unidade' : 'unidades'}`;
             const unitario = formatarMoeda(painel.dataset.precoUnitario);
             const total = formatarMoeda(painel.dataset.precoTotal);
+            const frete = Number(campoFrete?.value || 0);
             const prazo = campoPrazo?.value.trim() || 'A combinar';
             const pagamento = campoPagamento?.value.trim() || 'A combinar';
             const validade = campoValidade?.value.trim() || 'A combinar';
@@ -33,6 +36,7 @@
                 `*${peca}*\n\n` +
                 `- Quantidade: ${textoQuantidade}\n` +
                 `- Valor unitário: ${unitario}\n` +
+                (frete > 0 ? `- Frete: ${formatarMoeda(frete)}\n` : '') +
                 `- *Total: ${total}*\n\n` +
                 'Condições:\n\n' +
                 `- Prazo de produção/entrega: ${prazo}\n` +
@@ -47,6 +51,13 @@
         };
 
         atualizarMensagemPadrao();
+        campoFrete?.addEventListener('input', () => {
+            const frete = Math.max(0, Number(String(campoFrete.value).replace(',', '.')) || 0);
+            const base = Number(painel.dataset.precoBaseTotal || 0);
+            painel.dataset.precoTotal = String(base + frete);
+            if (totalVisivel) totalVisivel.textContent = formatarMoeda(base + frete);
+            atualizarMensagemPadrao();
+        });
         [campoNome, campoPrazo, campoPagamento, campoValidade].forEach(campo => {
             campo?.addEventListener('input', atualizarMensagemPadrao);
         });

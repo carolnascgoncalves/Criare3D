@@ -2286,8 +2286,8 @@ input[type="color"]:focus {
     margin-left: 5px;
     padding: 2px 7px;
     border-radius: 999px;
-    background: #f1ece6;
-    color: #705c4c;
+    background: color-mix(in srgb, var(--cor-primaria) 8%, var(--cor-fundo));
+    color: var(--marrom-claro);
     font-size: 0.7rem;
     font-weight: 600;
     line-height: 1.4;
@@ -2297,7 +2297,7 @@ input[type="color"]:focus {
 
 .configuracao-opcao strong .etiqueta-opcional,
 .campo label .etiqueta-opcional {
-    color: #705c4c;
+    color: var(--marrom-claro);
     font-weight: 600;
 }
 
@@ -2419,7 +2419,7 @@ input[type="color"]:focus {
 .cliente-cor-campo { min-width: 0; }
 .cliente-cor-linha { display: flex; align-items: center; gap: 10px; min-height: 44px; color: var(--marrom-claro); font-size: 0.85rem; }
 .cliente-cor-linha input[type="color"] { width: 48px; height: 40px; flex: 0 0 48px; padding: 3px; border: 1px solid var(--borda); border-radius: 9px; background: var(--branco); cursor: pointer; }
-.cliente-tema-preview { --cliente-cor-primaria: #492e1e; --cliente-cor-destaque: #e9a695; --cliente-cor-fundo: #f5e7da; --cliente-texto-primaria: #f5e7da; --cliente-texto-destaque: #492e1e; overflow: hidden; border: 1px solid var(--borda); border-radius: 14px; background: var(--cliente-cor-fundo); color: var(--cliente-cor-primaria); }
+.cliente-tema-preview { --cliente-cor-primaria: var(--cor-primaria); --cliente-cor-destaque: var(--cor-destaque); --cliente-cor-fundo: var(--cor-fundo); --cliente-texto-primaria: var(--texto-sobre-primaria); --cliente-texto-destaque: var(--texto-sobre-destaque); overflow: hidden; border: 1px solid var(--borda); border-radius: 14px; background: var(--cliente-cor-fundo); color: var(--cliente-cor-primaria); }
 .cliente-preview-menu { display: flex; align-items: center; gap: 16px; min-height: 64px; padding: 10px 16px; background: var(--cliente-cor-primaria); color: var(--cliente-texto-primaria); }
 .cliente-preview-logo { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; overflow: hidden; border-radius: 9px; background: var(--cliente-cor-fundo); color: var(--cliente-cor-primaria); }
 .cliente-preview-logo img { width: 100%; height: 100%; object-fit: contain; }
@@ -2648,6 +2648,8 @@ input[type="color"]:focus {
 .orcamento-produto { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 18px; padding: 20px 0; border-bottom: 1px solid var(--borda); }
 .orcamento-produto > div { display: grid; gap: 5px; }
 .orcamento-produto span, .orcamento-nota { color: var(--marrom-claro); }
+.orcamento-frete { max-width: 360px; margin: 14px 0 0; }
+.orcamento-frete small { display: block; margin-top: 5px; color: var(--marrom-claro); }
 .orcamento-total { display: flex; justify-content: space-between; gap: 18px; padding: 20px 0; color: var(--marrom); font-size: 1.15rem; }
 .orcamento-total strong { color: #588247; font-size: 1.35rem; }
 .orcamento-nota { margin: 0 0 20px; }

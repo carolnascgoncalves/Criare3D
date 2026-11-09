@@ -4,7 +4,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 <main class="pagina pagina-orcamento"
-      th:attr="data-peca=${calculo.nomePeca},data-tenant-nome=${tenantNome},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote},data-foto-url=${calculo.temFoto ? '/historico/' + calculo.id + '/foto' : ''}">
+      th:attr="data-peca=${calculo.nomePeca},data-tenant-nome=${tenantNome},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote},data-preco-base-total=${precoTotalLote},data-foto-url=${calculo.temFoto ? '/historico/' + calculo.id + '/foto' : ''}">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">ORÇAMENTO</span>
@@ -41,9 +41,14 @@
                 <strong th:text="|R$ ${#numbers.formatDecimal(precoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
             </div>
         </div>
+        <div class="orcamento-frete campo">
+            <label for="freteOrcamento">Frete combinado (R$) <span class="etiqueta-opcional">Opcional</span></label>
+            <input id="freteOrcamento" type="number" min="0" step="0.01" value="0" inputmode="decimal">
+            <small>Se preferir combinar o frete à parte, deixe em zero.</small>
+        </div>
         <div class="orcamento-total">
             <span>Total do orçamento</span>
-            <strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            <strong data-total-orcamento th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
         </div>
         <p class="orcamento-nota" th:text="|Orçamento gerado com base nos valores registrados no ${tenantNome}. Prazo e frete podem ser combinados à parte.|">Orçamento gerado com base nos valores registrados no Criare 3D. Prazo e frete podem ser combinados à parte.</p>
         <div class="formulario-acoes orcamento-acoes">

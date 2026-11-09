@@ -21,20 +21,15 @@ public interface ManutencaoImpressoraRepository extends JpaRepository<Manutencao
 
     @Query("""
         SELECT DISTINCT m.impressora.id FROM ManutencaoImpressora m
-        WHERE m.impressora.usuario.id = :usuarioId AND m.impressora.id IN :ids
+        WHERE m.impressora.id IN :ids
         """)
     List<UUID> buscarIdsImpressoraComManutencao(
-            @Param("usuarioId") UUID usuarioId,
             @Param("ids") Collection<UUID> ids);
 
     @Query("""
         SELECT COALESCE(SUM(m.valor), 0)
         FROM ManutencaoImpressora m
         WHERE m.impressora.id = :impressoraId
-          AND m.impressora.usuario.id = :usuarioId
         """)
-    BigDecimal somarValoresPorImpressoraEUsuario(
-            @Param("impressoraId") UUID impressoraId,
-            @Param("usuarioId") UUID usuarioId
-    );
+    BigDecimal somarValoresPorImpressora(@Param("impressoraId") UUID impressoraId);
 }

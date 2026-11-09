@@ -196,7 +196,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     public void deleteAll(Collection<UUID> ids) {
         if (ids == null || ids.isEmpty()) return;
 
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return;
 
@@ -208,13 +207,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         List<UUID> encontrados = dados.stream()
                 .map(AjusteEstoqueCalculoResponse::calculoId).distinct().toList();
-        itemCalculoHistoricoRepository.excluirItensDosCalculos(encontrados, usuarioId);
+        itemCalculoHistoricoRepository.excluirItensDosCalculos(encontrados);
         calculoHistoricoRepository.deleteAllByIdInBatch(encontrados);
     }
 
     @Override
     public String atualizarProduzido(UUID id, boolean produzido) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<AjusteEstoqueCalculoResponse> dados =
                 calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
         if (dados.isEmpty()) return "naoEncontrado";
@@ -239,7 +237,6 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public String atualizarVendido(UUID id, boolean vendido) {
-        UUID usuarioId = usuarioLogadoService.buscarIdUsuarioAtual();
         List<AjusteEstoqueCalculoResponse> dados =
                 calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
         if (dados.isEmpty()) return "naoEncontrado";

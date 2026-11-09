@@ -269,7 +269,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     WHERE c.impressora.id = :impressoraId
       AND c.produzido = true
     """)
-    Long somarMinutosPorImpressoraEUsuario(@Param("impressoraId") UUID impressoraId);
+    Long somarMinutosPorImpressora(@Param("impressoraId") UUID impressoraId);
 
     long countByPeca_Id(UUID pecaId);
 
