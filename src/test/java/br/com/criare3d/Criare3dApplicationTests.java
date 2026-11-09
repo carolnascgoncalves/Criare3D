@@ -1,5 +1,6 @@
 package br.com.criare3d;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -90,6 +91,13 @@ class Criare3dApplicationTests {
 	@Autowired
 	private CalculoHistoricoService calculoHistoricoService;
 
+	@AfterEach
+	void removerTenantsDeTeste() {
+		tenantRepository.findAll().stream()
+				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
+				.forEach(tenantRepository::delete);
+	}
+
 	@Test
 	void contextoDaAplicacaoIniciaComBancoDeTeste() {
 		assertThat(passwordEncoder).isNotNull();
@@ -109,9 +117,6 @@ class Criare3dApplicationTests {
 	void usuarioNaoConsegueBuscarRegistrosDeOutraOrganizacaoNasNoveTabelas() {
 		Usuario usuarioA = criarUsuario("a-" + UUID.randomUUID() + "@teste.local");
 		Usuario usuarioB = criarUsuario("b-" + UUID.randomUUID() + "@teste.local");
-		Tenant tenantB = criarTenant("b-" + UUID.randomUUID());
-		usuarioB.setTenant(tenantB);
-		usuarioB = usuarioRepository.saveAndFlush(usuarioB);
 
 		Filamento filamentoA;
 		Peca pecaA;
@@ -194,7 +199,6 @@ class Criare3dApplicationTests {
 			filamentoRepository.deleteById(filamentoA.getId());
 			SecurityContextHolder.clearContext();
 			usuarioRepository.deleteAllById(java.util.List.of(usuarioA.getId(), usuarioB.getId()));
-			tenantRepository.deleteById(tenantB.getId());
 		}
 	}
 
@@ -403,7 +407,7 @@ class Criare3dApplicationTests {
 	}
 
 	private Usuario criarUsuario(String email) {
-		Tenant tenant = tenantRepository.findBySlug("criare3d").orElseThrow();
+		Tenant tenant = criarTenant("teste-" + UUID.randomUUID());
 		return usuarioRepository.save(Usuario.builder()
 				.email(email).password(passwordEncoder.encode("SenhaTeste123!"))
 				.perfil(Perfil.USER).tenant(tenant).build());
