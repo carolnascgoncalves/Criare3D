@@ -13,7 +13,7 @@
     <section class="boas-vindas inicio-hero">
         <div>
             <span class="etiqueta">PAINEL PRINCIPAL</span>
-            <h1>Bem-vinda ao Criare 3D!</h1>
+            <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
             <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
             <div class="inicio-hero-acoes">
                 <a th:href="@{/historico/novo}" class="botao-principal">Começar um cálculo</a>
@@ -177,7 +177,7 @@
     </section>
 
     <footer class="rodape">
-        Criare 3D · Gestão e cálculo de custos de impressão 3D
+        <span th:text="|${tenantNome} · Gestão e cálculo de custos de impressão 3D|">Criare 3D · Gestão e cálculo de custos de impressão 3D</span>
     </footer>
 
 </main>

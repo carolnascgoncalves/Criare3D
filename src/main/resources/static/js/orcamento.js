@@ -101,7 +101,7 @@
                     const { blob, arquivo } = await baixarFoto(urlFoto);
                     if (navigator.share && navigator.canShare?.({ files: [arquivo] })) {
                         abaWhatsApp?.close();
-                        await navigator.share({ title: 'Orçamento Criare 3D', text: obterMensagem(), files: [arquivo] });
+                        await navigator.share({ title: `Orçamento ${painel.dataset.tenantNome || 'Criare 3D'}`, text: obterMensagem(), files: [arquivo] });
                         return;
                     }
 

@@ -9,8 +9,8 @@
 </div>
 <header th:if="${primeiroAcesso}" class="menu-principal">
     <a th:href="@{/}" class="marca">
-        <img th:src="@{/images/criare3d.jpg}" alt="Criare 3D" class="marca-icone">
-        <span>Criare 3D</span>
+        <img th:src="${tenantLogoUrl}" th:alt="${tenantNome}" class="marca-icone">
+        <span th:text="${tenantNome}">Criare 3D</span>
     </a>
 </header>
 

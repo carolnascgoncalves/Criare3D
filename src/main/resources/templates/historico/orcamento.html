@@ -4,7 +4,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 <main class="pagina pagina-orcamento"
-      th:attr="data-peca=${calculo.nomePeca},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote},data-foto-url=${calculo.temFoto ? '/historico/' + calculo.id + '/foto' : ''}">
+      th:attr="data-peca=${calculo.nomePeca},data-tenant-nome=${tenantNome},data-unidades=${unidades},data-preco-unitario=${precoUnitario},data-preco-total=${precoTotalLote},data-foto-url=${calculo.temFoto ? '/historico/' + calculo.id + '/foto' : ''}">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">ORÇAMENTO</span>
@@ -19,7 +19,7 @@
 
     <section class="cartao orcamento-cartao">
         <div class="orcamento-marca">
-            <span class="texto-apoio">CRIARE 3D</span>
+            <span class="texto-apoio" th:text="${tenantNome}">CRIARE 3D</span>
             <h2>Orçamento de impressão 3D</h2>
             <p th:text="${#temporals.format(calculo.dataCalculo, 'dd/MM/yyyy')}">08/11/2026</p>
         </div>
@@ -45,7 +45,7 @@
             <span>Total do orçamento</span>
             <strong th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
         </div>
-        <p class="orcamento-nota">Orçamento gerado com base nos valores registrados no Criare 3D. Prazo e frete podem ser combinados à parte.</p>
+        <p class="orcamento-nota" th:text="|Orçamento gerado com base nos valores registrados no ${tenantNome}. Prazo e frete podem ser combinados à parte.|">Orçamento gerado com base nos valores registrados no Criare 3D. Prazo e frete podem ser combinados à parte.</p>
         <div class="formulario-acoes orcamento-acoes">
             <button type="button" class="botao botao-secundario" data-copiar-orcamento>
                 <i class="bi bi-copy"></i> Copiar mensagem

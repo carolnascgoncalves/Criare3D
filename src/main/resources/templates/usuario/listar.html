@@ -14,7 +14,7 @@
         <div>
             <span class="texto-apoio">ADMINISTRAÇÃO</span>
             <h1>Usuários cadastrados</h1>
-            <p>Gerencie as contas que possuem acesso ao Criare 3D.</p>
+            <p th:text="|Gerencie as contas que possuem acesso ao ${tenantNome}.|">Gerencie as contas que possuem acesso ao Criare 3D.</p>
         </div>
 
         <a th:href="@{/usuarios/novo}" class="botao botao-principal">

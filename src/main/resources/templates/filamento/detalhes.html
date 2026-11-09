@@ -46,7 +46,7 @@
             <div class="detalhe-item">
                 <span>Cor do filamento</span>
                 <div class="cor-detalhes">
-                    <span class="indicador-cor" th:style="'background-color: ' + (${filamento.codigoCor != null ? filamento.codigoCor : '#ead6c8'})"></span>
+                    <span class="indicador-cor" th:style="${filamento.codigoCor != null ? 'background-color: ' + filamento.codigoCor : 'background-color: var(--borda)'}"></span>
                     <strong th:text="${filamento.cor}">Verde-menta</strong>
                 </div>
             </div>

@@ -53,6 +53,8 @@
 
     function desenharGraficosDashboard(dados) {
         destruirGraficosDashboard();
+        const estiloTema = getComputedStyle(document.documentElement);
+        const corCss = nome => estiloTema.getPropertyValue(nome).trim();
 
         const canvasMensal = document.getElementById('graficoLucroMensal');
         if (canvasMensal) {
@@ -62,15 +64,15 @@
                     labels: dados.rotulosLucro,
                     datasets: [{
                         data: dados.valoresLucro,
-                        borderColor: '#492e1e',
-                        backgroundColor: 'rgba(233,166,149,0.25)',
+                        borderColor: corCss('--dashboard-tiktok'),
+                        backgroundColor: corCss('--dashboard-chart-fill'),
                         fill: true,
                         tension: 0.35,
                         borderWidth: 2,
                         // Mantém os valores diários, mas destaca somente os dias com movimento.
                         pointRadius: contexto => Number(contexto.raw) !== 0 ? 4 : 0,
                         pointHoverRadius: contexto => Number(contexto.raw) !== 0 ? 5 : 0,
-                        pointBackgroundColor: '#492e1e',
+                        pointBackgroundColor: corCss('--dashboard-tiktok'),
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2
                     }]
@@ -83,7 +85,7 @@
                         x: {
                             grid: { display: false },
                             ticks: {
-                                color: '#765b4b',
+                                color: corCss('--dashboard-chart-text'),
                                 font: { size: 11 },
                                 autoSkip: true,
                                 maxTicksLimit: dados.rotulosLucro.length <= 31 ? 6
@@ -92,10 +94,10 @@
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: '#ead6c8' },
+                            grid: { color: corCss('--dashboard-chart-grid') },
                             border: { display: false },
                             ticks: {
-                                color: '#765b4b',
+                                color: corCss('--dashboard-chart-text'),
                                 font: { size: 11 },
                                 callback: valor => new Intl.NumberFormat('pt-BR', {
                                     style: 'currency', currency: 'BRL', maximumFractionDigits: 0

@@ -53,6 +53,7 @@ public class SecurityConfig {
                 );
 
         http.addFilterBefore(new PrimeiroAcessoSenhaObrigatoriaFilter(), AuthorizationFilter.class);
+        http.addFilterBefore(new TenantObrigatorioFilter(), AuthorizationFilter.class);
 
         return http.build();
     }

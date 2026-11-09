@@ -8,7 +8,7 @@
     <header class="dashboard-cabecalho">
         <div>
             <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
-            <h1>Bem-vinda ao Criare 3D!</h1>
+            <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
             <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
             <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> Tarifas e lucros das plataformas são estimativas; os valores reais podem variar.</small>
         </div>
@@ -166,7 +166,7 @@
         <p class="dashboard-vazio" th:if="${#lists.isEmpty(calculosRecentes)}">Seus cálculos recentes aparecerão aqui.</p>
     </section>
 
-    <footer class="rodape">Criare 3D · Gestão e cálculo de custos de impressão 3D</footer>
+    <footer class="rodape" th:text="|${tenantNome} · Gestão e cálculo de custos de impressão 3D|">Criare 3D · Gestão e cálculo de custos de impressão 3D</footer>
 </main>
 <script th:replace="~{fragmentos :: bootstrap-script}"></script>
 <script type="application/json" id="dashboard-chart-data" th:inline="javascript">

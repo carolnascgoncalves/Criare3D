@@ -6,8 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title th:text="${titulo}">Criare 3D</title>
-    <link rel="icon" type="image/jpeg" th:href="@{/images/criare3d-128.jpg}">
+    <title th:text="${#strings.replace(titulo, 'Criare 3D', tenantNome)}">Criare 3D</title>
+    <link rel="icon" th:href="${tenantLogoUrl}"
+          th:attr="type=${tenantTemLogo ? 'image/png' : 'image/jpeg'}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet">
@@ -17,6 +18,7 @@
 
     <link th:href="@{/css/style.css}" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
+    <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}">
 
     <meta name="turbo-cache-control" content="no-preview">
 
@@ -45,23 +47,23 @@
 <body>
 
 <nav th:fragment="menu" class="menu-principal">
-    <a th:href="@{/}" class="marca">
-        <img th:src="@{/images/criare3d-128.jpg}" alt="Criare 3D" class="marca-icone"
+    <a th:href="${tenantDisponivel} ? @{/} : @{/usuarios/listar}" class="marca">
+        <img th:src="${tenantLogoUrl}" th:alt="${tenantNome}" class="marca-icone"
              width="42" height="42" decoding="async">
-        <span>Criare 3D</span>
+        <span th:text="${tenantNome}">Criare 3D</span>
     </a>
 
     <div class="menu-links">
     <details class="menu-links-dropdown" open>
         <summary class="menu-links-resumo"><i class="bi bi-list" aria-hidden="true"></i> Menu</summary>
         <div class="menu-links-opcoes">
-        <a th:href="@{/}" class="menu-link" th:classappend="${paginaAtiva == 'inicio' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'inicio' ? 'page' : null}">Início</a>
-        <a th:href="@{/dashboard}" class="menu-link" th:classappend="${paginaAtiva == 'dashboard' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'dashboard' ? 'page' : null}">Dashboard</a>
-        <a th:href="@{/peca/listar}" class="menu-link" th:classappend="${paginaAtiva == 'pecas' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'pecas' ? 'page' : null}">Peças</a>
-        <a th:href="@{/filamento/listar}" class="menu-link" th:classappend="${paginaAtiva == 'filamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'filamentos' ? 'page' : null}">Filamentos</a>
-        <a th:href="@{/impressora/listar}" class="menu-link" th:classappend="${paginaAtiva == 'impressoras' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'impressoras' ? 'page' : null}">Impressoras</a>
-        <a th:href="@{/embalagem/listar}" class="menu-link" th:classappend="${paginaAtiva == 'embalagens' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'embalagens' ? 'page' : null}">Embalagens</a>
-        <a th:href="@{/historico/listar}" class="menu-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}">Histórico</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/}" class="menu-link" th:classappend="${paginaAtiva == 'inicio' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'inicio' ? 'page' : null}">Início</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/dashboard}" class="menu-link" th:classappend="${paginaAtiva == 'dashboard' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'dashboard' ? 'page' : null}">Dashboard</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/peca/listar}" class="menu-link" th:classappend="${paginaAtiva == 'pecas' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'pecas' ? 'page' : null}">Peças</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/filamento/listar}" class="menu-link" th:classappend="${paginaAtiva == 'filamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'filamentos' ? 'page' : null}">Filamentos</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/impressora/listar}" class="menu-link" th:classappend="${paginaAtiva == 'impressoras' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'impressoras' ? 'page' : null}">Impressoras</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/embalagem/listar}" class="menu-link" th:classappend="${paginaAtiva == 'embalagens' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'embalagens' ? 'page' : null}">Embalagens</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/historico/listar}" class="menu-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}">Histórico</a>
 
         <a sec:authorize="hasRole('ADMIN')"
            th:href="@{/usuarios/listar}"
@@ -71,7 +73,7 @@
 
         </div>
     </details>
-    <a th:href="@{/historico/novo}" class="botao-menu menu-calcular">
+    <a th:if="${tenantDisponivel}" th:href="@{/historico/novo}" class="botao-menu menu-calcular">
         <i class="bi bi-calculator"></i>
         Calcular peça
     </a>

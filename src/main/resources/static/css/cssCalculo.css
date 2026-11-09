@@ -18,7 +18,7 @@
     border: 1px solid var(--borda);
     border-radius: 12px;
     color: var(--marrom-claro);
-    background: #fffaf6;
+    background: var(--superficie-suave);
     transition: 0.2s ease;
 }
 
@@ -41,7 +41,7 @@
 
 .etapa.ativa {
     border-color: var(--destaque);
-    background: #fff0eb;
+    background: var(--destaque-suave);
 }
 
 .etapa.ativa .etapa-numero,
@@ -116,7 +116,7 @@
     margin-bottom: 20px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom);
 }
 
@@ -173,7 +173,7 @@
     margin-bottom: 14px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .filamento-calculo-cabecalho {
@@ -194,7 +194,7 @@
 
 .botao-remover-filamento {
     padding: 7px 10px;
-    border: 1px solid #e7c8c0;
+    border: 1px solid var(--destaque-borda);
     border-radius: 8px;
     background: #fff0eb;
     color: #8a3427;
@@ -236,7 +236,7 @@
     padding: 22px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .resultado-item span,
@@ -260,7 +260,7 @@
     padding: 26px;
     margin-top: 20px;
     border-radius: 12px;
-    background: #fff0eb;
+    background: var(--destaque-suave);
 }
 
 .preco-sugerido strong {
@@ -288,7 +288,7 @@
     justify-content: space-between;
     gap: 20px;
     padding: 14px 0;
-    border-bottom: 1px solid #eee3da;
+    border-bottom: 1px solid var(--borda-clara);
 }
 
 .detalhe-linha span {
@@ -317,7 +317,7 @@
     margin-bottom: 14px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .resultado-filamento-cabecalho {
@@ -351,7 +351,7 @@
     gap: 12px;
     margin-top: 28px;
     padding-top: 20px;
-    border-top: 1px solid #eee3da;
+    border-top: 1px solid var(--borda-clara);
 }
 
 .acoes-resultado form {
@@ -400,7 +400,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     height: 68px;
     margin-bottom: 18px;
     border-radius: 20px;
-    background: #fff0eb;
+    background: var(--destaque-suave);
     color: var(--marrom-claro);
     font-size: 1.8rem;
 }
@@ -433,7 +433,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico th {
     padding: 12px 8px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom-claro);
     font-size: 0.82rem;
     font-weight: 700;
@@ -444,7 +444,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico td {
     padding: 12px 8px;
-    border-bottom: 1px solid #eee3da;
+    border-bottom: 1px solid var(--borda-clara);
     color: var(--marrom);
     font-size: 0.94rem;
     vertical-align: middle;
@@ -511,7 +511,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     height: 32px;
     border: 1px solid var(--borda);
     border-radius: 9px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom);
     text-decoration: none;
     transition: 0.2s ease;
@@ -558,7 +558,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 15px 18px;
     border: 1px solid var(--borda);
     border-radius: 10px;
-    background: #f8ddd5;
+    background: var(--destaque-medio);
     color: var(--marrom);
 }
 
@@ -630,7 +630,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin: 24px 0;
     border: 1px solid var(--borda);
     border-radius: 14px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .resumo-consumo-peca[hidden] {
@@ -893,7 +893,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 16px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     transition: border-color 0.2s, background 0.2s, transform 0.2s;
 }
 
@@ -914,7 +914,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .markup-opcao input:checked + .markup-quadrado {
     border: 2px solid var(--marrom);
-    background: #fff0eb;
+    background: var(--destaque-suave);
 }
 
 .markup-opcao input:focus-visible + .markup-quadrado {
@@ -931,7 +931,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin-top: 18px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .plataforma-info[hidden],
@@ -987,7 +987,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin-top: 18px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .plataforma-extras h3 {
@@ -1080,7 +1080,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     overflow: hidden;
     border: 1px solid rgba(73, 46, 30, 0.12);
     border-radius: 18px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     box-shadow: 0 5px 18px rgba(73, 46, 30, 0.06);
 }
 
@@ -1188,7 +1188,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin-bottom: 0;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .detalhes-filamento-info {
@@ -1351,7 +1351,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 /* CONTRASTE DO NOME DA PEÇA */
 
 .detalhes-titulo-peca {
-    color: #492e1e;
+    color: var(--cor-primaria);
 }
 
 /* DESTAQUE DO LUCRO LÍQUIDO */
@@ -1366,7 +1366,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 .detalhes-identificacao-peca .detalhes-titulo-peca {
-    color: #492e1e;
+    color: var(--cor-primaria);
 }
 /* LUCRO LÍQUIDO NO RESULTADO DO CÁLCULO */
 
@@ -1399,7 +1399,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 0 14px;
     border: 1px solid var(--borda);
     border-radius: 9px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom-claro);
 }
 
@@ -1461,7 +1461,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 16px 18px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .resumo-tempo-impressao[hidden] {
@@ -1538,7 +1538,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin: 0;
     border: 1px dashed #c9ad9b;
     border-radius: 10px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom-claro);
     font-size: 0.82rem;
     font-weight: 600;
@@ -1548,7 +1548,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .foto-peca-selecao:hover {
     border-color: var(--destaque);
-    background: #fff0eb;
+    background: var(--destaque-suave);
     color: var(--marrom);
 }
 
@@ -1611,7 +1611,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     height: 36px;
     margin-left: 4px;
     padding: 0;
-    border: 1px solid #e7c8c0;
+    border: 1px solid var(--destaque-borda);
     border-radius: 9px;
     background: #fff0eb;
     color: #8a3427;
@@ -1728,7 +1728,7 @@ form:has(input[name="busca"]) button {
     object-fit: cover;
     border: 1px solid var(--borda);
     border-radius: 14px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 /* CONTROLE DE FOTO DA PEÇA */
@@ -1757,7 +1757,7 @@ form:has(input[name="busca"]) button {
     padding: 14px;
     border: 1px dashed var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom);
     cursor: pointer;
     text-align: center;
@@ -1802,7 +1802,7 @@ form:has(input[name="busca"]) button {
     padding: 10px;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .foto-peca-preview.visivel {
@@ -1926,7 +1926,7 @@ input[type="search"] {
     padding: 12px 15px;
     border: 1px solid var(--borda);
     border-radius: 10px;
-    background: #fff8f3;
+    background: var(--superficie-suave);
     color: var(--marrom);
 }
 .resultado-unidade-contexto > i { flex: 0 0 auto; margin-top: 2px; color: var(--destaque); }
@@ -1959,7 +1959,7 @@ input[type="search"] {
     object-fit: contain;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .resultado-grade {
@@ -2084,7 +2084,7 @@ input[type="search"] {
     overflow: hidden;
     border: 1px solid var(--borda);
     border-radius: 14px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     cursor: zoom-in;
 }
 
@@ -2153,7 +2153,7 @@ input[type="search"] {
     max-height: 58vh;
     object-fit: contain;
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     box-shadow: 0 12px 50px rgba(0, 0, 0, 0.3);
 }
 
@@ -2638,13 +2638,13 @@ input[type="search"] {
 
 /* Mantém o campo Modelo da impressora no padrão visual do Criare 3D */
 #modelo {
-    background-color: #fffdfb;
+    background-color: var(--superficie);
     color: var(--marrom);
     border: 1px solid var(--borda);
 }
 
 #modelo:focus {
-    background-color: #fffdfb;
+    background-color: var(--superficie);
     border-color: var(--destaque);
     outline: none;
     box-shadow: 0 0 0 3px rgba(233, 166, 149, 0.2);
@@ -2653,7 +2653,7 @@ input[type="search"] {
 #modelo:-webkit-autofill,
 #modelo:-webkit-autofill:hover,
 #modelo:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px #fffdfb inset !important;
+    -webkit-box-shadow: 0 0 0 1000px var(--superficie) inset !important;
     -webkit-text-fill-color: var(--marrom);
 }
 
@@ -2810,7 +2810,7 @@ main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select {
     padding: 10px 12px;
     border: 1px solid var(--borda);
     border-radius: 9px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom);
     font: inherit;
     box-sizing: border-box;
@@ -2864,7 +2864,7 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
 /* PLACEHOLDERS */
 
 :root {
-    --texto-secundario-acessivel: #75675e;
+    --texto-secundario-acessivel: var(--marrom-claro);
 }
 
 .busca-filamentos-campo input::placeholder,
@@ -2972,7 +2972,7 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
 
 /* Contraste suficiente para textos auxiliares e placeholders. */
 :root {
-    --texto-secundario-acessivel: #75675e;
+    --texto-secundario-acessivel: var(--marrom-claro);
 }
 
 .busca-filamentos-campo input::placeholder,
@@ -2996,7 +2996,7 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
     list-style: none;
     cursor: pointer;
     color: var(--marrom);
-    background: #fffdfb;
+    background: var(--superficie);
     border: 1px solid var(--borda);
     border-radius: 12px;
     font-size: 1.2rem;
@@ -3193,7 +3193,7 @@ a:focus-visible {
     padding: 24px;
     border: 1px dashed var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
     color: var(--marrom-claro);
     text-align: center;
 }
@@ -3227,7 +3227,7 @@ a:focus-visible {
     margin: 20px 0;
     border: 1px solid var(--borda);
     border-radius: 12px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .comparador-campo {
@@ -3400,7 +3400,7 @@ a:focus-visible {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #8a5b3d;
+    background: var(--marrom);
 }
 
 .painel-plataforma {
@@ -3428,7 +3428,7 @@ a:focus-visible {
 
 .lista-catalogo .tabela thead,
 .lista-catalogo .tabela thead th {
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .lista-catalogo .tabela thead th {
@@ -3463,7 +3463,7 @@ a:focus-visible {
     margin: 0;
     padding: 0;
     border-radius: 4px;
-    accent-color: #8a5b3d;
+    accent-color: var(--destaque-escuro);
     cursor: pointer;
 }
 
@@ -3692,7 +3692,7 @@ a:focus-visible {
     padding: 10px;
     border: 1px solid var(--borda);
     border-radius: 9px;
-    background: #fffaf6;
+    background: var(--superficie-suave);
 }
 
 .estoque-ajuste-rapido label { color: var(--marrom-claro); font-size: 0.75rem; }
@@ -3719,27 +3719,27 @@ a:focus-visible {
 
 .lista-catalogo .tabela tbody tr.item-exclusao-falhou > td,
 .tabela-historico tbody tr.item-exclusao-falhou > td {
-    background-color: #fbe9e5;
+    background-color: var(--destaque-suave);
     box-shadow:
-            inset 0 2px 0 #d99a8d,
-            inset 0 -2px 0 #d99a8d;
+            inset 0 2px 0 var(--destaque-escuro),
+            inset 0 -2px 0 var(--destaque-escuro);
     transition: background-color 400ms ease, box-shadow 400ms ease;
 }
 
 .lista-catalogo .tabela tbody tr.item-exclusao-falhou > td:first-child,
 .tabela-historico tbody tr.item-exclusao-falhou > td:first-child {
     box-shadow:
-            inset 2px 0 0 #d99a8d,
-            inset 0 2px 0 #d99a8d,
-            inset 0 -2px 0 #d99a8d;
+            inset 2px 0 0 var(--destaque-escuro),
+            inset 0 2px 0 var(--destaque-escuro),
+            inset 0 -2px 0 var(--destaque-escuro);
 }
 
 .lista-catalogo .tabela tbody tr.item-exclusao-falhou > td:last-child,
 .tabela-historico tbody tr.item-exclusao-falhou > td:last-child {
     box-shadow:
-            inset -2px 0 0 #d99a8d,
-            inset 0 2px 0 #d99a8d,
-            inset 0 -2px 0 #d99a8d;
+            inset -2px 0 0 var(--destaque-escuro),
+            inset 0 2px 0 var(--destaque-escuro),
+            inset 0 -2px 0 var(--destaque-escuro);
 }
 
 .lista-catalogo .tabela tbody tr.item-exclusao-falhou-ocultando > td,
@@ -3954,7 +3954,7 @@ a:focus-visible {
     padding: .35rem .55rem;
     border: 0;
     background: transparent;
-    color: var(--marrom-claro, #765d50);
+    color: var(--marrom-claro, var(--marrom-claro));
     font: inherit;
     font-size: .88rem;
     text-decoration: underline;
@@ -3974,5 +3974,5 @@ a:focus-visible {
 .resumo-producao-previa > small {
     display: block;
     margin-top: .5rem;
-    color: var(--marrom-claro, #765d50);
+    color: var(--marrom-claro, var(--marrom-claro));
 }

@@ -24,7 +24,7 @@
                 <div class="configuracao-icone"><i class="bi bi-person"></i></div>
                 <div>
                     <h2>Dados do usuário</h2>
-                    <p>Este é o e-mail usado para entrar no Criare 3D.</p>
+                    <p th:text="|Este é o e-mail usado para entrar no ${tenantNome}.|">Este é o e-mail usado para entrar no Criare 3D.</p>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 <div class="configuracao-icone"><i class="bi bi-shield-lock"></i></div>
                 <div>
                     <h2>Segurança da conta</h2>
-                    <p>Atualize a senha usada para entrar no Criare 3D.</p>
+                    <p th:text="|Atualize a senha usada para entrar no ${tenantNome}.|">Atualize a senha usada para entrar no Criare 3D.</p>
                 </div>
             </div>
         </div>

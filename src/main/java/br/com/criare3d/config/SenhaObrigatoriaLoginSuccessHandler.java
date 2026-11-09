@@ -36,6 +36,12 @@ public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSucces
             response.sendRedirect(request.getContextPath() + "/senha/primeiro-acesso");
             return;
         }
+        if (authentication.getPrincipal() instanceof UsuarioPrincipal principal
+                && principal.getPerfil() == br.com.criare3d.models.enums.Perfil.ADMIN
+                && principal.getTenantId() == null) {
+            response.sendRedirect(request.getContextPath() + "/usuarios/listar");
+            return;
+        }
         response.sendRedirect(request.getContextPath() + "/");
     }
 }
