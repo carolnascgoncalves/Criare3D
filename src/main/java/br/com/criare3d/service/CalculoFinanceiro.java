@@ -37,6 +37,12 @@ final class CalculoFinanceiro {
         return precisao(horas.multiply(valorCompra.divide(vidaUtilHoras, 8, RoundingMode.HALF_UP)));
     }
 
+    static BigDecimal depreciacaoPorHora(BigDecimal valorPorHora, long minutos) {
+        if (valorPorHora == null || minutos <= 0) return BigDecimal.ZERO.setScale(8);
+        return precisao(valorPorHora.multiply(BigDecimal.valueOf(minutos))
+                .divide(SESSENTA, 8, RoundingMode.HALF_UP));
+    }
+
     static BigDecimal falhas(BigDecimal custoFilamento, BigDecimal custoEnergia, BigDecimal percentual) {
         return precisao(custoFilamento.add(custoEnergia).multiply(percentual)
                 .divide(CEM, 8, RoundingMode.HALF_UP));

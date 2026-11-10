@@ -47,8 +47,9 @@ A aplicação usa variáveis de ambiente para conexão e criação inicial do ad
 | `ADMIN_EMAIL` | E-mail do administrador inicial. |
 | `ADMIN_PASSWORD` | Senha inicial do administrador, com pelo menos 12 caracteres. |
 | `SESSION_COOKIE_SECURE` | Use `true` em produção com HTTPS; o padrão local é `false`. |
+| `CRIARE_ML_ACCESS_TOKEN` | Token da aplicação do Mercado Livre usado para consultar anúncios novos e usados. Opcional; sem ele, a taxa de depreciação pode ser preenchida manualmente. Configure como segredo no Render, nunca no Git. |
 
-O `AdminBootstrap` cria o ADMIN na primeira inicialização. Se já existir um ADMIN com o mesmo e-mail, a conta é mantida. Se o e-mail pertencer a um usuário comum, a inicialização é interrompida para evitar alteração indevida de perfil.
+O `AdminBootstrap` cria o ADMIN na primeira inicialização. Se já existir um ADMIN com o mesmo e-mail, a conta é mantida. Se o e-mail pertencer a um usuário comum, a inicialização é interrompida para evitar alteração indevida de perfil. O token do Mercado Livre precisa vir de uma aplicação de desenvolvedor e pode expirar; a renovação OAuth automática ainda não está implementada, então atualize o segredo do ambiente quando o token vencer.
 
 ## Executar localmente no Windows
 
@@ -90,7 +91,7 @@ O workflow `.github/workflows/ci.yml` roda em pushes e pull requests direcionado
 
 O `Dockerfile` possui duas etapas: a primeira compila o projeto com Maven/Java 21; a segunda copia somente o JAR para uma imagem JRE menor, executada com usuário sem privilégios. A aplicação respeita a variável `PORT` do Render e aceita opções pela variável `JAVA_OPTS`.
 
-Configure no ambiente do serviço as variáveis `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `SESSION_COOKIE_SECURE=true`.
+Configure no ambiente do serviço as variáveis `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `SESSION_COOKIE_SECURE=true`. Para buscar referências de preço no Mercado Livre, configure também `CRIARE_ML_ACCESS_TOKEN`.
 
 Para construir a imagem:
 
@@ -98,7 +99,7 @@ Para construir a imagem:
 docker build -t criare3d .
 ```
 
-O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A migração `V3` adiciona as opções dos custos adicionais; a `V4` registra o tempo de trabalho nas peças e os dados de compra e vida útil das impressoras; a `V5` adiciona a opção de usar um tempo de mão de obra fixo nas configurações; a `V6` registra gastos de manutenção por impressora; a `V7` adiciona estoque e status de produção/venda; a `V8` separa no histórico o custo de manutenção do custo de depreciação; a `V9` registra a data de cadastro do filamento; a `V10` adiciona a versão usada para impedir perda de atualizações concorrentes no estoque; a `V11` registra quando uma conta precisa trocar a senha temporária definida pelo administrador; a `V12` registra a data real em que um cálculo foi marcado como vendido; a `V13` registra unidades por cálculo; a `V14` separa as fotos do histórico; a `V15` registra as impressões por cálculo; e a `V16` adiciona a capacidade de peças por impressão, o aquecimento da impressora, a purga por impressão, precisão maior para custos e estoque, totais de gramas no histórico e índices para consultas frequentes. A `V16` mantém os valores financeiros e o estoque dos cálculos antigos; os novos campos históricos recebem os valores correspondentes ou zero. A coluna legada `impressora.manutencao_hora_imp` é mantida no banco, mas deixa de ser usada como estimativa; a média passa a vir dos gastos registrados e das horas efetivamente produzidas.
+O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A migração `V3` adiciona as opções dos custos adicionais; a `V4` registra o tempo de trabalho nas peças e os dados de compra e vida útil das impressoras; a `V5` adiciona a opção de usar um tempo de mão de obra fixo nas configurações; a `V6` registra gastos de manutenção por impressora; a `V7` adiciona estoque e status de produção/venda; a `V8` separa no histórico o custo de manutenção do custo de depreciação; a `V9` registra a data de cadastro do filamento; a `V10` adiciona a versão usada para impedir perda de atualizações concorrentes no estoque; a `V11` registra quando uma conta precisa trocar a senha temporária definida pelo administrador; a `V12` registra a data real em que um cálculo foi marcado como vendido; a `V13` registra unidades por cálculo; a `V14` separa as fotos do histórico; a `V15` registra as impressões por cálculo; a `V16` adiciona parâmetros de impressão e índices; a `V26` grava a taxa de depreciação por hora e sua origem na impressora e no histórico, além da previsão editável de horas mensais. A consulta de preços do Mercado Livre guarda apenas medianas e contagens em cache por sete dias; os anúncios originais não são salvos.
 
 Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes exercitam as migrations em um PostgreSQL descartável, sem substituir o backup do banco real.
 

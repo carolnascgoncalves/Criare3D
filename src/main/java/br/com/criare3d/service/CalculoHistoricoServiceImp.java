@@ -495,12 +495,15 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         if (Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada())) {
             BigDecimal valorImpressora = impressora.getValorCompra();
             BigDecimal vidaUtilHoras = impressora.getVidaUtilHoras();
-            if (valorImpressora == null || valorImpressora.signum() < 0
-                    || vidaUtilHoras == null || vidaUtilHoras.signum() <= 0) {
+            BigDecimal depreciacaoPorHora = impressora.getDepreciacaoPorHora();
+            boolean taxaDiretaValida = depreciacaoPorHora != null && depreciacaoPorHora.signum() >= 0;
+            boolean dadosLegadosValidos = valorImpressora != null && valorImpressora.signum() >= 0
+                    && vidaUtilHoras != null && vidaUtilHoras.signum() > 0;
+            if (!taxaDiretaValida && !dadosLegadosValidos) {
                 throw new IllegalArgumentException(
                         "A depreciação está ativada nas Configurações, mas faltam dados na impressora selecionada. " +
-                        "Cadastre o valor de compra e a vida útil em Impressoras; a calculadora usará esses dados " +
-                        "e o tempo de impressão para incluir esse custo no cálculo."
+                        "Informe o custo estimado de depreciação por hora em Impressoras; a calculadora usará " +
+                        "esse valor e o tempo de impressão para incluir o custo."
                 );
             }
         }
@@ -514,7 +517,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
                         Boolean.TRUE.equals(configuracao.getMaoObraAtivada()),
                         configuracao.getValorMaoObraHora(), tempoTrabalhoMinutos,
                         manutencaoPorHora, Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()),
-                        impressora.getValorCompra(), impressora.getVidaUtilHoras());
+                        impressora.getValorCompra(), impressora.getVidaUtilHoras(), impressora.getDepreciacaoPorHora());
         BigDecimal energiaLote = custosOperacionais.energia();
         BigDecimal purgaGramasLote = custosOperacionais.gramasPurga();
         BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
@@ -617,6 +620,10 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setTempoTrabalhoMinutos(tempoTrabalhoMinutos);
         historico.setValorCompraImpressora(impressora.getValorCompra());
         historico.setVidaUtilImpressoraHoras(impressora.getVidaUtilHoras());
+        historico.setDepreciacaoHoraImpressora(impressora.getDepreciacaoPorHora());
+        historico.setDepreciacaoOrigemImpressora(impressora.getDepreciacaoOrigem());
+        historico.setAnunciosNovosDepreciacao(impressora.getAnunciosNovos());
+        historico.setAnunciosUsadosDepreciacao(impressora.getAnunciosUsados());
         historico.setManutencaoHoraImpressora(manutencaoPorHora);
         historico.setTaxaFalhaAtivada(Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada()));
         historico.setPercentualFalha(configuracao.getPercentualFalha());

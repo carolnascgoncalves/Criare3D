@@ -38,16 +38,30 @@ public class ImpressoraRequest {
     @DecimalMin(value = "0.0", message = "A vida útil não pode ser negativa")
     private @Getter @Setter BigDecimal vidaUtilHoras;
 
+    @DecimalMin(value = "0.0", message = "A depreciação por hora não pode ser negativa")
+    private @Getter @Setter BigDecimal depreciacaoPorHora;
+    private @Getter @Setter String depreciacaoOrigem;
+    private @Getter @Setter Integer anunciosNovos;
+    private @Getter @Setter Integer anunciosUsados;
+    @Builder.Default
+    private @Getter @Setter Boolean depreciacaoManual = false;
+
+    @DecimalMin(value = "0.0", message = "As horas mensais não podem ser negativas")
+    private @Getter @Setter BigDecimal horasMensaisUso;
+    @Builder.Default
+    private @Getter @Setter Boolean horasMensaisManual = false;
+
     @jakarta.validation.constraints.Min(value = 0, message = "O aquecimento não pode ser negativo.")
     @jakarta.validation.constraints.Max(value = 10000, message = "O aquecimento deve ser de até 10.000 minutos.")
     @Builder.Default
     private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
 
-    @AssertTrue(message = "Para calcular o custo da máquina, informe o valor de compra e uma vida útil maior que zero.")
+    @AssertTrue(message = "Para usar o cálculo antigo, informe também as horas estimadas da impressora.")
     public boolean isDadosDepreciacaoValidos() {
-        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
-        return nenhumDado || (valorCompra != null && vidaUtilHoras != null
-                && vidaUtilHoras.signum() > 0);
+        boolean taxaValida = depreciacaoPorHora == null || depreciacaoPorHora.signum() >= 0;
+        boolean dadosLegadosValidos = depreciacaoPorHora != null || valorCompra == null
+                || (vidaUtilHoras != null && vidaUtilHoras.signum() > 0);
+        return taxaValida && dadosLegadosValidos;
     }
 
     public static ImpressoraRequest toDto(final Impressora impressora){
@@ -58,6 +72,13 @@ public class ImpressoraRequest {
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
                 .tempoAquecimentoMinutos(impressora.getTempoAquecimentoMinutos())
+                .depreciacaoPorHora(impressora.getDepreciacaoPorHora())
+                .depreciacaoOrigem(impressora.getDepreciacaoOrigem())
+                .anunciosNovos(impressora.getAnunciosNovos())
+                .anunciosUsados(impressora.getAnunciosUsados())
+                .depreciacaoManual(impressora.getDepreciacaoManual())
+                .horasMensaisUso(impressora.getHorasMensaisUso())
+                .horasMensaisManual(impressora.getHorasMensaisManual())
                 .build();
     }
 
@@ -68,6 +89,13 @@ public class ImpressoraRequest {
                 .potenciaWatts(dto.getPotenciaWatts())
                 .valorCompra(dto.getValorCompra())
                 .vidaUtilHoras(dto.getVidaUtilHoras())
+                .depreciacaoPorHora(dto.getDepreciacaoPorHora())
+                .depreciacaoOrigem(dto.getDepreciacaoOrigem())
+                .anunciosNovos(dto.getAnunciosNovos())
+                .anunciosUsados(dto.getAnunciosUsados())
+                .depreciacaoManual(Boolean.TRUE.equals(dto.getDepreciacaoManual()))
+                .horasMensaisUso(dto.getHorasMensaisUso())
+                .horasMensaisManual(Boolean.TRUE.equals(dto.getHorasMensaisManual()))
                 .tempoAquecimentoMinutos(dto.getTempoAquecimentoMinutos() == null ? 0 : dto.getTempoAquecimentoMinutos())
                 .build();
     }

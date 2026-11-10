@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 public final class CalculadoraProducao {
     private CalculadoraProducao() {}
 
-    /** Centraliza as parcelas variáveis do lote; o serviço fica responsável por buscar e validar os dados. */
+    /** Compatibilidade com chamadas e testes que ainda usam o modelo antigo. */
     public static CustosOperacionaisLote calcularCustosOperacionaisLote(
             BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
             BigDecimal gramasPurgaPorImpressao, int impressoes,
@@ -14,6 +14,21 @@ public final class CalculadoraProducao {
             boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
             BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
             BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras) {
+        return calcularCustosOperacionaisLote(potenciaWatts, minutosMaquina, tarifaEnergiaKwh,
+                gramasPurgaPorImpressao, impressoes, custoFilamentoLote, gramasFilamentoUnidade,
+                maoDeObraAtivada, valorMaoDeObraHora, minutosTrabalho, manutencaoPorHora,
+                depreciacaoAtivada, valorCompraImpressora, vidaUtilHoras, null);
+    }
+
+    /** Centraliza as parcelas variáveis do lote; o serviço fica responsável por buscar e validar os dados. */
+    public static CustosOperacionaisLote calcularCustosOperacionaisLote(
+            BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
+            BigDecimal gramasPurgaPorImpressao, int impressoes,
+            BigDecimal custoFilamentoLote, BigDecimal gramasFilamentoUnidade,
+            boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
+            BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
+            BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras,
+            BigDecimal depreciacaoPorHora) {
         BigDecimal energia = energiaLote(potenciaWatts, minutosMaquina, tarifaEnergiaKwh);
         BigDecimal gramasPurga = gramasPurgaLote(gramasPurgaPorImpressao, impressoes);
         BigDecimal custoPurga = custoPurgaLote(gramasPurga, custoFilamentoLote, gramasFilamentoUnidade);
@@ -22,7 +37,9 @@ public final class CalculadoraProducao {
                 : BigDecimal.ZERO.setScale(8);
         BigDecimal manutencao = manutencaoLote(manutencaoPorHora, minutosMaquina);
         BigDecimal depreciacao = depreciacaoAtivada
-                ? depreciacaoLote(valorCompraImpressora, vidaUtilHoras, minutosMaquina)
+                ? depreciacaoPorHora != null
+                    ? depreciacaoPorHoraLote(depreciacaoPorHora, minutosMaquina)
+                    : depreciacaoLote(valorCompraImpressora, vidaUtilHoras, minutosMaquina)
                 : BigDecimal.ZERO.setScale(8);
         return new CustosOperacionaisLote(energia, gramasPurga, custoPurga, maoDeObra,
                 manutencao, depreciacao);
@@ -44,6 +61,10 @@ public final class CalculadoraProducao {
     public static BigDecimal depreciacaoLote(BigDecimal valorCompra, BigDecimal vidaUtilHoras,
                                              long minutos) {
         return CalculoFinanceiro.depreciacao(valorCompra, vidaUtilHoras, minutos);
+    }
+
+    public static BigDecimal depreciacaoPorHoraLote(BigDecimal valorPorHora, long minutos) {
+        return CalculoFinanceiro.depreciacaoPorHora(valorPorHora, minutos);
     }
 
     public static BigDecimal gramasPurgaLote(BigDecimal gramasPorImpressao, int impressoes) {

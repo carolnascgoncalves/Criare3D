@@ -2679,6 +2679,39 @@ input[type="color"]:focus {
 
 .referencia-modelo-impressora { display: block; margin-top: 6px; color: var(--marrom-claro); }
 
+.grupo-custo-impressora {
+    display: grid;
+    gap: 18px;
+    padding: 18px;
+    margin-top: 8px;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--cor-fundo) 22%, white);
+}
+.linha-referencia-depreciacao {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    gap: 12px;
+    align-items: stretch;
+}
+.linha-referencia-depreciacao .botao { white-space: nowrap; }
+.dados-legados-impressora {
+    padding-top: 12px;
+    border-top: 1px solid var(--borda);
+}
+.dados-legados-impressora summary {
+    color: var(--marrom-claro);
+    cursor: pointer;
+    font-weight: 600;
+}
+.dados-legados-impressora .campo { margin-top: 14px; }
+@media (max-width: 600px) {
+    .linha-referencia-depreciacao { grid-template-columns: 1fr; }
+    .linha-referencia-depreciacao .botao { width: 100%; white-space: normal; }
+    .grupo-custo-impressora { padding: 14px; }
+}
+.referencia-modelo-aplicar { margin: 8px 8px 0 0; vertical-align: middle; }
+
 .peca-cadastro-grade {
     display: grid;
     grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);

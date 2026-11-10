@@ -24,6 +24,15 @@ import java.math.BigDecimal;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
 
+    @Query("SELECT COALESCE(SUM(h.minutosMaquinaLote), 0) FROM CalculoHistorico h " +
+            "WHERE h.produzido = true AND h.dataCalculo >= :inicio")
+    Long somarMinutosMaquinaProduzidosDesde(@Param("inicio") LocalDateTime inicio);
+
+    @Query("SELECT COALESCE(SUM(h.minutosMaquinaLote), 0) FROM CalculoHistorico h " +
+            "WHERE h.produzido = true AND h.dataCalculo >= :inicio AND h.impressora.id = :impressoraId")
+    Long somarMinutosMaquinaProduzidosDaImpressoraDesde(
+            @Param("inicio") LocalDateTime inicio, @Param("impressoraId") UUID impressoraId);
+
     @Query(value = """
         SELECT
           COALESCE(SUM(h.unidades_hist) FILTER (WHERE h.data_hist >= :inicio), 0) AS "calculadas",

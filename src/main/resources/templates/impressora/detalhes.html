@@ -51,16 +51,20 @@
             </article>
             <article class="peca-detalhe-metrica">
                 <span class="peca-detalhe-metrica-icone"><i class="bi bi-cash-coin"></i></span>
-                <div><span>Valor de compra</span><strong th:text="${impressora.valorCompra != null ? 'R$ ' + #numbers.formatDecimal(impressora.valorCompra, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">Não informado</strong></div>
+                <div><span>Depreciação estimada por hora</span><strong th:text="${impressora.depreciacaoPorHora != null ? 'R$ ' + #numbers.formatDecimal(impressora.depreciacaoPorHora, 1, 'POINT', 4, 'COMMA') + '/h' : 'Não informada'}">Não informada</strong></div>
             </article>
             <article class="peca-detalhe-metrica">
                 <span class="peca-detalhe-metrica-icone"><i class="bi bi-hourglass-split"></i></span>
-                <div><span>Vida útil estimada</span><strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 2, 'POINT') + ' horas' : 'Não informada'}">Não informada</strong></div>
+                <div><span>Horas previstas até troca ou revenda</span><strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 0, 'POINT') + ' h' : 'Não informadas'}">Não informadas</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-calendar3"></i></span>
+                <div><span>Uso mensal estimado</span><strong th:text="${impressora.horasMensaisUso != null ? #numbers.formatDecimal(impressora.horasMensaisUso, 1, 'COMMA', 1, 'POINT') + ' h/mês' : 'Ainda não estimado'}">Ainda não estimado</strong></div>
             </article>
         </div>
 
         <footer class="peca-detalhe-rodape">
-            <p><i class="bi bi-info-circle"></i> A potência e os tempos cadastrados alimentam as estimativas de custo.</p>
+            <p><i class="bi bi-info-circle"></i> <span th:if="${impressora.depreciacaoOrigem != null}" th:text="${impressora.depreciacaoOrigem.startsWith('MERCADO_LIVRE') ? 'Referência do Mercado Livre: ' + (impressora.anunciosNovos != null ? impressora.anunciosNovos : 0) + ' anúncios novos e ' + (impressora.anunciosUsados != null ? impressora.anunciosUsados : 0) + ' usados. São preços pedidos, não valores confirmados de venda.' : 'Taxa de depreciação informada manualmente.'}">Origem da depreciação</span><span th:unless="${impressora.depreciacaoOrigem != null}">A potência e os tempos cadastrados alimentam as estimativas de custo.</span></p>
             <a th:href="@{/impressora/listar}" class="botao botao-secundario">
                 <i class="bi bi-arrow-left"></i> Voltar para impressoras
             </a>
@@ -92,10 +96,10 @@
         </div>
 
         <p class="aviso-info" th:if="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and manutencaoPorHoraCalculada != null and manutencaoPorHoraCalculada.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-            <i class="bi bi-info-circle"></i> Estimativa automática: os gastos registrados são distribuídos pela vida útil estimada da impressora. Esse valor por hora é aplicado pela calculadora conforme o tempo de impressão.
+            <i class="bi bi-info-circle"></i> Estimativa automática: os gastos registrados são distribuídos pelas horas previstas de uso até a troca ou revenda. Esse valor por hora é aplicado pela calculadora conforme o tempo de impressão.
         </p>
         <p class="aviso-info" th:unless="${totalGastoManutencao != null and totalGastoManutencao.compareTo(T(java.math.BigDecimal).ZERO) > 0 and manutencaoPorHoraCalculada != null and manutencaoPorHoraCalculada.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
-            <i class="bi bi-info-circle"></i> Para estimar o custo por hora, cadastre gastos de manutenção e informe a vida útil da impressora. A calculadora aplica essa estimativa conforme o tempo de impressão.
+            <i class="bi bi-info-circle"></i> Para estimar o custo por hora, cadastre gastos de manutenção e informe as horas previstas de uso até a troca ou revenda. A calculadora aplica essa estimativa conforme o tempo de impressão.
         </p>
 
         <div class="manutencao-impressora-colunas">

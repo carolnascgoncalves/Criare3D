@@ -55,9 +55,16 @@ public class ImpressoraServiceImp implements ImpressoraService {
 
             existing.setValorCompra(patch.getValorCompra());
             existing.setVidaUtilHoras(patch.getVidaUtilHoras());
+            existing.setDepreciacaoPorHora(patch.getDepreciacaoPorHora());
+            existing.setDepreciacaoOrigem(patch.getDepreciacaoOrigem());
+            existing.setAnunciosNovos(patch.getAnunciosNovos());
+            existing.setAnunciosUsados(patch.getAnunciosUsados());
+            existing.setDepreciacaoManual(Boolean.TRUE.equals(patch.getDepreciacaoManual()));
+            existing.setHorasMensaisUso(patch.getHorasMensaisUso());
+            existing.setHorasMensaisManual(Boolean.TRUE.equals(patch.getHorasMensaisManual()));
             existing.setTempoAquecimentoMinutos(patch.getTempoAquecimentoMinutos() == null
                     ? 0 : patch.getTempoAquecimentoMinutos());
-            // Mantém o campo legado no banco para não apagar dados; ele não participa mais dos cálculos.
+            // A taxa direta tem prioridade; preço de compra e horas continuam como fallback legado.
 
             return impressoraRepository.save(existing);
         });

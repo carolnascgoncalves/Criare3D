@@ -127,7 +127,7 @@
                            step="0.01"
                            placeholder="Ex.: 0.85"
                            required>
-                    <small>Valor cobrado por quilowatt-hora de energia.</small>
+                    <small>Use o custo efetivo por kWh da sua conta de luz. A tarifa publicada pela ANEEL pode não incluir impostos, iluminação pública e bandeiras; por isso, uma média da distribuidora pode divergir do valor realmente pago. <a href="https://www.gov.br/aneel/pt-br/centrais-de-conteudos/relatorios-e-indicadores/tarifas-e-informacoes-economico-financeiras" target="_blank" rel="noopener noreferrer">Entenda as tarifas na ANEEL</a>.</small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('tarifaEnergiaKwh')}"
                           th:errors="*{tarifaEnergiaKwh}"></span>

@@ -55,8 +55,11 @@
                         <option value="Bambu Lab P1P"></option><option value="Bambu Lab P1S"></option>
                         <option value="Bambu Lab X1 Carbon"></option><option value="Bambu Lab X1E"></option>
                         <option value="Bambu Lab H2D"></option><option value="Bambu Lab H2S"></option>
+                        <option value="Bambu Lab H2C"></option><option value="Bambu Lab H3C"></option>
+                        <option value="Bambu Lab A2L"></option><option value="Bambu Lab P2S"></option>
+                        <option value="Bambu Lab X2D"></option>
                     </datalist>
-                    <small>Comece a digitar para buscar modelos Bambu Lab ou informe outro modelo manualmente.</small>
+                    <small>Busque um modelo Bambu Lab ou digite outro. Quando houver média oficial em PLA, ela será sugerida como ponto de partida e continuará editável.</small>
 
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('modelo')}"
@@ -64,13 +67,13 @@
                 </div>
 
                 <div class="campo">
-                    <label for="potenciaWatts">Potência (W)</label>
+                    <label for="potenciaWatts">Potência média durante a impressão (W)</label>
                     <input type="number"
                            id="potenciaWatts"
                            th:field="*{potenciaWatts}"
                            step="0.01"
                            min="0">
-                    <small>Informe a potência média durante a impressão, se souber. A potência máxima anunciada pelo fabricante não representa o consumo médio usado no cálculo de energia.</small>
+                    <small>Este valor é usado no cálculo de energia. Se o fabricante informar apenas a potência máxima, use uma medição ou uma estimativa própria; não use o limite máximo como média.</small>
                     <small id="referenciaPotenciaFabricante" class="referencia-modelo-impressora" hidden></small>
 
                     <div class="erro-campo"
@@ -85,18 +88,46 @@
                     <div class="erro-campo" th:if="${#fields.hasErrors('tempoAquecimentoMinutos')}" th:errors="*{tempoAquecimentoMinutos}"></div>
                 </div>
 
+                <div class="grupo-custo-impressora" data-estimativa-depreciacao>
                 <div class="campo">
-                    <label for="valorCompra">Valor de compra da impressora (R$) <span class="etiqueta-opcional">Opcional</span></label>
-                    <input type="number" id="valorCompra" th:field="*{valorCompra}" min="0" step="0.01">
-                    <div class="erro-campo" th:if="${#fields.hasErrors('valorCompra')}" th:errors="*{valorCompra}"></div>
-                </div>
-                <div class="campo">
-                    <label for="vidaUtilHoras">Vida útil estimada (horas) <span class="etiqueta-opcional">Opcional</span></label>
+                    <label for="vidaUtilHoras">Horas estimadas de uso até troca ou revenda <span class="etiqueta-opcional">Editável</span></label>
                     <input type="number" id="vidaUtilHoras" th:field="*{vidaUtilHoras}" min="0" step="0.01" placeholder="Ex.: 5000">
+                    <small>Não é um dado publicado pelo fabricante. Usamos 3.000 h como ponto de partida para modelos compactos e 5.000 h para os demais; ajuste conforme uso e conservação.</small>
                     <div class="erro-campo" th:if="${#fields.hasErrors('vidaUtilHoras')}" th:errors="*{vidaUtilHoras}"></div>
-                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosDepreciacaoValidos')}" th:errors="*{dadosDepreciacaoValidos}"></div>
                 </div>
-                <small class="texto-campo-opcional">Esses dados só são necessários quando a depreciação da impressora estiver ativada em Configurações.</small>
+                <div class="campo">
+                    <label for="horasMensaisUso">Horas de impressão estimadas por mês</label>
+                    <input type="number" id="horasMensaisUso" th:field="*{horasMensaisUso}" min="0" step="0.1" placeholder="Preenchido com o histórico ou 100 h">
+                    <input type="hidden" id="horasMensaisManual" th:field="*{horasMensaisManual}">
+                    <small id="custoDepreciacaoMensal">A estimativa mensal aparecerá junto com a referência de preços.</small>
+                </div>
+                <div class="campo">
+                    <label for="depreciacaoPorHora">Depreciação estimada por hora (R$/h) <span class="etiqueta-opcional">Editável</span></label>
+                    <div class="linha-referencia-depreciacao">
+                        <input type="number" id="depreciacaoPorHora" th:field="*{depreciacaoPorHora}" min="0" step="0.00000001" placeholder="Busque uma referência ou informe um valor">
+                        <button type="button" id="buscarReferenciaDepreciacao" class="botao botao-secundario"><i class="bi bi-search"></i> Buscar referência de preços</button>
+                    </div>
+                    <small>Estimativa de quanto a impressora perde de valor a cada hora. O Criare calcula essa taxa com a diferença entre medianas de anúncios novos e usados, dividida pelas horas estimadas acima.</small>
+                    <small id="referenciaDepreciacaoResumo" class="referencia-modelo-impressora" hidden></small>
+                    <small id="referenciaDepreciacaoMensagem" class="referencia-modelo-impressora" role="status" hidden></small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('depreciacaoPorHora')}" th:errors="*{depreciacaoPorHora}"></div>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosDepreciacaoValidos')}" th:errors="*{dadosDepreciacaoValidos}"></div>
+                    <input type="hidden" id="depreciacaoOrigem" th:field="*{depreciacaoOrigem}">
+                    <input type="hidden" id="anunciosNovos" th:field="*{anunciosNovos}">
+                    <input type="hidden" id="anunciosUsados" th:field="*{anunciosUsados}">
+                    <input type="hidden" id="depreciacaoManual" th:field="*{depreciacaoManual}">
+                </div>
+                <details class="dados-legados-impressora">
+                    <summary>Usar valor de compra em vez da estimativa por hora</summary>
+                    <div class="campo">
+                        <label for="valorCompra">Valor de compra da impressora (R$)</label>
+                        <input type="number" id="valorCompra" th:field="*{valorCompra}" min="0" step="0.01">
+                        <small>Compatibilidade com o cálculo antigo: o Criare divide este valor pelas horas estimadas acima quando a taxa por hora estiver vazia.</small>
+                        <div class="erro-campo" th:if="${#fields.hasErrors('valorCompra')}" th:errors="*{valorCompra}"></div>
+                    </div>
+                </details>
+                </div>
+                <small class="texto-campo-opcional">A depreciação só entra no cálculo quando estiver ativada em Configurações.</small>
                 <div class="formulario-acoes">
                     <button type="submit" class="botao botao-principal">
                         <i class="bi bi-check-lg"></i> Cadastrar impressora
@@ -110,6 +141,8 @@
         </div>
     </section>
 </main>
+
+<script th:src="@{/js/depreciacaoImpressora.js}"></script>
 
 </body>
 </html>

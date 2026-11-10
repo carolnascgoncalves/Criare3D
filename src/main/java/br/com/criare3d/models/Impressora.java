@@ -45,6 +45,29 @@ public class Impressora {
     @Column(name = "vida_util_horas_imp", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal vidaUtilHoras;
 
+    @Column(name = "depreciacao_hora_imp", precision = 12, scale = 8)
+    private @Getter @Setter BigDecimal depreciacaoPorHora;
+
+    @Column(name = "depreciacao_origem_imp", length = 30)
+    private @Getter @Setter String depreciacaoOrigem;
+
+    @Column(name = "anuncios_novos_imp")
+    private @Getter @Setter Integer anunciosNovos;
+
+    @Column(name = "anuncios_usados_imp")
+    private @Getter @Setter Integer anunciosUsados;
+
+    @Column(name = "depreciacao_manual_imp", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean depreciacaoManual = false;
+
+    @Column(name = "horas_mensais_uso_imp", precision = 10, scale = 2)
+    private @Getter @Setter BigDecimal horasMensaisUso;
+
+    @Column(name = "horas_mensais_manual_imp", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Boolean horasMensaisManual = false;
+
     @Column(name = "manutencao_hora_imp", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal manutencaoPorHora;
 

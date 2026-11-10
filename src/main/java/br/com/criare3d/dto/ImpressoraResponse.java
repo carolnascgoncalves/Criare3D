@@ -26,12 +26,18 @@ public class ImpressoraResponse {
 
     private @Getter @Setter BigDecimal valorCompra;
     private @Getter @Setter BigDecimal vidaUtilHoras;
+    private @Getter @Setter BigDecimal depreciacaoPorHora;
+    private @Getter @Setter String depreciacaoOrigem;
+    private @Getter @Setter Integer anunciosNovos;
+    private @Getter @Setter Integer anunciosUsados;
+    private @Getter @Setter Boolean depreciacaoManual;
+    private @Getter @Setter BigDecimal horasMensaisUso;
+    private @Getter @Setter Boolean horasMensaisManual;
     private @Getter @Setter Integer tempoAquecimentoMinutos;
 
     public boolean isDadosDepreciacaoValidos() {
-        boolean nenhumDado = valorCompra == null && vidaUtilHoras == null;
-        return nenhumDado || (valorCompra != null && vidaUtilHoras != null
-                && vidaUtilHoras.signum() > 0);
+        return depreciacaoPorHora != null || valorCompra == null
+                || (vidaUtilHoras != null && vidaUtilHoras.signum() > 0);
     }
 
     public static ImpressoraResponse toDto(final Impressora impressora){
@@ -42,6 +48,13 @@ public class ImpressoraResponse {
                 .potenciaWatts(impressora.getPotenciaWatts())
                 .valorCompra(impressora.getValorCompra())
                 .vidaUtilHoras(impressora.getVidaUtilHoras())
+                .depreciacaoPorHora(impressora.getDepreciacaoPorHora())
+                .depreciacaoOrigem(impressora.getDepreciacaoOrigem())
+                .anunciosNovos(impressora.getAnunciosNovos())
+                .anunciosUsados(impressora.getAnunciosUsados())
+                .depreciacaoManual(impressora.getDepreciacaoManual())
+                .horasMensaisUso(impressora.getHorasMensaisUso())
+                .horasMensaisManual(impressora.getHorasMensaisManual())
                 .tempoAquecimentoMinutos(impressora.getTempoAquecimentoMinutos())
                 .build();
     }

@@ -92,9 +92,10 @@
                         </div>
 
                         <div class="resultado-item" th:if="${resultado.depreciacaoAtivada == true}">
-                            <span th:text="${'Depreciação da impressora (' + #numbers.formatDecimal(resultado.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
+                            <span th:text="${'Depreciação da impressora (' + (resultado.depreciacaoHoraImpressora != null ? 'R$ ' + #numbers.formatDecimal(resultado.depreciacaoHoraImpressora, 1, 'POINT', 4, 'COMMA') + '/h; ' : '') + #numbers.formatDecimal(resultado.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Depreciação da impressora</span>
                             <strong th:text="${'R$ ' + #numbers.formatDecimal(resultado.custoDepreciacao, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
                         </div>
+                        <small class="referencia-modelo-impressora" th:if="${resultado.depreciacaoAtivada == true and resultado.depreciacaoOrigemImpressora != null}" th:text="${resultado.depreciacaoOrigemImpressora.startsWith('MERCADO_LIVRE') ? 'Estimativa baseada em ' + (resultado.anunciosNovosDepreciacao != null ? resultado.anunciosNovosDepreciacao : 0) + ' anúncios novos e ' + (resultado.anunciosUsadosDepreciacao != null ? resultado.anunciosUsadosDepreciacao : 0) + ' usados. Preços anunciados não confirmam venda.' : 'Taxa de depreciação informada manualmente.'}">Origem da estimativa</small>
 
                         <div class="resultado-item" th:if="${resultado.manutencaoHoraImpressora != null and resultado.manutencaoHoraImpressora.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
                             <span th:text="${'Manutenção da impressora (' + #numbers.formatDecimal(resultado.minutosMaquinaLote / 60.0, 1, 'COMMA', 2, 'POINT') + ' h no total)'}">Manutenção da impressora</span>

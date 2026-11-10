@@ -133,6 +133,18 @@ public class CalculoHistorico {
     @Column(name = "vida_util_impressora_horas_hist", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal vidaUtilImpressoraHoras;
 
+    @Column(name = "depreciacao_hora_impressora_hist", precision = 12, scale = 8)
+    private @Getter @Setter BigDecimal depreciacaoHoraImpressora;
+
+    @Column(name = "depreciacao_origem_impressora_hist", length = 30)
+    private @Getter @Setter String depreciacaoOrigemImpressora;
+
+    @Column(name = "anuncios_novos_depreciacao_hist")
+    private @Getter @Setter Integer anunciosNovosDepreciacao;
+
+    @Column(name = "anuncios_usados_depreciacao_hist")
+    private @Getter @Setter Integer anunciosUsadosDepreciacao;
+
     @Column(name = "manutencao_hora_impressora_hist", precision = 10, scale = 2)
     private @Getter @Setter BigDecimal manutencaoHoraImpressora;
 

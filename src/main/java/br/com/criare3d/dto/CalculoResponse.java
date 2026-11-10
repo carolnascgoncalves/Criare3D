@@ -50,6 +50,10 @@ public class CalculoResponse {
     private BigDecimal percentualFalha;
     private BigDecimal valorCompraImpressora;
     private BigDecimal vidaUtilImpressoraHoras;
+    private BigDecimal depreciacaoHoraImpressora;
+    private String depreciacaoOrigemImpressora;
+    private Integer anunciosNovosDepreciacao;
+    private Integer anunciosUsadosDepreciacao;
     private BigDecimal manutencaoHoraImpressora;
     private String nomeEmbalagem;
     private BigDecimal custoEmbalagem;
@@ -132,6 +136,10 @@ public class CalculoResponse {
                 .percentualFalha(calculo.getPercentualFalha())
                 .valorCompraImpressora(calculo.getValorCompraImpressora())
                 .vidaUtilImpressoraHoras(calculo.getVidaUtilImpressoraHoras())
+                .depreciacaoHoraImpressora(calculo.getDepreciacaoHoraImpressora())
+                .depreciacaoOrigemImpressora(calculo.getDepreciacaoOrigemImpressora())
+                .anunciosNovosDepreciacao(calculo.getAnunciosNovosDepreciacao())
+                .anunciosUsadosDepreciacao(calculo.getAnunciosUsadosDepreciacao())
                 .manutencaoHoraImpressora(calculo.getManutencaoHoraImpressora())
                 .nomeEmbalagem(calculo.getNomeEmbalagem())
                 .custoEmbalagem(calculo.getCustoEmbalagem())
