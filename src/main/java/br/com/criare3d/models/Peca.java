@@ -40,6 +40,9 @@ public class Peca {
     @Column(name= "tmp_peca",nullable = false)
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    @Column(name = "dados_3mf_json", columnDefinition = "text")
+    private @Getter @Setter String dadosArquivo3mf;
+
     // Campo legado preservado para compatibilidade; não é mais usado como padrão do cálculo.
     @Column(name = "tempo_trabalho_minutos", nullable = false)
     @Builder.Default

@@ -27,6 +27,9 @@ function inicializarImportador3mf(secao, formularioPeca) {
     const origemNome = formularioPeca?.querySelector("[data-origem-nome]");
     const origemFilamento = formularioPeca?.querySelector("[data-origem-filamento]");
     const origemTempo = formularioPeca?.querySelector("[data-origem-tempo]");
+    const campoDadosSalvos = formularioPeca?.querySelector("[data-dados-3mf-salvar]");
+    let arquivoLido = null;
+    let preparandoEnvio = false;
 
     function informar(texto, erro = false) {
         mensagem.textContent = texto;
@@ -84,6 +87,8 @@ function inicializarImportador3mf(secao, formularioPeca) {
             });
             const corpo = await resposta.json().catch(() => ({}));
             if (!resposta.ok) throw new Error(corpo.erro || "Não foi possível ler esse projeto 3MF.");
+
+            arquivoLido = {nomeArquivo: arquivo.name, dados: corpo};
 
             if (corpo.nome && nomePeca) nomePeca.value = corpo.nome;
             if (corpo.nome && origemNome) origemNome.hidden = false;
@@ -164,6 +169,65 @@ function inicializarImportador3mf(secao, formularioPeca) {
             botao.disabled = false;
         }
     });
+
+    formularioPeca?.addEventListener("submit", async evento => {
+        if (preparandoEnvio || !arquivoLido || !campoDadosSalvos) return;
+        evento.preventDefault();
+        const submitter = evento.submitter;
+        const previewsOriginais = arquivoLido.dados.placas || [];
+        try {
+            informar("Preparando as prévias para salvar…");
+            const placasComPreview = await Promise.all(previewsOriginais.map(async placa => ({
+                ...placa,
+                imagemPreviewDataUri: placa.imagemPreviewDataUri
+                    ? await reduzirPreview(placa.imagemPreviewDataUri)
+                    : null
+            })));
+            campoDadosSalvos.value = JSON.stringify({
+                nomeArquivo: arquivoLido.nomeArquivo,
+                dados: {...arquivoLido.dados, placas: placasComPreview}
+            });
+            preparandoEnvio = true;
+            if (submitter) submitter.disabled = false;
+            if (formularioPeca.requestSubmit) formularioPeca.requestSubmit(submitter || undefined);
+            else formularioPeca.submit();
+        } catch (erro) {
+            informar(erro.message || "Não foi possível preparar as imagens do arquivo.", true);
+            if (submitter) submitter.disabled = false;
+        } finally {
+            preparandoEnvio = false;
+        }
+    });
+}
+
+async function reduzirPreview(dataUri) {
+    if (typeof dataUri !== "string" || !/^data:image\/(?:png|jpeg|webp);base64,/i.test(dataUri)) return null;
+    const resposta = await fetch(dataUri);
+    const blob = await resposta.blob();
+    const bitmap = await createImageBitmap(blob);
+    try {
+        const escala = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+        canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+        const contexto = canvas.getContext("2d", {alpha: false});
+        if (!contexto) throw new Error("Não foi possível preparar a prévia da placa.");
+        contexto.fillStyle = "#ffffff";
+        contexto.fillRect(0, 0, canvas.width, canvas.height);
+        contexto.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        const comprimida = await new Promise(resolve => canvas.toBlob(resolve, "image/webp", 0.72));
+        if (!comprimida) throw new Error("Não foi possível comprimir a prévia da placa.");
+        if (comprimida.size > 180 * 1024) throw new Error("Uma prévia ficou grande demais. Tente ler o arquivo novamente.");
+        const base64 = await new Promise((resolve, reject) => {
+            const leitor = new FileReader();
+            leitor.onload = () => resolve(leitor.result);
+            leitor.onerror = () => reject(new Error("Não foi possível preparar a prévia da placa."));
+            leitor.readAsDataURL(comprimida);
+        });
+        return base64;
+    } finally {
+        bitmap.close?.();
+    }
 }
 
 function aplicarValor(campo, valor, indicadorOrigem) {

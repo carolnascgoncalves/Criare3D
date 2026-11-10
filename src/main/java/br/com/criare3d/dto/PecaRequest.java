@@ -26,12 +26,15 @@ public class PecaRequest {
     @PositiveOrZero(message = "O tempo deve ser maior ou igual a zero.")
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    private @Getter @Setter String dadosArquivo3mf;
+
 
     public static PecaRequest toDto(final Peca peca){
         return PecaRequest.builder()
                 .nome(peca.getNome())
                 .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
+                .dadosArquivo3mf(peca.getDadosArquivo3mf())
                 .build();
     }
 
@@ -40,6 +43,7 @@ public class PecaRequest {
                 .nome(dto.getNome())
                 .quantidadeFilamentoGramas(dto.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(dto.getTempoImpressaoMinutos())
+                .dadosArquivo3mf(dto.getDadosArquivo3mf())
                 .build();
     }
 }

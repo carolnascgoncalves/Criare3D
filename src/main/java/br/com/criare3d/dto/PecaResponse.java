@@ -22,12 +22,15 @@ public class PecaResponse {
 
     private @Getter @Setter Long tempoImpressaoMinutos;
 
+    private @Getter @Setter String dadosArquivo3mf;
+
     public static PecaResponse toDto(final Peca peca){
         return PecaResponse.builder()
                 .id(peca.getId())
                 .nome(peca.getNome())
                 .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
+                .dadosArquivo3mf(peca.getDadosArquivo3mf())
                 .build();
     }
 }

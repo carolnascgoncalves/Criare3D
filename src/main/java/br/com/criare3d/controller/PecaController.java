@@ -6,6 +6,7 @@ import br.com.criare3d.dto.PecaResponse;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.service.CatalogoBuscaService;
+import br.com.criare3d.service.PecaArquivoService;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.PecaService;
 import br.com.criare3d.util.OrdenacaoPaginada;
@@ -16,6 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.CacheControl;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -31,13 +35,16 @@ public class PecaController {
     private final PecaService pecaService;
     private final CalculoHistoricoService calculoHistoricoService;
     private final CatalogoBuscaService catalogoBuscaService;
+    private final PecaArquivoService pecaArquivoService;
 
     public PecaController(PecaService pecaService,
                           CalculoHistoricoService calculoHistoricoService,
-                          CatalogoBuscaService catalogoBuscaService) {
+                          CatalogoBuscaService catalogoBuscaService,
+                          PecaArquivoService pecaArquivoService) {
         this.pecaService = pecaService;
         this.calculoHistoricoService = calculoHistoricoService;
         this.catalogoBuscaService = catalogoBuscaService;
+        this.pecaArquivoService = pecaArquivoService;
     }
 
     @GetMapping("/peca/listar")
@@ -52,6 +59,7 @@ public class PecaController {
         mv.addObject("pecas", pagina.getContent());
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
+        mv.addObject("arquivosPeca", pecaArquivoService.buscarResumos(pagina.getContent()));
 
         return mv;
     }
@@ -67,6 +75,7 @@ public class PecaController {
 
     @PostMapping("/peca/cadastrar")
     public ModelAndView create(@Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd, @RequestParam(defaultValue = "") String origem) {
+        PecaArquivoService.Preparacao arquivo = prepararArquivo(request, bd);
         if (bd.hasErrors()) {
             ModelAndView mv = new ModelAndView("peca/novo");
             mv.setStatus(HttpStatusCode.valueOf(422));
@@ -76,6 +85,7 @@ public class PecaController {
         }
 
         Peca entidade = pecaService.create(PecaRequest.toEntity(request));
+        arquivoSalvo(entidade, arquivo);
 
         if ("calculo".equals(origem)) {
             return new ModelAndView("redirect:/historico/novo?pecaCriada=" + entidade.getId());
@@ -90,6 +100,7 @@ public class PecaController {
                 .map(entidade -> {
                     ModelAndView mv = new ModelAndView("peca/detalhes");
                     mv.addObject("peca", entidade);
+                    mv.addObject("arquivoPeca", pecaArquivoService.buscarResumo(entidade).orElse(null));
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/peca/listar"));
@@ -147,6 +158,7 @@ public class PecaController {
 
     @PostMapping("/peca/atualizar/{id}")
     public ModelAndView atualizarPeca(@PathVariable UUID id, @Valid @ModelAttribute("peca") PecaRequest request, BindingResult bd) {
+        PecaArquivoService.Preparacao arquivo = prepararArquivo(request, bd);
         if (bd.hasErrors()) {
             if (!pecaService.existsById(id)) return new ModelAndView("redirect:/peca/listar");
             ModelAndView mv = new ModelAndView("peca/edicao");
@@ -156,10 +168,39 @@ public class PecaController {
             return mv;
         }
 
-        if (pecaService.update(id, PecaRequest.toEntity(request)).isEmpty()) {
+        var atualizada = pecaService.update(id, PecaRequest.toEntity(request));
+        if (atualizada.isEmpty()) {
             return new ModelAndView("redirect:/peca/listar");
         }
+        arquivoSalvo(atualizada.get(), arquivo);
 
         return new ModelAndView("redirect:/peca/listar?sucesso=pecaAtualizada");
+    }
+
+    @GetMapping("/peca/{id}/arquivo/placa/{numero}")
+    @ResponseBody
+    public ResponseEntity<byte[]> imagemPlaca(@PathVariable UUID id, @PathVariable int numero) {
+        if (numero < 1 || numero > 8 || pecaService.fetchById(id).isEmpty()) return ResponseEntity.notFound().build();
+        return pecaArquivoService.buscarImagem(id, numero)
+                .map(imagem -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(imagem.mimeType()))
+                        .cacheControl(CacheControl.noCache().cachePrivate())
+                        .body(imagem.bytes()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private PecaArquivoService.Preparacao prepararArquivo(PecaRequest request, BindingResult bd) {
+        try {
+            var preparacao = pecaArquivoService.preparar(request.getDadosArquivo3mf());
+            request.setDadosArquivo3mf(preparacao.map(PecaArquivoService.Preparacao::json).orElse(null));
+            return preparacao.orElse(null);
+        } catch (IllegalArgumentException e) {
+            bd.rejectValue("dadosArquivo3mf", "peca.arquivo.invalido", e.getMessage());
+            return null;
+        }
+    }
+
+    private void arquivoSalvo(Peca peca, PecaArquivoService.Preparacao arquivo) {
+        if (arquivo != null) pecaArquivoService.salvar(peca.getId(), arquivo);
     }
 }

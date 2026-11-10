@@ -2713,6 +2713,26 @@ input[type="color"]:focus {
     transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
 .peca-lista-item:hover { border-color: var(--destaque); background: var(--superficie-suave); box-shadow: 0 5px 16px color-mix(in srgb, var(--cor-primaria) 8%, transparent); }
+.peca-lista-foto { overflow: hidden; background: var(--superficie-suave); }
+.peca-lista-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.peca-materiais-lista { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.peca-lista-identidade .peca-materiais-lista { margin-top: 8px; }
+.peca-materiais-lista small { color: var(--marrom-claro); margin-left: 3px; }
+.peca-material-chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 5px 9px; border: 1px solid var(--borda); border-radius: 999px; background: var(--superficie); color: var(--marrom); font-size: .84rem; line-height: 1.2; }
+.peca-material-cor { display: inline-block; flex: 0 0 14px; width: 14px; height: 14px; border: 1px solid color-mix(in srgb, var(--marrom) 25%, transparent); border-radius: 50%; }
+.peca-arquivo-detalhe { display: grid; gap: 18px; padding: 0 24px 24px; }
+.peca-arquivo-detalhe-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie-suave); }
+.peca-arquivo-detalhe-cabecalho h3 { margin: 4px 0; overflow-wrap: anywhere; }
+.peca-arquivo-detalhe-cabecalho p { margin: 0; color: var(--marrom-claro); }
+.peca-arquivo-materiais h4 { margin: 0 0 10px; }
+.peca-placas-detalhe { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.peca-placa-card { overflow: hidden; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); }
+.peca-placa-card > img, .peca-placa-sem-imagem { display: grid; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--superficie-suave); }
+.peca-placa-sem-imagem { place-content: center; justify-items: center; gap: 6px; color: var(--marrom-claro); }
+.peca-placa-sem-imagem i { font-size: 1.6rem; }
+.peca-placa-info { display: grid; gap: 7px; padding: 12px; }
+.peca-placa-info h4, .peca-placa-info p { margin: 0; }
+.peca-placa-info p { color: var(--marrom-claro); font-size: .9rem; }
 .peca-lista-icone,
 .peca-detalhe-icone,
 .peca-detalhe-metrica-icone {
@@ -2765,6 +2785,8 @@ input[type="color"]:focus {
     .peca-lista-metricas { grid-column: 1 / 3; grid-row: 2; }
     .peca-lista-acoes { grid-column: 3; grid-row: 2; }
     .peca-detalhe-cabecalho { flex-wrap: wrap; padding: 18px; }
+    .peca-arquivo-detalhe { padding: 0 18px 18px; }
+    .peca-arquivo-detalhe-cabecalho { align-items: flex-start; flex-direction: column; }
     .peca-detalhe-cabecalho > .botao { margin-left: 76px; }
     .peca-detalhe-metricas { padding: 18px; }
     .peca-detalhe-rodape { align-items: stretch; flex-direction: column; padding: 0 18px 18px; }

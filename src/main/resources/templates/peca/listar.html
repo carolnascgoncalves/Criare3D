@@ -103,11 +103,25 @@
                 <input class="checkbox-selecao-listagem" type="checkbox" name="ids"
                        th:value="${peca.id}" form="form-remover-pecas"
                        th:aria-label="|Selecionar ${peca.nome}|">
-                <span class="peca-lista-icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+                <span class="peca-lista-icone peca-lista-foto" aria-hidden="true">
+                    <img th:if="${arquivosPeca[peca.id] != null and arquivosPeca[peca.id].temMiniatura()}"
+                         th:src="${arquivosPeca[peca.id].urlMiniatura()}" alt="">
+                    <i th:unless="${arquivosPeca[peca.id] != null and arquivosPeca[peca.id].temMiniatura()}" class="bi bi-box-seam"></i>
+                </span>
                 <div class="peca-lista-identidade">
                     <span class="texto-apoio">PEÇA</span>
                     <h3 th:text="${peca.nome}">Nome da peça</h3>
-                    <p>Parâmetros cadastrados para os cálculos</p>
+                    <p th:if="${arquivosPeca[peca.id] == null}">Parâmetros cadastrados para os cálculos</p>
+                    <p class="peca-materiais-lista" th:if="${arquivosPeca[peca.id] != null}">
+                        <span class="peca-material-chip" th:each="material : ${arquivosPeca[peca.id].materiais}">
+                            <span class="peca-material-cor" th:if="${material.corHex != null}"
+                                  th:style="|background-color: ${material.corHex}|" th:title="${material.corHex}"></span>
+                            <span th:text="${material.material != null ? material.material : 'Material'}">PLA</span>
+                            <span th:if="${material.pesoGramas > 0}" th:text="| · ${#numbers.formatDecimal(material.pesoGramas, 1, 'COMMA', 1, 'POINT')} g|"></span>
+                        </span>
+                        <small th:if="${arquivosPeca[peca.id].modeloImpressora != null}"
+                               th:text="${arquivosPeca[peca.id].modeloImpressora}">Impressora</small>
+                    </p>
                 </div>
                 <dl class="peca-lista-metricas">
                     <div><dt>Filamento</dt><dd th:text="|${#numbers.formatDecimal(peca.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT')} g|">0 g</dd></div>

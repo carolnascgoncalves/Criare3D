@@ -47,6 +47,58 @@
             </article>
         </div>
 
+        <section class="peca-arquivo-detalhe" th:if="${arquivoPeca != null}">
+            <div class="peca-arquivo-detalhe-cabecalho">
+                <div>
+                    <span class="texto-apoio">ARQUIVO 3D IMPORTADO</span>
+                    <h3 th:text="${arquivoPeca.nomeArquivo != null ? arquivoPeca.nomeArquivo : 'Informações do projeto'}">Arquivo.3mf</h3>
+                    <p>
+                        <span th:if="${arquivoPeca.modeloImpressora != null}" th:text="${arquivoPeca.modeloImpressora}">Modelo</span>
+                        <span th:if="${arquivoPeca.modeloImpressora != null and arquivoPeca.fatiador != null}"> · </span>
+                        <span th:if="${arquivoPeca.fatiador != null}" th:text="${arquivoPeca.fatiador}">Fatiador</span>
+                        <span th:if="${arquivoPeca.numeroPlacas > 0}" th:text="| · ${arquivoPeca.numeroPlacas} ${arquivoPeca.numeroPlacas == 1 ? 'placa' : 'placas'}|"></span>
+                    </p>
+                </div>
+                <a th:href="@{/peca/editar/{id}(id=${peca.id})}" class="botao botao-secundario">
+                    <i class="bi bi-arrow-repeat"></i> Trocar arquivo
+                </a>
+            </div>
+            <div class="peca-arquivo-materiais" th:if="${!#lists.isEmpty(arquivoPeca.materiais)}">
+                <h4>Materiais e cores</h4>
+                <div class="peca-materiais-lista">
+                    <span class="peca-material-chip" th:each="material : ${arquivoPeca.materiais}">
+                        <span class="peca-material-cor" th:if="${material.corHex != null}"
+                              th:style="|background-color: ${material.corHex}|" th:title="${material.corHex}"></span>
+                        <span th:text="${material.material != null ? material.material : 'Material'}">PLA</span>
+                        <span th:if="${material.pesoGramas > 0}" th:text="| · ${#numbers.formatDecimal(material.pesoGramas, 1, 'COMMA', 1, 'POINT')} g|"></span>
+                    </span>
+                </div>
+            </div>
+            <div class="peca-placas-detalhe" th:if="${!#lists.isEmpty(arquivoPeca.placas)}">
+                <article class="peca-placa-card" th:each="placa : ${arquivoPeca.placas}">
+                    <img th:if="${placa.temImagem()}" th:src="${placa.urlImagem}"
+                         th:alt="|Prévia da placa ${placa.numero}|" loading="lazy">
+                    <div class="peca-placa-sem-imagem" th:unless="${placa.temImagem()}"><i class="bi bi-image"></i><span>Prévia indisponível</span></div>
+                    <div class="peca-placa-info">
+                        <h4 th:text="|Placa ${placa.numero}|">Placa 1</h4>
+                        <p>
+                            <span th:if="${placa.tempoSegundos != null}" th:text="|${#numbers.formatDecimal(placa.tempoSegundos / 60, 1, 'COMMA', 0, 'POINT')} min|"></span>
+                            <span th:if="${placa.tempoSegundos != null and placa.pesoGramas != null}"> · </span>
+                            <span th:if="${placa.pesoGramas != null}" th:text="|${#numbers.formatDecimal(placa.pesoGramas, 1, 'COMMA', 1, 'POINT')} g|"></span>
+                        </p>
+                        <div class="peca-materiais-lista" th:if="${!#lists.isEmpty(placa.materiais)}">
+                            <span class="peca-material-chip" th:each="material : ${placa.materiais}">
+                                <span class="peca-material-cor" th:if="${material.corHex != null}"
+                                      th:style="|background-color: ${material.corHex}|" th:title="${material.corHex}"></span>
+                                <span th:text="${material.material != null ? material.material : 'Material'}">PLA</span>
+                                <span th:if="${material.pesoGramas > 0}" th:text="| · ${#numbers.formatDecimal(material.pesoGramas, 1, 'COMMA', 1, 'POINT')} g|"></span>
+                            </span>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
         <footer class="peca-detalhe-rodape">
             <p><i class="bi bi-info-circle"></i> O tempo e o consumo podem ser ajustados durante o cálculo.</p>
             <a th:href="@{/peca/listar}" class="botao botao-secundario">
