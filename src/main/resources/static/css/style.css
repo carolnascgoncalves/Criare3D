@@ -1697,27 +1697,72 @@ tr:nth-child(even) {
 
 .tarifa-referencia {
     grid-column: 1 / -1;
-    display: grid;
-    gap: 14px;
     min-width: 0;
-    padding: 20px;
+    padding: 0;
     border: 1px solid var(--borda);
     border-radius: 14px;
     background: var(--superficie-suave);
 }
 
-.tarifa-referencia-cabecalho,
-.tarifa-referencia-acoes {
+.tarifa-energia-campo { grid-column: 1 / -1; max-width: 560px; }
+.tarifa-referencia-topo {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 16px;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
 }
+.tarifa-referencia-toggle {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--marrom);
+    cursor: pointer;
+    text-align: left;
+}
+.tarifa-referencia-toggle > i:first-child {
+    display: grid;
+    place-items: center;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--fundo);
+    color: var(--destaque);
+}
+.tarifa-referencia-toggle span { display: grid; gap: 3px; }
+.tarifa-referencia-toggle strong { color: var(--marrom); }
+.tarifa-referencia-toggle small { color: var(--marrom-claro); }
+.tarifa-referencia-seta {
+    margin-left: auto;
+    color: var(--marrom-claro);
+    transition: transform .15s ease;
+}
+.tarifa-referencia-toggle[aria-expanded="true"] .tarifa-referencia-seta { transform: rotate(180deg); }
+.tarifa-localizacao-botao {
+    flex: 0 0 auto;
+    margin: 0;
+    white-space: nowrap;
+}
+.tarifa-referencia-localizacao {
+    display: block;
+    padding: 0 18px 14px 66px;
+    color: var(--marrom-claro);
+    font-size: .88rem;
+}
+.tarifa-referencia-conteudo {
+    display: grid;
+    gap: 14px;
+    padding: 0 18px 18px;
+}
+.tarifa-referencia-conteudo[hidden] { display: none; }
+.tarifa-referencia-explicacao { margin: 0; color: var(--marrom-claro); font-size: .9rem; }
 
-.tarifa-referencia-cabecalho { display: grid; gap: 4px; }
-.tarifa-referencia-cabecalho strong { color: var(--marrom); }
-.tarifa-referencia-cabecalho small,
-.tarifa-referencia-localizacao,
 .tarifa-referencia-fonte { color: var(--marrom-claro); }
 .tarifa-referencia-selecao {
     display: grid;
@@ -1881,9 +1926,14 @@ tr:nth-child(even) {
         grid-template-columns: 1fr;
     }
 
+    .tarifa-referencia-topo { align-items: flex-start; flex-direction: column; }
+    .tarifa-referencia-toggle { width: 100%; }
+    .tarifa-localizacao-botao {
+        align-self: flex-start;
+    }
+    .tarifa-referencia-localizacao { padding-left: 18px; }
     .tarifa-referencia-selecao { grid-template-columns: 1fr; }
-    .tarifa-referencia-selecao > button,
-    .tarifa-referencia-acoes > button { width: 100%; }
+    .tarifa-referencia-selecao > button { width: 100%; }
 
     .configuracao-acoes {
         justify-content: stretch;

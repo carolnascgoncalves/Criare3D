@@ -18,7 +18,7 @@
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
             <h1>Configurações</h1>
-            <p th:text="|Personalize os valores utilizados nos cálculos do ${tenantNome}.|">Personalize os valores utilizados nos cálculos do Criare 3D.</p>
+            <p>Defina os valores que a calculadora vai usar.</p>
         </div>
         <div class="icone-peca">
             <i class="bi bi-sliders"></i>
@@ -40,7 +40,7 @@
                     </div>
                     <div>
                         <h2>Preço e lucro</h2>
-                        <p>Defina o aumento aplicado ao custo e acompanhe a margem estimada.</p>
+                        <p>Escolha como calcular o preço de venda.</p>
                     </div>
                 </div>
             </div>
@@ -49,7 +49,7 @@
                 <label class="configuracao-opcao" for="markupFixo">
                     <div>
                         <strong>Utilizar markup fixo</strong>
-                        <small>O mesmo percentual será aplicado automaticamente em todos os cálculos.</small>
+                        <small>Aplicar o mesmo aumento em todos os cálculos.</small>
                     </div>
                     <input type="checkbox"
                            id="markupFixo"
@@ -66,7 +66,7 @@
                            min="0"
                            step="0.01"
                            placeholder="Ex.: 30">
-                    <small>Esse percentual é acrescentado ao custo. Ex.: 100% dobra o custo e representa 50% de margem sobre o preço, antes das taxas.</small>
+                    <small>Ex.: aumento de 100% dobra o custo.</small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('markupPercentual')}"
                           th:errors="*{markupPercentual}"></span>
@@ -74,13 +74,13 @@
 
                 <p class="aviso-info" id="avisoMarkupVariavel">
                     <i class="bi bi-info-circle"></i>
-                    Com o markup variável, os três percentuais abaixo aparecerão como atalhos durante o cálculo.
+                    Os atalhos aparecem durante o cálculo quando esta opção está desligada.
                 </p>
 
                 <div class="configuracao-markup-atalhos">
                     <div>
                         <strong>Atalhos de markup</strong>
-                        <small>Personalize os três aumentos sobre o custo usados no cálculo.</small>
+                        <small>Escolha os três aumentos rápidos disponíveis no cálculo.</small>
                     </div>
                     <div class="configuracao-markup-atalhos-grade">
                         <div class="campo">
@@ -112,47 +112,13 @@
                     </div>
                     <div>
                         <h2>Energia</h2>
-                        <p>Configure o valor utilizado para calcular o consumo elétrico.</p>
+                        <p>Informe o custo por kWh da sua conta de luz.</p>
                     </div>
                 </div>
             </div>
 
             <div class="configuracao-conteudo">
-                <div class="tarifa-referencia" id="tarifaReferencia"
-                     data-endpoint="/api/tarifas-energia">
-                    <div class="tarifa-referencia-cabecalho">
-                        <strong>Buscar referência de tarifa</strong>
-                        <small>Consulte as tarifas residenciais das distribuidoras que atendem São Paulo e use uma delas como ponto de partida.</small>
-                    </div>
-                    <div class="tarifa-referencia-acoes">
-                        <button type="button" class="botao-secundario" id="sugerirLocalizacaoTarifa">
-                            <i class="bi bi-geo-alt"></i> Sugerir minha cidade
-                        </button>
-                        <span id="localizacaoTarifaTexto" class="tarifa-referencia-localizacao" aria-live="polite">
-                            Opcional. A localização é usada só para sugerir sua cidade e não fica salva.
-                        </span>
-                    </div>
-                    <div class="tarifa-referencia-selecao">
-                        <div class="campo">
-                            <label for="distribuidoraTarifa">Distribuidora da sua conta de luz</label>
-                            <select id="distribuidoraTarifa" disabled>
-                                <option value="">Clique em “Carregar tarifas de SP”</option>
-                            </select>
-                        </div>
-                        <button type="button" class="botao-secundario" id="carregarTarifasAneel">
-                            <i class="bi bi-arrow-down-circle"></i> Carregar tarifas de SP
-                        </button>
-                    </div>
-                    <p class="aviso-info tarifa-referencia-aviso" id="tarifaReferenciaMensagem" role="status">
-                        <i class="bi bi-info-circle"></i>
-                        Selecione a distribuidora que aparece na sua conta. A referência soma TE e TUSD residenciais; não inclui impostos, iluminação pública nem bandeiras. Confira o valor final da sua conta e ajuste-o se necessário.
-                    </p>
-                    <small class="tarifa-referencia-fonte" id="tarifaReferenciaFonte">
-                        Fonte: <a href="https://dadosabertos.aneel.gov.br/dataset/tarifas-distribuidoras-energia-eletrica/resource/fcf2906c-7c32-4b9b-a637-054e7a5234f4" target="_blank" rel="noopener noreferrer">dados abertos da ANEEL</a>. Ao escolher uma distribuidora, o valor será preenchido no campo acima e continuará editável.
-                    </small>
-                    <small class="tarifa-referencia-fonte">A sugestão de cidade usa <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> somente quando você permite o acesso à localização.</small>
-                </div>
-                <div class="campo">
+                <div class="campo tarifa-energia-campo">
                     <label for="tarifaEnergiaKwh">Tarifa de energia (R$/kWh)</label>
                     <input type="number"
                            id="tarifaEnergiaKwh"
@@ -161,11 +127,45 @@
                            step="0.01"
                            placeholder="Ex.: 0.85"
                            required>
-                    <small>Use o custo efetivo por kWh da sua conta de luz. A tarifa publicada pela ANEEL pode não incluir impostos, iluminação pública e bandeiras; por isso, uma média da distribuidora pode divergir do valor realmente pago. <a href="https://www.gov.br/aneel/pt-br/centrais-de-conteudos/relatorios-e-indicadores/tarifas-e-informacoes-economico-financeiras" target="_blank" rel="noopener noreferrer">Entenda as tarifas na ANEEL</a>.</small>
+                    <small>Prefira o valor efetivo da conta. A referência da ANEEL pode não incluir impostos e bandeiras.</small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('tarifaEnergiaKwh')}"
                           th:errors="*{tarifaEnergiaKwh}"></span>
                 </div>
+                <section class="tarifa-referencia" id="tarifaReferencia" data-endpoint="/api/tarifas-energia">
+                    <div class="tarifa-referencia-topo">
+                        <button type="button" class="tarifa-referencia-toggle" id="alternarTarifaReferencia"
+                                aria-expanded="false" aria-controls="tarifaReferenciaConteudo">
+                            <i class="bi bi-search" aria-hidden="true"></i>
+                            <span><strong>Buscar referência da ANEEL</strong><small>Opcional · distribuidoras de São Paulo</small></span>
+                            <i class="bi bi-chevron-down tarifa-referencia-seta" aria-hidden="true"></i>
+                        </button>
+                        <button type="button" class="botao-secundario tarifa-localizacao-botao" id="sugerirLocalizacaoTarifa">
+                            <i class="bi bi-geo-alt"></i> Sugerir minha cidade
+                        </button>
+                    </div>
+                    <span id="localizacaoTarifaTexto" class="tarifa-referencia-localizacao" aria-live="polite">Sua cidade aparecerá aqui. A localização não será salva.</span>
+                    <div class="tarifa-referencia-conteudo" id="tarifaReferenciaConteudo" hidden>
+                        <p class="tarifa-referencia-explicacao">Escolha a distribuidora indicada na sua conta. A tarifa é uma estimativa sem impostos, iluminação pública e bandeiras.</p>
+                        <div class="tarifa-referencia-selecao">
+                            <div class="campo">
+                                <label for="distribuidoraTarifa">Distribuidora</label>
+                                <select id="distribuidoraTarifa" disabled>
+                                    <option value="">Carregue as opções para escolher</option>
+                                </select>
+                            </div>
+                            <button type="button" class="botao-secundario" id="carregarTarifasAneel">
+                                <i class="bi bi-arrow-down-circle"></i> Carregar tarifas de SP
+                            </button>
+                        </div>
+                        <p class="aviso-info tarifa-referencia-aviso" id="tarifaReferenciaMensagem" role="status">
+                            <i class="bi bi-info-circle"></i> O valor escolhido preenche o campo de tarifa acima, mas você pode ajustá-lo.
+                        </p>
+                        <small class="tarifa-referencia-fonte" id="tarifaReferenciaFonte">
+                            Fonte: <a href="https://dadosabertos.aneel.gov.br/dataset/tarifas-distribuidoras-energia-eletrica/resource/fcf2906c-7c32-4b9b-a637-054e7a5234f4" target="_blank" rel="noopener noreferrer">ANEEL</a>. Cidade sugerida por <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> quando você permitir.
+                        </small>
+                    </div>
+                </section>
             </div>
         </section>
 
@@ -178,7 +178,7 @@
                     </div>
                     <div>
                         <h2>Embalagem</h2>
-                        <p>Configure como o custo da embalagem será considerado.</p>
+                        <p>Defina se os cálculos terão um custo padrão de embalagem.</p>
                     </div>
                 </div>
             </div>
@@ -187,7 +187,7 @@
                 <label class="configuracao-opcao" for="embalagemFixa">
                     <div>
                         <strong>Utilizar custo fixo de embalagem</strong>
-                        <small>Considera um valor fixo de embalagem nos cálculos.</small>
+                        <small>Usar o mesmo custo nos cálculos.</small>
                     </div>
                     <input type="checkbox"
                            id="embalagemFixa"
@@ -204,7 +204,7 @@
                            min="0"
                            step="0.01"
                            placeholder="Ex.: 2.50">
-                    <small>Valor fixo acrescentado ao cálculo quando a opção está ativada.</small>
+                    <small>Este valor será incluído automaticamente.</small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('custoEmbalagemFixa')}"
                           th:errors="*{custoEmbalagemFixa}"></span>
@@ -221,7 +221,7 @@
                     </div>
                     <div>
                         <h2>Formulário avançado</h2>
-                        <p>Escolha o nível de detalhamento das informações de venda.</p>
+                        <p>Escolha entre um cálculo rápido ou detalhado.</p>
                     </div>
                 </div>
             </div>
@@ -231,8 +231,7 @@
                     <div>
                         <strong>Ativar formulário avançado</strong>
                         <small>
-                            Exibe perguntas adicionais sobre comissões, condições de venda
-                            e taxas específicas de cada plataforma.
+                            Mostra campos extras para informar as condições da sua conta.
                         </small>
                     </div>
                     <input type="checkbox"
@@ -242,8 +241,7 @@
 
                 <p class="aviso-info">
                     <i class="bi bi-info-circle"></i>
-                    Desativado: formulário simples, com as condições padrão das plataformas.
-                    Ativado: permite informar condições adicionais da sua conta.
+                    Desativado: cálculo simples. Ativado: permite ajustar taxas e condições.
                 </p>
             </div>
         </section>
@@ -257,7 +255,7 @@
                     </div>
                     <div>
                         <h2>Custos adicionais de produção</h2>
-                        <p>Ative os custos que deseja incluir automaticamente nos cálculos.</p>
+                        <p>Ligue apenas os custos que deseja considerar.</p>
                     </div>
                 </div>
             </div>
@@ -267,14 +265,14 @@
                     <label for="purgaGramasPorImpressao">Purga de filamento por impressão (g)</label>
                     <input type="number" id="purgaGramasPorImpressao" th:field="*{purgaGramasPorImpressao}"
                            min="0" step="0.01" placeholder="Ex.: 2">
-                    <small>Material extra usado para limpar o bico e preparar a impressão. Deixe 0 se não se aplica. Esse valor é somado ao consumo do lote e rateado entre as unidades.</small>
+                    <small>Gramas extras por impressão para limpeza do bico. Use 0 se não se aplica.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('purgaGramasPorImpressao')}" th:errors="*{purgaGramasPorImpressao}"></span>
                 </div>
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
                 <label class="configuracao-opcao" for="maoObraAtivada">
                     <div>
                         <strong>Incluir mão de obra <span class="etiqueta-opcional">Opcional</span></strong>
-                        <small>Calcula o custo com base no tempo de trabalho manual e no valor por hora.</small>
+                        <small>Considera seu tempo de trabalho manual e o valor da sua hora.</small>
                     </div>
                     <input type="checkbox" id="maoObraAtivada" th:field="*{maoObraAtivada}">
                 </label>
@@ -292,7 +290,7 @@
                 <label class="configuracao-tempo-fixo" id="opcaoMaoObraTempoFixo" for="maoObraTempoFixo"
                        th:hidden="${!configuracao.maoObraAtivada}">
                     <input type="checkbox" id="maoObraTempoFixo" th:field="*{maoObraTempoFixo}">
-                    <span><strong>Usar um tempo fixo</strong><small>Aplicar o mesmo número de minutos em todos os cálculos</small></span>
+                    <span><strong>Usar um tempo fixo</strong><small>Repetir os mesmos minutos em cada cálculo.</small></span>
                 </label>
                 <div class="campo campo-oculto" id="campoTempoMaoObraFixo"
                      th:classappend="${configuracao.maoObraAtivada and configuracao.maoObraTempoFixo} ? '' : ' campo-oculto'">
@@ -301,7 +299,7 @@
                            min="0" step="1" placeholder="Ex.: 15">
                     <div class="aviso-info">
                         <i class="bi bi-info-circle"></i>
-                        Conte o tempo em que você trabalha na peça, como preparar o arquivo, trocar o rolo, retirar suportes, lixar e embalar. As horas em que a impressora trabalha sozinha não entram aqui.
+                        Considere o trabalho manual: preparar, retirar suportes, lixar e embalar. Não conte o tempo da impressora.
                     </div>
                     <span class="erro-campo" th:if="${#fields.hasErrors('tempoMaoObraFixoValido')}"
                           th:errors="*{tempoMaoObraFixoValido}"></span>
@@ -312,7 +310,7 @@
                 <label class="configuracao-opcao" for="depreciacaoAtivada">
                     <div>
                         <strong>Incluir depreciação da impressora <span class="etiqueta-opcional">Opcional</span></strong>
-                        <small>Distribui o valor da impressora pelas horas de vida útil estimadas.</small>
+                        <small>Considera o desgaste da impressora durante a impressão.</small>
                     </div>
                     <input type="checkbox" id="depreciacaoAtivada" th:field="*{depreciacaoAtivada}">
                 </label>
@@ -320,7 +318,7 @@
                 <div class="aviso-info" id="avisoDepreciacao"
                      th:hidden="${!configuracao.depreciacaoAtivada}">
                     <i class="bi bi-info-circle"></i>
-                    A calculadora inclui esse custo em cada cálculo usando o valor de compra e a vida útil cadastrados na impressora escolhida, junto com o tempo de impressão.
+                    O valor depende do preço e da vida útil cadastrados na impressora.
                 </div>
 
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
@@ -328,7 +326,7 @@
                 <label class="configuracao-opcao" for="taxaFalhaAtivada">
                     <div>
                         <strong>Incluir margem para falhas e desperdício <span class="etiqueta-opcional">Opcional</span></strong>
-                        <small>Aplica um percentual sobre o custo do filamento e da energia.</small>
+                        <small>Reserva para reimpressões sobre filamento e energia.</small>
                     </div>
                     <input type="checkbox" id="taxaFalhaAtivada" th:field="*{taxaFalhaAtivada}">
                 </label>
@@ -345,7 +343,7 @@
                 <div class="aviso-info" id="avisoTaxaFalha"
                      th:hidden="${!configuracao.taxaFalhaAtivada}">
                     <i class="bi bi-info-circle"></i>
-                    Essa margem ajuda a cobrir peças que precisam ser impressas novamente. Ela é aplicada ao filamento e à energia; a embalagem fica de fora. Se não souber o valor, pode começar com 5%.
+                    Se não souber o percentual, pode começar com 5%. A embalagem fica de fora.
                 </div>
             </div>
         </section>

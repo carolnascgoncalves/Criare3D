@@ -6,6 +6,8 @@
 
         const botaoCarregar = document.getElementById("carregarTarifasAneel");
         const botaoLocalizacao = document.getElementById("sugerirLocalizacaoTarifa");
+        const botaoAlternar = document.getElementById("alternarTarifaReferencia");
+        const conteudoReferencia = document.getElementById("tarifaReferenciaConteudo");
         const select = document.getElementById("distribuidoraTarifa");
         const campoTarifa = document.getElementById("tarifaEnergiaKwh");
         const mensagem = document.getElementById("tarifaReferenciaMensagem");
@@ -18,6 +20,12 @@
             mensagem.innerHTML = `<i class="bi ${erro ? "bi-exclamation-circle" : "bi-info-circle"}"></i> `;
             mensagem.append(document.createTextNode(texto));
         }
+
+        botaoAlternar?.addEventListener("click", () => {
+            const aberto = botaoAlternar.getAttribute("aria-expanded") !== "true";
+            botaoAlternar.setAttribute("aria-expanded", String(aberto));
+            if (conteudoReferencia) conteudoReferencia.hidden = !aberto;
+        });
 
         botaoCarregar?.addEventListener("click", async () => {
             botaoCarregar.disabled = true;
@@ -84,7 +92,7 @@
                     });
                     const dados = await resposta.json();
                     if (!resposta.ok) throw new Error(dados.erro || "Falha ao identificar cidade.");
-                    textoLocalizacao.textContent = `${dados.cidade} / ${dados.uf}. Use essa informação para conferir a distribuidora na sua conta; a localização não foi salva.`;
+                    textoLocalizacao.textContent = `${dados.cidade} / ${dados.uf}`;
                 } catch {
                     textoLocalizacao.textContent = "Não foi possível identificar a cidade. Confira a distribuidora diretamente na conta de luz.";
                 } finally {

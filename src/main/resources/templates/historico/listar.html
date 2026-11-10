@@ -97,7 +97,9 @@
                        aria-label="Pesquisar pelo nome da peça">
             </div>
 
-            <div class="busca-listagem-data">
+            <div class="busca-listagem-data historico-data-icone"
+                 th:classappend="${data != null and !data.isBlank()} ? ' historico-data-ativa' : ''"
+                 title="Filtrar por data">
                 <i class="bi bi-calendar3"></i>
                 <input type="date"
                        name="data"
@@ -150,12 +152,24 @@
                    name="plataforma"
                    th:value="${plataforma}">
 
-            <label class="visually-hidden" for="tamanhoPagina">Itens por página</label>
-            <select id="tamanhoPagina" name="size" aria-label="Itens por página">
-                <option value="10" th:selected="${tamanhoPagina == 10}">10 por página</option>
-                <option value="20" th:selected="${tamanhoPagina == 20}">20 por página</option>
-                <option value="50" th:selected="${tamanhoPagina == 50}">50 por página</option>
-            </select>
+            <fieldset class="historico-tamanho-pagina" aria-label="Itens por página">
+                <legend class="visually-hidden">Itens por página</legend>
+                <label title="10 por página">
+                    <input type="radio" name="size" value="10" aria-label="10 por página"
+                           th:checked="${tamanhoPagina == 10}">
+                    <span>10</span>
+                </label>
+                <label title="20 por página">
+                    <input type="radio" name="size" value="20" aria-label="20 por página"
+                           th:checked="${tamanhoPagina == 20}">
+                    <span>20</span>
+                </label>
+                <label title="50 por página">
+                    <input type="radio" name="size" value="50" aria-label="50 por página"
+                           th:checked="${tamanhoPagina == 50}">
+                    <span>50</span>
+                </label>
+            </fieldset>
 
             <button type="submit" class="botao botao-principal historico-pesquisar">
                 Pesquisar

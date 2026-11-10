@@ -2959,6 +2959,115 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
     }
 }
 
+/* Histórico: data por ícone e seletor compacto de quantidade por página. */
+main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    justify-self: start;
+    overflow: hidden;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: var(--superficie-suave);
+    cursor: pointer;
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone i {
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--marrom-claro);
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone input {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    width: 100%;
+    min-height: 46px;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone:focus-within {
+    outline: 3px solid color-mix(in srgb, var(--destaque) 22%, transparent);
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone.historico-data-ativa::after {
+    content: "";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--destaque);
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: max-content;
+    margin: 0;
+    padding: 3px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: var(--superficie-suave);
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina label {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-width: 34px;
+    min-height: 36px;
+    margin: 0;
+    border-radius: 7px;
+    color: var(--marrom-claro);
+    cursor: pointer;
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina label:has(input:checked) {
+    background: var(--fundo);
+    color: var(--marrom);
+    font-weight: 700;
+}
+
+main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina label:has(input:focus-visible) {
+    outline: 2px solid var(--destaque);
+    outline-offset: 1px;
+}
+
+@media (min-width: 1251px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros {
+        grid-template-columns: minmax(220px, 1.8fr) 46px minmax(140px, 1fr)
+            minmax(140px, 1fr) auto minmax(118px, auto) minmax(100px, auto);
+    }
+}
+
+@media (min-width: 701px) and (max-width: 1250px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina { grid-area: tamanho; }
+}
+
+@media (max-width: 700px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
+        grid-column: 1 / -1;
+    }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+}
+
 main.pagina.lista-catalogo > .cartao:has(> form.historico-filtros .historico-ordenar[open]) {
     overflow: visible;
 }
@@ -4039,4 +4148,27 @@ a:focus-visible {
     border-color: var(--borda);
     background: var(--superficie);
     color: var(--marrom-claro);
+}
+
+/* Ajustes finais dos novos controles compactos do histórico. */
+@media (min-width: 1251px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros {
+        grid-template-columns: minmax(220px, 1.8fr) 46px minmax(140px, 1fr)
+            minmax(140px, 1fr) auto minmax(118px, auto) minmax(100px, auto);
+    }
+}
+
+@media (min-width: 701px) and (max-width: 1250px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina { grid-area: tamanho; }
+}
+
+@media (max-width: 700px) {
+    main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
+    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina {
+        grid-column: 1 / -1;
+        justify-self: start;
+    }
 }
