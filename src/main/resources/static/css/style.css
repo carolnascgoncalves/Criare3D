@@ -1695,6 +1695,51 @@ tr:nth-child(even) {
     box-sizing: border-box;
 }
 
+.tarifa-referencia {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: var(--superficie-suave);
+}
+
+.tarifa-referencia-cabecalho,
+.tarifa-referencia-acoes {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.tarifa-referencia-cabecalho { display: grid; gap: 4px; }
+.tarifa-referencia-cabecalho strong { color: var(--marrom); }
+.tarifa-referencia-cabecalho small,
+.tarifa-referencia-localizacao,
+.tarifa-referencia-fonte { color: var(--marrom-claro); }
+.tarifa-referencia-selecao {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 14px;
+}
+.tarifa-referencia-selecao .campo { min-width: 0; }
+.tarifa-referencia-selecao select {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: var(--superficie);
+    color: var(--marrom);
+}
+.tarifa-referencia .aviso-info { margin: 0; width: 100%; box-sizing: border-box; }
+.tarifa-referencia-fonte { font-size: .82rem; }
+.tarifa-referencia-erro { border-color: #d9a3a0; color: #a23c37; }
+.tarifa-referencia button:disabled { opacity: .65; cursor: wait; }
+
 .configuracao-markup-atalhos {
     display: grid;
     grid-column: 1 / -1;
@@ -1835,6 +1880,10 @@ tr:nth-child(even) {
     .configuracao-markup-atalhos-grade {
         grid-template-columns: 1fr;
     }
+
+    .tarifa-referencia-selecao { grid-template-columns: 1fr; }
+    .tarifa-referencia-selecao > button,
+    .tarifa-referencia-acoes > button { width: 100%; }
 
     .configuracao-acoes {
         justify-content: stretch;

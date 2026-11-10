@@ -118,6 +118,40 @@
             </div>
 
             <div class="configuracao-conteudo">
+                <div class="tarifa-referencia" id="tarifaReferencia"
+                     data-endpoint="/api/tarifas-energia">
+                    <div class="tarifa-referencia-cabecalho">
+                        <strong>Buscar referência de tarifa</strong>
+                        <small>Consulte as tarifas residenciais das distribuidoras que atendem São Paulo e use uma delas como ponto de partida.</small>
+                    </div>
+                    <div class="tarifa-referencia-acoes">
+                        <button type="button" class="botao-secundario" id="sugerirLocalizacaoTarifa">
+                            <i class="bi bi-geo-alt"></i> Sugerir minha cidade
+                        </button>
+                        <span id="localizacaoTarifaTexto" class="tarifa-referencia-localizacao" aria-live="polite">
+                            Opcional. A localização é usada só para sugerir sua cidade e não fica salva.
+                        </span>
+                    </div>
+                    <div class="tarifa-referencia-selecao">
+                        <div class="campo">
+                            <label for="distribuidoraTarifa">Distribuidora da sua conta de luz</label>
+                            <select id="distribuidoraTarifa" disabled>
+                                <option value="">Clique em “Carregar tarifas de SP”</option>
+                            </select>
+                        </div>
+                        <button type="button" class="botao-secundario" id="carregarTarifasAneel">
+                            <i class="bi bi-arrow-down-circle"></i> Carregar tarifas de SP
+                        </button>
+                    </div>
+                    <p class="aviso-info tarifa-referencia-aviso" id="tarifaReferenciaMensagem" role="status">
+                        <i class="bi bi-info-circle"></i>
+                        Selecione a distribuidora que aparece na sua conta. A referência soma TE e TUSD residenciais; não inclui impostos, iluminação pública nem bandeiras. Confira o valor final da sua conta e ajuste-o se necessário.
+                    </p>
+                    <small class="tarifa-referencia-fonte" id="tarifaReferenciaFonte">
+                        Fonte: <a href="https://dadosabertos.aneel.gov.br/dataset/tarifas-distribuidoras-energia-eletrica/resource/fcf2906c-7c32-4b9b-a637-054e7a5234f4" target="_blank" rel="noopener noreferrer">dados abertos da ANEEL</a>. Ao escolher uma distribuidora, o valor será preenchido no campo acima e continuará editável.
+                    </small>
+                    <small class="tarifa-referencia-fonte">A sugestão de cidade usa <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> somente quando você permite o acesso à localização.</small>
+                </div>
                 <div class="campo">
                     <label for="tarifaEnergiaKwh">Tarifa de energia (R$/kWh)</label>
                     <input type="number"
