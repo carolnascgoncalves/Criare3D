@@ -6,6 +6,7 @@ Aplicação web para organizar os cadastros usados na impressão 3D e calcular o
 
 - Autenticação com Spring Security, senhas com BCrypt e perfis ADMIN e USER.
 - Cadastro, edição, pesquisa, consulta e exclusão de peças, filamentos, impressoras e embalagens.
+- Importação de projetos 3MF e leitura opcional de tempo e consumo de arquivos fatiados do Bambu Studio (`slice_info.config`) e do OrcaSlicer (estatísticas JSON).
 - Filamentos com cor, código hexadecimal, marca, peso do rolo e preço.
 - Configuração da tarifa de energia, embalagem fixa e custos opcionais de mão de obra, depreciação da impressora e falhas/desperdício.
 - Cálculo em etapas, com vários filamentos/cores, consumo por filamento, tempo de impressão, energia, embalagem, custos adicionais e markup.

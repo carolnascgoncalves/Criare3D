@@ -10,5 +10,12 @@ public record Modelo3mfResponse(
         String perfil,
         String fatiador,
         boolean jaFatiado,
-        String imagemPreviewDataUri
+        boolean temEstatisticas,
+        boolean estatisticasCompletas,
+        int numeroPlacasComEstatisticas,
+        Double tempoTotalSegundos,
+        Double pesoTotalGramas,
+        java.util.List<Modelo3mfFilamentoResponse> filamentosUsados,
+        int numeroPlacas,
+        java.util.List<Modelo3mfPlacaResponse> placas
 ) { }
