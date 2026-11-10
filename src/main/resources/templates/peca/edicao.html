@@ -29,6 +29,38 @@
         </div>
 
         <div class="formulario-conteudo">
+            <section class="importacao-peca" data-importador-3mf aria-labelledby="tituloImportacao3mf">
+                <div class="importacao-peca-cabecalho">
+                    <span class="importacao-peca-icone"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <div>
+                        <h3 id="tituloImportacao3mf">Importar modelo 3D (.3mf)</h3>
+                        <p>O Criare lê o nome e as configurações que existirem no arquivo.</p>
+                    </div>
+                </div>
+                <div class="importacao-peca-controles">
+                    <div class="campo">
+                        <label for="arquivoModelo3mf">Arquivo do modelo</label>
+                        <input type="file" id="arquivoModelo3mf" accept=".3mf,application/octet-stream">
+                        <small>Até 20 MB. O arquivo é analisado temporariamente e não fica armazenado.</small>
+                    </div>
+                    <button type="button" class="botao botao-secundario" data-analisar-3mf>
+                        <i class="bi bi-search" aria-hidden="true"></i> Ler arquivo
+                    </button>
+                </div>
+                <p class="importacao-peca-mensagem" data-mensagem-3mf role="status" aria-live="polite" hidden></p>
+                <div class="importacao-peca-dados" data-dados-3mf hidden>
+                    <h4>Informações encontradas no projeto</h4>
+                    <div class="importacao-peca-layout" data-layout-3mf>
+                        <img class="importacao-peca-preview" data-preview-3mf alt="Prévia do objeto incluída no arquivo 3MF" hidden>
+                        <div class="importacao-peca-detalhes">
+                            <dl data-lista-dados-3mf></dl>
+                            <p data-aviso-fatiamento-3mf></p>
+                            <small>A imagem é apenas uma prévia nesta etapa e não fica salva no cadastro da peça.</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <form th:action="@{/peca/atualizar/{id}(id=${id})}"
                   th:object="${peca}"
                   method="post"

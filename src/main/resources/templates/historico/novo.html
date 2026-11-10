@@ -331,7 +331,7 @@
                     </div>
 
                     <div class="campo">
-                        <label for="tempoImpressaoMinutos">Tempo de impressão por unidade (minutos)</label>
+                        <label for="tempoImpressaoMinutos">Tempo por impressão (minutos)</label>
                         <input type="number"
                                id="tempoImpressaoMinutos"
                                th:field="*{tempoImpressaoMinutos}"
@@ -339,7 +339,7 @@
                                min="1"
                                step="1"
                                required>
-                        <small>Informe quantos minutos a impressora leva para produzir uma unidade. O Criare multiplica esse tempo pelas unidades e adiciona o aquecimento de cada impressão.</small>
+                        <small>Informe o tempo total de uma impressão com a quantidade de peças definida acima. Se a última impressão tiver menos peças, o Criare estima o tempo proporcionalmente e soma o aquecimento de cada impressão.</small>
                         <small id="tempoTotalLoteResumo" class="texto-apoio" hidden></small>
                         <small id="avisoImpressaoParcial" class="texto-apoio" hidden></small>
                         <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>

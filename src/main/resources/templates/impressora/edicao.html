@@ -47,7 +47,14 @@
 
                 <div class="campo">
                     <label for="modelo">Modelo</label>
-                    <input type="text" id="modelo" th:field="*{modelo}">
+                    <input type="text" id="modelo" th:field="*{modelo}" list="modelosBambu" autocomplete="off">
+                    <datalist id="modelosBambu">
+                        <option value="Bambu Lab A1 mini"></option><option value="Bambu Lab A1"></option>
+                        <option value="Bambu Lab P1P"></option><option value="Bambu Lab P1S"></option>
+                        <option value="Bambu Lab X1 Carbon"></option><option value="Bambu Lab X1E"></option>
+                        <option value="Bambu Lab H2D"></option><option value="Bambu Lab H2S"></option>
+                    </datalist>
+                    <small>Comece a digitar para buscar modelos Bambu Lab ou informe outro modelo manualmente.</small>
 
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('modelo')}"
@@ -61,6 +68,8 @@
                            th:field="*{potenciaWatts}"
                            step="0.01"
                            min="0">
+                    <small>Informe a potência média durante a impressão, se souber. A potência máxima anunciada pelo fabricante não representa o consumo médio usado no cálculo de energia.</small>
+                    <small id="referenciaPotenciaFabricante" class="referencia-modelo-impressora" hidden></small>
 
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('potenciaWatts')}"

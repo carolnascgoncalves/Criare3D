@@ -986,6 +986,11 @@ a {
     color: var(--cor-erro);
 }
 
+/* A regra de layout acima não deve sobrescrever o atributo HTML hidden. */
+.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados][hidden] {
+    display: none !important;
+}
+
 .lista-catalogo .controles-selecao-listagem [data-excluir-selecionados] i {
     color: var(--cor-erro);
     font-size: 1.05rem;
@@ -2671,3 +2676,90 @@ input[type="color"]:focus {
 .erro-centralizado { width: min(100%, 680px); margin: auto; padding: clamp(24px, 5vw, 48px); text-align: center; }
 .erro-centralizado h1 { margin: 8px 0 12px; }
 .erro-centralizado p { margin: 0 0 24px; color: var(--marrom-claro); line-height: 1.55; overflow-wrap: anywhere; }
+
+.referencia-modelo-impressora { display: block; margin-top: 6px; color: var(--marrom-claro); }
+
+.importacao-peca {
+    display: grid;
+    gap: 15px;
+    margin-bottom: 24px;
+    padding: 20px;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: var(--superficie-suave);
+}
+.importacao-peca-cabecalho,
+.importacao-peca-controles { display: flex; align-items: center; gap: 14px; }
+.importacao-peca-cabecalho h3,
+.importacao-peca-cabecalho p { margin: 0; }
+.importacao-peca-cabecalho p { margin-top: 4px; }
+.importacao-peca-icone {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    height: 44px;
+    border-radius: 12px;
+    color: var(--cor-destaque);
+    background: var(--destaque-suave);
+    font-size: 20px;
+}
+.importacao-peca-controles { align-items: end; }
+.importacao-peca-controles .campo { flex: 1 1 auto; margin: 0; }
+.importacao-peca-mensagem { margin: 0; color: var(--cor-sucesso); }
+.importacao-peca-mensagem.erro { color: var(--cor-erro); }
+.importacao-peca-dados {
+    display: grid;
+    gap: 10px;
+    padding: 15px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: var(--superficie);
+}
+.importacao-peca-dados h4,
+.importacao-peca-dados p { margin: 0; }
+.importacao-peca-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+}
+.importacao-peca-layout.sem-imagem { grid-template-columns: minmax(0, 1fr); }
+.importacao-peca-preview {
+    display: block;
+    width: 100%;
+    max-height: 240px;
+    border: 1px solid var(--borda);
+    border-radius: 10px;
+    background: white;
+    object-fit: contain;
+}
+.importacao-peca-detalhes { display: grid; gap: 10px; min-width: 0; }
+.importacao-peca-detalhes dl {
+    display: grid;
+    grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
+    gap: 8px 14px;
+    margin: 0;
+}
+.importacao-peca-detalhes dt { color: var(--marrom-claro); }
+.importacao-peca-detalhes dd { display: flex; align-items: center; gap: 8px; margin: 0; overflow-wrap: anywhere; }
+.importacao-peca-detalhes > p { padding-top: 10px; border-top: 1px solid var(--borda); }
+.importacao-peca-detalhes > small { color: var(--marrom-claro); }
+.importacao-peca-amostras-cor { display: inline-flex; align-items: center; gap: 5px; }
+.importacao-peca-amostra-cor {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    border: 1px solid color-mix(in srgb, var(--marrom) 24%, transparent);
+    border-radius: 50%;
+}
+
+@media (max-width: 640px) {
+    .importacao-peca { padding: 15px; }
+    .importacao-peca-controles { align-items: stretch; flex-direction: column; }
+    .importacao-peca-controles .botao { width: 100%; }
+    .importacao-peca-layout { grid-template-columns: 1fr; }
+    .importacao-peca-preview { max-height: 210px; }
+    .importacao-peca-detalhes dl { grid-template-columns: 1fr; gap: 3px; }
+    .importacao-peca-detalhes dd { margin-bottom: 8px; }
+}
