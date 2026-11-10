@@ -1,9 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: cabecalho('Detalhes da Embalagem')}"></head>
 <body>
-
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
@@ -11,50 +9,38 @@
         <div>
             <span class="texto-apoio">SEUS MATERIAIS</span>
             <h1>Detalhes da embalagem</h1>
-            <p>Confira as informações da embalagem cadastrada.</p>
+            <p>Confira as informações cadastradas para esta embalagem.</p>
         </div>
-
-        <a th:href="@{/embalagem/listar}" class="botao botao-secundario">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
+        <a th:href="@{/embalagem/listar}" class="botao botao-secundario"><i class="bi bi-arrow-left"></i> Voltar</a>
     </section>
 
-    <section class="cartao">
-        <div class="cartao-cabecalho">
-            <div>
+    <section class="cartao peca-detalhe-cartao">
+        <header class="peca-detalhe-cabecalho">
+            <span class="peca-detalhe-icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+            <div class="peca-detalhe-titulo">
+                <span class="texto-apoio">MATERIAL DE EMBALAGEM</span>
                 <h2 th:text="${embalagem.nome}">Nome da embalagem</h2>
-                <p>Informações gerais e custo da embalagem.</p>
+                <p>Valor usado como referência nos cálculos de custo.</p>
             </div>
+            <a th:href="@{/embalagem/editar/{id}(id=${embalagem.id})}" class="botao botao-principal"><i class="bi bi-pencil"></i> Editar embalagem</a>
+        </header>
 
-            <span class="icone-peca">
-                <i class="bi bi-box-seam"></i>
-            </span>
+        <div class="peca-detalhe-metricas embalagem-detalhe-metricas">
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-cash-coin"></i></span>
+                <div><span>Custo por unidade</span><strong th:text="|R$ ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-calculator"></i></span>
+                <div><span>Aplicação</span><strong>Por peça calculada</strong></div>
+            </article>
         </div>
 
-        <div class="detalhes-conteudo">
-            <div class="detalhe-item">
-                <span>Nome da embalagem</span>
-                <strong th:text="${embalagem.nome}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Custo unitário</span>
-                <strong th:text="'R$ ' + ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 2)}"></strong>
-            </div>
-        </div>
-
-        <div class="formulario-acoes">
-            <a th:href="@{/embalagem/editar/{id}(id=${embalagem.id})}"
-               class="botao botao-principal">
-                <i class="bi bi-pencil"></i> Editar embalagem
-            </a>
-
-            <a th:href="@{/embalagem/listar}" class="botao botao-secundario">
-                Voltar para listagem
-            </a>
-        </div>
+        <footer class="peca-detalhe-rodape">
+            <p><i class="bi bi-info-circle"></i> O custo pode ser alterado a qualquer momento; cálculos já salvos preservam os valores registrados.</p>
+            <a th:href="@{/embalagem/listar}" class="botao botao-secundario"><i class="bi bi-arrow-left"></i> Voltar para embalagens</a>
+        </footer>
     </section>
 </main>
-
 </body>
 </html>

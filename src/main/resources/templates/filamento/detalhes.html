@@ -1,133 +1,90 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: cabecalho('Detalhes do Filamento')}"></head>
 <body>
-
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina pagina-detalhes-filamento">
-    <div class="alerta-sucesso notificacao-flutuante" th:if="${param.sucesso != null and param.sucesso[0] == 'compraRegistrada'}" role="status">
+    <div class="alerta-sucesso notificacao-flutuante" role="status" th:if="${param.sucesso != null and param.sucesso[0] == 'compraRegistrada'}">
         Compra registrada. O estoque e o preço atual do rolo foram atualizados.
     </div>
-    <div class="alerta-erro notificacao-flutuante" th:if="${param.erro != null and param.erro[0] == 'estoqueConflito'}" role="alert">
+    <div class="alerta-erro notificacao-flutuante" role="alert" th:if="${param.erro != null and param.erro[0] == 'estoqueConflito'}">
         O filamento foi alterado em outra tela. Atualize a página e registre a compra novamente.
     </div>
+
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEUS MATERIAIS</span>
             <h1>Detalhes do filamento</h1>
-            <p>Confira as informações do filamento cadastrado.</p>
+            <p>Confira os dados do material, do rolo e do estoque disponível.</p>
         </div>
-
-        <a th:href="@{/filamento/listar}" class="botao botao-secundario">
-            <i class="bi bi-arrow-left"></i> Voltar
-        </a>
+        <a th:href="@{/filamento/listar}" class="botao botao-secundario"><i class="bi bi-arrow-left"></i> Voltar</a>
     </section>
 
-    <section class="cartao">
-        <div class="cartao-cabecalho">
-            <div>
+    <section class="cartao peca-detalhe-cartao">
+        <header class="peca-detalhe-cabecalho">
+            <span class="peca-detalhe-icone filamento-detalhe-cor"
+                  th:if="${filamento.codigoCor != null and !#strings.isEmpty(filamento.codigoCor)}"
+                  th:style="|background-color: ${filamento.codigoCor}|" aria-hidden="true"></span>
+            <span class="peca-detalhe-icone" th:unless="${filamento.codigoCor != null and !#strings.isEmpty(filamento.codigoCor)}" aria-hidden="true"><i class="bi bi-palette"></i></span>
+            <div class="peca-detalhe-titulo">
+                <span class="texto-apoio">MATERIAL DE IMPRESSÃO</span>
                 <h2 th:text="${filamento.nome}">Nome do filamento</h2>
-                <p>Informações do material e do rolo adquirido.</p>
+                <p><span th:text="${filamento.marca}">Marca</span><span th:if="${filamento.cor != null and !#strings.isEmpty(filamento.cor)}" th:text="| · ${filamento.cor}|"></span></p>
             </div>
+            <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}" class="botao botao-principal"><i class="bi bi-pencil"></i> Editar filamento</a>
+        </header>
 
-            <span class="icone-peca">
-                <i class="bi bi-palette"></i>
-            </span>
+        <div class="peca-detalhe-metricas">
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-box-seam"></i></span>
+                <div><span>Estoque disponível</span><strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 'COMMA', 2, 'POINT')} g|">0 g</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-disc"></i></span>
+                <div><span>Peso do rolo</span><strong th:text="|${#numbers.formatDecimal(filamento.pesoRoloGramas, 1, 'COMMA', 2, 'POINT')} g|">1.000 g</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-cash-coin"></i></span>
+                <div><span>Preço do rolo</span><strong th:text="|R$ ${#numbers.formatDecimal(filamento.precoRolo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-palette2"></i></span>
+                <div><span>Cor cadastrada</span><strong th:text="${filamento.cor != null and !#strings.isEmpty(filamento.cor) ? filamento.cor : 'Não informada'}">Não informada</strong></div>
+            </article>
         </div>
 
-        <div class="detalhes-conteudo">
-            <div class="detalhe-item">
-                <span>Nome do filamento</span>
-                <strong th:text="${filamento.nome}"></strong>
+        <footer class="peca-detalhe-rodape filamento-detalhe-rodape">
+            <p><i class="bi bi-info-circle"></i> O estoque é atualizado quando você registra uma compra ou marca um cálculo como produzido.</p>
+            <div class="formulario-acoes">
+                <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}" class="botao botao-secundario"><i class="bi bi-search"></i> Ver uso no histórico</a>
+                <details class="filamento-compra-inline">
+                    <summary class="botao botao-secundario"><i class="bi bi-bag-plus"></i> Registrar compra</summary>
+                    <form th:action="@{/filamento/compra/{id}(id=${filamento.id})}" th:object="${compra}" method="post" class="filamento-compra-formulario" novalidate data-turbo="false">
+                        <p>A compra será somada ao saldo atual. O peso e o preço informados passam a ser a referência para os próximos cálculos. Para corrigir apenas a quantidade disponível, use <strong>Corrigir saldo</strong> na listagem.</p>
+                        <div class="campo">
+                            <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g)</label>
+                            <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01" required>
+                            <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="pesoRoloGramas">Peso total do rolo comprado (g)</label>
+                            <input id="pesoRoloGramas" type="number" th:field="*{pesoRoloGramas}" min="0.01" step="0.01" required>
+                            <small>Exemplo: informe 1.000 g para um rolo de 1 kg.</small>
+                            <span class="erro-campo" th:if="${#fields.hasErrors('pesoRoloGramas')}" th:errors="*{pesoRoloGramas}"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="precoRolo">Valor pago pelo rolo inteiro (R$)</label>
+                            <input id="precoRolo" type="number" th:field="*{precoRolo}" min="0.01" step="0.01" required>
+                            <span class="erro-campo" th:if="${#fields.hasErrors('precoRolo')}" th:errors="*{precoRolo}"></span>
+                        </div>
+                        <div class="formulario-acoes"><button type="submit" class="botao botao-principal"><i class="bi bi-check-lg"></i> Confirmar compra</button></div>
+                    </form>
+                </details>
             </div>
-
-            <div class="detalhe-item">
-                <span>Cor do filamento</span>
-                <div class="cor-detalhes">
-                    <span class="indicador-cor" th:style="${filamento.codigoCor != null ? 'background-color: ' + filamento.codigoCor : 'background-color: var(--borda)'}"></span>
-                    <strong th:text="${filamento.cor}">Verde-menta</strong>
-                </div>
-            </div>
-
-
-            <div class="detalhe-item">
-                <span>Marca</span>
-                <strong th:text="${filamento.marca}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Peso do rolo</span>
-                <div class="detalhe-valor">
-                    <span th:text="${filamento.pesoRoloGramas}"></span>
-                    <span class="detalhe-unidade">g</span>
-                </div>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Disponível em estoque</span>
-                <div class="detalhe-valor">
-                    <span th:text="${#numbers.formatDecimal(filamento.estoqueGramas, 1, 2)}"></span>
-                    <span class="detalhe-unidade">g</span>
-                    <a th:href="@{/filamento/{id}/historico(id=${filamento.id})}" class="botao-acao" title="Ver cálculos que usaram este filamento" aria-label="Ver histórico de uso deste filamento">
-                        <i class="bi bi-search"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="detalhe-item">
-                <span class="detalhe-label">Preço do rolo</span>
-                <div class="detalhe-valor">
-                    <span class="detalhe-unidade">R$</span>
-                    <span th:text="${#numbers.formatDecimal(filamento.precoRolo, 1, 2)}">89,90</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="formulario-acoes">
-            <a th:href="@{/filamento/listar}" class="botao botao-secundario">
-                <i class="bi bi-arrow-left"></i> Voltar
-            </a>
-            <a th:href="@{/filamento/editar/{id}(id=${filamento.id})}"
-               class="botao botao-principal">
-                <i class="bi bi-pencil"></i> Editar filamento
-            </a>
-            <details class="filamento-compra-inline">
-                <summary class="botao botao-secundario">
-                    <i class="bi bi-bag-plus"></i> Registrar compra
-                </summary>
-                <form th:action="@{/filamento/compra/{id}(id=${filamento.id})}"
-                      th:object="${compra}"
-                      method="post"
-                      class="filamento-compra-formulario"
-                      novalidate
-                      data-turbo="false">
-                    <p>A compra será somada ao saldo atual. O peso e o preço informados passam a ser a referência para os próximos cálculos. Para corrigir apenas a quantidade disponível, use <strong>Corrigir saldo</strong> na listagem.</p>
-                    <div class="campo">
-                        <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g)</label>
-                        <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01" required>
-                        <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
-                    </div>
-                    <div class="campo">
-                        <label for="pesoRoloGramas">Peso total do rolo comprado (g)</label>
-                        <input id="pesoRoloGramas" type="number" th:field="*{pesoRoloGramas}" min="0.01" step="0.01" required>
-                        <small>Exemplo: informe 1.000 g para um rolo de 1 kg.</small>
-                        <span class="erro-campo" th:if="${#fields.hasErrors('pesoRoloGramas')}" th:errors="*{pesoRoloGramas}"></span>
-                    </div>
-                    <div class="campo">
-                        <label for="precoRolo">Valor pago pelo rolo inteiro (R$)</label>
-                        <input id="precoRolo" type="number" th:field="*{precoRolo}" min="0.01" step="0.01" required>
-                        <span class="erro-campo" th:if="${#fields.hasErrors('precoRolo')}" th:errors="*{precoRolo}"></span>
-                    </div>
-                    <div class="formulario-acoes">
-                        <button type="submit" class="botao botao-principal"><i class="bi bi-check-lg"></i> Confirmar compra</button>
-                    </div>
-                </form>
-            </details>
-        </div>
+        </footer>
     </section>
 </main>
-
+<script th:replace="~{fragmentos :: bootstrap-script}"></script>
 </body>
 </html>

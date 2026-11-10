@@ -2641,7 +2641,7 @@ input[type="color"]:focus {
 .filamento-compra-formulario .formulario-acoes { margin-top: 2px; }
 .pagina-compra-filamento { width: min(760px, calc(100% - 48px)); }
 .pagina-compra-filamento .cartao { max-width: 100%; }
-.pagina-detalhes-filamento { width: min(880px, calc(100% - 48px)); }
+.pagina-detalhes-filamento { width: min(1280px, calc(100% - 48px)); }
 .estoque-ajuste-botao { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 0; border: 0; background: transparent; color: var(--marrom-claro); font: inherit; font-size: 0.78rem; cursor: pointer; }
 .estoque-ajuste-botao:hover { color: var(--marrom); text-decoration: underline; }
 .modal-estoque-conteudo { overflow: hidden; border: 1px solid var(--borda); border-radius: 16px; color: var(--marrom); }
@@ -2784,6 +2784,26 @@ input[type="color"]:focus {
 .peca-lista-metricas dt { color: var(--marrom-claro); font-size: .78rem; font-weight: 500; }
 .peca-lista-metricas dd { margin: 0; color: var(--marrom); font-weight: 650; }
 .peca-lista-acoes { gap: 8px; }
+.filamento-lista-item { grid-template-columns: 48px minmax(160px, 1.05fr) minmax(260px, 1.35fr) auto; }
+.filamento-lista-metricas { grid-template-columns: minmax(0, 1.5fr) minmax(110px, .8fr); align-items: center; }
+.filamento-lista-metricas .filamento-lista-estoque { gap: 6px; }
+.filamento-lista-estoque dd { display: flex; align-items: baseline; gap: 5px; }
+.filamento-lista-estoque dd strong { color: var(--marrom); }
+.filamento-lista-estoque dd span { color: var(--marrom-claro); font-size: .82rem; font-weight: 500; }
+.filamento-lista-estoque .estoque-filamento-indicador { max-width: 230px; }
+.filamento-lista-estoque .estoque-filamento-repor { margin: 0; font-size: .75rem; }
+.filamento-lista-item .estoque-ajuste-botao { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 0 10px; border: 1px solid var(--borda); border-radius: 10px; background: var(--superficie); color: var(--marrom); font-size: .78rem; white-space: nowrap; }
+.filamento-lista-item .estoque-ajuste-botao:hover { border-color: var(--destaque); color: var(--destaque-escuro); }
+.embalagem-lista-item { grid-template-columns: 48px minmax(160px, 1.4fr) minmax(160px, .8fr) auto; }
+.embalagem-lista-metricas { grid-template-columns: minmax(0, 1fr); }
+.filamento-detalhe-cor { border: 1px solid var(--borda); }
+.filamento-detalhe-rodape { align-items: flex-start; }
+.filamento-detalhe-rodape > p { flex: 1 1 280px; }
+.filamento-detalhe-rodape > .formulario-acoes { flex: 0 1 auto; align-items: flex-start; justify-content: flex-end; }
+.filamento-detalhe-rodape .filamento-compra-inline { flex: 1 1 100%; width: 100%; }
+.filamento-detalhe-rodape .filamento-compra-inline > summary { white-space: nowrap; }
+.filamento-detalhe-rodape .filamento-compra-formulario { width: min(840px, calc(100% - 12px)); margin: 8px 0 0; background: var(--superficie); }
+.embalagem-detalhe-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .peca-lista-item .checkbox-selecao-listagem { display: none; }
 .peca-lista-item .formulario-excluir { display: flex; margin: 0; }
 .modo-selecao .peca-lista-item { grid-template-columns: 20px 48px minmax(160px, 1.4fr) minmax(190px, 1fr) auto; }
@@ -2817,6 +2837,15 @@ input[type="color"]:focus {
     .peca-lista-identidade { grid-column: 2 / -1; grid-row: 1; }
     .peca-lista-metricas { grid-column: 1 / 3; grid-row: 2; }
     .peca-lista-acoes { grid-column: 3; grid-row: 2; }
+    .filamento-lista-item,
+    .embalagem-lista-item,
+    .modo-selecao .filamento-lista-item,
+    .modo-selecao .embalagem-lista-item { grid-template-columns: 42px minmax(0, 1fr) auto; }
+    .filamento-lista-metricas { grid-column: 1 / 3; grid-row: 2; }
+    .filamento-lista-item .peca-lista-acoes { grid-column: 3; grid-row: 2; flex-wrap: wrap; }
+    .embalagem-lista-metricas { grid-column: 1 / 3; grid-row: 2; }
+    .embalagem-lista-item .peca-lista-acoes { grid-column: 3; grid-row: 2; }
+    .filamento-detalhe-rodape > .formulario-acoes { width: 100%; justify-content: flex-start; }
     .peca-detalhe-cabecalho { flex-wrap: wrap; padding: 18px; }
     .peca-arquivo-detalhe { padding: 0 18px 18px; }
     .peca-arquivo-detalhe-cabecalho { align-items: flex-start; flex-direction: column; }
@@ -2831,8 +2860,14 @@ input[type="color"]:focus {
     .peca-lista-identidade { grid-column: 2; }
     .peca-lista-metricas { grid-column: 1 / -1; }
     .peca-lista-acoes { grid-column: 1 / -1; justify-content: flex-start; }
+    .filamento-lista-metricas,
+    .embalagem-lista-metricas { grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr); }
+    .filamento-lista-item .peca-lista-acoes,
+    .embalagem-lista-item .peca-lista-acoes { grid-column: 1 / -1; justify-content: flex-start; }
     .peca-detalhe-metricas,
     .equipamento-detalhe-metricas { grid-template-columns: minmax(0, 1fr); }
+    .embalagem-detalhe-metricas { grid-template-columns: minmax(0, 1fr); }
+    .filamento-detalhe-rodape .filamento-compra-formulario { width: 100%; }
 }
 
 .importacao-peca {

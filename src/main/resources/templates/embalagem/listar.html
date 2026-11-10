@@ -54,9 +54,9 @@
             <p>Gerencie as embalagens utilizadas nos seus cálculos de impressão.</p>
         </div>
 
-        <a th:href="@{/embalagem/novo}" class="botao botao-principal">
-            <span>+</span> Nova embalagem
-        </a>
+        <div class="formulario-acoes">
+            <a th:href="@{/embalagem/novo}" class="botao botao-principal"><i class="bi bi-plus-lg"></i> Nova embalagem</a>
+        </div>
     </section>
 
     <section class="cartao" data-lista-selecao>
@@ -176,46 +176,23 @@
             </form>
         </div>
 
-        <div class="tabela-container"
-             th:if="${!#lists.isEmpty(embalagens)}">
-
-            <table class="tabela">
-                <thead>
-                <tr>
-                    <th class="coluna-selecao"
-                        aria-label="Selecionar embalagem"></th>
-                    <th>Nome da embalagem</th>
-                    <th>Custo unitário</th>
-                    <th class="coluna-acoes">Ações</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                <tr th:each="embalagem : ${embalagens}"
-                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(embalagem.id)} ? ' item-exclusao-falhou' : ''">
-
-                    <td class="coluna-selecao">
-                        <input class="checkbox-selecao-listagem"
-                               type="checkbox"
-                               name="ids"
-                               th:value="${embalagem.id}"
-                               form="form-remover-embalagens"
-                               th:aria-label="|Selecionar ${embalagem.nome}|">
-                    </td>
-
-                    <td>
-                        <div class="nome-peca">
-                            <span class="icone-peca">
-                                <i class="bi bi-box-seam"></i>
-                            </span>
-                            <span th:text="${embalagem.nome}"></span>
-                        </div>
-                    </td>
-
-                    <td th:text="'R$ ' + ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 2)}"></td>
-
-                    <td class="coluna-acoes">
-                        <div class="acoes">
+        <div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(embalagens)}">
+            <article class="peca-lista-item embalagem-lista-item"
+                     th:each="embalagem : ${embalagens}"
+                     th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(embalagem.id)} ? ' item-exclusao-falhou' : ''">
+                <input class="checkbox-selecao-listagem" type="checkbox" name="ids"
+                       th:value="${embalagem.id}" form="form-remover-embalagens"
+                       th:aria-label="|Selecionar ${embalagem.nome}|">
+                <span class="peca-lista-icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+                <div class="peca-lista-identidade">
+                    <span class="texto-apoio">EMBALAGEM</span>
+                    <h3 th:text="${embalagem.nome}">Nome da embalagem</h3>
+                    <p>Usada como referência nos cálculos</p>
+                </div>
+                <dl class="peca-lista-metricas embalagem-lista-metricas">
+                    <div><dt>Custo unitário</dt><dd th:text="|R$ ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</dd></div>
+                </dl>
+                <div class="acoes peca-lista-acoes" aria-label="Ações da embalagem">
                             <a th:href="@{/embalagem/detalhes/{id}(id=${embalagem.id})}"
                                class="botao-acao"
                                title="Ver detalhes"
@@ -243,11 +220,8 @@
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                </div>
+            </article>
         </div>
 
         <div class="paginacao-historico"
