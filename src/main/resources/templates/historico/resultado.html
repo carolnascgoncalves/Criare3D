@@ -475,7 +475,7 @@
                     </button>
                 </form>
 
-                <form th:action="@{/historico/editar}" th:object="${calculo}" method="post">
+                <form th:action="@{/historico/editar}" th:object="${calculo}" method="post" data-turbo="false">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
                     <input type="hidden" th:field="*{pecasPorImpressao}">

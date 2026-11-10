@@ -607,6 +607,12 @@ public class CalculoHistoricoController {
             @ModelAttribute("calculo") CalculoRequest request,
             HttpSession session) {
 
+        // A imagem não vai nos campos ocultos do resultado. Reanexa os bytes
+        // temporários ao request que atravessa o redirect para o formulário.
+        request.setFotoPecaBytes((byte[]) session.getAttribute(FOTO_SESSAO));
+        request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
+        request.setFotoRemovida(false);
+
         session.setAttribute(CALCULO_PARA_EDITAR, request);
 
         return ResponseEntity
