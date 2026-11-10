@@ -9,19 +9,24 @@ function inicializarImportadorModelo3mf() {
 }
 
 function inicializarImportador3mf(secao, formularioPeca) {
+    const layout = secao.closest(".peca-cadastro-layout") || secao.parentElement;
     const input = secao.querySelector("#arquivoModelo3mf");
     const botao = secao.querySelector("[data-analisar-3mf]");
     const mensagem = secao.querySelector("[data-mensagem-3mf]");
-    const dados = secao.querySelector("[data-dados-3mf]");
-    const lista = secao.querySelector("[data-lista-dados-3mf]");
-    const avisoFatiamento = secao.querySelector("[data-aviso-fatiamento-3mf]");
+    const dados = layout.querySelector("[data-dados-3mf]");
+    const lista = layout.querySelector("[data-lista-dados-3mf]");
+    const avisoFatiamento = layout.querySelector("[data-aviso-fatiamento-3mf]");
     const placas = secao.querySelector("[data-placas-3mf]");
-    const resumoFatiamento = secao.querySelector("[data-resumo-estatisticas]");
-    const totaisFatiamento = secao.querySelector("[data-totais-fatiamento]");
-    const filamentosFatiamento = secao.querySelector("[data-filamentos-fatiamento]");
-    const usarTempoFatiado = secao.querySelector("[data-usar-tempo-fatiado]");
+    const resumoFatiamento = layout.querySelector("[data-resumo-estatisticas]");
+    const totaisFatiamento = layout.querySelector("[data-totais-fatiamento]");
+    const filamentosFatiamento = layout.querySelector("[data-filamentos-fatiamento]");
+    const usarTempoFatiado = layout.querySelector("[data-usar-tempo-fatiado]");
     const nomePeca = formularioPeca?.querySelector("#nome");
+    const filamentoPeca = formularioPeca?.querySelector("#quantidadeFilamentoGramas");
     const tempoPeca = formularioPeca?.querySelector("#tempoImpressaoMinutos");
+    const origemNome = formularioPeca?.querySelector("[data-origem-nome]");
+    const origemFilamento = formularioPeca?.querySelector("[data-origem-filamento]");
+    const origemTempo = formularioPeca?.querySelector("[data-origem-tempo]");
 
     function informar(texto, erro = false) {
         mensagem.textContent = texto;
@@ -29,13 +34,18 @@ function inicializarImportador3mf(secao, formularioPeca) {
         mensagem.classList.toggle("erro", erro);
     }
 
+    function notificarLeitura(texto) {
+        informar("");
+        window.mostrarNotificacao?.(texto, "sucesso");
+    }
+
     usarTempoFatiado?.addEventListener("click", () => {
         const segundos = Number(resumoFatiamento?.dataset.tempoTotalSegundos);
-        if (!Number.isFinite(segundos) || segundos <= 0 || !tempoPeca) return;
-        tempoPeca.value = String(Math.ceil(segundos / 60));
-        tempoPeca.dispatchEvent(new Event("input", {bubbles: true}));
-        tempoPeca.dispatchEvent(new Event("change", {bubbles: true}));
-        informar(`Tempo total aplicado à peça: ${formatarDuracao(segundos)}. Confira se as placas representam uma unidade do produto.`);
+        const gramas = Number(resumoFatiamento?.dataset.pesoTotalGramas);
+        if (!Number.isFinite(segundos) || segundos <= 0) return;
+        aplicarValor(tempoPeca, Math.ceil(segundos / 60), origemTempo);
+        if (Number.isFinite(gramas) && gramas > 0) aplicarValor(filamentoPeca, formatarNumeroCampo(gramas), origemFilamento);
+        informar(`Tempo${Number.isFinite(gramas) && gramas > 0 ? " e filamento" : ""} aplicados ao cadastro. Confira se os totais representam uma unidade do produto.`);
     });
 
     botao.addEventListener("click", async () => {
@@ -56,6 +66,10 @@ function inicializarImportador3mf(secao, formularioPeca) {
 
         botao.disabled = true;
         dados.hidden = true;
+        placas.hidden = true;
+        [origemNome, origemFilamento, origemTempo].forEach(indicador => {
+            if (indicador) indicador.hidden = true;
+        });
         informar("Lendo o projeto 3D…");
         try {
             const formData = new FormData();
@@ -72,6 +86,7 @@ function inicializarImportador3mf(secao, formularioPeca) {
             if (!resposta.ok) throw new Error(corpo.erro || "Não foi possível ler esse projeto 3MF.");
 
             if (corpo.nome && nomePeca) nomePeca.value = corpo.nome;
+            if (corpo.nome && origemNome) origemNome.hidden = false;
             lista.replaceChildren();
             const campos = [
                 ["Impressora do perfil", corpo.modeloImpressora],
@@ -120,11 +135,13 @@ function inicializarImportador3mf(secao, formularioPeca) {
             if (corpo.temEstatisticas && corpo.estatisticasCompletas) {
                 const segundosTotais = Number(corpo.tempoTotalSegundos);
                 if (tempoPeca && Number.isFinite(segundosTotais) && segundosTotais > 0) {
-                    tempoPeca.value = String(Math.ceil(segundosTotais / 60));
-                    tempoPeca.dispatchEvent(new Event("input", {bubbles: true}));
-                    tempoPeca.dispatchEvent(new Event("change", {bubbles: true}));
+                    aplicarValor(tempoPeca, Math.ceil(segundosTotais / 60), origemTempo);
                 }
-                avisoFatiamento.textContent = "Estatísticas encontradas para todas as placas e tempo total preenchido. Confira se elas representam uma unidade do produto.";
+                const gramasTotais = Number(corpo.pesoTotalGramas);
+                if (filamentoPeca && Number.isFinite(gramasTotais) && gramasTotais > 0) {
+                    aplicarValor(filamentoPeca, formatarNumeroCampo(gramasTotais), origemFilamento);
+                }
+                avisoFatiamento.textContent = "Estatísticas encontradas para todas as placas. Tempo e consumo total foram preenchidos; confira se representam uma unidade do produto.";
             } else if (corpo.temEstatisticas) {
                 avisoFatiamento.textContent = `Estatísticas encontradas para ${corpo.numeroPlacasComEstatisticas} de ${corpo.numeroPlacas} placas. O tempo não foi preenchido porque o total está incompleto.`;
             } else if (corpo.jaFatiado) {
@@ -134,11 +151,12 @@ function inicializarImportador3mf(secao, formularioPeca) {
             }
             dados.hidden = false;
             if (corpo.temEstatisticas && corpo.estatisticasCompletas) {
-                informar(`Projeto lido. O nome foi preenchido e o tempo total (${formatarDuracao(corpo.tempoTotalSegundos)}) foi aplicado ao cadastro; confira se ele corresponde a uma unidade.`);
+                const temPeso = Number(corpo.pesoTotalGramas) > 0;
+                notificarLeitura(`Projeto lido. Nome e tempo (${formatarDuracao(corpo.tempoTotalSegundos)})${temPeso ? " e consumo total" : ""} foram aplicados ao cadastro; confira se correspondem a uma unidade.`);
             } else if (corpo.temEstatisticas) {
-                informar(`Projeto lido. Encontradas estatísticas de ${corpo.numeroPlacasComEstatisticas} de ${corpo.numeroPlacas} placas; o tempo não foi preenchido porque os dados estão incompletos.`);
+                notificarLeitura(`Projeto lido. Encontradas estatísticas de ${corpo.numeroPlacasComEstatisticas} de ${corpo.numeroPlacas} placas; o tempo não foi preenchido porque os dados estão incompletos.`);
             } else {
-                informar(`Projeto lido. O nome “${corpo.nome}” foi colocado no cadastro; você pode editá-lo.`);
+                notificarLeitura(`Projeto lido. O nome “${corpo.nome}” foi colocado no cadastro; você pode editá-lo.`);
             }
         } catch (erro) {
             informar(erro.message || "Não foi possível ler esse projeto 3MF.", true);
@@ -146,6 +164,18 @@ function inicializarImportador3mf(secao, formularioPeca) {
             botao.disabled = false;
         }
     });
+}
+
+function aplicarValor(campo, valor, indicadorOrigem) {
+    if (!campo || valor == null || valor === "") return;
+    campo.value = String(valor);
+    if (indicadorOrigem) indicadorOrigem.hidden = false;
+    campo.dispatchEvent(new Event("input", {bubbles: true}));
+    campo.dispatchEvent(new Event("change", {bubbles: true}));
+}
+
+function formatarNumeroCampo(valor) {
+    return Number(valor).toLocaleString("en-US", {useGrouping: false, maximumFractionDigits: 2});
 }
 
 function formatarMateriais(valor) {
@@ -162,37 +192,81 @@ function renderizarPlacas(container, previews, total) {
     container.replaceChildren();
     const porNumero = new Map((Array.isArray(previews) ? previews : []).map(placa => [Number(placa.numero), placa]));
     const quantidade = Math.min(Math.max(total || porNumero.size, porNumero.size, 1), 8);
-    for (let numero = 1; numero <= quantidade; numero++) {
-        const cartao = document.createElement("figure");
-        cartao.className = "importacao-peca-placa";
-        const dadosPlaca = porNumero.get(numero);
-        const imagem = dadosPlaca?.imagemPreviewDataUri;
-        if (typeof imagem === "string" && /^data:image\/(?:png|jpeg|webp);base64,/i.test(imagem)) {
-            const img = document.createElement("img");
-            img.src = imagem;
-            img.alt = `Prévia da placa de impressão ${numero}`;
-            cartao.appendChild(img);
+    const lista = Array.from({length: quantidade}, (_, indice) => {
+        const numero = indice + 1;
+        return {numero, ...(porNumero.get(numero) || {})};
+    });
+    const galeria = document.createElement("div");
+    galeria.className = "importacao-peca-galeria";
+    const principal = document.createElement("figure");
+    principal.className = "importacao-peca-placa-principal";
+    const miniaturas = document.createElement("div");
+    miniaturas.className = "importacao-peca-miniaturas";
+    miniaturas.setAttribute("role", "group");
+    miniaturas.setAttribute("aria-label", "Escolher prévia da placa");
+
+    function mostrarPlaca(placa, imagemElemento) {
+        principal.replaceChildren();
+        const uri = placa.imagemPreviewDataUri;
+        if (typeof uri === "string" && /^data:image\/(?:png|jpeg|webp);base64,/i.test(uri)) {
+            imagemElemento.src = uri;
+            imagemElemento.alt = `Prévia da placa ${placa.numero}`;
+            principal.appendChild(imagemElemento);
         } else {
-            const vazio = document.createElement("span");
+            const vazio = document.createElement("div");
             vazio.className = "importacao-peca-placa-vazia";
-            vazio.textContent = "Prévia indisponível";
-            cartao.appendChild(vazio);
+            vazio.innerHTML = '<i class="bi bi-image" aria-hidden="true"></i><span>Prévia indisponível</span>';
+            principal.appendChild(vazio);
         }
         const legenda = document.createElement("figcaption");
-        legenda.textContent = `Placa ${numero}`;
-        cartao.appendChild(legenda);
-        if (dadosPlaca?.tempoSegundos != null && Number.isFinite(Number(dadosPlaca.tempoSegundos))) {
-            const tempo = document.createElement("small");
-            tempo.textContent = formatarDuracao(Number(dadosPlaca.tempoSegundos));
-            cartao.appendChild(tempo);
+        legenda.textContent = `Placa ${placa.numero} de ${quantidade}`;
+        principal.appendChild(legenda);
+        const detalhes = [
+            placa.tempoSegundos != null ? formatarDuracao(Number(placa.tempoSegundos)) : "",
+            placa.pesoGramas != null ? `${formatarDecimal(placa.pesoGramas)} g` : ""
+        ].filter(Boolean).join(" · ");
+        if (detalhes) {
+            const resumo = document.createElement("small");
+            resumo.textContent = detalhes;
+            principal.appendChild(resumo);
         }
-        if (dadosPlaca?.pesoGramas != null && Number.isFinite(Number(dadosPlaca.pesoGramas))) {
-            const peso = document.createElement("small");
-            peso.textContent = `${formatarDecimal(dadosPlaca.pesoGramas)} g`;
-            cartao.appendChild(peso);
-        }
-        container.appendChild(cartao);
     }
+
+    lista.forEach((placa, indice) => {
+        const botao = document.createElement("button");
+        botao.type = "button";
+        botao.className = "importacao-peca-miniatura";
+        botao.setAttribute("aria-label", `Mostrar prévia da placa ${placa.numero}`);
+        botao.setAttribute("aria-pressed", indice === 0 ? "true" : "false");
+        const imagem = document.createElement("img");
+        const uri = placa.imagemPreviewDataUri;
+        if (typeof uri === "string" && /^data:image\/(?:png|jpeg|webp);base64,/i.test(uri)) {
+            imagem.src = uri;
+            imagem.alt = "";
+        } else {
+            imagem.hidden = true;
+            const semImagem = document.createElement("span");
+            semImagem.className = "importacao-peca-miniatura-vazia";
+            semImagem.innerHTML = '<i class="bi bi-image" aria-hidden="true"></i>';
+            botao.appendChild(semImagem);
+        }
+        if (!imagem.hidden) botao.appendChild(imagem);
+        const rotulo = document.createElement("span");
+        rotulo.textContent = String(placa.numero);
+        botao.appendChild(rotulo);
+        botao.addEventListener("click", () => {
+            miniaturas.querySelectorAll("button").forEach(item => item.setAttribute("aria-pressed", "false"));
+            botao.setAttribute("aria-pressed", "true");
+            mostrarPlaca(placa, document.createElement("img"));
+        });
+        miniaturas.appendChild(botao);
+    });
+
+    mostrarPlaca(lista[0], document.createElement("img"));
+    galeria.append(principal);
+    if (quantidade > 1) galeria.appendChild(miniaturas);
+    container.appendChild(galeria);
+    container.hidden = false;
 }
 
 function renderizarResumoFatiamento(corpo, painel, totais, listaFilamentos) {
@@ -201,6 +275,7 @@ function renderizarResumoFatiamento(corpo, painel, totais, listaFilamentos) {
     painel.dataset.tempoTotalSegundos = temDados ? String(corpo.tempoTotalSegundos) : "";
     const botaoTempo = painel.querySelector("[data-usar-tempo-fatiado]");
     if (botaoTempo) botaoTempo.disabled = !corpo.estatisticasCompletas;
+    painel.dataset.pesoTotalGramas = temDados && Number(corpo.pesoTotalGramas) > 0 ? String(corpo.pesoTotalGramas) : "";
     totais.replaceChildren();
     listaFilamentos.replaceChildren();
     if (!temDados) return;

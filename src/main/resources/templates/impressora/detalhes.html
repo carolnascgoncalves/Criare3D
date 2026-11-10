@@ -27,60 +27,44 @@
         </a>
     </section>
 
-    <section class="cartao">
-        <div class="cartao-cabecalho">
-            <div>
+    <section class="cartao peca-detalhe-cartao equipamento-detalhe-cartao">
+        <header class="peca-detalhe-cabecalho">
+            <span class="peca-detalhe-icone" aria-hidden="true"><i class="bi bi-printer"></i></span>
+            <div class="peca-detalhe-titulo">
+                <span class="texto-apoio">EQUIPAMENTO</span>
                 <h2 th:text="${impressora.nome}">Nome da impressora</h2>
-                <p>Informações gerais e consumo de energia.</p>
+                <p th:text="${impressora.modelo}">Modelo da impressora</p>
             </div>
+            <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}" class="botao botao-principal">
+                <i class="bi bi-pencil"></i> Editar impressora
+            </a>
+        </header>
 
-            <span class="icone-peca">
-                <i class="bi bi-printer"></i>
-            </span>
+        <div class="peca-detalhe-metricas equipamento-detalhe-metricas">
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-lightning-charge"></i></span>
+                <div><span>Potência média informada</span><strong th:text="|${#numbers.formatDecimal(impressora.potenciaWatts, 1, 'COMMA', 2, 'POINT')} W|">0 W</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-thermometer-half"></i></span>
+                <div><span>Aquecimento por impressão</span><strong th:text="|${impressora.tempoAquecimentoMinutos != null ? impressora.tempoAquecimentoMinutos : 0} min|">0 min</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-cash-coin"></i></span>
+                <div><span>Valor de compra</span><strong th:text="${impressora.valorCompra != null ? 'R$ ' + #numbers.formatDecimal(impressora.valorCompra, 1, 'POINT', 2, 'COMMA') : 'Não informado'}">Não informado</strong></div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-hourglass-split"></i></span>
+                <div><span>Vida útil estimada</span><strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 2, 'POINT') + ' horas' : 'Não informada'}">Não informada</strong></div>
+            </article>
         </div>
 
-        <div class="detalhes-conteudo">
-            <div class="detalhe-item">
-                <span>Nome da impressora</span>
-                <strong th:text="${impressora.nome}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Modelo</span>
-                <strong th:text="${impressora.modelo}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Potência</span>
-                <strong th:text="${impressora.potenciaWatts} + ' W'"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Aquecimento antes de imprimir</span>
-                <strong th:text="${(impressora.tempoAquecimentoMinutos != null ? impressora.tempoAquecimentoMinutos : 0) + ' min por impressão'}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Valor de compra</span>
-                <strong th:text="${impressora.valorCompra != null ? 'R$ ' + #numbers.formatDecimal(impressora.valorCompra, 1, 'POINT', 2, 'COMMA') : 'Não informado'}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Vida útil estimada</span>
-                <strong th:text="${impressora.vidaUtilHoras != null ? #numbers.formatDecimal(impressora.vidaUtilHoras, 1, 'COMMA', 2, 'POINT') + ' horas' : 'Não informada'}"></strong>
-            </div>
-
-            <div class="formulario-acoes">
-                <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
-                   class="botao botao-principal">
-                    <i class="bi bi-pencil"></i> Editar impressora
-                </a>
-
-                <a th:href="@{/impressora/listar}" class="botao botao-secundario">
-                    Voltar para listagem
-                </a>
-            </div>
-        </div>
+        <footer class="peca-detalhe-rodape">
+            <p><i class="bi bi-info-circle"></i> A potência e os tempos cadastrados alimentam as estimativas de custo.</p>
+            <a th:href="@{/impressora/listar}" class="botao botao-secundario">
+                <i class="bi bi-arrow-left"></i> Voltar para impressoras
+            </a>
+        </footer>
     </section>
 
 

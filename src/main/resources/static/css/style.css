@@ -178,7 +178,7 @@ a {
 }
 
 .botao-menu {
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .botao-menu:hover,
@@ -1252,7 +1252,7 @@ a {
 .campo label {
     margin-bottom: 0;
     color: var(--marrom);
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
 }
 
@@ -2679,84 +2679,188 @@ input[type="color"]:focus {
 
 .referencia-modelo-impressora { display: block; margin-top: 6px; color: var(--marrom-claro); }
 
-.importacao-peca {
+.peca-cadastro-grade {
     display: grid;
-    gap: 15px;
-    margin-bottom: 24px;
-    padding: 20px;
+    grid-template-columns: minmax(0, 1.04fr) minmax(320px, .96fr);
+    align-items: stretch;
+    column-gap: 32px;
+    row-gap: 24px;
+}
+.peca-cadastro-grade > * { min-width: 0; }
+.peca-cadastro-grade > .formulario { align-self: stretch; gap: 36px; padding-top: 20px; }
+.peca-cadastro-grade > .formulario .formulario-acoes { margin-top: auto; }
+.peca-cadastro-grade .campo label { font-size: 15px; }
+.peca-cadastro-layout [hidden] { display: none !important; }
+.peca-formulario-cabecalho { display: grid; gap: 5px; margin-bottom: 2px; }
+.peca-formulario-cabecalho h3,
+.peca-formulario-cabecalho p { margin: 0; }
+.peca-formulario-cabecalho p { color: var(--marrom-claro); }
+.campo-origem-arquivo { color: var(--cor-sucesso); font-size: .82rem; }
+.campo-origem-arquivo i { margin-right: 4px; }
+
+/* Catálogo visual de peças */
+.peca-lista-cartoes { display: grid; gap: 12px; padding: 0 24px 24px; }
+.peca-lista-item {
+    display: grid;
+    grid-template-columns: 48px minmax(160px, 1.4fr) minmax(190px, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+    padding: 16px 18px;
     border: 1px solid var(--borda);
     border-radius: 14px;
-    background: var(--superficie-suave);
+    background: var(--superficie);
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
 }
-.importacao-peca-cabecalho,
-.importacao-peca-controles { display: flex; align-items: center; gap: 14px; }
-.importacao-peca-cabecalho h3,
-.importacao-peca-cabecalho p { margin: 0; }
-.importacao-peca-cabecalho p { margin-top: 4px; }
-.importacao-peca-icone {
+.peca-lista-item:hover { border-color: var(--destaque); background: var(--superficie-suave); box-shadow: 0 5px 16px color-mix(in srgb, var(--cor-primaria) 8%, transparent); }
+.peca-lista-icone,
+.peca-detalhe-icone,
+.peca-detalhe-metrica-icone {
     display: grid;
     place-items: center;
-    flex: 0 0 44px;
-    height: 44px;
-    border-radius: 12px;
-    color: var(--cor-destaque);
+    color: var(--destaque-escuro);
     background: var(--destaque-suave);
-    font-size: 20px;
 }
-.importacao-peca-controles { align-items: start; }
-.importacao-peca-controles .campo { flex: 1 1 auto; margin: 0; }
-.importacao-peca-controles .botao { align-self: start; margin-top: 29px; white-space: nowrap; }
+.peca-lista-icone { width: 48px; height: 48px; border-radius: 13px; font-size: 1.25rem; }
+.peca-lista-identidade { min-width: 0; }
+.peca-lista-identidade .texto-apoio { font-size: .68rem; }
+.peca-lista-identidade h3 { margin: 3px 0; color: var(--marrom); font-size: 1.08rem; overflow-wrap: anywhere; }
+.peca-lista-identidade p { margin: 0; color: var(--marrom-claro); font-size: .86rem; }
+.peca-lista-metricas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.peca-lista-metricas > div { display: grid; gap: 3px; min-width: 0; }
+.peca-lista-metricas dt { color: var(--marrom-claro); font-size: .78rem; font-weight: 500; }
+.peca-lista-metricas dd { margin: 0; color: var(--marrom); font-weight: 650; }
+.peca-lista-acoes { gap: 8px; }
+.peca-lista-item .checkbox-selecao-listagem { display: none; }
+.peca-lista-item .formulario-excluir { display: flex; margin: 0; }
+.modo-selecao .peca-lista-item { grid-template-columns: 20px 48px minmax(160px, 1.4fr) minmax(190px, 1fr) auto; }
+.modo-selecao .peca-lista-item .checkbox-selecao-listagem { display: block; }
+
+.peca-detalhe-cartao { overflow: hidden; }
+.peca-detalhe-cabecalho { display: flex; align-items: center; gap: 18px; padding: 24px; border-bottom: 1px solid var(--borda); background: var(--superficie-suave); }
+.peca-detalhe-icone { flex: 0 0 58px; width: 58px; height: 58px; border-radius: 16px; font-size: 1.55rem; }
+.peca-detalhe-titulo { flex: 1 1 auto; min-width: 0; }
+.peca-detalhe-titulo h2 { margin: 4px 0; color: var(--marrom); overflow-wrap: anywhere; }
+.peca-detalhe-titulo p { margin: 0; color: var(--marrom-claro); }
+.peca-detalhe-metricas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 24px; }
+.equipamento-detalhe-metricas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.peca-detalhe-metrica { display: flex; align-items: center; gap: 14px; min-width: 0; padding: 20px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); }
+.peca-detalhe-metrica-icone { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 12px; font-size: 1.2rem; }
+.peca-detalhe-metrica > div { display: grid; gap: 4px; min-width: 0; }
+.peca-detalhe-metrica > div > span { color: var(--marrom-claro); font-size: .9rem; }
+.peca-detalhe-metrica strong { color: var(--marrom); font-size: 1.3rem; }
+.peca-detalhe-rodape { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 24px 24px; }
+.peca-detalhe-rodape p { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--marrom-claro); }
+.peca-detalhe-rodape p i { color: var(--destaque-escuro); }
+
+@media (max-width: 760px) {
+    .peca-lista-cartoes { padding: 0 18px 18px; }
+    .peca-lista-item,
+    .modo-selecao .peca-lista-item { grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; padding: 14px; }
+    .peca-lista-item .checkbox-selecao-listagem,
+    .modo-selecao .peca-lista-item .checkbox-selecao-listagem { grid-column: 1; grid-row: 1; }
+    .peca-lista-item .peca-lista-icone { grid-column: 1; grid-row: 1; }
+    .modo-selecao .peca-lista-item .peca-lista-icone { display: none; }
+    .peca-lista-identidade { grid-column: 2 / -1; grid-row: 1; }
+    .peca-lista-metricas { grid-column: 1 / 3; grid-row: 2; }
+    .peca-lista-acoes { grid-column: 3; grid-row: 2; }
+    .peca-detalhe-cabecalho { flex-wrap: wrap; padding: 18px; }
+    .peca-detalhe-cabecalho > .botao { margin-left: 76px; }
+    .peca-detalhe-metricas { padding: 18px; }
+    .peca-detalhe-rodape { align-items: stretch; flex-direction: column; padding: 0 18px 18px; }
+}
+@media (max-width: 520px) {
+    .peca-lista-item,
+    .modo-selecao .peca-lista-item { grid-template-columns: 36px minmax(0, 1fr); }
+    .peca-lista-icone { width: 36px; height: 36px; }
+    .peca-lista-identidade { grid-column: 2; }
+    .peca-lista-metricas { grid-column: 1 / -1; }
+    .peca-lista-acoes { grid-column: 1 / -1; justify-content: flex-start; }
+    .peca-detalhe-metricas,
+    .equipamento-detalhe-metricas { grid-template-columns: minmax(0, 1fr); }
+}
+
+.importacao-peca {
+    display: grid;
+    align-content: start;
+    gap: 16px;
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid var(--borda);
+    border-radius: 16px;
+    background: var(--superficie-suave);
+}
+.importacao-peca-cabecalho h3,
+.importacao-peca-cabecalho p { margin: 4px 0 0; }
+.importacao-peca-cabecalho p { color: var(--marrom-claro); }
+.importacao-peca-controles .campo { min-width: 0; margin: 0; }
+.importacao-peca-seletor { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.importacao-peca-seletor input[type="file"] { min-width: 0; min-height: 46px; padding: 8px; font-size: .9rem; }
+.importacao-peca-seletor .botao { min-height: 46px; white-space: nowrap; }
+.importacao-peca [hidden] { display: none !important; }
 .importacao-peca-mensagem { margin: 0; color: var(--cor-sucesso); }
 .importacao-peca-mensagem.erro { color: var(--cor-erro); }
 .importacao-peca-dados {
     display: grid;
-    gap: 10px;
-    padding: 15px;
+    min-width: 0;
+    gap: 14px;
+    margin-top: 24px;
+    padding: 20px;
     border: 1px solid var(--borda);
-    border-radius: 10px;
+    border-radius: 16px;
     background: var(--superficie);
 }
-.importacao-peca-dados h4,
-.importacao-peca-dados p { margin: 0; }
+.importacao-peca-dados-cabecalho h3 { margin: 4px 0 0; }
+.importacao-peca-dados-grade { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 22px; align-items: start; }
+.importacao-peca-dados-grade > dl { display: grid; grid-template-columns: minmax(130px, .4fr) minmax(0, 1fr); gap: 9px 14px; margin: 0; }
+.importacao-peca-dados-grade > dl dt { color: var(--marrom-claro); }
+.importacao-peca-dados-grade > dl dd { display: flex; align-items: center; min-width: 0; gap: 8px; margin: 0; overflow-wrap: anywhere; }
 .importacao-peca-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
     gap: 14px;
 }
+.importacao-peca-visuais { min-width: 0; padding: 10px; border: 1px solid var(--borda); border-radius: 13px; background: var(--superficie); }
 .importacao-peca-placas {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 10px;
+    min-width: 0;
 }
-.importacao-peca-placa {
+.importacao-peca-galeria { display: grid; gap: 10px; min-width: 0; }
+.importacao-peca-placa-principal {
+    display: grid;
+    grid-template-rows: minmax(190px, 1fr) auto auto;
+    gap: 5px;
     min-width: 0;
     margin: 0;
-    padding: 7px;
-    border: 1px solid var(--borda);
-    border-radius: 10px;
-    background: var(--superficie-suave);
     text-align: center;
 }
-.importacao-peca-placa img,
+.importacao-peca-placa-principal > img,
 .importacao-peca-placa-vazia {
     display: grid;
     place-items: center;
     width: 100%;
-    height: 105px;
-    border-radius: 7px;
-    background: var(--superficie);
+    height: clamp(170px, 20vw, 230px);
+    border-radius: 9px;
+    background: var(--superficie-suave);
     object-fit: contain;
 }
-.importacao-peca-placa figcaption { padding-top: 5px; color: var(--marrom-claro); font-size: .9rem; }
-.importacao-peca-placa > small { display: block; color: var(--marrom-claro); font-size: .8rem; }
+.importacao-peca-placa-vazia { align-content: center; gap: 8px; color: var(--marrom-claro); }
+.importacao-peca-placa-vazia i { font-size: 32px; }
+.importacao-peca-placa-principal figcaption { color: var(--marrom); font-weight: 600; }
+.importacao-peca-placa-principal > small { color: var(--marrom-claro); }
+.importacao-peca-miniaturas { display: flex; gap: 8px; overflow-x: auto; padding: 2px 1px 5px; }
+.importacao-peca-miniatura { position: relative; display: grid; flex: 0 0 66px; width: 66px; height: 66px; place-items: center; overflow: hidden; padding: 4px; border: 1px solid var(--borda); border-radius: 10px; color: var(--marrom); background: var(--superficie); cursor: pointer; }
+.importacao-peca-miniatura[aria-pressed="true"] { border: 2px solid var(--destaque); box-shadow: 0 0 0 2px var(--destaque-suave); }
+.importacao-peca-miniatura img { width: 100%; height: 100%; object-fit: contain; }
+.importacao-peca-miniatura > span:last-child { position: absolute; right: 3px; bottom: 3px; min-width: 20px; padding: 1px 4px; border-radius: 8px; color: var(--superficie); background: var(--marrom); font-size: .72rem; line-height: 1.3; }
+.importacao-peca-miniatura-vazia { color: var(--marrom-claro); }
 .importacao-peca-resumo-fatiamento {
     display: grid;
-    gap: 10px;
-    padding: 14px;
+    gap: 9px;
+    padding: 13px;
     border: 1px solid var(--borda);
-    border-radius: 10px;
-    background: var(--superficie-suave);
+    border-radius: 12px;
+    background: var(--superficie);
 }
 .importacao-peca-resumo-fatiamento h4,
 .importacao-peca-resumo-fatiamento p { margin: 0; }
@@ -2771,16 +2875,16 @@ input[type="color"]:focus {
 .importacao-peca-resumo-fatiamento li { display: inline-flex; align-items: center; gap: 6px; }
 .importacao-peca-resumo-fatiamento .importacao-peca-amostra-cor { width: 20px; height: 20px; flex-basis: 20px; }
 .importacao-peca-resumo-fatiamento > small { color: var(--marrom-claro); }
-.importacao-peca-detalhes { display: grid; gap: 10px; min-width: 0; }
+.importacao-peca-detalhes { display: grid; align-content: start; gap: 10px; min-width: 0; }
 .importacao-peca-detalhes dl {
     display: grid;
-    grid-template-columns: minmax(140px, 0.35fr) minmax(0, 1fr);
-    gap: 8px 14px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
     margin: 0;
 }
-.importacao-peca-detalhes dt { color: var(--marrom-claro); }
+.importacao-peca-detalhes dt { color: var(--marrom-claro); font-size: .85rem; }
 .importacao-peca-detalhes dd { display: flex; align-items: center; gap: 8px; margin: 0; overflow-wrap: anywhere; }
-.importacao-peca-detalhes > p { padding-top: 10px; border-top: 1px solid var(--borda); }
+.importacao-peca-detalhes > p { margin: 0; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 10px; background: var(--superficie); line-height: 1.45; }
 .importacao-peca-detalhes > small { color: var(--marrom-claro); }
 .importacao-peca-amostras-cor { display: inline-flex; align-items: center; gap: 5px; }
 .importacao-peca-amostra-cor {
@@ -2792,14 +2896,21 @@ input[type="color"]:focus {
     border-radius: 50%;
 }
 
+@media (max-width: 760px) {
+    .peca-cadastro-grade { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .importacao-peca-dados-grade { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .importacao-peca-placa-principal > img,
+    .importacao-peca-placa-vazia { height: clamp(165px, 23vw, 220px); }
+}
 @media (max-width: 640px) {
     .importacao-peca { padding: 15px; }
-    .importacao-peca-controles { align-items: stretch; flex-direction: column; }
-    .importacao-peca-controles .botao { width: 100%; }
-    .importacao-peca-controles .botao { align-self: stretch; margin-top: 0; }
-    .importacao-peca-placas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .importacao-peca-placa img,
-    .importacao-peca-placa-vazia { height: 115px; }
-    .importacao-peca-detalhes dl { grid-template-columns: 1fr; gap: 3px; }
-    .importacao-peca-detalhes dd { margin-bottom: 8px; }
+    .importacao-peca-seletor { grid-template-columns: minmax(0, 1fr); }
+    .importacao-peca-seletor .botao { width: 100%; }
+    .importacao-peca-dados { padding: 15px; }
+    .importacao-peca-dados-grade { grid-template-columns: minmax(0, 1fr); }
+    .importacao-peca-dados-grade > dl { grid-template-columns: minmax(0, 1fr); gap: 3px; }
+    .importacao-peca-dados-grade > dl dd { margin-bottom: 8px; }
+    .importacao-peca-placa-principal > img,
+    .importacao-peca-placa-vazia { height: 205px; }
+    .formulario-conteudo { padding: 18px; }
 }

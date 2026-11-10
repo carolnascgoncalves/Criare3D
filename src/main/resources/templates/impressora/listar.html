@@ -100,64 +100,35 @@
             </form>
         </div>
 
-        <div class="tabela-container" th:if="${!#lists.isEmpty(impressoras)}">
-            <table class="tabela">
-                <thead>
-                <tr>
-                    <th class="coluna-selecao" aria-label="Selecionar impressora"></th>
-                    <th>Impressora</th>
-                    <th class="coluna-acoes">Ações</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                <tr th:each="impressora : ${impressoras}"
-                    th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(impressora.id)} ? ' item-exclusao-falhou' : ''">
-                    <td class="coluna-selecao">
-                        <input class="checkbox-selecao-listagem" type="checkbox" name="ids" th:value="${impressora.id}" form="form-remover-impressoras" th:aria-label="|Selecionar ${impressora.nome}|">
-                    </td>
-                    <td>
-                        <div class="identificacao-peca">
-                            <span class="icone-peca">
-                                <i class="bi bi-printer"></i>
-                            </span>
-
-                            <span class="nome-peca"
-                                  th:text="${impressora.nome}">
-                                Nome da impressora
-                            </span>
-                        </div>
-                    </td>
-
-                    <td class="coluna-acoes">
-                        <div class="acoes">
-                            <a th:href="@{/impressora/detalhes/{id}(id=${impressora.id})}"
-                               class="botao-acao"
-                               title="Ver detalhes"
-                               aria-label="Ver detalhes">
-                                <i class="bi bi-eye"></i>
-                            </a>
-
-                            <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
-                               class="botao-acao"
-                               title="Editar impressora"
-                               aria-label="Editar impressora">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-
-                            <form th:action="@{/impressora/remover/{id}(id=${impressora.id})}" method="post" class="formulario-excluir"
-                                  data-turbo-confirm="Tem certeza que deseja excluir esta impressora? Se houver cálculos ou manutenções vinculados, ela será mantida."
-                                  data-confirm-label="Excluir">
-
-                                <button type="submit" class="botao-acao-excluir" title="Remover impressora" aria-label="Remover impressora">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+        <div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(impressoras)}">
+            <article class="peca-lista-item impressora-lista-item"
+                     th:each="impressora : ${impressoras}"
+                     th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(impressora.id)} ? ' item-exclusao-falhou' : ''">
+                <input class="checkbox-selecao-listagem" type="checkbox" name="ids"
+                       th:value="${impressora.id}" form="form-remover-impressoras"
+                       th:aria-label="|Selecionar ${impressora.nome}|">
+                <span class="peca-lista-icone" aria-hidden="true"><i class="bi bi-printer"></i></span>
+                <div class="peca-lista-identidade">
+                    <span class="texto-apoio">IMPRESSORA</span>
+                    <h3 th:text="${impressora.nome}">Nome da impressora</h3>
+                    <p th:text="${impressora.modelo}">Modelo</p>
+                </div>
+                <dl class="peca-lista-metricas">
+                    <div><dt>Potência média informada</dt><dd th:text="|${#numbers.formatDecimal(impressora.potenciaWatts, 1, 'COMMA', 2, 'POINT')} W|">0 W</dd></div>
+                    <div><dt>Aquecimento</dt><dd th:text="|${impressora.tempoAquecimentoMinutos != null ? impressora.tempoAquecimentoMinutos : 0} min|">0 min</dd></div>
+                </dl>
+                <div class="acoes peca-lista-acoes" aria-label="Ações da impressora">
+                    <a th:href="@{/impressora/detalhes/{id}(id=${impressora.id})}"
+                       class="botao-acao" title="Ver detalhes" aria-label="Ver detalhes"><i class="bi bi-eye"></i></a>
+                    <a th:href="@{/impressora/editar/{id}(id=${impressora.id})}"
+                       class="botao-acao" title="Editar impressora" aria-label="Editar impressora"><i class="bi bi-pencil"></i></a>
+                    <form th:action="@{/impressora/remover/{id}(id=${impressora.id})}" method="post" class="formulario-excluir"
+                          data-turbo-confirm="Tem certeza que deseja excluir esta impressora? Se houver cálculos ou manutenções vinculados, ela será mantida."
+                          data-confirm-label="Excluir">
+                        <button type="submit" class="botao-acao-excluir" title="Remover impressora" aria-label="Remover impressora"><i class="bi bi-trash3"></i></button>
+                    </form>
+                </div>
+            </article>
         </div>
 
         <div class="paginacao-historico" th:if="${pagina.totalPages > 1}">

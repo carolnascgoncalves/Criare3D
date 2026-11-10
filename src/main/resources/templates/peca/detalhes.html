@@ -19,47 +19,40 @@
         </a>
     </section>
 
-    <section class="cartao">
-        <div class="cartao-cabecalho">
-            <div>
+    <section class="cartao peca-detalhe-cartao">
+        <header class="peca-detalhe-cabecalho">
+            <span class="peca-detalhe-icone" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+            <div class="peca-detalhe-titulo">
+                <span class="texto-apoio">PARÂMETROS DE IMPRESSÃO</span>
                 <h2 th:text="${peca.nome}">Nome da peça</h2>
-                <p>Informações gerais e parâmetros de impressão.</p>
+                <p>Valores usados como referência ao calcular esta peça.</p>
             </div>
+            <a th:href="@{/peca/editar/{id}(id=${peca.id})}" class="botao botao-principal">
+                <i class="bi bi-pencil"></i> Editar peça
+            </a>
+        </header>
 
-            <span class="icone-peca">
-                <i class="bi bi-box-seam"></i>
-            </span>
+        <div class="peca-detalhe-metricas">
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-palette2"></i></span>
+                <div><span>Filamento por unidade</span>
+                    <strong th:text="|${#numbers.formatDecimal(peca.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT')} g|">0 g</strong>
+                </div>
+            </article>
+            <article class="peca-detalhe-metrica">
+                <span class="peca-detalhe-metrica-icone"><i class="bi bi-clock-history"></i></span>
+                <div><span>Tempo por unidade</span>
+                    <strong th:text="|${peca.tempoImpressaoMinutos} min|">0 min</strong>
+                </div>
+            </article>
         </div>
 
-        <div class="detalhes-conteudo">
-            <div class="detalhe-item">
-                <span>Nome da peça</span>
-                <strong th:text="${peca.nome}"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Quantidade de filamento</span>
-                <strong th:text="${peca.quantidadeFilamentoGramas} + ' g'"></strong>
-            </div>
-
-            <div class="detalhe-item">
-                <span>Tempo de impressão</span>
-                <strong th:text="${peca.tempoImpressaoMinutos} + ' minutos'"></strong>
-            </div>
-
-
-            <div class="formulario-acoes">
-                <a th:href="@{/peca/editar/{id}(id=${peca.id})}"
-                   class="botao botao-principal">
-                    <i class="bi bi-pencil"></i> Editar peça
-                </a>
-
-                <a th:href="@{/peca/listar}"
-                   class="botao botao-secundario">
-                    Voltar para listagem
-                </a>
-            </div>
-        </div>
+        <footer class="peca-detalhe-rodape">
+            <p><i class="bi bi-info-circle"></i> O tempo e o consumo podem ser ajustados durante o cálculo.</p>
+            <a th:href="@{/peca/listar}" class="botao botao-secundario">
+                <i class="bi bi-arrow-left"></i> Voltar para peças
+            </a>
+        </footer>
     </section>
 </main>
 

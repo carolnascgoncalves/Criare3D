@@ -29,57 +29,48 @@
         </div>
 
         <div class="formulario-conteudo">
-            <section class="importacao-peca" data-importador-3mf aria-labelledby="tituloImportacao3mf">
-                <div class="importacao-peca-cabecalho">
-                    <span class="importacao-peca-icone"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                    <div>
-                        <h3 id="tituloImportacao3mf">Importar modelo 3D (.3mf)</h3>
-                        <p>O Criare lê o nome e as configurações que existirem no arquivo.</p>
-                    </div>
-                </div>
-                <div class="importacao-peca-controles">
-                    <div class="campo">
-                        <label for="arquivoModelo3mf">Arquivo do modelo</label>
-                        <input type="file" id="arquivoModelo3mf" accept=".3mf,application/octet-stream">
-                        <small>Até 50 MB. Aceita projeto .3mf e impressão fatiada .gcode.3mf. O arquivo é analisado temporariamente e não fica armazenado.</small>
-                    </div>
-                    <button type="button" class="botao botao-secundario" data-analisar-3mf>
-                        <i class="bi bi-search" aria-hidden="true"></i> Ler arquivo
-                    </button>
-                </div>
-                <p class="importacao-peca-mensagem" data-mensagem-3mf role="status" aria-live="polite" hidden></p>
-                <div class="importacao-peca-dados" data-dados-3mf hidden>
-                    <h4>Informações encontradas no projeto</h4>
-                    <div class="importacao-peca-layout">
-                        <div class="importacao-peca-placas" data-placas-3mf aria-label="Pré-visualizações das placas de impressão"></div>
-                        <div class="importacao-peca-detalhes">
-                            <dl data-lista-dados-3mf></dl>
-                            <small>“Walls” indica paredes do modelo, não a quantidade de placas. O total de placas aparece no campo acima quando o projeto traz essa informação.</small>
-                            <p data-aviso-fatiamento-3mf></p>
-                            <small>A imagem é apenas uma prévia nesta etapa e não fica salva no cadastro da peça.</small>
+            <div class="peca-cadastro-layout">
+                <div class="peca-cadastro-grade">
+                <section class="importacao-peca" data-importador-3mf aria-labelledby="tituloImportacao3mf">
+                    <div class="importacao-peca-cabecalho">
+                        <div>
+                            <span class="texto-apoio">IMPORTAÇÃO OPCIONAL</span>
+                            <h3 id="tituloImportacao3mf">Comece pelo arquivo 3D</h3>
+                            <p>O Criare preenche o que encontrar. Você pode revisar e editar os dados.</p>
                         </div>
                     </div>
-                    <div class="importacao-peca-resumo-fatiamento" data-resumo-estatisticas hidden>
-                        <h4>Dados do fatiamento</h4>
-                        <p data-totais-fatiamento></p>
-                        <ul data-filamentos-fatiamento></ul>
-                        <button type="button" class="botao botao-secundario" data-usar-tempo-fatiado>
-                            Aplicar tempo total novamente
-                        </button>
-                        <small>O tempo foi preenchido automaticamente somando as placas. Isso representa uma unidade se todas elas forem necessárias para montar o produto; se o projeto contém várias unidades, ajuste o tempo por unidade.</small>
+                    <div class="importacao-peca-controles">
+                        <div class="campo">
+                            <label for="arquivoModelo3mf">Arquivo .3mf</label>
+                            <div class="importacao-peca-seletor">
+                                <input type="file" id="arquivoModelo3mf" accept=".3mf,application/octet-stream">
+                                <button type="button" class="botao botao-secundario" data-analisar-3mf>
+                                    <i class="bi bi-search" aria-hidden="true"></i> Ler arquivo
+                                </button>
+                            </div>
+                            <small>Até 50 MB. Aceita projeto ou arquivo fatiado .gcode.3mf. A prévia não é salva no cadastro.</small>
+                        </div>
                     </div>
-                </div>
-            </section>
+                    <p class="importacao-peca-mensagem" data-mensagem-3mf role="status" aria-live="polite" hidden></p>
+                    <div class="importacao-peca-visuais" data-placas-3mf aria-label="Pré-visualizações das placas de impressão" hidden></div>
+                </section>
 
-            <form th:action="@{/peca/atualizar/{id}(id=${id})}"
+                <form th:action="@{/peca/atualizar/{id}(id=${id})}"
                   th:object="${peca}"
                   method="post"
                   class="formulario"
                   novalidate>
 
+                <div class="peca-formulario-cabecalho">
+                    <span class="texto-apoio">DADOS DA PEÇA</span>
+                    <h3>Revise as informações</h3>
+                    <p>Os campos preenchidos pelo arquivo continuam editáveis.</p>
+                </div>
+
                 <div class="campo">
                     <label for="nome">Nome da peça</label>
                     <input type="text" id="nome" th:field="*{nome}">
+                    <small class="campo-origem-arquivo" data-origem-nome hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('nome')}"
                          th:errors="*{nome}"></div>
@@ -94,6 +85,7 @@
                            th:field="*{quantidadeFilamentoGramas}"
                            step="0.01"
                            min="0">
+                    <small class="campo-origem-arquivo" data-origem-filamento hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('quantidadeFilamentoGramas')}"
                          th:errors="*{quantidadeFilamentoGramas}"></div>
@@ -107,6 +99,7 @@
                            id="tempoImpressaoMinutos"
                            th:field="*{tempoImpressaoMinutos}"
                            min="0">
+                    <small class="campo-origem-arquivo" data-origem-tempo hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('tempoImpressaoMinutos')}"
                          th:errors="*{tempoImpressaoMinutos}"></div>
@@ -123,7 +116,32 @@
                         Cancelar
                     </a>
                 </div>
-            </form>
+                </form>
+                </div>
+
+                <section class="importacao-peca-dados" data-dados-3mf aria-labelledby="tituloDadosArquivo3mf" hidden>
+                    <div class="importacao-peca-dados-cabecalho">
+                        <span class="texto-apoio">ARQUIVO IMPORTADO</span>
+                        <h3 id="tituloDadosArquivo3mf">Dados do arquivo</h3>
+                    </div>
+                    <div class="importacao-peca-dados-grade">
+                        <dl data-lista-dados-3mf></dl>
+                        <div class="importacao-peca-detalhes">
+                            <p data-aviso-fatiamento-3mf></p>
+                            <div class="importacao-peca-resumo-fatiamento" data-resumo-estatisticas hidden>
+                                <h4>Dados do fatiamento</h4>
+                                <p data-totais-fatiamento></p>
+                                <ul data-filamentos-fatiamento></ul>
+                                <button type="button" class="botao botao-secundario" data-usar-tempo-fatiado>
+                                    Aplicar tempo e filamento novamente
+                                </button>
+                                <small>Os totais somam todas as placas. Ajuste se o arquivo representar mais de uma unidade do produto.</small>
+                            </div>
+                            <small>“Walls” indica paredes do modelo, não a quantidade de placas.</small>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </div>
     </section>
 </main>
