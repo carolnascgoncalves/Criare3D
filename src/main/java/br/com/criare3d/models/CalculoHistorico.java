@@ -186,6 +186,10 @@ public class CalculoHistorico {
     @Builder.Default
     private @Getter @Setter Integer unidades = 1;
 
+    @Column(name = "unidades_vendidas_hist", nullable = false)
+    @Builder.Default
+    private @Getter @Setter Integer unidadesVendidas = 0;
+
     @Column(name = "fornadas_hist", nullable = false)
     @Builder.Default
     private @Getter @Setter Integer fornadas = 1;

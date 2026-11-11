@@ -157,7 +157,7 @@
                     <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="|${calculo.nomePeca}${calculo.unidades > 1 ? ' · ' + calculo.unidades + ' un.' : ''}|">Peça</a></td>
                     <td th:text="|R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
                     <td th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
-                    <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda)))}">Sem plataforma</td>
+                    <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'AMAZON' ? 'Amazon' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda))))}">Sem plataforma</td>
                     <td><span class="dashboard-status" th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}" th:text="${calculo.vendido ? 'Vendido' : (calculo.produzido ? 'Produzido' : 'Só cálculo')}">Só cálculo</span></td>
                 </tr>
                 </tbody>

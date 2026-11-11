@@ -230,7 +230,7 @@
                     </div>
 
                     <strong class="detalhes-valor"
-                            th:text="${historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (historico.plataformaVenda == 'TIKTOK' or historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')}">
+                            th:text="${historico.plataformaVenda == 'AMAZON' ? 'Amazon' : (historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (historico.plataformaVenda == 'TIKTOK' or historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'))}">
                         Shopee
                     </strong>
                 </div>

@@ -18,6 +18,8 @@ public class PecaResponse {
 
     private @Getter @Setter String nome;
 
+    private @Getter @Setter String categoria;
+
     private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
 
     private @Getter @Setter Long tempoImpressaoMinutos;
@@ -28,6 +30,7 @@ public class PecaResponse {
         return PecaResponse.builder()
                 .id(peca.getId())
                 .nome(peca.getNome())
+                .categoria(peca.getCategoria())
                 .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
                 .dadosArquivo3mf(peca.getDadosArquivo3mf())

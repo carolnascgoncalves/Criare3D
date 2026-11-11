@@ -28,6 +28,7 @@ public class NavegacaoModelAdvice {
         else if (caminho.startsWith("/filamento")) pagina = "filamentos";
         else if (caminho.startsWith("/impressora")) pagina = "impressoras";
         else if (caminho.startsWith("/embalagem")) pagina = "embalagens";
+        else if (caminho.startsWith("/vendas-estoque")) pagina = "vendas-estoque";
         else if (caminho.startsWith("/historico")) pagina = "historico";
         else if (caminho.startsWith("/usuarios") || caminho.startsWith("/clientes")) pagina = "clientes";
         model.addAttribute("paginaAtiva", pagina);

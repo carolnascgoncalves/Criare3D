@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Vendas e estoque')}"></head>
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina lista-catalogo vendas-estoque-pagina" data-vendas-selecao>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'estoqueInsuficiente'}">
+        Estoque de filamento insuficiente para concluir a ação. Nenhuma alteração foi salva.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'vendaAtiva'}">
+        Não foi possível desfazer a produção porque há um lote vendido selecionado.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'naoEncontrado'}">
+        Um ou mais cálculos selecionados não estão disponíveis. Nenhuma alteração foi salva.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'nenhumSelecionado'}">
+        Selecione pelo menos um lote para registrar a ação.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'acaoInvalida'}">
+        A ação selecionada não é válida. Atualize a página e tente novamente.
+    </div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'quantidadeVendaInvalida'}">Informe uma quantidade de unidades maior que zero.</div>
+    <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'quantidadeVendaAcimaDisponivel'}">A quantidade informada excede as unidades disponíveis em pelo menos um lote. Nenhuma venda foi registrada.</div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${sucesso == 'producoesRegistradas'}">
+        Produção registrada; o estoque de filamento foi atualizado.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${sucesso == 'vendasRegistradas'}">
+        Venda registrada para os lotes selecionados.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${sucesso == 'producoesDesfeitas'}">
+        Produção desfeita; o filamento foi devolvido ao estoque.
+    </div>
+    <div class="alerta-sucesso notificacao-flutuante" th:if="${sucesso == 'vendasCanceladas'}">
+        Venda cancelada para os lotes selecionados.
+    </div>
+
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">CONTROLE DA OPERAÇÃO</span>
+            <h1>Vendas e estoque</h1>
+            <p>Acompanhe o que falta produzir, o que está pronto e o que já foi vendido.</p>
+        </div>
+        <a th:href="@{/historico/listar}" class="botao botao-secundario">
+            <i class="bi bi-clock-history" aria-hidden="true"></i> Ver histórico de cálculos
+        </a>
+    </section>
+
+    <section class="vendas-indicadores" aria-label="Resumo da operação">
+        <a class="vendas-indicador vendas-indicador-producao" th:classappend="${modoDetalhe and aba == 'PARA_PRODUZIR'} ? ' ativo' : ''" th:href="${modoDetalhe and aba == 'PARA_PRODUZIR'} ? '/vendas-estoque' : '/vendas-estoque?aba=PARA_PRODUZIR'">
+            <span class="vendas-indicador-titulo"><i class="bi bi-printer" aria-hidden="true"></i> Para produzir</span>
+            <div class="vendas-indicador-valor"><strong th:text="${unidadesParaProduzir}">0</strong><small th:text="|un. em ${lotesParaProduzir} lotes|">un. em 0 lotes</small></div>
+        </a>
+        <a class="vendas-indicador vendas-indicador-estoque" th:classappend="${modoDetalhe and aba == 'ESTOQUE'} ? ' ativo' : ''" th:href="${modoDetalhe and aba == 'ESTOQUE'} ? '/vendas-estoque' : '/vendas-estoque?aba=ESTOQUE'">
+            <span class="vendas-indicador-titulo"><i class="bi bi-box-seam" aria-hidden="true"></i> Em estoque</span>
+            <div class="vendas-indicador-valor"><strong th:text="${unidadesEmEstoque}">0</strong><small th:text="|un. em ${lotesEmEstoque} lotes|">un. em 0 lotes</small></div>
+            <span class="vendas-indicador-complemento" th:text="|R$ ${#numbers.formatDecimal(valorEmEstoque, 1, 'POINT', 2, 'COMMA')} em valor de custo|">R$ 0,00 em valor de custo</span>
+        </a>
+        <a class="vendas-indicador vendas-indicador-vendidos" th:classappend="${modoDetalhe and aba == 'VENDIDOS'} ? ' ativo' : ''" th:href="${modoDetalhe and aba == 'VENDIDOS'} ? '/vendas-estoque' : '/vendas-estoque?aba=VENDIDOS'">
+            <span class="vendas-indicador-titulo"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Vendidas neste mês</span>
+            <div class="vendas-indicador-valor"><strong th:text="${unidadesVendidasMes}">0</strong><small th:text="|un. em ${lotesVendidosMes} lotes|">un. em 0 lotes</small></div>
+            <span class="vendas-indicador-complemento" th:text="|Lucro R$ ${#numbers.formatDecimal(lucroVendidoMes, 1, 'POINT', 2, 'COMMA')}|">Lucro R$ 0,00</span>
+        </a>
+    </section>
+
+    <div class="vendas-visao-geral" th:unless="${modoDetalhe}">
+        <section class="vendas-coluna vendas-coluna-producao">
+            <header>
+                <div><h2><i class="bi bi-printer" aria-hidden="true"></i> Para produzir</h2><p>Lotes calculados que ainda não foram produzidos.</p></div>
+                <span th:text="${lotesParaProduzir}">0</span>
+            </header>
+            <div class="vendas-lista-resumida" th:if="${!#lists.isEmpty(paraProduzir)}">
+                <article class="vendas-lote-card" th:each="lote : ${paraProduzir}">
+                    <div class="vendas-lote-topo">
+                        <img th:if="${lote.temFoto}" class="vendas-lote-foto" th:src="@{/historico/{id}/foto(id=${lote.id},miniatura=true)}" loading="lazy" decoding="async" th:alt="|Foto de ${lote.nomePeca}|">
+                        <span class="vendas-lote-foto vendas-lote-sem-foto" th:unless="${lote.temFoto}"><i class="bi bi-box" aria-hidden="true"></i></span>
+                        <div class="vendas-lote-nome"><strong th:text="${lote.nomePeca}">Peça</strong><small th:if="${lote.unidades > 1}" th:text="|${lote.unidades} unidades no lote|">2 unidades</small></div>
+                        <a class="vendas-lote-icone" th:href="@{/historico/detalhes/{id}(id=${lote.id})}" th:aria-label="|Ver detalhes de ${lote.nomePeca}|" title="Detalhes"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                    </div>
+                    <div class="vendas-lote-dados"><span th:text="${lote.plataformaVenda == null or lote.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : lote.plataformaVenda == 'AMAZON' ? 'Amazon' : lote.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : lote.plataformaVenda == 'TIKTOK' or lote.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'}">Sem plataforma</span><strong th:text="|R$ ${#numbers.formatDecimal(lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="vendas-lote-data"><span th:text="|${lote.unidades} un.|">1 un.</span><span th:text="${#temporals.format(lote.dataCalculo, 'dd/MM · HH''h''mm')}">10/11 · 19h30</span></div>
+                    <form th:action="@{/vendas-estoque/registrar}" method="post" class="vendas-acao-individual">
+                        <input type="hidden" name="ids" th:value="${lote.id}"><input type="hidden" name="aba" value="">
+                        <button type="submit" name="acao" value="PRODUZIR" class="botao botao-principal" data-turbo-confirm="Registrar a produção deste lote? O estoque de filamento será descontado."><i class="bi bi-printer" aria-hidden="true"></i> Registrar produção</button>
+                    </form>
+                </article>
+            </div>
+            <p class="vendas-sem-lotes" th:if="${#lists.isEmpty(paraProduzir)}">Nenhum lote aguardando produção.</p>
+            <a class="vendas-ver-todos" th:href="@{/vendas-estoque(aba='PARA_PRODUZIR')}" th:if="${lotesParaProduzir > 0}">Ver todos para produzir <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </section>
+
+        <section class="vendas-coluna vendas-coluna-estoque">
+            <header>
+                <div><h2><i class="bi bi-box-seam" aria-hidden="true"></i> Em estoque</h2><p>Peças produzidas que ainda não foram vendidas.</p></div>
+                <span th:text="${lotesEmEstoque}">0</span>
+            </header>
+            <div class="vendas-lista-resumida" th:if="${!#lists.isEmpty(emEstoque)}">
+                <article class="vendas-lote-card" th:each="lote : ${emEstoque}">
+                    <div class="vendas-lote-topo">
+                        <img th:if="${lote.temFoto}" class="vendas-lote-foto" th:src="@{/historico/{id}/foto(id=${lote.id},miniatura=true)}" loading="lazy" decoding="async" th:alt="|Foto de ${lote.nomePeca}|">
+                        <span class="vendas-lote-foto vendas-lote-sem-foto" th:unless="${lote.temFoto}"><i class="bi bi-box" aria-hidden="true"></i></span>
+                        <div class="vendas-lote-nome"><strong th:text="${lote.nomePeca}">Peça</strong><small th:text="|${lote.unidades - (lote.unidadesVendidas != null ? lote.unidadesVendidas : 0)} unidades disponíveis|">1 unidade disponível</small></div>
+                        <a class="vendas-lote-icone" th:href="@{/historico/detalhes/{id}(id=${lote.id})}" th:aria-label="|Ver detalhes de ${lote.nomePeca}|" title="Detalhes"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                    </div>
+                    <div class="vendas-lote-dados"><span th:text="${lote.plataformaVenda == null or lote.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : lote.plataformaVenda == 'AMAZON' ? 'Amazon' : lote.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : lote.plataformaVenda == 'TIKTOK' or lote.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'}">Sem plataforma</span><strong th:text="|R$ ${#numbers.formatDecimal(lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                    <div class="vendas-lote-data"><span th:text="|${lote.unidades - (lote.unidadesVendidas != null ? lote.unidadesVendidas : 0)} un. disponíveis|">1 un. disponível</span><span th:text="${#temporals.format(lote.dataCalculo, 'dd/MM · HH''h''mm')}">10/11 · 19h30</span></div>
+                    <form th:action="@{/vendas-estoque/registrar}" method="post" class="vendas-acao-individual">
+                        <input type="hidden" name="ids" th:value="${lote.id}"><input type="hidden" name="aba" value="ESTOQUE">
+                        <label class="vendas-quantidade"><span>Unidades</span><input type="number" name="quantidade" min="1" th:max="${lote.unidades - (lote.unidadesVendidas != null ? lote.unidadesVendidas : 0)}" value="1" required></label>
+                        <button type="submit" name="acao" value="VENDER" class="botao botao-principal" data-turbo-confirm="Registrar a venda da quantidade informada?"><i class="bi bi-bag-check" aria-hidden="true"></i> Registrar venda</button>
+                    </form>
+                </article>
+            </div>
+            <p class="vendas-sem-lotes" th:if="${#lists.isEmpty(emEstoque)}">Nenhum lote produzido aguardando venda.</p>
+            <a class="vendas-ver-todos" th:href="@{/vendas-estoque(aba='ESTOQUE')}" th:if="${lotesEmEstoque > 0}">Ver todo o estoque <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </section>
+
+        <section class="vendas-coluna vendas-coluna-vendidos">
+            <header>
+                <div><h2><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Vendidos</h2><p>Histórico das vendas registradas.</p></div>
+                <span th:text="${lotesVendidos}">0</span>
+            </header>
+            <div class="vendas-lista-resumida" th:if="${!#lists.isEmpty(vendidos)}">
+                <article class="vendas-lote-card" th:each="lote : ${vendidos}">
+                    <div class="vendas-lote-topo">
+                        <img th:if="${lote.temFoto}" class="vendas-lote-foto" th:src="@{/historico/{id}/foto(id=${lote.id},miniatura=true)}" loading="lazy" decoding="async" th:alt="|Foto de ${lote.nomePeca}|">
+                        <span class="vendas-lote-foto vendas-lote-sem-foto" th:unless="${lote.temFoto}"><i class="bi bi-box" aria-hidden="true"></i></span>
+                        <div class="vendas-lote-nome"><strong th:text="${lote.nomePeca}">Peça</strong><small th:text="|${lote.unidadesVendidas != null ? lote.unidadesVendidas : lote.unidades} unidades vendidas|">1 unidade vendida</small></div>
+                        <a class="vendas-lote-icone" th:href="@{/historico/detalhes/{id}(id=${lote.id})}" th:aria-label="|Ver detalhes de ${lote.nomePeca}|" title="Detalhes"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                    </div>
+                    <div class="vendas-lote-dados"><span th:text="${lote.plataformaVenda == null or lote.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : lote.plataformaVenda == 'AMAZON' ? 'Amazon' : lote.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : lote.plataformaVenda == 'TIKTOK' or lote.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'}">Sem plataforma</span><strong th:text="|R$ ${#numbers.formatDecimal((lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido) * (lote.unidadesVendidas != null ? lote.unidadesVendidas : lote.unidades), 1, 'POINT', 2, 'COMMA')}|" title="Valor total das unidades vendidas">R$ 0,00</strong></div>
+                    <div class="vendas-lote-data"><span th:text="${lote.dataVenda != null ? #temporals.format(lote.dataVenda, 'dd/MM') : #temporals.format(lote.dataCalculo, 'dd/MM')}">10/11</span><span th:if="${lote.lucroLiquido != null}" th:text="|Lucro R$ ${#numbers.formatDecimal(lote.lucroLiquido * (lote.unidadesVendidas != null ? lote.unidadesVendidas : lote.unidades), 1, 'POINT', 2, 'COMMA')}|">Lucro R$ 0,00</span></div>
+                </article>
+            </div>
+            <p class="vendas-sem-lotes" th:if="${#lists.isEmpty(vendidos)}">Nenhuma venda registrada ainda.</p>
+            <a class="vendas-ver-todos" th:href="@{/vendas-estoque(aba='VENDIDOS')}" th:if="${lotesVendidos > 0}">Ver todos os vendidos <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        </section>
+    </div>
+
+    <section class="cartao vendas-detalhe-cartao" th:if="${modoDetalhe}">
+        <form th:action="@{/vendas-estoque}" method="get" class="vendas-busca-detalhe">
+            <input type="hidden" name="aba" th:value="${aba}">
+            <div class="busca-filamentos-campo"><i class="bi bi-search" aria-hidden="true"></i><input type="search" name="busca" th:value="${busca}" placeholder="Pesquisar peça..." aria-label="Pesquisar peça"></div>
+            <button type="submit" class="botao botao-secundario"><i class="bi bi-funnel" aria-hidden="true"></i> Filtrar</button>
+            <button th:if="${!#lists.isEmpty(historicos)}" type="button" class="botao botao-secundario vendas-botao-selecionar" data-vendas-alternar aria-pressed="false"><i class="bi bi-check2-square" aria-hidden="true"></i> Selecionar</button>
+        </form>
+
+        <form id="form-registrar-lotes" th:action="@{/vendas-estoque/registrar}" method="post">
+            <input type="hidden" name="aba" th:value="${aba}"><input type="hidden" name="busca" th:value="${busca}">
+            <input type="hidden" name="page" th:value="${pagina.number}"><input type="hidden" name="size" th:value="${tamanhoPagina}">
+            <input th:if="${aba == 'ESTOQUE'}" type="hidden" name="quantidade" value="1" data-vendas-quantidade-form>
+        </form>
+
+        <div class="vendas-grade-lotes" th:classappend="${' vendas-grade-' + #strings.toLowerCase(aba)}" th:if="${!#lists.isEmpty(historicos)}">
+            <article class="vendas-lote-card vendas-lote-detalhe" th:each="lote : ${historicos}">
+                <label class="vendas-card-selecao"><input type="checkbox" class="checkbox-selecao-listagem" name="ids" form="form-registrar-lotes" th:value="${lote.id}" th:aria-label="|Selecionar lote ${lote.nomePeca}|"><span>Selecionar lote</span></label>
+                <div class="vendas-lote-topo">
+                    <img th:if="${lote.temFoto}" class="vendas-lote-foto" th:src="@{/historico/{id}/foto(id=${lote.id},miniatura=true)}" loading="lazy" decoding="async" th:alt="|Foto de ${lote.nomePeca}|">
+                    <span class="vendas-lote-foto vendas-lote-sem-foto" th:unless="${lote.temFoto}"><i class="bi bi-box" aria-hidden="true"></i></span>
+                    <div class="vendas-lote-nome"><strong th:text="${lote.nomePeca}">Peça</strong><small th:if="${lote.unidades > 1}" th:text="|${lote.unidades} unidades no lote|">2 unidades</small></div>
+                </div>
+                <div class="vendas-lote-dados"><span th:text="${lote.plataformaVenda == null or lote.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : lote.plataformaVenda == 'AMAZON' ? 'Amazon' : lote.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : lote.plataformaVenda == 'TIKTOK' or lote.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'}">Sem plataforma</span><strong th:text="|R$ ${#numbers.formatDecimal((lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido) * (aba == 'VENDIDOS' ? (lote.unidadesVendidas != null ? lote.unidadesVendidas : lote.unidades) : 1), 1, 'POINT', 2, 'COMMA')}|" th:title="${aba == 'VENDIDOS' ? 'Valor total das unidades vendidas' : 'Preço por unidade'}">R$ 0,00</strong></div>
+                <div class="vendas-lote-data"><span th:if="${aba == 'ESTOQUE'}" th:text="|${lote.unidades - (lote.unidadesVendidas != null ? lote.unidadesVendidas : 0)} un. disponíveis|">1 un. disponível</span><span th:if="${aba == 'PARA_PRODUZIR'}" th:text="|${lote.unidades} un.|">1 un.</span><span th:if="${aba == 'VENDIDOS'}" th:text="|${lote.unidadesVendidas != null ? lote.unidadesVendidas : lote.unidades} un. vendidas|">1 un. vendida</span><span th:text="${#temporals.format(lote.dataCalculo, 'dd/MM/yyyy · HH''h''mm')}">10/11/2026 · 19h30</span></div>
+                <div class="vendas-lote-status" th:text="${aba == 'PARA_PRODUZIR' ? 'A produzir' : aba == 'ESTOQUE' ? 'Em estoque' : 'Vendido'}">A produzir</div>
+                <div class="vendas-lote-detalhe-acoes">
+                    <form th:if="${aba == 'PARA_PRODUZIR'}" th:action="@{/vendas-estoque/registrar}" method="post" class="vendas-acao-individual"><input type="hidden" name="ids" th:value="${lote.id}"><input type="hidden" name="aba" th:value="${aba}"><input type="hidden" name="page" th:value="${pagina.number}"><input type="hidden" name="size" th:value="${tamanhoPagina}"><button type="submit" name="acao" value="PRODUZIR" class="botao botao-principal" data-turbo-confirm="Registrar a produção deste lote? O estoque de filamento será descontado."><i class="bi bi-printer" aria-hidden="true"></i> Registrar produção</button></form>
+                    <form th:if="${aba == 'ESTOQUE'}" th:action="@{/vendas-estoque/registrar}" method="post" class="vendas-acao-individual"><input type="hidden" name="ids" th:value="${lote.id}"><input type="hidden" name="aba" th:value="${aba}"><input type="hidden" name="page" th:value="${pagina.number}"><input type="hidden" name="size" th:value="${tamanhoPagina}"><label class="vendas-quantidade"><span>Unidades</span><input type="number" name="quantidade" min="1" th:max="${lote.unidades - (lote.unidadesVendidas != null ? lote.unidadesVendidas : 0)}" value="1" required></label><button type="submit" name="acao" value="VENDER" class="botao botao-principal" data-turbo-confirm="Registrar a venda da quantidade informada?"><i class="bi bi-bag-check" aria-hidden="true"></i> Registrar venda</button></form>
+                    <a th:if="${aba == 'VENDIDOS'}" th:href="@{/historico/{id}/orcamento(id=${lote.id})}" class="botao botao-principal"><i class="bi bi-file-earmark-text" aria-hidden="true"></i> Orçamento</a>
+                    <a th:href="@{/historico/detalhes/{id}(id=${lote.id})}" class="botao-acao" th:aria-label="|Ver detalhes de ${lote.nomePeca}|" title="Ver detalhes"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                </div>
+            </article>
+        </div>
+
+        <div class="vendas-rodape-selecao" data-vendas-selecao-conteudo hidden th:if="${!#lists.isEmpty(historicos)}">
+            <strong data-vendas-contador>0 selecionados</strong>
+            <label class="vendas-selecionar-todos"><input type="checkbox" data-selecionar-todos aria-label="Selecionar todos os lotes desta página"><span>Selecionar todos</span></label>
+            <label class="vendas-quantidade vendas-quantidade-lote" th:if="${aba == 'ESTOQUE'}"><span>Unidades por lote</span><input type="number" min="1" value="1" data-vendas-quantidade></label>
+            <div class="vendas-acoes-lote">
+                <button th:if="${aba == 'PARA_PRODUZIR'}" type="submit" form="form-registrar-lotes" name="acao" value="PRODUZIR" class="botao botao-principal" data-vendas-acao disabled data-turbo-confirm="Registrar a produção dos lotes selecionados? O estoque de filamento será descontado."><i class="bi bi-printer" aria-hidden="true"></i> Registrar produção</button>
+                <button th:if="${aba == 'ESTOQUE'}" type="submit" form="form-registrar-lotes" name="acao" value="VENDER" class="botao botao-principal" data-vendas-acao disabled data-turbo-confirm="Registrar a venda dos lotes selecionados? Lotes ainda não produzidos também serão registrados como produzidos e descontados do estoque."><i class="bi bi-bag-check" aria-hidden="true"></i> Registrar venda</button>
+                <button th:if="${aba == 'ESTOQUE'}" type="submit" form="form-registrar-lotes" name="acao" value="DESFAZER_PRODUCAO" class="botao botao-secundario" data-vendas-acao disabled data-turbo-confirm="Desfazer a produção dos lotes selecionados? O filamento será devolvido ao estoque."><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Desfazer produção</button>
+                <button th:if="${aba == 'VENDIDOS'}" type="submit" form="form-registrar-lotes" name="acao" value="CANCELAR_VENDA" class="botao botao-secundario" data-vendas-acao disabled data-turbo-confirm="Cancelar a venda dos lotes selecionados?"><i class="bi bi-x-circle" aria-hidden="true"></i> Cancelar venda</button>
+            </div>
+            <button type="button" class="botao botao-secundario vendas-sair-selecao" data-vendas-sair><i class="bi bi-x-lg" aria-hidden="true"></i> Sair da seleção</button>
+        </div>
+
+        <div class="historico-vazio" th:if="${#lists.isEmpty(historicos)}">
+            <div class="historico-vazio-icone"><i class="bi bi-box-seam" aria-hidden="true"></i></div>
+            <h3 th:text="|Nenhum lote em ${#strings.toLowerCase(abaTitulo)}|">Nenhum lote encontrado</h3>
+            <p>Quando houver lotes nesta etapa, eles aparecerão aqui.</p>
+        </div>
+
+        <nav class="paginacao-historico" th:if="${pagina.totalPages > 1}" aria-label="Paginação dos lotes">
+            <a th:if="${pagina.hasPrevious()}" th:href="@{/vendas-estoque(aba=${aba},page=${pagina.number - 1},size=${tamanhoPagina},busca=${busca})}" aria-label="Página anterior"><i class="bi bi-chevron-left"></i></a>
+            <span class="paginacao-info">Página <strong th:text="${pagina.number + 1}">1</strong> de <strong th:text="${pagina.totalPages}">2</strong></span>
+            <a th:if="${pagina.hasNext()}" th:href="@{/vendas-estoque(aba=${aba},page=${pagina.number + 1},size=${tamanhoPagina},busca=${busca})}" aria-label="Próxima página"><i class="bi bi-chevron-right"></i></a>
+        </nav>
+    </section>
+</main>
+</body>
+</html>

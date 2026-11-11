@@ -63,6 +63,7 @@ public class HistoricoExportacaoController {
             case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
             case "SHOPEE" -> "Shopee";
             case "MERCADO_LIVRE" -> "Mercado Livre";
+            case "AMAZON" -> "Amazon";
             default -> plataforma;
         };
     }

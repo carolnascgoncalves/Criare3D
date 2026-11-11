@@ -16,6 +16,9 @@ public class PecaRequest {
     @Column(name= "nome_peca", nullable = false, length = 150)
     private @Getter @Setter String nome;
 
+    @Size(max = 60, message = "A categoria deve ter no máximo 60 caracteres.")
+    private @Getter @Setter String categoria;
+
     @NotNull(message = "A quantidade de filamento utilizado na peca é obrigatorio")
     @Column(name="qntFil_peca",nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.0", message = "A quantidade não pode ser negativa.")
@@ -32,6 +35,7 @@ public class PecaRequest {
     public static PecaRequest toDto(final Peca peca){
         return PecaRequest.builder()
                 .nome(peca.getNome())
+                .categoria(peca.getCategoria())
                 .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
                 .dadosArquivo3mf(peca.getDadosArquivo3mf())
@@ -41,6 +45,7 @@ public class PecaRequest {
     public static Peca toEntity(final PecaRequest dto){
         return Peca.builder()
                 .nome(dto.getNome())
+                .categoria(dto.getCategoria())
                 .quantidadeFilamentoGramas(dto.getQuantidadeFilamentoGramas())
                 .tempoImpressaoMinutos(dto.getTempoImpressaoMinutos())
                 .dadosArquivo3mf(dto.getDadosArquivo3mf())

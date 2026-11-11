@@ -93,7 +93,8 @@
                                     th:value="${peca.id}"
                                     th:text="${peca.nome}"
                                     th:attr="data-gramas=${peca.quantidadeFilamentoGramas},
-                                             data-tempo=${peca.tempoImpressaoMinutos}">
+                                             data-tempo=${peca.tempoImpressaoMinutos},
+                                             data-tem-arquivo=${peca.dadosArquivo3mf != null and !#strings.isEmpty(peca.dadosArquivo3mf)}">
                             </option>
                             <option value="" data-acao="cadastrar-peca">+ Cadastrar nova peça</option>
 
@@ -104,6 +105,24 @@
                              th:if="${#fields.hasErrors('pecaId')}"
                              th:errors="*{pecaId}"></div>
                     </div>
+
+                    <section id="previaMateriaisPeca"
+                             class="previa-materiais-peca"
+                             aria-live="polite"
+                             hidden>
+                        <div class="previa-materiais-cabecalho">
+                            <div>
+                                <span class="texto-apoio">SUGESTÃO DO ARQUIVO 3D</span>
+                                <h3>Filamentos desta peça</h3>
+                                <p data-previa-materiais-status>Carregando materiais...</p>
+                            </div>
+                            <button type="button" class="botao botao-secundario" data-aplicar-materiais disabled>
+                                <i class="bi bi-magic" aria-hidden="true"></i> Preencher filamentos
+                            </button>
+                        </div>
+                        <div class="previa-materiais-lista" data-previa-materiais-lista></div>
+                        <small>As quantidades vieram do arquivo fatiado. Confira se representam uma unidade da peça; você pode corrigir tudo antes de calcular.</small>
+                    </section>
 
                     <div class="campo">
                         <label for="unidades">Quantidade de unidades</label>
@@ -203,6 +222,10 @@
                                     </option>
                                     <option value="" data-acao="cadastrar-filamento">+ Cadastrar novo filamento</option>
                                 </select>
+                                <div class="filamento-sugestao-arquivo" data-sugestao-filamento hidden>
+                                    <span class="filamento-sugestao-cor" aria-hidden="true"></span>
+                                    <span data-sugestao-filamento-texto></span>
+                                </div>
                             </div>
 
                             <div class="campo">
@@ -504,6 +527,7 @@
                                 <option value="SHOPEE">Shopee</option>
                                 <option value="TIKTOK">TikTok Shop</option>
                                 <option value="MERCADO_LIVRE">Mercado Livre</option>
+                                <option value="AMAZON">Amazon</option>
                             </select>
                         </div>
 
@@ -688,6 +712,26 @@
                                            min="0"
                                            step="0.01"
                                            placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="plataforma-opcoes" data-opcoes-plataforma="AMAZON" hidden>
+                            <h4>Amazon</h4>
+                            <div class="aviso-info" th:unless="${configuracao != null and configuracao.formularioAvancado}">
+                                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                                Estimativa simples para a categoria Casa: comissão de 12%, com mínimo de R$ 2 por item. Consideramos o plano Profissional; no Individual, some R$ 2 por item vendido.
+                            </div>
+                            <div th:if="${configuracao != null and configuracao.formularioAvancado}">
+                                <div class="campo">
+                                    <label for="amazonPercentualComissao">Comissão Amazon (%)</label>
+                                    <input type="number" id="amazonPercentualComissao" th:field="*{percentualComissaoPlataforma}" min="0" max="100" step="0.01" placeholder="Padrão: 12">
+                                    <small>Casa: referência de 12%, mínimo de R$ 2. A comissão varia por categoria (10% a 15%). No plano Individual, informe também R$ 2 por item em “Outros custos”.</small>
+                                </div>
+                                <div class="campo">
+                                    <label for="amazonCustoAdicional">Outros custos por item (R$)</label>
+                                    <input type="number" id="amazonCustoAdicional" th:field="*{custoAdicionalPlataforma}" min="0" step="0.01" placeholder="0,00">
+                                    <small>Use para incluir custos do plano, logística ou outros valores da sua conta.</small>
                                 </div>
                             </div>
                         </div>

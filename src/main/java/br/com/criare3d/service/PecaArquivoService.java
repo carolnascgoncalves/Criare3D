@@ -120,6 +120,24 @@ public class PecaArquivoService {
         return resumo(peca, referencias);
     }
 
+    /** Materiais e gramagens do arquivo para sugerir os itens do próximo cálculo. */
+    @Transactional(readOnly = true)
+    public List<PecaMaterialResumo> buscarMateriaisParaCalculo(Peca peca) {
+        if (peca == null || peca.getDadosArquivo3mf() == null || peca.getDadosArquivo3mf().isBlank()) {
+            return List.of();
+        }
+        try {
+            PecaModeloImportacaoRequest pedido = jsonMapper.readValue(
+                    peca.getDadosArquivo3mf(), PecaModeloImportacaoRequest.class);
+            Modelo3mfResponse dados = pedido == null ? null : pedido.dados();
+            if (dados == null || !dados.estatisticasCompletas()) return List.of();
+            List<PecaMaterialResumo> materiais = resumirFilamentos(dados.filamentosUsados());
+            return materiais.stream().filter(item -> item.pesoGramas() > 0).toList();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
     @Transactional(readOnly = true)
     public Map<UUID, PecaArquivoResumo> buscarResumos(Collection<Peca> pecas) {
         if (pecas == null || pecas.isEmpty()) return Map.of();

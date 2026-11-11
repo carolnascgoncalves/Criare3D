@@ -158,7 +158,7 @@
 
                 <div class="detalhe-linha">
                     <span>Plataforma</span>
-                    <strong th:text="${resultado.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (resultado.plataformaVenda == 'TIKTOK' or resultado.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')}">
+                    <strong th:text="${resultado.plataformaVenda == 'AMAZON' ? 'Amazon' : (resultado.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (resultado.plataformaVenda == 'TIKTOK' or resultado.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'))}">
                         Shopee
                     </strong>
                 </div>

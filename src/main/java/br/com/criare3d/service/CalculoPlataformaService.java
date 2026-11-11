@@ -16,6 +16,8 @@ public class CalculoPlataformaService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final BigDecimal CEM = new BigDecimal("100");
     private static final BigDecimal DOIS = new BigDecimal("2");
+    private static final BigDecimal AMAZON_COMISSAO_CASA = new BigDecimal("12");
+    private static final BigDecimal AMAZON_COMISSAO_MINIMA = new BigDecimal("2");
 
     void calcularVendaPlataforma(CalculoRequest request, CalculoHistorico historico, BigDecimal base, Configuracao configuracao) {
         boolean avancado = Boolean.TRUE.equals(configuracao.getFormularioAvancado());
@@ -25,7 +27,7 @@ public class CalculoPlataformaService {
         BigDecimal imposto = percentual(request.getPercentualImposto());
         BigDecimal frete = obterFreteVendedor(request, avancado, plataforma);
 
-        BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
+        BigDecimal adicional = avancado && ("MERCADO_LIVRE".equals(plataforma) || "AMAZON".equals(plataforma)) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
 
         BigDecimal afiliado = avancado && ("TIKTOK".equals(plataforma) || "TIKTOK_SHOP".equals(plataforma)) ? percentual(request.getPercentualAfiliado()) : ZERO;
 
@@ -164,6 +166,14 @@ public class CalculoPlataformaService {
                 historico.setTipoAnuncio(tipoAnuncio);
             }
 
+            case "AMAZON" -> {
+                BigDecimal comissao = avancado && comissaoInformada.compareTo(ZERO) > 0
+                        ? comissaoInformada : AMAZON_COMISSAO_CASA;
+                BigDecimal extrasFixos = frete.add(adicional);
+                precoVenda = calcularPrecoAmazon(base, extrasFixos, imposto, comissao);
+                taxasVenda = calcularTaxasAmazon(precoVenda, extrasFixos, imposto, comissao);
+            }
+
             default -> {
                 plataforma = "NENHUMA";
                 precoVenda = base;
@@ -181,6 +191,7 @@ public class CalculoPlataformaService {
             case "TIKTOK", "TIKTOK_SHOP" -> isencaoTikTok ? ZERO : precoVenda.compareTo(TIKTOK_LIMITE_PRIMEIRA_FAIXA) < 0 ? TIKTOK_COMISSAO_PRIMEIRA_FAIXA : TIKTOK_COMISSAO_DEMAIS_FAIXAS;
 
             case "MERCADO_LIVRE" -> avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? ML_PREMIUM_COMISSAO_PADRAO : ML_CLASSICO_COMISSAO_PADRAO;
+            case "AMAZON" -> avancado && comissaoInformada.compareTo(ZERO) > 0 ? comissaoInformada : AMAZON_COMISSAO_CASA;
 
             default -> ZERO;
         };
@@ -216,7 +227,7 @@ public class CalculoPlataformaService {
         BigDecimal imposto = percentual(request.getPercentualImposto());
         BigDecimal frete = obterFreteVendedor(request, avancado, plataforma);
 
-        BigDecimal adicional = avancado && "MERCADO_LIVRE".equals(plataforma) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
+        BigDecimal adicional = avancado && ("MERCADO_LIVRE".equals(plataforma) || "AMAZON".equals(plataforma)) ? valor(request.getCustoAdicionalPlataforma()) : ZERO;
 
         BigDecimal afiliado = avancado && ("TIKTOK".equals(plataforma) || "TIKTOK_SHOP".equals(plataforma)) ? percentual(request.getPercentualAfiliado()) : ZERO;
 
@@ -335,6 +346,13 @@ public class CalculoPlataformaService {
                 }
 
                 comissaoExibida = avancado ? comissaoInformada : "PREMIUM".equals(tipoAnuncio) ? ML_PREMIUM_COMISSAO_PADRAO : ML_CLASSICO_COMISSAO_PADRAO;
+            }
+
+            case "AMAZON" -> {
+                BigDecimal comissao = avancado && comissaoInformada.compareTo(ZERO) > 0
+                        ? comissaoInformada : AMAZON_COMISSAO_CASA;
+                taxas = calcularTaxasAmazon(precoVenda, frete.add(adicional), imposto, comissao);
+                comissaoExibida = comissao;
             }
 
             default -> {
@@ -628,6 +646,23 @@ public class CalculoPlataformaService {
 
     private BigDecimal calcularTaxasPercentuais(BigDecimal preco, BigDecimal percentual, BigDecimal fixos) {
         return moeda(preco.multiply(percentual).divide(CEM, 8, RoundingMode.HALF_UP).add(fixos));
+    }
+
+    private BigDecimal calcularPrecoAmazon(BigDecimal base, BigDecimal custosFixos,
+                                           BigDecimal imposto, BigDecimal comissao) {
+        BigDecimal preco = calcularPrecoComTaxas(base, custosFixos, imposto.add(comissao));
+        BigDecimal comissaoPercentual = preco.multiply(comissao).divide(CEM, 8, RoundingMode.HALF_UP);
+        if (comissaoPercentual.compareTo(AMAZON_COMISSAO_MINIMA) >= 0) return preco;
+        return calcularPrecoComTaxas(base, custosFixos.add(AMAZON_COMISSAO_MINIMA), imposto);
+    }
+
+    private BigDecimal calcularTaxasAmazon(BigDecimal preco, BigDecimal custosFixos,
+                                           BigDecimal imposto, BigDecimal comissao) {
+        BigDecimal comissaoPercentual = preco.multiply(comissao).divide(CEM, 8, RoundingMode.HALF_UP);
+        BigDecimal comissaoCobrada = comissaoPercentual.max(AMAZON_COMISSAO_MINIMA);
+        return moeda(comissaoCobrada
+                .add(preco.multiply(imposto).divide(CEM, 8, RoundingMode.HALF_UP))
+                .add(custosFixos));
     }
 
     private BigDecimal obterFreteVendedor(CalculoRequest request, boolean avancado, String plataforma) {

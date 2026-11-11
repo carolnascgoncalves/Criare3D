@@ -4,5 +4,6 @@ public enum PlataformaVenda {
     NENHUMA,
     SHOPEE,
     TIKTOK,
-    MERCADO_LIVRE
+    MERCADO_LIVRE,
+    AMAZON
 }

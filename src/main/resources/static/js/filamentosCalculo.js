@@ -7,6 +7,10 @@ function inicializarFilamentosCalculo() {
     const pecaId = document.getElementById("pecaId");
     const secaoFilamentos = document.getElementById("secaoFilamentos");
     const resumoConsumoPeca = document.getElementById("resumoConsumoPeca");
+    const previaMateriaisPeca = document.getElementById("previaMateriaisPeca");
+    const listaPreviaMateriais = document.querySelector("[data-previa-materiais-lista]");
+    const statusPreviaMateriais = document.querySelector("[data-previa-materiais-status]");
+    const aplicarMateriais = document.querySelector("[data-aplicar-materiais]");
     const nomePecaResumo = document.getElementById("nomePecaResumo");
     const consumoPrevistoResumo = document.getElementById("consumoPrevistoResumo");
     const listaResumo = document.getElementById("listaResumoConsumo");
@@ -16,6 +20,10 @@ function inicializarFilamentosCalculo() {
     if (!listaFilamentos || !modeloFilamento || listaFilamentos === listaFilamentosInicializada) {return;}
 
     listaFilamentosInicializada = listaFilamentos;
+    let materiaisSugeridos = [];
+    let requisicaoMateriais = null;
+    let ultimaPecaSelecionada = pecaId?.value || "";
+    let processandoTrocaPeca = false;
     function formatarGramas(valor) {
         return `${Number(valor).toLocaleString("pt-BR", {
             maximumFractionDigits: 2
@@ -97,6 +105,7 @@ function inicializarFilamentosCalculo() {
             const remover = item.querySelector("[data-remover-filamento]");
 
             item.dataset.confirmado ??= "false";
+            item.dataset.confirmadoPeloUsuario ??= "false";
 
             select.name = `filamentos[${indice}].filamentoId`;
             select.id = `filamentoId${indice}`;
@@ -250,6 +259,7 @@ function inicializarFilamentosCalculo() {
 
             editar.addEventListener("click", () => {
                 filamento.elemento.dataset.confirmado = "false";
+                filamento.elemento.dataset.confirmadoPeloUsuario = "false";
                 filamento.elemento.hidden = false;
                 atualizarTudo();
                 filamento.elemento.querySelector("[data-campo-filamento]").focus();
@@ -279,7 +289,12 @@ function inicializarFilamentosCalculo() {
 
         totalFilamentoResumo.textContent = formatarGramas(totalAcumulado);
 
-        const percentualTotal = previsto > 0 ? totalAcumulado / previsto * 100 : 0;
+        // Os campos são exibidos em gramas com até duas casas. Compare com a
+        // mesma precisão para não classificar 147,35 como acima/abaixo por
+        // resíduos binários da soma de números decimais no JavaScript.
+        const totalComparavel = Math.round((totalAcumulado + Number.EPSILON) * 100) / 100;
+        const previstoComparavel = Math.round((previsto + Number.EPSILON) * 100) / 100;
+        const percentualTotal = previstoComparavel > 0 ? totalComparavel / previstoComparavel * 100 : 0;
 
         totalPrevistoResumo.textContent = `de ${formatarGramas(previsto)} previstos - ${formatarPercentual(percentualTotal)} do total`;
 
@@ -289,10 +304,10 @@ function inicializarFilamentosCalculo() {
             let classeStatus;
             let mensagem;
 
-            if (totalAcumulado < previsto) {
+            if (totalComparavel < previstoComparavel) {
                 classeStatus = "consumo-abaixo";
                 mensagem = "Quantidade abaixo do previsto";
-            } else if (totalAcumulado > previsto) {
+            } else if (totalComparavel > previstoComparavel) {
                 classeStatus = "consumo-acima";
                 mensagem = "Quantidade acima do previsto";
             } else {
@@ -317,10 +332,239 @@ function inicializarFilamentosCalculo() {
         }
     }
 
+    function existemFilamentosConfirmados() {
+        return [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
+            .some(item => item.dataset.confirmadoPeloUsuario === "true");
+    }
+
+    async function trocarPeca() {
+        if (processandoTrocaPeca) return;
+        const novaPeca = pecaId.value;
+        if (novaPeca === ultimaPecaSelecionada) return;
+
+        processandoTrocaPeca = true;
+        pecaId.disabled = true;
+        try {
+            if (existemFilamentosConfirmados()) {
+                const mensagem = "Ao trocar a peça, os filamentos confirmados serão apagados. Deseja continuar?";
+                const confirmar = window.confirmarAcao
+                    ? await window.confirmarAcao(mensagem, pecaId)
+                    : window.confirm(mensagem);
+
+                if (!confirmar) {
+                    pecaId.value = ultimaPecaSelecionada;
+                    pecaId.dispatchEvent(new Event("change", {bubbles: true}));
+                    atualizarDisponibilidadeFilamentos();
+                    atualizarTudo();
+                    pecaId.disabled = false;
+                    window.salvarRascunhoCalculo?.();
+                    return;
+                }
+            }
+
+            listaFilamentos.replaceChildren();
+            criarFilamento();
+            ultimaPecaSelecionada = novaPeca;
+            atualizarDisponibilidadeFilamentos();
+            atualizarTudo();
+            pecaId.disabled = false;
+            window.salvarRascunhoCalculo?.();
+        } finally {
+            pecaId.disabled = false;
+            processandoTrocaPeca = false;
+        }
+
+        await carregarMateriaisDaPeca();
+    }
+
+    function formatarCor(cor) {
+        if (!cor || !/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(cor)) return "";
+        return cor.length === 4
+            ? `#${cor[1]}${cor[1]}${cor[2]}${cor[2]}${cor[3]}${cor[3]}`.toLowerCase()
+            : cor.toLowerCase();
+    }
+
+    function exibirMateriaisSugeridos(materiais) {
+        if (!previaMateriaisPeca || !listaPreviaMateriais || !statusPreviaMateriais) return;
+        listaPreviaMateriais.replaceChildren();
+        materiaisSugeridos = materiais.filter(item => Number(item.pesoGramas) > 0);
+        if (materiaisSugeridos.length === 0) {
+            previaMateriaisPeca.hidden = true;
+            return;
+        }
+
+        materiaisSugeridos.forEach(item => {
+            const linha = document.createElement("div");
+            linha.className = "previa-material-item";
+            const identificacao = document.createElement("div");
+            identificacao.className = "previa-material-identificacao";
+            const amostra = document.createElement("span");
+            amostra.className = "previa-material-cor";
+            const cor = formatarCor(item.corHex);
+            if (cor) {
+                amostra.style.backgroundColor = cor;
+                amostra.title = item.corHex;
+                amostra.setAttribute("aria-label", `Cor ${item.corHex}`);
+            } else {
+                amostra.classList.add("sem-cor");
+                amostra.setAttribute("aria-label", "Cor não informada");
+            }
+            const texto = document.createElement("div");
+            const nome = document.createElement("strong");
+            nome.textContent = item.material || "Material sem identificação";
+            const detalhes = document.createElement("small");
+            detalhes.textContent = cor ? item.corHex : "Cor não identificada no arquivo";
+            texto.append(nome, detalhes);
+            identificacao.append(amostra, texto);
+            const peso = document.createElement("strong");
+            peso.className = "previa-material-peso";
+            peso.textContent = `${Number(item.pesoGramas).toLocaleString("pt-BR", {minimumFractionDigits: 2, maximumFractionDigits: 2})} g`;
+            linha.append(identificacao, peso);
+            listaPreviaMateriais.appendChild(linha);
+        });
+
+        statusPreviaMateriais.textContent = `${materiaisSugeridos.length} ${materiaisSugeridos.length === 1 ? "filamento encontrado" : "filamentos encontrados"}. Você pode usar as gramagens e escolher seus rolos cadastrados.`;
+        aplicarMateriais.disabled = false;
+        previaMateriaisPeca.hidden = false;
+    }
+
+    async function carregarMateriaisDaPeca() {
+        if (!previaMateriaisPeca || !pecaId?.value
+            || pecaId.selectedOptions[0]?.dataset.temArquivo !== "true") {
+            if (previaMateriaisPeca) previaMateriaisPeca.hidden = true;
+            requisicaoMateriais?.abort();
+            materiaisSugeridos = [];
+            return;
+        }
+        requisicaoMateriais?.abort();
+        requisicaoMateriais = new AbortController();
+        const controller = requisicaoMateriais;
+        previaMateriaisPeca.hidden = true;
+        statusPreviaMateriais.textContent = "Verificando os dados do arquivo...";
+        aplicarMateriais.disabled = true;
+        try {
+            const resposta = await fetch(`/peca/${encodeURIComponent(pecaId.value)}/materiais-calculo`, {
+                headers: {Accept: "application/json"},
+                credentials: "same-origin",
+                signal: controller.signal
+            });
+            if (!resposta.ok || controller !== requisicaoMateriais) return;
+            exibirMateriaisSugeridos(await resposta.json());
+        } catch (erro) {
+            if (erro.name !== "AbortError") previaMateriaisPeca.hidden = true;
+        }
+    }
+
+    function encontrarFilamentoCorrespondente(select, material) {
+        const corAlvo = formatarCor(material.corHex);
+        const nomeMaterial = (material.material || "").toLocaleLowerCase("pt-BR");
+        const tiposConhecidos = ["PLA", "PETG", "ABS", "ASA", "TPU", "PVA", "HIPS", "PC"];
+        const tipoAlvo = tiposConhecidos.find(tipo => nomeMaterial.includes(tipo.toLocaleLowerCase("pt-BR")))
+            ?.toLocaleLowerCase("pt-BR");
+        if (!corAlvo || (!tipoAlvo && !nomeMaterial)) return null;
+        const opcoes = [...select.options].filter(opcao => {
+            if (!opcao.value || formatarCor(opcao.dataset.codigoCor) !== corAlvo) return false;
+            const nome = opcao.textContent.toLocaleLowerCase("pt-BR");
+            return tipoAlvo ? nome.includes(tipoAlvo) : nome.includes(nomeMaterial);
+        });
+        return opcoes.length === 1 ? opcoes[0] : null;
+    }
+
+    function atualizarSugestaoFilamento(item) {
+        const indicacao = item.querySelector("[data-sugestao-filamento]");
+        const texto = item.querySelector("[data-sugestao-filamento-texto]");
+        const amostra = item.querySelector(".filamento-sugestao-cor");
+        if (!indicacao || !texto || !amostra || !item.dataset.materialArquivo) return;
+
+        const corArquivo = formatarCor(item.dataset.corArquivo);
+        const select = item.querySelector("[data-campo-filamento]");
+        const materialArquivo = item.dataset.materialArquivo;
+        const corDescricao = item.dataset.corArquivo || "não identificada";
+        amostra.style.backgroundColor = corArquivo || "transparent";
+
+        const recomendacao = encontrarFilamentoCorrespondente(select, {
+            material: materialArquivo,
+            corHex: item.dataset.corArquivo
+        });
+        const opcoesMesmaCor = [...select.options].filter(opcao => opcao.value
+            && corArquivo && formatarCor(opcao.dataset.codigoCor) === corArquivo);
+        const opcaoRecomendada = recomendacao || (opcoesMesmaCor.length === 1 ? opcoesMesmaCor[0] : null);
+
+        if (opcaoRecomendada) {
+            texto.textContent = `Recomendação do arquivo: ${materialArquivo} · ${corDescricao}. Filamento correspondente no cadastro: ${opcaoRecomendada.textContent.trim()}.`;
+        } else {
+            texto.textContent = `Recomendação do arquivo: ${materialArquivo} · ${corDescricao}.`;
+        }
+        indicacao.hidden = false;
+    }
+
+    aplicarMateriais?.addEventListener("click", async () => {
+        if (!materiaisSugeridos.length) return;
+        const preenchidos = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
+            .some(item => item.dataset.confirmado === "true"
+                || item.querySelector("[data-campo-filamento]")?.value
+                || item.querySelector("[data-campo-quantidade]")?.value);
+        if (preenchidos) {
+            const confirmar = window.confirmarAcao
+                ? await window.confirmarAcao("Substituir os filamentos atuais pelas sugestões do arquivo?", aplicarMateriais)
+                : window.confirm("Substituir os filamentos atuais pelas sugestões do arquivo?");
+            if (!confirmar) return;
+        }
+
+        listaFilamentos.replaceChildren();
+        const idsUsados = new Set();
+        let estoqueInsuficiente = false;
+        materiaisSugeridos.forEach(material => {
+            const item = modeloFilamento.content.firstElementChild.cloneNode(true);
+            const select = item.querySelector("[data-campo-filamento]");
+            const quantidade = item.querySelector("[data-campo-quantidade]");
+            item.hidden = false;
+            item.dataset.confirmado = "false";
+            item.dataset.confirmadoPeloUsuario = "false";
+            item.dataset.materialArquivo = material.material || "Material";
+            item.dataset.corArquivo = material.corHex || "";
+            quantidade.value = Number(material.pesoGramas).toFixed(2);
+
+            const correspondencia = encontrarFilamentoCorrespondente(select, material);
+            if (correspondencia && !idsUsados.has(correspondencia.value)) {
+                select.value = correspondencia.value;
+                idsUsados.add(correspondencia.value);
+            }
+            listaFilamentos.appendChild(item);
+            atualizarSugestaoFilamento(item);
+            if (select.value && validarEstoque(item, false)) {
+                item.dataset.confirmado = "true";
+                item.dataset.confirmadoPeloUsuario = "false";
+                item.hidden = true;
+            } else if (select.value) {
+                estoqueInsuficiente = true;
+            }
+        });
+        atualizarTudo();
+        window.salvarRascunhoCalculo?.();
+        const pendentes = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
+            .filter(item => item.dataset.confirmado !== "true").length;
+        window.mostrarNotificacao?.(
+            estoqueInsuficiente
+                ? "As gramagens foram preenchidas, mas há filamento com estoque insuficiente. Confira os rolos e quantidades."
+                : pendentes
+                    ? `Gramagens preenchidas. Confira os rolos para ${pendentes} ${pendentes === 1 ? "material" : "materiais"}.`
+                    : "Filamentos preenchidos com os dados do arquivo. Confira as quantidades antes de avançar.",
+            estoqueInsuficiente ? "erro" : "sucesso"
+        );
+        if (pendentes) {
+            const primeiroSemRolo = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
+                .find(item => item.dataset.confirmado !== "true");
+            primeiroSemRolo.hidden = false;
+            primeiroSemRolo.querySelector("[data-campo-filamento]").focus();
+        }
+    });
+
     function criarFilamento() {
         const novo = modeloFilamento.content.firstElementChild.cloneNode(true);
 
         novo.dataset.confirmado = "false";
+        novo.dataset.confirmadoPeloUsuario = "false";
         novo.hidden = false;
 
         novo.querySelector("[data-campo-filamento]").value = "";
@@ -380,6 +624,7 @@ function inicializarFilamentosCalculo() {
             }
 
             item.dataset.confirmado = "true";
+            item.dataset.confirmadoPeloUsuario = "true";
             item.hidden = true;
             atualizarTudo();
         }
@@ -390,6 +635,7 @@ function inicializarFilamentosCalculo() {
             if (itens.length === 1) {
                 const item = itens[0];
                 item.dataset.confirmado = "false";
+                item.dataset.confirmadoPeloUsuario = "false";
                 item.hidden = false;
                 item.querySelector("[data-campo-filamento]").value = "";
                 item.querySelector("[data-campo-quantidade]").value = "";
@@ -446,21 +692,22 @@ function inicializarFilamentosCalculo() {
         event.preventDefault();
         invalido.hidden = false;
         invalido.dataset.confirmado = "false";
+        invalido.dataset.confirmadoPeloUsuario = "false";
         invalido.querySelector("[data-campo-quantidade]").focus();
         atualizarTudo();
     });
 
-    pecaId?.addEventListener("change", () => {
-        atualizarDisponibilidadeFilamentos();
-        atualizarTudo();
-    });
+    pecaId?.addEventListener("change", trocarPeca, true);
     pecaId?.addEventListener("pecaSelecionada", () => {
+        if (processandoTrocaPeca) return;
         atualizarDisponibilidadeFilamentos();
         atualizarTudo();
+        carregarMateriaisDaPeca();
     });
 
     atualizarDisponibilidadeFilamentos();
     atualizarTudo();
+    carregarMateriaisDaPeca();
 }
 
 document.addEventListener("DOMContentLoaded", inicializarFilamentosCalculo);

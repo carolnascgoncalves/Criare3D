@@ -15,5 +15,9 @@ public record HistoricoListaResponse(
         Boolean produzido,
         Boolean vendido,
         Boolean temFoto,
-        Integer unidades
+        Integer unidades,
+        BigDecimal custoTotal,
+        BigDecimal lucroLiquido,
+        LocalDateTime dataVenda,
+        Integer unidadesVendidas
 ) {}

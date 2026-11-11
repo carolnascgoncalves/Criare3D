@@ -21,7 +21,7 @@ public final class HistoricoFiltros {
     );
 
     private static final Set<String> PLATAFORMAS = Set.of(
-            "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "SEM_PLATAFORMA");
+            "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "AMAZON", "SEM_PLATAFORMA");
 
     private HistoricoFiltros() { }
 

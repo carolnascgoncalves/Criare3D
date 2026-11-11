@@ -24,6 +24,11 @@ public interface CalculoHistoricoService {
     List<CalculoRecenteResponse> fetchRecentes(int limite);
     long contarProduzidos();
     long contarVendidos();
+    long contarUnidadesParaProduzir();
+    BigDecimal somarCustoUnidadesEmEstoque();
+    long contarUnidadesVendidasEntre(java.time.LocalDateTime inicio, java.time.LocalDateTime fim);
+    long contarLotesVendidosEntre(java.time.LocalDateTime inicio, java.time.LocalDateTime fim);
+    BigDecimal somarLucroVendidoEntre(java.time.LocalDateTime inicio, java.time.LocalDateTime fim);
     Optional<CalculoHistorico> fetchById(UUID id);
     boolean existsById(UUID id);
     long contarPorFilamento(UUID filamentoId);
@@ -36,6 +41,10 @@ public interface CalculoHistoricoService {
     void deleteAll(Collection<UUID> ids);
     String atualizarProduzido(UUID id, boolean produzido);
     String atualizarVendido(UUID id, boolean vendido);
+    String atualizarStatusEmLote(Collection<UUID> ids, String acao);
+    String registrarVendasEmLote(Collection<UUID> ids, Integer unidadesPorLote);
+    String registrarVenda(UUID id, Integer unidades);
+    String cancelarVendas(UUID id);
     CalculoHistorico calcular(CalculoRequest request);
     CalculoHistorico calcularComPrecoFixo(CalculoRequest request, BigDecimal precoVenda);
     List<HistoricoExportacaoResponse> exportarHistorico();

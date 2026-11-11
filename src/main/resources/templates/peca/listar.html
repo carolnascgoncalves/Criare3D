@@ -111,6 +111,7 @@
                 <div class="peca-lista-identidade">
                     <span class="texto-apoio">PEÇA</span>
                     <h3 th:text="${peca.nome}">Nome da peça</h3>
+                    <span class="peca-categoria-chip" th:if="${peca.categoria != null and !peca.categoria.isBlank()}" th:text="${peca.categoria}">Categoria</span>
                     <p th:if="${arquivosPeca[peca.id] == null}">Parâmetros cadastrados para os cálculos</p>
                     <p class="peca-materiais-lista" th:if="${arquivosPeca[peca.id] != null}">
                         <span class="peca-material-chip" th:each="material : ${arquivosPeca[peca.id].materiais}">

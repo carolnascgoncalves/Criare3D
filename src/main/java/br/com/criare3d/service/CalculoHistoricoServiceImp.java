@@ -11,6 +11,7 @@ import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.CalculoFotoRepository;
 import br.com.criare3d.repository.ItemCalculoHistoricoRepository;
+import br.com.criare3d.repository.VendaCalculoRepository;
 import br.com.criare3d.service.interfaces.CalculoHistoricoService;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
@@ -21,6 +22,7 @@ import br.com.criare3d.service.interfaces.PecaService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -47,6 +49,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final CalculoFotoRepository calculoFotoRepository;
     private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
+    private final VendaCalculoRepository vendaCalculoRepository;
     private final CalculoPlataformaService calculoPlataformaService;
     private final PecaService pecaService;
     private final FilamentoService filamentoService;
@@ -60,6 +63,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             CalculoHistoricoRepository calculoHistoricoRepository,
             CalculoFotoRepository calculoFotoRepository,
             ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
+            VendaCalculoRepository vendaCalculoRepository,
             CalculoPlataformaService calculoPlataformaService,
             PecaService pecaService,
             FilamentoService filamentoService,
@@ -72,6 +76,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         this.calculoHistoricoRepository = calculoHistoricoRepository;
         this.calculoFotoRepository = calculoFotoRepository;
         this.itemCalculoHistoricoRepository = itemCalculoHistoricoRepository;
+        this.vendaCalculoRepository = vendaCalculoRepository;
         this.calculoPlataformaService = calculoPlataformaService;
         this.pecaService = pecaService;
         this.filamentoService = filamentoService;
@@ -237,24 +242,97 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public String atualizarVendido(UUID id, boolean vendido) {
-        List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
-        if (dados.isEmpty()) return "naoEncontrado";
+        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
+        if (calculo == null) return "naoEncontrado";
+        if (!vendido) return cancelarVendas(id);
+        int restantes = Math.max(0, calculo.getUnidades() - valorOuZero(calculo.getUnidadesVendidas()));
+        return restantes == 0 ? "ok" : registrarVenda(id, restantes);
+    }
 
-        AjusteEstoqueCalculoResponse historico = dados.get(0);
-        boolean jaVendido = Boolean.TRUE.equals(historico.vendido());
-        if (jaVendido == vendido) return "ok";
+    @Override
+    public String registrarVenda(UUID id, Integer unidades) {
+        if (unidades == null || unidades < 1) return "quantidadeVendaInvalida";
+        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
+        if (calculo == null) return "naoEncontrado";
 
-        boolean produzido = Boolean.TRUE.equals(historico.produzido());
-        if (vendido && !produzido) {
-            if (!ajustarEstoque(dados, false)) return "estoqueInsuficiente";
-            produzido = true;
+        int vendidas = valorOuZero(calculo.getUnidadesVendidas());
+        int restantes = calculo.getUnidades() - vendidas;
+        if (unidades > restantes) return "quantidadeVendaAcimaDisponivel";
+
+        if (!Boolean.TRUE.equals(calculo.getProduzido())) {
+            String resultadoProducao = atualizarProduzido(id, true);
+            if (!"ok".equals(resultadoProducao)) return resultadoProducao;
+            calculo = calculoHistoricoRepository.findById(id).orElse(null);
+            if (calculo == null) return "naoEncontrado";
+            vendidas = valorOuZero(calculo.getUnidadesVendidas());
         }
-        calculoHistoricoRepository.atualizarStatus(id, produzido, vendido);
-        LocalDateTime dataVenda = vendido
-                ? LocalDateTime.now(ZoneId.of("America/Sao_Paulo"))
-                : null;
-        calculoHistoricoRepository.atualizarDataVenda(id, dataVenda);
+
+        LocalDateTime agora = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
+        VendaCalculo venda = new VendaCalculo();
+        venda.setCalculo(calculo);
+        venda.setUnidades(unidades);
+        venda.setDataVenda(agora);
+        vendaCalculoRepository.save(venda);
+
+        int totalVendido = vendidas + unidades;
+        calculo.setUnidadesVendidas(totalVendido);
+        calculo.setVendido(totalVendido > 0);
+        calculo.setDataVenda(agora);
+        return "ok";
+    }
+
+    @Override
+    public String cancelarVendas(UUID id) {
+        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
+        if (calculo == null) return "naoEncontrado";
+        vendaCalculoRepository.deleteByCalculo_Id(id);
+        calculo.setUnidadesVendidas(0);
+        calculo.setVendido(false);
+        calculo.setDataVenda(null);
+        return "ok";
+    }
+
+    @Override
+    public String registrarVendasEmLote(Collection<UUID> ids, Integer unidadesPorLote) {
+        if (ids == null || ids.isEmpty()) return "nenhumSelecionado";
+        if (unidadesPorLote == null || unidadesPorLote < 1) return "quantidadeVendaInvalida";
+        for (UUID id : ids.stream().filter(java.util.Objects::nonNull).distinct().toList()) {
+            String resultado = registrarVenda(id, unidadesPorLote);
+            if (!"ok".equals(resultado)) {
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return resultado;
+            }
+        }
+        return "ok";
+    }
+
+    private int valorOuZero(Integer valor) {
+        return valor == null ? 0 : valor;
+    }
+
+    @Override
+    public String atualizarStatusEmLote(Collection<UUID> ids, String acao) {
+        if (ids == null || ids.isEmpty()) return "nenhumSelecionado";
+        if (!List.of("PRODUZIR", "VENDER", "DESFAZER_PRODUCAO", "CANCELAR_VENDA").contains(acao)) {
+            return "acaoInvalida";
+        }
+
+        List<UUID> unicos = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
+        if (unicos.isEmpty()) return "nenhumSelecionado";
+        for (UUID id : unicos) {
+            String resultado = switch (acao) {
+                case "PRODUZIR" -> atualizarProduzido(id, true);
+                case "VENDER" -> atualizarVendido(id, true);
+                case "DESFAZER_PRODUCAO" -> atualizarProduzido(id, false);
+                case "CANCELAR_VENDA" -> cancelarVendas(id);
+                default -> "acaoInvalida";
+            };
+            if (!"ok".equals(resultado)) {
+                // Não deixa uma seleção parcialmente aplicada se algum lote falhar.
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+                return resultado;
+            }
+        }
         return "ok";
     }
 
@@ -371,6 +449,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
         if (pecasPorImpressao < 1 || pecasPorImpressao > 10000) {
             throw new IllegalArgumentException("Informe uma capacidade de 1 a 10.000 peças por impressão.");
+        }
+        if (pecasPorImpressao > unidades) {
+            throw new IllegalArgumentException("Peças por impressão não pode ser maior que a quantidade de unidades.");
         }
         int fornadas = ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null
@@ -702,7 +783,37 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public long contarVendidos() {
-        return calculoHistoricoRepository.contarUnidadesVendidas();
+        return calculoHistoricoRepository.somarUnidadesVendidas();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long contarUnidadesParaProduzir() {
+        return calculoHistoricoRepository.contarUnidadesParaProduzir();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal somarCustoUnidadesEmEstoque() {
+        return calculoHistoricoRepository.somarCustoUnidadesEmEstoque();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long contarUnidadesVendidasEntre(LocalDateTime inicio, LocalDateTime fim) {
+        return calculoHistoricoRepository.contarUnidadesVendidasEntre(inicio, fim, usuarioLogadoService.buscarTenantIdAtual());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long contarLotesVendidosEntre(LocalDateTime inicio, LocalDateTime fim) {
+        return calculoHistoricoRepository.contarLotesVendidosEntre(inicio, fim, usuarioLogadoService.buscarTenantIdAtual());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal somarLucroVendidoEntre(LocalDateTime inicio, LocalDateTime fim) {
+        return calculoHistoricoRepository.somarLucroVendidoEntre(inicio, fim);
     }
 
     @Override

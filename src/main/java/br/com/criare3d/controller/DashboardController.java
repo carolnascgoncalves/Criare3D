@@ -232,6 +232,7 @@ public class DashboardController {
             case "TIKTOK", "TIKTOK_SHOP" -> "--dashboard-tiktok";
             case "SHOPEE" -> "--dashboard-shopee";
             case "MERCADO_LIVRE" -> "--dashboard-mercado-livre";
+            case "AMAZON" -> "--dashboard-outro";
             case "NENHUMA" -> "--dashboard-sem-plataforma";
             default -> "--dashboard-outro";
         };
@@ -242,7 +243,8 @@ public class DashboardController {
             case "TikTok Shop" -> 0;
             case "Shopee" -> 1;
             case "Mercado Livre" -> 2;
-            case "Sem plataforma" -> 3;
+            case "Amazon" -> 3;
+            case "Sem plataforma" -> 4;
             default -> 3;
         };
     }
@@ -341,6 +343,7 @@ public class DashboardController {
             case "SHOPEE" -> "Shopee";
             case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
             case "MERCADO_LIVRE" -> "Mercado Livre";
+            case "AMAZON" -> "Amazon";
             default -> codigo;
         };
     }

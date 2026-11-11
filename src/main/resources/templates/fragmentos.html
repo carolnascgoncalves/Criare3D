@@ -34,6 +34,7 @@
     <script th:src="@{/js/tarifaEnergiaReferencia.js}" defer></script>
     <script th:src="@{/js/notificacoes.js}" defer></script>
     <script th:src="@{/js/selecaoListagem.js}" defer></script>
+    <script th:src="@{/js/vendasEstoque.js}" defer></script>
     <script th:src="@{/js/restaurarRolagem.js}" defer></script>
     <script th:src="@{/js/validacaoInline.js}" defer></script>
     <script th:src="@{/js/calculoEtapas.js}" defer></script>
@@ -67,6 +68,7 @@
         <a th:if="${tenantDisponivel}" th:href="@{/filamento/listar}" class="menu-link" th:classappend="${paginaAtiva == 'filamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'filamentos' ? 'page' : null}">Filamentos</a>
         <a th:if="${tenantDisponivel}" th:href="@{/impressora/listar}" class="menu-link" th:classappend="${paginaAtiva == 'impressoras' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'impressoras' ? 'page' : null}">Impressoras</a>
         <a th:if="${tenantDisponivel}" th:href="@{/embalagem/listar}" class="menu-link" th:classappend="${paginaAtiva == 'embalagens' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'embalagens' ? 'page' : null}">Embalagens</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/vendas-estoque}" class="menu-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}">Vendas e estoque</a>
         <a th:if="${tenantDisponivel}" th:href="@{/historico/listar}" class="menu-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}">Histórico</a>
 
         <a sec:authorize="hasRole('ADMIN')"

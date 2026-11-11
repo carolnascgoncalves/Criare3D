@@ -365,7 +365,8 @@ public class CalculoHistoricoController {
         List<Opcao> opcoes = List.of(
                 new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
                 new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
-                new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre")
+                new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre"),
+                new Opcao(PlataformaVenda.AMAZON, "Amazon")
         );
 
         boolean precoFixo = "PRECO_FIXO".equals(modoComparacao);

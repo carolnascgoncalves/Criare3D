@@ -37,13 +37,16 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         SELECT
           COALESCE(SUM(h.unidades_hist) FILTER (WHERE h.data_hist >= :inicio), 0) AS "calculadas",
           COALESCE(SUM(h.unidades_hist) FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "produzidas",
-          COALESCE(SUM(h.unidades_hist) FILTER (WHERE h.vendido_hist = TRUE
-              AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "vendidas",
-          COALESCE(SUM(h.lucro_liquido_hist * h.unidades_hist) FILTER (WHERE h.vendido_hist = TRUE
-              AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "lucro",
-          COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
-              ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
-              FILTER (WHERE h.vendido_hist = TRUE AND h.data_venda_hist >= :inicio AND h.data_venda_hist < :fim), 0) AS "minutosVendidos",
+          COALESCE((SELECT SUM(v.unidades) FROM venda_calculo v WHERE v.tenant_id = :tenantId
+              AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "vendidas",
+          COALESCE((SELECT SUM(ch.lucro_liquido_hist * v.unidades) FROM venda_calculo v
+              JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
+              WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "lucro",
+          COALESCE((SELECT SUM((CASE WHEN ch.minutos_maquina_lote_hist > 0 THEN ch.minutos_maquina_lote_hist
+              ELSE (ch.temp_hist + COALESCE(ch.tempo_aquecimento_hist, 0)) * ch.fornadas_hist END)
+              * v.unidades::numeric / NULLIF(ch.unidades_hist, 0)) FROM venda_calculo v
+              JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
+              WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "minutosVendidos",
           COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
               ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "minutosProduzidos",
@@ -51,10 +54,9 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_hist >= :inicio), 0) AS "gramasFilamento"
         FROM calculo_historico h
         WHERE h.tenant_id = :tenantId
-          AND (h.data_hist >= :inicio
-               OR (h.vendido_hist = TRUE
-                   AND h.data_venda_hist >= :inicio
-                   AND h.data_venda_hist < :fim))
+          AND (h.data_hist >= :inicio OR EXISTS (SELECT 1 FROM venda_calculo v
+               WHERE v.tenant_id = h.tenant_id AND v.calculo_id = h.id
+                 AND v.data_venda >= :inicio AND v.data_venda < :fim))
         """, nativeQuery = true)
     DashboardResumoProjection resumirDashboard(@Param("tenantId") UUID tenantId,
                                                 @Param("inicio") LocalDateTime inicio,
@@ -147,57 +149,72 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.produzido = true")
     long contarUnidadesProduzidas();
 
-    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.vendido = true")
+    @Query("SELECT COALESCE(SUM(h.unidadesVendidas), 0) FROM CalculoHistorico h")
     long contarUnidadesVendidas();
 
+    @Query("SELECT COALESCE(SUM(h.unidadesVendidas), 0) FROM CalculoHistorico h")
+    long somarUnidadesVendidas();
+
+    @Query("SELECT COALESCE(SUM(h.unidades - h.unidadesVendidas), 0) FROM CalculoHistorico h WHERE h.produzido = true")
+    long contarUnidadesEmEstoque();
+
+    @Query("SELECT COALESCE(SUM(h.unidades), 0) FROM CalculoHistorico h WHERE h.produzido = false AND h.vendido = false")
+    long contarUnidadesParaProduzir();
+
+    @Query("SELECT COALESCE(SUM(h.custoTotal * (h.unidades - h.unidadesVendidas)), 0) FROM CalculoHistorico h WHERE h.produzido = true AND h.unidadesVendidas < h.unidades")
+    BigDecimal somarCustoUnidadesEmEstoque();
+
+    @Query(value = "SELECT COALESCE(SUM(v.unidades), 0) FROM venda_calculo v WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim", nativeQuery = true)
+    long contarUnidadesVendidasEntre(@Param("inicio") LocalDateTime inicio,
+                                     @Param("fim") LocalDateTime fim,
+                                     @Param("tenantId") UUID tenantId);
+
+    @Query(value = "SELECT COUNT(DISTINCT v.calculo_id) FROM venda_calculo v WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim", nativeQuery = true)
+    long contarLotesVendidosEntre(@Param("inicio") LocalDateTime inicio,
+                                  @Param("fim") LocalDateTime fim,
+                                  @Param("tenantId") UUID tenantId);
+
     @Query("""
-        SELECT COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
-        FROM CalculoHistorico h
-        WHERE h.vendido = true
-          AND h.dataVenda >= :inicio AND h.dataVenda < :fim
+        SELECT COALESCE(SUM(h.lucroLiquido * v.unidades), 0)
+        FROM VendaCalculo v JOIN v.calculo h
+        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim
           AND h.lucroLiquido IS NOT NULL
         """)
     BigDecimal somarLucroVendidoEntre(@Param("inicio") LocalDateTime inicio,
                                       @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT YEAR(h.dataVenda), MONTH(h.dataVenda), DAY(h.dataVenda),
-               COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
-        FROM CalculoHistorico h
-        WHERE h.vendido = true
-          AND h.dataVenda >= :inicio AND h.dataVenda < :fim
-          AND h.lucroLiquido IS NOT NULL
-        GROUP BY YEAR(h.dataVenda), MONTH(h.dataVenda), DAY(h.dataVenda)
-        ORDER BY YEAR(h.dataVenda), MONTH(h.dataVenda), DAY(h.dataVenda)
+        SELECT YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda),
+               COALESCE(SUM(h.lucroLiquido * v.unidades), 0)
+        FROM VendaCalculo v JOIN v.calculo h
+        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim AND h.lucroLiquido IS NOT NULL
+        GROUP BY YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda)
+        ORDER BY YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda)
         """)
     List<Object[]> somarLucroVendidoPorDia(@Param("inicio") LocalDateTime inicio,
                                           @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT MIN(h.dataVenda)
-        FROM CalculoHistorico h
-        WHERE h.vendido = true
-          AND h.lucroLiquido IS NOT NULL
+        SELECT MIN(v.dataVenda)
+        FROM VendaCalculo v JOIN v.calculo h
+        WHERE h.lucroLiquido IS NOT NULL
         """)
     LocalDateTime primeiraVendaComLucro();
 
     @Query("""
-        SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(h.lucroLiquido * h.unidades), 0), COALESCE(SUM(h.unidades), 0)
-        FROM CalculoHistorico h
-        WHERE h.vendido = true
-          AND h.dataVenda >= :inicio
+        SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(h.lucroLiquido * v.unidades), 0), COALESCE(SUM(v.unidades), 0)
+        FROM VendaCalculo v JOIN v.calculo h
+        WHERE v.dataVenda >= :inicio
         GROUP BY COALESCE(h.plataformaVenda, 'NENHUMA')
         """)
     List<Object[]> somarLucroPorPlataformaDesde(@Param("inicio") LocalDateTime inicio);
 
     @Query("""
-        SELECT YEAR(h.dataVenda), MONTH(h.dataVenda), COALESCE(SUM(h.lucroLiquido * h.unidades), 0)
-        FROM CalculoHistorico h
-        WHERE h.vendido = true
-          AND h.dataVenda >= :inicio AND h.dataVenda < :fim
-          AND h.lucroLiquido IS NOT NULL
-        GROUP BY YEAR(h.dataVenda), MONTH(h.dataVenda)
-        ORDER BY YEAR(h.dataVenda), MONTH(h.dataVenda)
+        SELECT YEAR(v.dataVenda), MONTH(v.dataVenda), COALESCE(SUM(h.lucroLiquido * v.unidades), 0)
+        FROM VendaCalculo v JOIN v.calculo h
+        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim AND h.lucroLiquido IS NOT NULL
+        GROUP BY YEAR(v.dataVenda), MONTH(v.dataVenda)
+        ORDER BY YEAR(v.dataVenda), MONTH(v.dataVenda)
         """)
     List<Object[]> somarLucroVendidoPorMes(@Param("inicio") LocalDateTime inicio,
                                            @Param("fim") LocalDateTime fim);
@@ -227,8 +244,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     SELECT new br.com.criare3d.dto.HistoricoListaResponse(
         h.id, h.nomePeca, h.dataCalculo, h.plataformaVenda,
         h.precoVendaPlataforma, h.precoSugerido, h.produzido, h.vendido,
-        h.temFoto,
-        h.unidades
+        h.temFoto, h.unidades, h.custoTotal, h.lucroLiquido, h.dataVenda, h.unidadesVendidas
     )
     FROM CalculoHistorico h
     WHERE (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
@@ -239,7 +255,11 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
           OR h.plataformaVenda = :plataforma
       )
       AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
-      AND (:filtrarVendido = false OR h.vendido = :valorVendido)
+      AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
+      AND (:statusLote = '' OR
+           (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
+           (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
+           (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
     """,
             countQuery = """
     SELECT COUNT(h)
@@ -252,7 +272,11 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
           OR h.plataformaVenda = :plataforma
       )
       AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
-      AND (:filtrarVendido = false OR h.vendido = :valorVendido)
+      AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
+      AND (:statusLote = '' OR
+           (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
+           (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
+           (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
     """)
     Page<HistoricoListaResponse> buscarHistoricoFiltrado(
             @Param("nome") String nome,
@@ -264,6 +288,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
             @Param("valorProduzido") boolean valorProduzido,
             @Param("filtrarVendido") boolean filtrarVendido,
             @Param("valorVendido") boolean valorVendido,
+            @Param("statusLote") String statusLote,
             Pageable pageable
     );
 

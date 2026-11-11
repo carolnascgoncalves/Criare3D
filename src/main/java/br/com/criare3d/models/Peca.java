@@ -32,6 +32,10 @@ public class Peca {
     @Column(name= "nome_peca", nullable = false, length = 150)
     private @Getter @Setter String nome;
 
+    @Size(max = 60, message = "A categoria deve ter no máximo 60 caracteres.")
+    @Column(name = "categoria", length = 60)
+    private @Getter @Setter String categoria;
+
     @NotNull(message = "A quantidade de filamento utilizado na peca é obrigatorio")
     @Column(name="qntFil_peca",nullable = false, precision = 10, scale = 2)
     private @Getter @Setter BigDecimal quantidadeFilamentoGramas;

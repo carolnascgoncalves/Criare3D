@@ -3,6 +3,7 @@ package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.PecaRequest;
 import br.com.criare3d.dto.PecaResponse;
+import br.com.criare3d.dto.PecaMaterialResumo;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.service.CatalogoBuscaService;
@@ -186,6 +187,14 @@ public class PecaController {
                         .contentType(MediaType.parseMediaType(imagem.mimeType()))
                         .cacheControl(CacheControl.noCache().cachePrivate())
                         .body(imagem.bytes()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/peca/{id}/materiais-calculo")
+    @ResponseBody
+    public ResponseEntity<List<PecaMaterialResumo>> materiaisParaCalculo(@PathVariable UUID id) {
+        return pecaService.fetchById(id)
+                .map(peca -> ResponseEntity.ok(pecaArquivoService.buscarMateriaisParaCalculo(peca)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

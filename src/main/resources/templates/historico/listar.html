@@ -60,6 +60,9 @@
         </div>
 
         <div class="formulario-acoes">
+            <a th:href="@{/vendas-estoque}" class="botao botao-secundario">
+                <i class="bi bi-box-seam"></i> Vendas e estoque
+            </a>
             <a th:href="@{/historico/exportar.csv}" class="botao botao-secundario">
                 <i class="bi bi-download"></i> Exportar CSV
             </a>
@@ -211,6 +214,8 @@
                        th:classappend="${plataforma == 'MERCADO_LIVRE'} ? ' selecionada' : ''">
                         Mercado Livre
                     </a>
+                    <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='AMAZON', produzido=${produzido}, vendido=${vendido})}"
+                       th:classappend="${plataforma == 'AMAZON'} ? ' selecionada' : ''">Amazon</a>
 
                     <a th:href="@{/historico/listar(busca=${busca}, data=${data}, ordem=${ordem}, plataforma='SEM_PLATAFORMA', produzido=${produzido}, vendido=${vendido})}"
                        th:classappend="${plataforma == 'SEM_PLATAFORMA'} ? ' selecionada' : ''">
@@ -426,7 +431,7 @@
                         </td>
 
                         <td>
-                            <span th:text="${historico.plataformaVenda == null or historico.plataformaVenda == 'NENHUMA' ? '—' : (historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (historico.plataformaVenda == 'TIKTOK' or historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee'))}">
+                            <span th:text="${historico.plataformaVenda == null or historico.plataformaVenda == 'NENHUMA' ? '—' : (historico.plataformaVenda == 'AMAZON' ? 'Amazon' : (historico.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (historico.plataformaVenda == 'TIKTOK' or historico.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : 'Shopee')))}">
                                 —
                             </span>
                         </td>
@@ -440,67 +445,15 @@
                         </td>
 
                         <td>
-                            <form th:action="@{/historico/{id}/produzido(id=${historico.id})}"
-                                  method="post"
-                                  class="form-status-historico">
-
-                                <input type="hidden"
-                                       name="valor"
-                                       th:value="${!(historico.produzido == true)}">
-
-                                <input type="hidden" name="busca" th:value="${busca}">
-                                <input type="hidden" name="data" th:value="${data}">
-                                <input type="hidden" name="plataforma" th:value="${plataforma}">
-                                <input type="hidden" name="produzido" th:value="${produzido}">
-                                <input type="hidden" name="vendido" th:value="${vendido}">
-                                <input type="hidden" name="ordem" th:value="${ordem}">
-                                <input type="hidden" name="page" th:value="${pagina.number}">
-
-                                <button type="submit"
-                                        class="botao-status-historico"
-                                        th:classappend="${historico.produzido == true} ? ' status-ativo' : ''"
-                                        th:title="${historico.produzido == true} ? 'Desmarcar como produzido (devolve o material ao estoque)' : 'Marcar como produzido (desconta o material do estoque)'"
-                                        th:aria-label="${historico.produzido == true} ? 'Produzido: sim' : 'Produzido: não'">
-
-                                    <i th:class="${historico.produzido == true} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
-
-                                    <span th:text="${historico.produzido == true} ? 'Sim' : 'Não'">
-                                        Não
-                                    </span>
-                                </button>
-                            </form>
+                            <span class="status-historico-leitura"
+                                  th:classappend="${historico.produzido == true} ? ' status-historico-produzido' : ''"
+                                  th:text="${historico.produzido == true} ? 'Produzido' : 'A produzir'">A produzir</span>
                         </td>
 
                         <td>
-                            <form th:action="@{/historico/{id}/vendido(id=${historico.id})}"
-                                  method="post"
-                                  class="form-status-historico">
-
-                                <input type="hidden"
-                                       name="valor"
-                                       th:value="${!(historico.vendido == true)}">
-
-                                <input type="hidden" name="busca" th:value="${busca}">
-                                <input type="hidden" name="data" th:value="${data}">
-                                <input type="hidden" name="plataforma" th:value="${plataforma}">
-                                <input type="hidden" name="produzido" th:value="${produzido}">
-                                <input type="hidden" name="vendido" th:value="${vendido}">
-                                <input type="hidden" name="ordem" th:value="${ordem}">
-                                <input type="hidden" name="page" th:value="${pagina.number}">
-
-                                <button type="submit"
-                                        class="botao-status-historico"
-                                        th:classappend="${historico.vendido == true} ? ' status-ativo' : ''"
-                                        th:title="${historico.vendido == true} ? 'Desmarcar como vendido' : 'Marcar como vendido'"
-                                        th:aria-label="${historico.vendido == true} ? 'Vendido: sim' : 'Vendido: não'">
-
-                                    <i th:class="${historico.vendido == true} ? 'bi bi-toggle-on' : 'bi bi-toggle-off'"></i>
-
-                                    <span th:text="${historico.vendido == true} ? 'Sim' : 'Não'">
-                                        Não
-                                    </span>
-                                </button>
-                            </form>
+                            <span class="status-historico-leitura"
+                                  th:classappend="${historico.vendido == true} ? ' status-historico-vendido' : ''"
+                                  th:text="${historico.vendido == true} ? 'Vendido' : 'A vender'">A vender</span>
                         </td>
 
                         <td class="coluna-acoes">

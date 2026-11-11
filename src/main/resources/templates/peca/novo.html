@@ -82,6 +82,17 @@
                 </div>
 
                 <div class="campo">
+                    <label for="categoria">Categoria</label>
+                    <input type="text" id="categoria" th:field="*{categoria}" list="categoriasPeca" maxlength="60" placeholder="Escolha ou digite uma categoria">
+                    <datalist id="categoriasPeca">
+                        <option value="Decoração"></option><option value="Utilidades"></option><option value="Organização"></option><option value="Brinquedos"></option>
+                        <option value="Miniaturas"></option><option value="Acessórios"></option><option value="Casa"></option><option value="Outros"></option>
+                    </datalist>
+                    <small>Escolha uma sugestão ou escreva uma categoria nova.</small>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('categoria')}" th:errors="*{categoria}"></div>
+                </div>
+
+                <div class="campo">
                     <label for="quantidadeFilamentoGramas">
                         Quantidade de filamento (gramas)
                     </label>

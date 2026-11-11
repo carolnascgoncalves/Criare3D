@@ -29,7 +29,16 @@ function inicializarCalculoEtapas() {
     }
 
     function atualizarResumoProducao(atualizarTempo = false) {
-        const unidades = Math.max(1, Number(unidadesInput?.value) || 1);
+        const unidadesInformadas = Number(unidadesInput?.value);
+        const temUnidadesValidas = Number.isFinite(unidadesInformadas) && unidadesInformadas > 0;
+        const unidades = temUnidadesValidas ? unidadesInformadas : 1;
+        if (pecasPorImpressaoInput) {
+            const limite = temUnidadesValidas ? unidades : 10000;
+            pecasPorImpressaoInput.max = String(limite);
+            if (temUnidadesValidas && Number(pecasPorImpressaoInput.value) > limite) {
+                pecasPorImpressaoInput.value = String(limite);
+            }
+        }
         const capacidade = Math.max(1, Number(pecasPorImpressaoInput?.value) || 1);
         const impressoes = numeroImpressoes();
         const resumo = document.getElementById("resumoImpressoes");

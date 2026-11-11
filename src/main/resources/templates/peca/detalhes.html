@@ -26,6 +26,7 @@
                 <span class="texto-apoio">PARÂMETROS DE IMPRESSÃO</span>
                 <h2 th:text="${peca.nome}">Nome da peça</h2>
                 <p>Valores usados como referência ao calcular esta peça.</p>
+                <span class="peca-categoria-chip" th:if="${peca.categoria != null and !peca.categoria.isBlank()}" th:text="${peca.categoria}">Categoria</span>
             </div>
             <a th:href="@{/peca/editar/{id}(id=${peca.id})}" class="botao botao-principal">
                 <i class="bi bi-pencil"></i> Editar peça
