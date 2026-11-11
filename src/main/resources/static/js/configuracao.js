@@ -93,25 +93,6 @@ function inicializarConfiguracoes() {
     atualizarCampoMarkup();
     atualizarCampoEmbalagem();
     atualizarCustosAdicionais();
-
-    const avisoSalvo = document.querySelector(".alerta-configuracao-flutuante");
-    if (avisoSalvo && !avisoSalvo.dataset.temTemporizador) {
-        avisoSalvo.dataset.temTemporizador = "true";
-        const menu = document.querySelector(".menu-principal");
-        const posicionarAviso = () => {
-            const alturaMenu = menu?.getBoundingClientRect().height || 76;
-            avisoSalvo.style.top = `${Math.ceil(alturaMenu + 12)}px`;
-        };
-        posicionarAviso();
-        window.addEventListener("resize", posicionarAviso, { passive: true });
-        window.setTimeout(() => {
-            avisoSalvo.classList.add("alerta-configuracao-ocultando");
-            window.setTimeout(() => {
-                avisoSalvo.remove();
-                window.removeEventListener("resize", posicionarAviso);
-            }, 350);
-        }, 1800);
-    }
 }
 
 document.addEventListener("DOMContentLoaded", inicializarConfiguracoes);

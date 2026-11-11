@@ -432,6 +432,7 @@
 
             <!-- AÇÕES -->
             <div class="acoes-resultado">
+                <button type="button" class="botao botao-secundario" onclick="window.print()"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Exportar PDF</button>
 
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">

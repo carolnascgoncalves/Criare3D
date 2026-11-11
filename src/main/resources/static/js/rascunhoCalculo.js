@@ -55,7 +55,8 @@
             ? [...listaFilamentos.querySelectorAll("[data-filamento-item]")].map(item => ({
                 filamentoId: item.querySelector("[data-campo-filamento]")?.value || "",
                 quantidade: item.querySelector("[data-campo-quantidade]")?.value || "",
-                confirmado: item.dataset.confirmado === "true"
+                confirmado: item.dataset.confirmado === "true",
+                confirmadoPeloUsuario: item.dataset.confirmadoPeloUsuario === "true"
             }))
             : [];
 
@@ -141,8 +142,10 @@
             const select = item.querySelector("[data-campo-filamento]");
             const quantidade = item.querySelector("[data-campo-quantidade]");
 
-            item.dataset.confirmado = dados.confirmado ? "true" : "false";
-            item.hidden = dados.confirmado;
+            const confirmado = dados.confirmado === true && dados.confirmadoPeloUsuario === true;
+            item.dataset.confirmado = confirmado ? "true" : "false";
+            item.dataset.confirmadoPeloUsuario = confirmado ? "true" : "false";
+            item.hidden = confirmado;
 
             select.name = `filamentos[${indice}].filamentoId`;
             select.id = `filamentoId${indice}`;

@@ -15,7 +15,14 @@
 
             const atualizar = () => {
                 const selecionados = caixas.filter(c => c.checked).length;
-                acoes.forEach(botao => { botao.disabled = selecionados === 0; });
+                const temVendas = caixas.some(c => c.checked && c.dataset.vendasRegistradas === 'true');
+                const avisoProducao = root.querySelector('[data-vendas-bloqueio-producao]');
+                if (avisoProducao) avisoProducao.hidden = !temVendas;
+                acoes.forEach(botao => {
+                    const bloquear = botao.value === 'DESFAZER_PRODUCAO' && temVendas;
+                    botao.disabled = selecionados === 0 || bloquear;
+                    botao.title = bloquear ? 'Há unidades vendidas neste lote. Cancele as vendas antes de desfazer a produção.' : '';
+                });
                 if (contador) contador.textContent = `${selecionados} selecionado(s)`;
                 todos.forEach(caixa => {
                     caixa.checked = caixas.length > 0 && selecionados === caixas.length;

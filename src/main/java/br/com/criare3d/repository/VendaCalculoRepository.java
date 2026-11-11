@@ -8,5 +8,6 @@ import java.util.UUID;
 
 public interface VendaCalculoRepository extends JpaRepository<VendaCalculo, UUID> {
     List<VendaCalculo> findByCalculo_IdOrderByDataVendaDesc(UUID calculoId);
+    boolean existsByCalculo_Id(UUID calculoId);
     void deleteByCalculo_Id(UUID calculoId);
 }

@@ -9,7 +9,7 @@
         Estoque de filamento insuficiente para concluir a ação. Nenhuma alteração foi salva.
     </div>
     <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'vendaAtiva'}">
-        Não foi possível desfazer a produção porque há um lote vendido selecionado.
+        Não foi possível desfazer a produção porque há unidades vendidas em um dos lotes selecionados. Cancele as vendas antes de desfazer a produção.
     </div>
     <div class="alerta-erro notificacao-flutuante" th:if="${erro == 'naoEncontrado'}">
         Um ou mais cálculos selecionados não estão disponíveis. Nenhuma alteração foi salva.
@@ -153,7 +153,7 @@
 
         <div class="vendas-grade-lotes" th:classappend="${' vendas-grade-' + #strings.toLowerCase(aba)}" th:if="${!#lists.isEmpty(historicos)}">
             <article class="vendas-lote-card vendas-lote-detalhe" th:each="lote : ${historicos}">
-                <label class="vendas-card-selecao"><input type="checkbox" class="checkbox-selecao-listagem" name="ids" form="form-registrar-lotes" th:value="${lote.id}" th:aria-label="|Selecionar lote ${lote.nomePeca}|"><span>Selecionar lote</span></label>
+                <label class="vendas-card-selecao"><input type="checkbox" class="checkbox-selecao-listagem" th:attr="data-vendas-registradas=${lote.unidadesVendidas != null and lote.unidadesVendidas > 0}" name="ids" form="form-registrar-lotes" th:value="${lote.id}" th:aria-label="|Selecionar lote ${lote.nomePeca}|"><span>Selecionar lote</span></label>
                 <div class="vendas-lote-topo">
                     <img th:if="${lote.temFoto}" class="vendas-lote-foto" th:src="@{/historico/{id}/foto(id=${lote.id},miniatura=true)}" loading="lazy" decoding="async" th:alt="|Foto de ${lote.nomePeca}|">
                     <span class="vendas-lote-foto vendas-lote-sem-foto" th:unless="${lote.temFoto}"><i class="bi bi-box" aria-hidden="true"></i></span>
@@ -173,6 +173,7 @@
 
         <div class="vendas-rodape-selecao" data-vendas-selecao-conteudo hidden th:if="${!#lists.isEmpty(historicos)}">
             <strong data-vendas-contador>0 selecionados</strong>
+            <small data-vendas-bloqueio-producao hidden>Há unidades vendidas na seleção. Cancele essas vendas antes de desfazer a produção.</small>
             <label class="vendas-selecionar-todos"><input type="checkbox" data-selecionar-todos aria-label="Selecionar todos os lotes desta página"><span>Selecionar todos</span></label>
             <label class="vendas-quantidade vendas-quantidade-lote" th:if="${aba == 'ESTOQUE'}"><span>Unidades por lote</span><input type="number" min="1" value="1" data-vendas-quantidade></label>
             <div class="vendas-acoes-lote">

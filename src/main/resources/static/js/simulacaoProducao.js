@@ -4,7 +4,7 @@
     const NOITE_TERMINA_AS = 6;
     const OBJETO = { base: 135, topo: 44 };
     const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const CAMPOS = ['formulario', 'calculo', 'abrir-seletor', 'seletor-painel', 'buscar-calculo', 'filtrar-data', 'limpar-selecao', 'lista-calculos', 'seletor-vazio', 'unidades', 'por-impressao', 'inicio', 'usar-agora', 'intervalo', 'folga', 'erro', 'relogio-data', 'relogio-hora', 'impressao-atual', 'pecas-prontas', 'camada', 'corte', 'portal', 'bico', 'linha', 'eixo', 'resultado', 'pronto-em', 'detalhe', 'referencia', 'plano', 'plano-lista', 'pular'];
+    const CAMPOS = ['formulario', 'calculo', 'abrir-seletor', 'seletor-painel', 'buscar-calculo', 'filtrar-data', 'limpar-selecao', 'lista-calculos', 'seletor-vazio', 'unidades', 'por-impressao', 'inicio', 'usar-agora', 'intervalo', 'folga', 'erro', 'relogio-data', 'relogio-hora', 'relogio-duracao', 'impressao-atual', 'pecas-prontas', 'camada', 'corte', 'portal', 'bico', 'linha', 'eixo', 'resultado', 'pronto-em', 'detalhe', 'referencia', 'plano', 'plano-lista', 'pular'];
     const pad = n => String(n).padStart(2, '0');
     const dataCurta = d => `${DIAS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
     const hora = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -172,10 +172,15 @@
         const fim = emMinutos(p.inicio, p.eixo), pct = minutos => `${(minutos / p.eixo) * 100}%`;
         const fragmento = document.createDocumentFragment();
         const criar = (classe, estilo) => { const el = document.createElement('div'); el.className = classe; Object.assign(el.style, estilo); fragmento.appendChild(el); return el; };
-        for (let d = new Date(p.inicio.getFullYear(), p.inicio.getMonth(), p.inicio.getDate() - 1, NOITE_COMECA_AS); d < fim; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
-            const termina = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, NOITE_TERMINA_AS);
-            const de = Math.max(0, (d - p.inicio) / 60000), ate = Math.min(p.eixo, (termina - p.inicio) / 60000);
-            if (ate > de) criar('sim-noite', { left: pct(de), width: pct(ate - de) });
+        for (let inicio = new Date(p.inicio); inicio < fim;) {
+            const noite = inicio.getHours() < NOITE_TERMINA_AS || inicio.getHours() >= NOITE_COMECA_AS;
+            const limite = new Date(inicio);
+            if (inicio.getHours() < NOITE_TERMINA_AS) limite.setHours(NOITE_TERMINA_AS, 0, 0, 0);
+            else if (inicio.getHours() < NOITE_COMECA_AS) limite.setHours(NOITE_COMECA_AS, 0, 0, 0);
+            else { limite.setDate(limite.getDate() + 1); limite.setHours(NOITE_TERMINA_AS, 0, 0, 0); }
+            const de = (inicio - p.inicio) / 60000, ate = Math.min(p.eixo, (limite - p.inicio) / 60000);
+            criar(noite ? 'sim-noite' : 'sim-periodo-dia', { left: pct(de), width: pct(ate - de) });
+            inicio = limite;
         }
         if (p.folgaMin > 0) criar('sim-folga', { left: pct(p.total), width: pct(p.folgaMin) });
         const meiasNoites = [];
@@ -224,6 +229,7 @@
         const progresso = fracao >= 1 ? 1 : Math.max(0, Math.min(1, (decorrido - atual.inicio) / atual.duracao));
         const prontas = concluidas.reduce((soma, item) => soma + item.unidades, 0), agora = emMinutos(p.inicio, decorrido);
         ui.relogioData.textContent = dataCurta(agora); ui.relogioHora.textContent = hora(agora);
+        ui.relogioDuracao.textContent = `${formatarDuracao(decorrido)} de ${formatarDuracao(p.total)}`;
         ui.impressaoAtual.textContent = `${Math.min(concluidas.length + 1, p.impressoes)} de ${p.impressoes}`;
         ui.pecasProntas.textContent = `${fracao >= 1 ? p.unidades : prontas} de ${p.unidades}`;
         ui.camada.textContent = `${Math.round((fracao >= 1 ? 1 : progresso) * 100)}%`;
@@ -249,7 +255,7 @@
     function executar(ui, estado) {
         cancelAnimationFrame(estado.raf);
         const entradas = lerEntradas(ui, estado);
-        if (entradas.erro) { ui.erro.textContent = entradas.erro; ui.erro.hidden = false; entradas.campo.setAttribute('aria-invalid', 'true'); entradas.campo.focus(); return; }
+        if (entradas.erro) { ui.erro.textContent = entradas.erro; ui.erro.hidden = false; entradas.campo.setAttribute('aria-invalid', 'true'); (entradas.campo === ui.calculo ? ui.abrirSeletor : entradas.campo).focus(); return; }
         limparErro(ui);
         const p = planejar(entradas), vis = desenharLinha(ui, p); desenharPlano(ui, p);
         ui.resultado.hidden = true;

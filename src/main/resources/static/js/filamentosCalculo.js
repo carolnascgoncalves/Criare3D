@@ -105,7 +105,7 @@ function inicializarFilamentosCalculo() {
             const remover = item.querySelector("[data-remover-filamento]");
 
             item.dataset.confirmado ??= "false";
-            item.dataset.confirmadoPeloUsuario ??= "false";
+            item.dataset.confirmadoPeloUsuario ??= item.dataset.confirmado;
 
             select.name = `filamentos[${indice}].filamentoId`;
             select.id = `filamentoId${indice}`;
@@ -262,6 +262,7 @@ function inicializarFilamentosCalculo() {
                 filamento.elemento.dataset.confirmadoPeloUsuario = "false";
                 filamento.elemento.hidden = false;
                 atualizarTudo();
+                window.salvarRascunhoCalculo?.();
                 filamento.elemento.querySelector("[data-campo-filamento]").focus();
             });
 
@@ -278,6 +279,7 @@ function inicializarFilamentosCalculo() {
                 }
 
                 atualizarTudo();
+                window.salvarRascunhoCalculo?.();
             });
 
             acoes.append(editar, excluir);
@@ -437,6 +439,7 @@ function inicializarFilamentosCalculo() {
             return;
         }
         requisicaoMateriais?.abort();
+        materiaisSugeridos = [];
         requisicaoMateriais = new AbortController();
         const controller = requisicaoMateriais;
         previaMateriaisPeca.hidden = true;
@@ -449,7 +452,9 @@ function inicializarFilamentosCalculo() {
                 signal: controller.signal
             });
             if (!resposta.ok || controller !== requisicaoMateriais) return;
-            exibirMateriaisSugeridos(await resposta.json());
+            const materiais = await resposta.json();
+            if (controller !== requisicaoMateriais || controller.signal.aborted) return;
+            exibirMateriaisSugeridos(materiais);
         } catch (erro) {
             if (erro.name !== "AbortError") previaMateriaisPeca.hidden = true;
         }
@@ -500,6 +505,8 @@ function inicializarFilamentosCalculo() {
 
     aplicarMateriais?.addEventListener("click", async () => {
         if (!materiaisSugeridos.length) return;
+        const pecaDasSugestoes = pecaId.value;
+        const sugestoes = [...materiaisSugeridos];
         const preenchidos = [...listaFilamentos.querySelectorAll("[data-filamento-item]")]
             .some(item => item.dataset.confirmado === "true"
                 || item.querySelector("[data-campo-filamento]")?.value
@@ -511,10 +518,11 @@ function inicializarFilamentosCalculo() {
             if (!confirmar) return;
         }
 
+        if (pecaId.value !== pecaDasSugestoes) return;
         listaFilamentos.replaceChildren();
         const idsUsados = new Set();
         let estoqueInsuficiente = false;
-        materiaisSugeridos.forEach(material => {
+        sugestoes.forEach(material => {
             const item = modeloFilamento.content.firstElementChild.cloneNode(true);
             const select = item.querySelector("[data-campo-filamento]");
             const quantidade = item.querySelector("[data-campo-quantidade]");
@@ -532,11 +540,7 @@ function inicializarFilamentosCalculo() {
             }
             listaFilamentos.appendChild(item);
             atualizarSugestaoFilamento(item);
-            if (select.value && validarEstoque(item, false)) {
-                item.dataset.confirmado = "true";
-                item.dataset.confirmadoPeloUsuario = "false";
-                item.hidden = true;
-            } else if (select.value) {
+            if (select.value && !validarEstoque(item, false)) {
                 estoqueInsuficiente = true;
             }
         });
@@ -627,6 +631,7 @@ function inicializarFilamentosCalculo() {
             item.dataset.confirmadoPeloUsuario = "true";
             item.hidden = true;
             atualizarTudo();
+            window.salvarRascunhoCalculo?.();
         }
 
         if (remover) {

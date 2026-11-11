@@ -86,8 +86,8 @@
                     </div>
 
                     <div class="campo">
-                        <label for="pecaId">Peça</label>
-                        <select id="pecaId" th:field="*{pecaId}" required>
+                        <label id="pecaSeletorRotulo" for="abrirPecaSeletor">Peça</label>
+                        <select id="pecaId" th:field="*{pecaId}" required data-peca-nativo>
                             <option value="">Selecione uma peça</option>
                             <option th:each="peca : ${pecas}"
                                     th:value="${peca.id}"
@@ -100,6 +100,19 @@
 
 
                         </select>
+                        <div class="peca-seletor" data-peca-seletor hidden>
+                            <button id="abrirPecaSeletor" type="button" class="sim-seletor-abrir" aria-labelledby="pecaSeletorRotulo pecaSeletorNome" aria-haspopup="listbox" aria-controls="pecaSeletorLista" aria-expanded="false" data-peca-abrir>
+                                <span class="sim-seletor-sem-foto"><i class="bi bi-box" aria-hidden="true"></i></span>
+                                <span class="sim-seletor-textos"><strong id="pecaSeletorNome" class="sim-seletor-nome" data-peca-nome>Escolha uma peça</strong><span class="sim-seletor-resumo" data-peca-resumo>Busque no catálogo</span></span>
+                                <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                            </button>
+                            <div class="sim-seletor-painel" data-peca-painel hidden>
+                                <div class="sim-seletor-filtros"><label class="sim-seletor-busca"><i class="bi bi-search" aria-hidden="true"></i><input type="search" data-peca-busca placeholder="Buscar peça pelo nome" aria-label="Buscar peça pelo nome" autocomplete="off"></label></div>
+                                <div id="pecaSeletorLista" class="sim-seletor-lista" role="listbox" aria-label="Peças cadastradas" data-peca-lista></div>
+                                <p class="sim-seletor-vazio" data-peca-vazio hidden>Nenhuma peça encontrada.</p>
+                                <a th:href="@{/peca/novo(origem='calculo')}" class="botao botao-secundario" data-peca-cadastrar><i class="bi bi-plus-lg" aria-hidden="true"></i> Cadastrar nova peça</a>
+                            </div>
+                        </div>
                         <small>Os dados de consumo e tempo podem ser preenchidos com base no cadastro da peça.</small>
                         <div class="erro-campo"
                              th:if="${#fields.hasErrors('pecaId')}"

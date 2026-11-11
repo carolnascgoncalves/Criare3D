@@ -19,10 +19,16 @@
             ...document.querySelectorAll('.notificacao-flutuante')
         ];
 
-        let topo = (menu?.getBoundingClientRect().height || 76) + 12;
+        const bordaMenu = menu?.getBoundingClientRect().right || 0;
+        const esquerda = Math.max(12, bordaMenu + 12);
+        const largura = Math.max(0, Math.min(620, window.innerWidth - esquerda - 12));
+        let topo = 12;
 
         notificacoes.forEach(notificacao => {
             notificacao.style.top = `${Math.ceil(topo)}px`;
+            notificacao.style.left = `${Math.ceil(esquerda)}px`;
+            notificacao.style.width = `${Math.floor(largura)}px`;
+            notificacao.style.transform = 'none';
 
             topo += notificacao.getBoundingClientRect().height + 8;
 
@@ -78,6 +84,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', inicializar);
+    document.addEventListener('transitionend', evento => {
+        if (evento.target.matches?.('.menu-principal') && evento.propertyName === 'width') posicionarNotificacoes();
+    });
     document.addEventListener('turbo:load', inicializar);
 
     window.addEventListener('resize', posicionarNotificacoes, {

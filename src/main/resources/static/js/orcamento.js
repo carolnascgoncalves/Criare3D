@@ -1,8 +1,9 @@
 (() => {
+    const inicializados = new WeakSet();
     function inicializarOrcamento() {
         const painel = document.querySelector('.pagina-orcamento');
-        if (!painel || painel.dataset.orcamentoInicializado === 'true') return;
-        painel.dataset.orcamentoInicializado = 'true';
+        if (!painel || inicializados.has(painel)) return;
+        inicializados.add(painel);
 
         const campoNome = document.querySelector('#nomeCliente');
         const campoPrazo = document.querySelector('#prazoOrcamento');
@@ -74,16 +75,21 @@
 
         document.querySelector('[data-restaurar-mensagem]')?.addEventListener('click', () => {
             if (!campoMensagem) return;
+            [campoPrazo, campoPagamento, campoValidade].forEach(campo => {
+                if (campo) campo.value = campo.defaultValue;
+            });
             delete campoMensagem.dataset.editadaManualmente;
             campoMensagem.value = gerarMensagemPadrao();
+            window.mostrarNotificacao?.('Mensagem padrão restaurada.', 'sucesso');
         });
 
         const obterMensagem = () => campoMensagem?.value.trim() || gerarMensagemPadrao();
 
         document.querySelector('[data-copiar-orcamento]')?.addEventListener('click', async event => {
+            const botaoCopiar = event.currentTarget;
             try {
                 await navigator.clipboard.writeText(obterMensagem());
-                event.currentTarget.innerHTML = '<i class="bi bi-check-lg"></i> Mensagem copiada';
+                botaoCopiar.innerHTML = '<i class="bi bi-check-lg"></i> Mensagem copiada';
             } catch {
                 window.prompt('Copie a mensagem do orçamento:', obterMensagem());
             }
@@ -145,4 +151,5 @@
 
     document.addEventListener('DOMContentLoaded', inicializarOrcamento);
     document.addEventListener('turbo:load', inicializarOrcamento);
+    if (document.readyState !== 'loading') inicializarOrcamento();
 })();

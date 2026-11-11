@@ -3899,3 +3899,23 @@ main.pagina:has(> .cartao form.busca-filamentos) .vendas-filtros > .botao {
         height: 56px;
     }
 }
+
+/* Relatório do resultado: usa o PDF do navegador, sem salvar o histórico. */
+@media print {
+    body:has(#paginaResultado) { padding: 0; background: white; color: #222; }
+    body:has(#paginaResultado) .menu-principal,
+    #paginaResultado .pagina-intro > a,
+    #paginaResultado .acoes-resultado,
+    #paginaResultado #formComparador,
+    #paginaResultado .notificacao-flutuante { display: none !important; }
+    #paginaResultado { width: 100%; margin: 0; padding: 0; }
+    #paginaResultado > .cartao { overflow: visible; border: 0; box-shadow: none; }
+    #paginaResultado .formulario-conteudo { padding: 12px 0; }
+    #paginaResultado .resultado-item,
+    #paginaResultado .resumo-lote-item,
+    #paginaResultado .resultado-filamento { break-inside: avoid; }
+    #paginaResultado .tabela-responsiva { overflow: visible; }
+    #paginaResultado .tabela-comparador { width: 100%; min-width: 0; font-size: 10pt; }
+    #paginaResultado .tabela-comparador th,
+    #paginaResultado .tabela-comparador td { padding: 6px; white-space: normal; }
+}

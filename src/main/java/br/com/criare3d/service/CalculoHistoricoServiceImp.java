@@ -229,8 +229,14 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         boolean jaProduzido = Boolean.TRUE.equals(historico.produzido());
         if (jaProduzido == produzido) return "ok";
 
-        if (!produzido && Boolean.TRUE.equals(historico.vendido())) {
-            return "vendaAtiva";
+        if (!produzido) {
+            CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
+            if (calculo == null) return "naoEncontrado";
+            if (Boolean.TRUE.equals(historico.vendido())
+                    || valorOuZero(calculo.getUnidadesVendidas()) > 0
+                    || vendaCalculoRepository.existsByCalculo_Id(id)) {
+                return "vendaAtiva";
+            }
         }
 
         if (produzido && !ajustarEstoque(dados, false)) {
