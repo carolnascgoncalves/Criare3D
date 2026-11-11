@@ -152,7 +152,7 @@ public class EmbalagemController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/embalagem/listar?erro=embalagemEmUso&quantidade=" + quantidade);
+                    "redirect:/embalagem/listar?erro=embalagemEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
         }
 
         embalagemService.delete(id);

@@ -159,7 +159,7 @@ public class ImpressoraController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/impressora/listar?erro=impressoraEmUso&quantidade=" + quantidade);
+                    "redirect:/impressora/listar?erro=impressoraEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
         }
         if (manutencaoImpressoraService.contar(id) > 0) {
             return new ModelAndView("redirect:/impressora/listar?erro=impressoraComManutencao");

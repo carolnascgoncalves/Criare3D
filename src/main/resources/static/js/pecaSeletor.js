@@ -13,12 +13,41 @@
         const busca = root.querySelector('[data-peca-busca]');
         const lista = root.querySelector('[data-peca-lista]');
         const vazio = root.querySelector('[data-peca-vazio]');
-        const resumo = opcao => `${numero(opcao.dataset.gramas)} g · ${numero(opcao.dataset.tempo)} min${opcao.dataset.temArquivo === 'true' ? ' · Arquivo fatiado' : ''}`;
+        function dataCadastro(opcao) {
+            const valor = opcao.dataset.dataCadastro;
+            if (!valor) return 'Data não registrada';
+            const data = new Date(valor + 'T12:00:00');
+            if (Number.isNaN(data.getTime())) return 'Data não registrada';
+            const hoje = new Date();
+            const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
+            const mesmoDia = dia => dia.getFullYear() === data.getFullYear() && dia.getMonth() === data.getMonth() && dia.getDate() === data.getDate();
+            if (mesmoDia(hoje)) return 'Hoje';
+            if (mesmoDia(ontem)) return 'Ontem';
+            return data.toLocaleDateString('pt-BR');
+        }
+        function imagem(opcao) {
+            const fallback = () => {
+                const icone = document.createElement('span');
+                icone.className = 'sim-seletor-sem-foto';
+                icone.innerHTML = '<i class="bi bi-box" aria-hidden="true"></i>';
+                return icone;
+            };
+            if (!opcao?.dataset.fotoUrl) return fallback();
+            const foto = document.createElement('img');
+            foto.className = 'sim-seletor-foto';
+            foto.src = opcao.dataset.fotoUrl;
+            foto.alt = '';
+            foto.loading = 'lazy';
+            foto.addEventListener('error', () => foto.replaceWith(fallback()), { once: true });
+            return foto;
+        }
+        const resumo = opcao => `${numero(opcao.dataset.gramas)} g · ${numero(opcao.dataset.tempo)} min${opcao.dataset.temArquivo === 'true' ? ' · Arquivo fatiado' : ''} · ${dataCadastro(opcao)}`;
         const fechar = () => { painel.hidden = true; abrir.setAttribute('aria-expanded', 'false'); };
         function atualizar() {
             const opcao = select.selectedOptions[0];
             root.querySelector('[data-peca-nome]').textContent = select.value ? opcao.textContent.trim() : 'Escolha uma peça';
             root.querySelector('[data-peca-resumo]').textContent = select.value ? resumo(opcao) : 'Busque no catálogo';
+            abrir.querySelector('.sim-seletor-sem-foto, .sim-seletor-foto')?.replaceWith(imagem(select.value ? opcao : null));
             abrir.disabled = select.disabled;
             abrir.setAttribute('aria-invalid', String(select.getAttribute('aria-invalid') === 'true'));
         }
@@ -31,9 +60,7 @@
                 botao.className = 'sim-seletor-item';
                 botao.setAttribute('role', 'option');
                 botao.setAttribute('aria-selected', String(opcao.value === select.value));
-                const icone = document.createElement('span');
-                icone.className = 'sim-seletor-sem-foto';
-                icone.innerHTML = '<i class="bi bi-box" aria-hidden="true"></i>';
+                const icone = imagem(opcao);
                 const textos = document.createElement('span');
                 textos.className = 'sim-seletor-textos';
                 const nome = document.createElement('strong');

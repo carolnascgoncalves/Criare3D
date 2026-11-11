@@ -69,9 +69,9 @@
                 </div>
 
                 <div class="campo">
-                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosArquivo3mf')}" th:errors="*{dadosArquivo3mf}"></div>
+                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosArquivo3mf')}" data-erro-arquivo th:errors="*{dadosArquivo3mf}"></div>
                     <label for="nome">Nome da peça</label>
-                    <input type="text" id="nome" th:field="*{nome}">
+                    <input type="text" id="nome" th:field="*{nome}" required minlength="2" maxlength="150">
                     <small class="campo-origem-arquivo" data-origem-nome hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('nome')}"
@@ -95,7 +95,7 @@
                     </label>
                     <input type="number"
                            id="quantidadeFilamentoGramas"
-                           th:field="*{quantidadeFilamentoGramas}"
+                           th:field="*{quantidadeFilamentoGramas}" required
                            step="0.01"
                            min="0">
                     <small class="campo-origem-arquivo" data-origem-filamento hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
@@ -110,7 +110,7 @@
                     </label>
                     <input type="number"
                            id="tempoImpressaoMinutos"
-                           th:field="*{tempoImpressaoMinutos}"
+                           th:field="*{tempoImpressaoMinutos}" required
                            min="0">
                     <small class="campo-origem-arquivo" data-origem-tempo hidden><i class="bi bi-check-circle-fill"></i> Preenchido pelo arquivo</small>
                     <div class="erro-campo"

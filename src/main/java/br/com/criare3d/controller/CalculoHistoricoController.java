@@ -9,6 +9,7 @@ import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.CatalogoBuscaService;
+import br.com.criare3d.service.PecaArquivoService;
 import br.com.criare3d.service.VerificacaoTarifasPlataforma;
 import br.com.criare3d.service.interfaces.*;
 import br.com.criare3d.util.HistoricoFiltros;
@@ -55,6 +56,7 @@ public class CalculoHistoricoController {
     private final CatalogoBuscaService catalogoBuscaService;
     private final CalculoHistoricoService calculoHistoricoService;
     private final PecaService pecaService;
+    private final PecaArquivoService pecaArquivoService;
     private final FilamentoService filamentoService;
     private final ImpressoraService impressoraService;
     private final EmbalagemService embalagemService;
@@ -69,11 +71,13 @@ public class CalculoHistoricoController {
             ImpressoraService impressoraService,
             EmbalagemService embalagemService,
             ConfiguracaoService configuracaoService,
-            VerificacaoTarifasPlataforma verificacaoTarifas
+            VerificacaoTarifasPlataforma verificacaoTarifas,
+            PecaArquivoService pecaArquivoService
     ) {
         this.catalogoBuscaService = catalogoBuscaService;
         this.calculoHistoricoService = calculoHistoricoService;
         this.pecaService = pecaService;
+        this.pecaArquivoService = pecaArquivoService;
         this.filamentoService = filamentoService;
         this.impressoraService = impressoraService;
         this.embalagemService = embalagemService;
@@ -887,7 +891,9 @@ public class CalculoHistoricoController {
 
         Pageable pageable = PageRequest.of(0, 1000);
 
-        mv.addObject("pecas", pecaService.fetchAll(pageable).getContent());
+        var pecas = pecaService.fetchAll(pageable).getContent();
+        mv.addObject("pecas", pecas);
+        mv.addObject("arquivosPeca", pecaArquivoService.buscarResumos(pecas));
         mv.addObject("filamentos", filamentoService.fetchAll(pageable).getContent());
         mv.addObject("impressoras", impressoraService.fetchAll(pageable).getContent());
         mv.addObject("embalagens", embalagemService.fetchAll(pageable).getContent());

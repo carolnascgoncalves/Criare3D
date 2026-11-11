@@ -20,7 +20,7 @@ function simulacao() {
  return context.api;
 }
 function plano(api,inicio,minutos){return api.planejar({inicio,unidades:1,porImpressao:1,tempoPorUnidadeMinutos:minutos,aquecimentoMinutos:0,intervalo:0,folga:0,filamentos:[]});}
-for (const [hora,minutos,classes] of [[10,120,['sim-periodo-dia']],[21,120,['sim-periodo-dia','sim-noite']],[5,120,['sim-noite','sim-periodo-dia']],[23,1500,['sim-noite','sim-periodo-dia','sim-noite']]]) {
+for (const [hora,minutos,classes] of [[10,120,['sim-periodo-dia']],[17,120,['sim-periodo-dia','sim-noite']],[18,60,['sim-noite']],[6,60,['sim-periodo-dia']],[5,120,['sim-noite','sim-periodo-dia']],[23,1500,['sim-noite','sim-periodo-dia','sim-noite']]]) {
  test(`faixas dia/noite: início ${hora}h e duração ${minutos}min`,()=>{
   const api=simulacao(),p=plano(api,new Date(2026,10,11,hora),minutos),ui={linha:new Node(),eixo:new Node()};
   api.desenharLinha(ui,p);
@@ -60,7 +60,7 @@ test('restaurar orçamento limpa personalização e preserva cliente e frete',()
 test('mensagens ficam dentro da tela de 320px ao lado do menu lateral',()=>{
  const notices=[{style:{},dataset:{},classList:{contains:()=>false},getBoundingClientRect:()=>({height:60})},{style:{},dataset:{},classList:{contains:()=>false},getBoundingClientRect:()=>({height:60})}];
  const events={};const document={querySelector:()=>({getBoundingClientRect:()=>({height:900,right:64})}),querySelectorAll:s=>s==='.notificacao-flutuante'?notices:[],addEventListener:(n,f)=>events[n]=f};
- vm.runInNewContext(script('notificacoes.js'),{document,window:{innerWidth:320,setTimeout(){},addEventListener(){}}});
+ vm.runInNewContext(script('notificacoes.js'),{document,URLSearchParams,window:{location:{search:''},innerWidth:320,setTimeout(){},addEventListener(){}}});
  events['DOMContentLoaded']();
  assert.equal(notices[0].style.top,'12px');assert.equal(notices[0].style.left,'76px');assert.equal(notices[0].style.width,'232px');
  assert.equal(notices[1].style.top,'80px');
@@ -100,4 +100,56 @@ test('preencher filamentos sugere rolos mas exige confirmação e limpa ao troca
  assert.equal(items[0].dataset.confirmado,'false');assert.equal(items[0].map['[data-campo-filamento]'].value,'');
  peca.value='a';await peca.disparar('change');
  assert.equal(items[0].dataset.confirmado,'false');assert.equal(items[0].hidden,false);
+});
+
+test('formulário inválido emite um único aviso e destaca todos os campos por três segundos',async()=>{
+ const eventos={},avisos=[],timers=[];
+ class Campo {
+  constructor(){this.type='text';this.disabled=false;this.willValidate=true;this.validity={valid:false,valueMissing:true};this.dataset={};this.attrs={};this.classes=new Set();this.classList={contains:c=>this.classes.has(c),add:c=>this.classes.add(c),remove:c=>this.classes.delete(c)};}
+  closest(){return null;}setAttribute(k,v){this.attrs[k]=v;}removeAttribute(k){delete this.attrs[k];}focus(){this.focado=true;}
+ }
+ class Form {constructor(){this.method='post';this.elements=[new Campo(),new Campo()];}}
+ const form=new Form();
+ const document={readyState:'loading',querySelectorAll:s=>s==='form'?[form]:[],addEventListener:(n,f)=>eventos[n]=f};
+ vm.runInNewContext(script('validacaoInline.js'),{document,window:{mostrarNotificacao:(...a)=>avisos.push(a)},HTMLFormElement:Form,WeakMap,Set,queueMicrotask,setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){}});
+ eventos.DOMContentLoaded();assert.equal(form.noValidate,true);
+ let bloqueado=false;eventos.submit({target:form,preventDefault(){bloqueado=true;}});
+ await Promise.resolve();assert.equal(bloqueado,true);assert.equal(avisos.length,1);assert.match(avisos[0][0],/Não foi possível prosseguir/);
+ form.elements.forEach(c=>assert.equal(c.classes.has('campo-erro-temporario'),true));
+ assert.ok(timers.every(t=>t.ms===3000));timers.forEach(t=>t.fn());
+ form.elements.forEach(c=>assert.equal(c.classes.size,0));
+});
+
+test('erro de validação do servidor aparece no topo em vez de abaixo do campo',async()=>{
+ const eventos={},avisos=[];const classes=new Set();
+ const campo={type:'text',dataset:{},classList:{contains:()=>false,add:c=>classes.add(c),remove:c=>classes.delete(c)},closest:()=>null,setAttribute(){},removeAttribute(){}};
+ const erro={textContent:'O nome da peça é obrigatório.',dataset:{},hasAttribute:()=>false,closest:()=>({querySelectorAll:()=>[campo]})};
+ const document={readyState:'loading',querySelectorAll:s=>s==='.erro-campo'?[erro]:[],addEventListener:(n,f)=>eventos[n]=f};
+ vm.runInNewContext(script('validacaoInline.js'),{document,window:{mostrarNotificacao:m=>avisos.push(m)},WeakMap,Set,queueMicrotask,setTimeout(){},clearTimeout(){}});
+ eventos.DOMContentLoaded();await Promise.resolve();
+ assert.equal(erro.hidden,true);assert.equal(classes.has('campo-erro-temporario'),true);assert.match(avisos[0],/nome da peça é obrigatório/);
+});
+
+test('seletor identifica Hoje, Ontem e datas antigas sem inventar datas ausentes',()=>{
+ const eventos={};const root={querySelector:()=>({})};
+ const document={readyState:'loading',querySelector:()=>root,getElementById:()=>({}),addEventListener:(n,f)=>eventos[n]=f};
+ const context={document,window:{},WeakSet,Date};vm.createContext(context);
+ const source=script('pecaSeletor.js').replace('        const resumo = opcao =>','        globalThis.api = {dataCadastro, imagem}; return;\n        const resumo = opcao =>');
+ vm.runInContext(source,context);eventos.DOMContentLoaded();
+ const key=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ const hoje=new Date(),ontem=new Date(hoje);ontem.setDate(ontem.getDate()-1);
+ assert.equal(context.api.dataCadastro({dataset:{dataCadastro:key(hoje)}}),'Hoje');
+ assert.equal(context.api.dataCadastro({dataset:{dataCadastro:key(ontem)}}),'Ontem');
+ assert.equal(context.api.dataCadastro({dataset:{dataCadastro:'2020-02-01'}}),'01/02/2020');
+ assert.equal(context.api.dataCadastro({dataset:{}}),'Data não registrada');
+});
+
+test('seletor utiliza a miniatura salva e mantém ícone quando não há imagem',()=>{
+ const eventos={};const root={querySelector:()=>({})};
+ const document={readyState:'loading',querySelector:()=>root,getElementById:()=>({}),addEventListener:(n,f)=>eventos[n]=f,createElement:tag=>({tag,addEventListener(){}})};
+ const context={document,window:{},WeakSet,Date};vm.createContext(context);
+ vm.runInContext(script('pecaSeletor.js').replace('        const resumo = opcao =>','        globalThis.api = {imagem}; return;\n        const resumo = opcao =>'),context);eventos.DOMContentLoaded();
+ const foto=context.api.imagem({dataset:{fotoUrl:'/peca/1/arquivo/placa/1'}});
+ assert.equal(foto.tag,'img');assert.equal(foto.src,'/peca/1/arquivo/placa/1');
+ assert.equal(context.api.imagem({dataset:{}}).className,'sim-seletor-sem-foto');
 });

@@ -93,6 +93,8 @@
                                     th:value="${peca.id}"
                                     th:text="${peca.nome}"
                                     th:attr="data-gramas=${peca.quantidadeFilamentoGramas},
+                                             data-data-cadastro=${peca.dataCadastro != null ? #temporals.format(peca.dataCadastro, 'yyyy-MM-dd') : ''},
+                                             data-foto-url=${arquivosPeca[peca.id] != null and arquivosPeca[peca.id].temMiniatura() ? arquivosPeca[peca.id].urlMiniatura() : ''},
                                              data-tempo=${peca.tempoImpressaoMinutos},
                                              data-tem-arquivo=${peca.dadosArquivo3mf != null and !#strings.isEmpty(peca.dadosArquivo3mf)}">
                             </option>

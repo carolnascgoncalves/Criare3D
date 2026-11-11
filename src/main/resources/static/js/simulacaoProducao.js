@@ -1,6 +1,6 @@
 (() => {
     const DURACAO_ANIMACAO_MS = 6500;
-    const NOITE_COMECA_AS = 22;
+    const NOITE_COMECA_AS = 18;
     const NOITE_TERMINA_AS = 6;
     const OBJETO = { base: 135, topo: 44 };
     const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
@@ -255,7 +255,7 @@
     function executar(ui, estado) {
         cancelAnimationFrame(estado.raf);
         const entradas = lerEntradas(ui, estado);
-        if (entradas.erro) { ui.erro.textContent = entradas.erro; ui.erro.hidden = false; entradas.campo.setAttribute('aria-invalid', 'true'); (entradas.campo === ui.calculo ? ui.abrirSeletor : entradas.campo).focus(); return; }
+        if (entradas.erro) { ui.erro.hidden = true; window.mostrarNotificacao?.(entradas.erro, 'erro'); window.validacaoInline?.destacar(entradas.campo); (entradas.campo === ui.calculo ? ui.abrirSeletor : entradas.campo).focus(); return; }
         limparErro(ui);
         const p = planejar(entradas), vis = desenharLinha(ui, p); desenharPlano(ui, p);
         ui.resultado.hidden = true;

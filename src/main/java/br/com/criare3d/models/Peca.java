@@ -10,6 +10,8 @@ import org.hibernate.annotations.TenantId;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Set;
 import java.util.UUID;
 
@@ -46,6 +48,14 @@ public class Peca {
 
     @Column(name = "dados_3mf_json", columnDefinition = "text")
     private @Getter @Setter String dadosArquivo3mf;
+
+    @Column(name = "data_cadastro", updatable = false)
+    private @Getter @Setter LocalDateTime dataCadastro;
+
+    @PrePersist
+    void registrarDataCadastro() {
+        if (dataCadastro == null) dataCadastro = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
+    }
 
     // Campo legado preservado para compatibilidade; não é mais usado como padrão do cálculo.
     @Column(name = "tempo_trabalho_minutos", nullable = false)

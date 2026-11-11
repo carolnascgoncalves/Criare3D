@@ -129,7 +129,7 @@ public class PecaController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/peca/listar?erro=pecaEmUso&quantidade=" + quantidade
+                    "redirect:/peca/listar?erro=pecaEmUso&bloqueado=" + id + "&quantidade=" + quantidade
             );
         }
 

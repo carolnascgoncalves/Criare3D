@@ -41,6 +41,12 @@
     }
 
     function destacarFalhasDeExclusao() {
+        const bloqueado = new URLSearchParams(window.location.search).get('bloqueado');
+        if (bloqueado) {
+            document.querySelectorAll('.checkbox-selecao-listagem').forEach(caixa => {
+                if (caixa.value === bloqueado) caixa.closest('.peca-lista-item, tr')?.classList.add('item-exclusao-falhou');
+            });
+        }
         const linhas = document.querySelectorAll('.item-exclusao-falhou');
 
         linhas.forEach(linha => {

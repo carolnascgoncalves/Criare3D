@@ -261,7 +261,7 @@ public class FilamentoController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/filamento/listar?erro=filamentoEmUso&quantidade=" + quantidade);
+                    "redirect:/filamento/listar?erro=filamentoEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
         }
 
         filamentoService.delete(id);

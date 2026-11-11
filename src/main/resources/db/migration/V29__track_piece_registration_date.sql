@@ -1,0 +1,1 @@
+ALTER TABLE peca ADD COLUMN data_cadastro TIMESTAMP;
