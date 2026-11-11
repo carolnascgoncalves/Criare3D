@@ -4,12 +4,20 @@
     const CHAVE_ORIGEM = "criare3d:origem-listagem";
     const VALIDADE = 20000;
 
+    function areaRolagem() {
+        return document.querySelector("[data-rolagem-pagina]");
+    }
+
+    function posicaoRolagem() {
+        return areaRolagem()?.scrollTop ?? window.scrollY;
+    }
+
     function caminho(url) {
         const destino = new URL(url, window.location.origin);
         return destino.pathname + destino.search;
     }
 
-    function salvarRolagem(destino = null, y = window.scrollY) {
+    function salvarRolagem(destino = null, y = posicaoRolagem()) {
         try {
             sessionStorage.setItem(CHAVE_ROLAGEM, JSON.stringify({
                 destino: destino ? caminho(destino) : null,
@@ -35,7 +43,7 @@
         try {
             sessionStorage.setItem(CHAVE_ORIGEM, JSON.stringify({
                 url: caminho(url),
-                y: window.scrollY
+                y: posicaoRolagem()
             }));
         } catch {
             // Não interrompe a navegação.
@@ -117,7 +125,7 @@
 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                window.scrollTo({
+                (areaRolagem() || window).scrollTo({
                     top: Number(estado.y) || 0,
                     left: 0,
                     behavior: "instant"
@@ -171,7 +179,7 @@
             salvarOrigemDetalhes(window.location.href);
         }
 
-        let posicao = window.scrollY;
+        let posicao = posicaoRolagem();
         const origem = lerEstado(CHAVE_ORIGEM);
 
         if (origem && origem.url === caminho(destino)) {
@@ -202,7 +210,7 @@
 
         if (destino) {
             const origem = lerEstado(CHAVE_ORIGEM);
-            let posicao = window.scrollY;
+            let posicao = posicaoRolagem();
 
             if (origem && origem.url === caminho(destino)) {
                 posicao = origem.y;

@@ -1,4 +1,5 @@
-.pagina-simulacao { width: min(1320px, calc(100% - 48px)); }
+/* A página rola como as demais (o menu lateral é fixo e fica fora do fluxo). */
+.pagina.pagina-simulacao { width: min(1320px, calc(100% - 48px)); }
 .sim-layout { display: grid; min-width: 0; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
 .sim-form, .sim-palco { display: grid; min-width: 0; gap: 18px; padding: 24px; }
 .sim-form { overflow: visible; }
@@ -21,10 +22,11 @@
 .sim-referencia-foto { flex: 0 0 56px; width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--borda); border-radius: 9px; background: var(--superficie); }
 .sim-referencia-conteudo { display: grid; min-width: 0; gap: 3px; }
 .sim-referencia-conteudo strong { overflow: hidden; color: var(--marrom); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.sim-seletor-nativo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
-.sim-seletor-abrir { display: flex; width: 100%; min-height: 72px; align-items: center; gap: 12px; padding: 10px 13px; border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); color: var(--marrom); text-align: left; cursor: pointer; }
+.sim-form .campo { position: relative; }
+.campo .sim-seletor-nativo { position: absolute; top: 0; left: 0; width: 1px; height: 1px; min-width: 0; max-width: 1px; padding: 0; border: 0; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
+.sim-seletor-abrir { display: flex; min-width: 0; max-width: 100%; width: 100%; min-height: 72px; align-items: center; gap: 12px; padding: 10px 13px; border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); color: var(--marrom); text-align: left; cursor: pointer; }
 .sim-seletor-abrir > .bi-chevron-down { flex: 0 0 auto; margin-left: auto; color: var(--marrom-claro); }
-.sim-seletor-placeholder { color: var(--marrom-claro); font-weight: 600; }
+.sim-seletor-placeholder { min-width: 0; overflow-wrap: anywhere; color: var(--marrom-claro); font-weight: 600; }
 .sim-seletor-abrir:focus-visible, .sim-seletor-item:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
 .sim-seletor-painel { position: static; z-index: 20; display: grid; gap: 8px; width: 100%; max-height: min(440px, 65vh); margin-top: 5px; padding: 8px; overflow: hidden; border: 1px solid var(--borda); border-radius: 13px; background: var(--superficie); box-shadow: 0 12px 32px rgba(40, 24, 15, .16); }
 .sim-seletor-painel[hidden] { display: none; }
@@ -102,6 +104,6 @@
 .sim-resultado .sim-aviso { margin-top: 6px; font-size: 12.5px; color: color-mix(in srgb, var(--texto-sobre-primaria) 72%, var(--marrom)); }
 @media (max-width: 900px) { .sim-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) { .sim-plano-linha { grid-template-columns: 1fr; gap: 4px; } }
-@media (max-width: 560px) { .pagina-simulacao { width: calc(100% - 32px); } .sim-form, .sim-palco { padding: 18px; } .sim-cena { grid-template-columns: minmax(0, 1fr); } .sim-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-wrap: anywhere; } .sim-plano-cabecalho { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 560px) { .pagina.pagina-simulacao { width: calc(100% - 32px); } .sim-form, .sim-palco { padding: 18px; } .sim-cena { grid-template-columns: minmax(0, 1fr); } .sim-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-wrap: anywhere; } .sim-plano-cabecalho { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 480px) { .sim-seletor-item { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; padding-inline: 4px; } .sim-seletor-foto, .sim-seletor-sem-foto { width: 44px; height: 44px; } .sim-seletor-horario { grid-column: 2; margin-top: -4px; } .sim-seletor-foto-selecionada { flex-basis: 44px; } }
 @media (prefers-reduced-motion: reduce) { .sim-bloco-fill { transition: none !important; } }

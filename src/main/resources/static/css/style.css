@@ -701,9 +701,6 @@ a {
 
 @media (max-width: 380px) {
     .dashboard-indicadores { grid-template-columns: minmax(0, 1fr); }
-    .dashboard-indicador { grid-template-columns: 1fr auto; align-items: center; }
-    .dashboard-indicador strong { grid-column: 2; grid-row: 1 / span 2; }
-    .dashboard-indicador small { grid-column: 1; }
     .dashboard-etapas strong { width: 47px; height: 47px; }
     .dashboard-etapas span { font-size: 0.7rem; }
 }
@@ -2973,10 +2970,10 @@ input[type="color"]:focus {
 
 
     .dashboard-indicadores { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-    .dashboard-indicador { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; padding: 12px 14px; }
-    .dashboard-indicador > span { grid-column: 1; grid-row: 1; }
-    .dashboard-indicador strong { grid-column: 2; grid-row: 1 / span 2; font-size: 1.4rem; text-align: right; }
-    .dashboard-indicador small { grid-column: 1; grid-row: 2; }
+    .dashboard-indicador { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 8px; padding: 14px; }
+    .dashboard-indicador > span { grid-column: 1; grid-row: 1; font-size: .85rem; font-weight: 700; }
+    .dashboard-indicador strong { grid-column: 1; grid-row: 2; font-size: 1.4rem; line-height: 1.25; text-align: left; overflow-wrap: anywhere; }
+    .dashboard-indicador small { grid-column: 1; grid-row: 3; font-size: .76rem; line-height: 1.4; }
     .dashboard-aviso-estimativa { max-width: 100%; line-height: 1.4; }
     .dashboard-estoque-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .dashboard-recente { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 9px 0; }
@@ -3888,6 +3885,8 @@ input[type="color"]:focus {
 /* Navegação lateral compacta e adaptável ao tema do cliente. */
 body:has(.menu-principal) {
     --menu-lateral-largura: 248px;
+    min-height: 100dvh;
+    overflow-x: clip;
     padding-left: var(--menu-lateral-largura);
     transition: padding-left .2s ease;
 }
@@ -3901,9 +3900,10 @@ body:has(.menu-principal).menu-lateral-recolhido { --menu-lateral-largura: 72px;
     align-items: stretch !important;
     gap: 12px !important;
     width: var(--menu-lateral-largura, 248px) !important;
-    height: auto !important;
+    height: 100vh !important;
+    height: 100dvh !important;
     min-height: 0 !important;
-    max-height: 100dvh;
+    max-height: none;
     overscroll-behavior-y: contain;
     overflow-x: hidden;
     overflow-y: auto;

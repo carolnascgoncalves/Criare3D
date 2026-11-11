@@ -16,7 +16,7 @@
 
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
-    <link th:if="${paginaAtiva == 'simulacao'}" rel="stylesheet" th:href="@{/css/simulacao.css}">
+    <link th:if="${paginaAtiva == 'simulacao'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
     <meta name="turbo-cache-control" content="no-preview">
