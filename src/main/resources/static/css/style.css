@@ -1504,7 +1504,7 @@ tr:nth-child(even) {
     .menu-calcular { flex: 1 1 45%; align-self: flex-start; min-height: 44px; padding: 10px 12px; }
 }
 
-@media (min-width: 1051px) and (max-width: 1250px) {
+@media (min-width: 1051px) and (max-width: 1600px) {
     .menu-principal {
         grid-template-columns: minmax(0, 1fr) auto;
         gap: 6px 12px;

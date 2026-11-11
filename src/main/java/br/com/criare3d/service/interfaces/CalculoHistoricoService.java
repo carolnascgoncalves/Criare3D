@@ -13,6 +13,7 @@ import java.util.UUID;
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.HistoricoExportacaoResponse;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
+import br.com.criare3d.dto.SimulacaoHistoricoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
 import java.util.List;
 
@@ -22,6 +23,8 @@ public interface CalculoHistoricoService {
     Optional<CalculoFoto> buscarFoto(UUID calculoId);
     Optional<FotoConteudo> buscarConteudoFoto(UUID calculoId, boolean miniatura);
     List<CalculoRecenteResponse> fetchRecentes(int limite);
+    List<SimulacaoHistoricoResponse> buscarCalculosParaSimulacao(int limite);
+    Optional<SimulacaoHistoricoResponse> buscarCalculoParaSimulacao(UUID calculoId);
     long contarProduzidos();
     long contarVendidos();
     long contarUnidadesParaProduzir();

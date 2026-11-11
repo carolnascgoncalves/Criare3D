@@ -16,6 +16,7 @@
 
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
+    <link th:if="${paginaAtiva == 'simulacao'}" rel="stylesheet" th:href="@{/css/simulacao.css}">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
     <meta name="turbo-cache-control" content="no-preview">
@@ -46,6 +47,7 @@
     <script th:src="@{/js/mercadoLivreFrete.js}" defer></script>
     <script th:src="@{/js/detalhesHistorico.js}" defer></script>
     <script th:src="@{/js/orcamento.js}" defer></script>
+    <script th:if="${paginaAtiva == 'simulacao'}" th:src="@{/js/simulacaoProducao.js}" defer></script>
     <script th:src="@{/js/ordenacaoListagem.js}" defer></script>
     <script th:src="@{/js/clientes.js}" defer></script>
 </head>
@@ -65,6 +67,7 @@
         <div class="menu-links-opcoes">
         <a th:if="${tenantDisponivel}" th:href="@{/}" class="menu-link" th:classappend="${paginaAtiva == 'inicio' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'inicio' ? 'page' : null}">Início</a>
         <a th:if="${tenantDisponivel}" th:href="@{/dashboard}" class="menu-link" th:classappend="${paginaAtiva == 'dashboard' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'dashboard' ? 'page' : null}">Dashboard</a>
+        <a th:if="${tenantDisponivel}" th:href="@{/simulacao}" class="menu-link" th:classappend="${paginaAtiva == 'simulacao' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'simulacao' ? 'page' : null}">Simulação</a>
         <a th:if="${tenantDisponivel}" th:href="@{/peca/listar}" class="menu-link" th:classappend="${paginaAtiva == 'pecas' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'pecas' ? 'page' : null}">Peças</a>
         <a th:if="${tenantDisponivel}" th:href="@{/filamento/listar}" class="menu-link" th:classappend="${paginaAtiva == 'filamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'filamentos' ? 'page' : null}">Filamentos</a>
         <a th:if="${tenantDisponivel}" th:href="@{/impressora/listar}" class="menu-link" th:classappend="${paginaAtiva == 'impressoras' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'impressoras' ? 'page' : null}">Impressoras</a>

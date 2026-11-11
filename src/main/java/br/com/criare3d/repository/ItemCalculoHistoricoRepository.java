@@ -8,8 +8,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.List;
 
 public interface ItemCalculoHistoricoRepository extends JpaRepository<ItemCalculoHistorico, UUID> {
+
+    List<ItemCalculoHistorico> findByCalculoHistorico_IdIn(Collection<UUID> calculoIds);
 
     @Modifying
     @Query("""

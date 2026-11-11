@@ -1,0 +1,66 @@
+.pagina-simulacao { width: min(1320px, calc(100% - 48px)); }
+.sim-layout { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.sim-form, .sim-palco { display: grid; gap: 18px; padding: 24px; }
+.sim-form > .campo { margin: 0; }
+.sim-par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sim-dica { margin: -10px 0 0; color: var(--marrom-claro); font-size: 13px; line-height: 1.5; }
+.sim-link { justify-self: start; padding: 0; border: 0; background: none; color: var(--marrom); font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
+.sim-avancado summary { color: var(--marrom); font-size: 14px; font-weight: 600; cursor: pointer; }
+.sim-avancado[open] summary { margin-bottom: 14px; }
+.sim-avancado .sim-par { margin-top: 14px; }
+.sim-erro { margin: 0; padding: 10px 12px; border: 1px solid var(--borda-erro); border-radius: 10px; background: var(--fundo-erro); color: var(--cor-erro); font-size: 14px; }
+.sim-erro[hidden], .sim-resultado[hidden] { display: none; }
+.sim-referencia { padding: 11px 13px; border: 1px solid var(--borda); border-radius: 10px; background: var(--fundo-suave); color: var(--marrom-claro); font-size: 13px; line-height: 1.5; }
+.sim-referencia[hidden], .sim-plano[hidden] { display: none; }
+.sim-referencia p { margin: 0; }
+.sim-relogio { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.sim-relogio small { flex-basis: 100%; color: var(--marrom-claro); font-size: 13px; font-weight: 600; }
+.sim-relogio-data { color: var(--marrom); font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.02em; }
+.sim-relogio-hora { color: var(--marrom); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.sim-cena { display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 20px; align-items: center; }
+.sim-mesa { width: 100%; height: auto; border: 1px solid var(--borda); border-radius: 14px; background: var(--fundo-suave); }
+.sim-placa { fill: var(--marrom); }
+.sim-objeto-fantasma { fill: var(--destaque-suave); stroke: var(--borda); stroke-width: 1; }
+.sim-objeto { fill: var(--destaque); }
+.sim-camada-linha { fill: color-mix(in srgb, var(--marrom) 24%, transparent); }
+.sim-portal { stroke: var(--marrom); stroke-width: 3; stroke-linecap: round; }
+.sim-bico { fill: var(--marrom); }
+.sim-metricas { display: grid; gap: 14px; margin: 0; }
+.sim-metricas dt { color: var(--marrom-claro); font-size: 13px; font-weight: 600; }
+.sim-metricas dd { margin: 0; color: var(--marrom); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sim-plano { display: grid; gap: 12px; padding-top: 16px; border-top: 1px solid var(--borda); }
+.sim-plano-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sim-plano-cabecalho h3 { margin: 0; font-size: 17px; }
+.sim-plano-cabecalho p { margin: 4px 0 0; color: var(--marrom-claro); font-size: 13px; }
+.sim-pular { flex: 0 0 auto; }
+.sim-plano-lista { display: grid; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
+.sim-plano-linha { display: grid; grid-template-columns: minmax(90px, .5fr) minmax(170px, 1fr) minmax(180px, 1.5fr); align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--borda); border-radius: 9px; background: var(--superficie); font-size: 13px; }
+.sim-plano-linha strong { color: var(--marrom); }
+.sim-plano-linha > span { color: var(--marrom-claro); }
+.sim-plano-materiais { line-height: 1.4; }
+.sim-linha { position: relative; height: 60px; overflow: hidden; border: 1px solid var(--borda); border-radius: 12px; background: var(--branco); }
+.sim-linha:empty::before { content: "A linha do tempo aparece aqui depois de simular."; position: absolute; inset: 0; display: grid; place-items: center; color: var(--marrom-claro); font-size: 13px; }
+.sim-noite { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--marrom) 14%, var(--fundo)); }
+.sim-folga { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--marrom) 14%, transparent) 5px 10px); }
+.sim-dia { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--borda); }
+.sim-bloco { position: absolute; top: 16px; bottom: 16px; overflow: hidden; border-radius: 6px; background: var(--destaque-suave); box-shadow: inset 0 0 0 1px var(--destaque-borda); }
+.sim-bloco-fill { position: absolute; inset: 0; background: var(--destaque); transform: scaleX(0); transform-origin: left; }
+.sim-agora { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--marrom); }
+.sim-eixo { position: relative; height: 20px; margin-top: 6px; color: var(--marrom-claro); font-size: 12px; }
+.sim-eixo span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.sim-eixo .sim-eixo-inicio { transform: none; }
+.sim-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; padding: 0; list-style: none; color: var(--marrom-claro); font-size: 12.5px; }
+.sim-legenda li { display: inline-flex; align-items: center; gap: 6px; }
+.sim-chip { width: 14px; height: 10px; border-radius: 3px; }
+.sim-chip-impressao { background: var(--destaque); }
+.sim-chip-noite { background: color-mix(in srgb, var(--marrom) 14%, var(--fundo)); box-shadow: inset 0 0 0 1px var(--borda); }
+.sim-chip-folga { background: repeating-linear-gradient(135deg, var(--branco) 0 2px, color-mix(in srgb, var(--marrom) 28%, var(--branco)) 2px 4px); box-shadow: inset 0 0 0 1px var(--borda); }
+.sim-resultado { display: grid; gap: 5px; padding: 18px 20px; border-radius: 14px; background: var(--marrom); color: var(--texto-sobre-primaria); }
+.sim-resultado span { font-size: 13px; font-weight: 600; }
+.sim-pronto-em { font-size: clamp(24px, 3.6vw, 34px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
+.sim-resultado p { margin: 0; font-size: 14px; }
+.sim-resultado .sim-aviso { margin-top: 6px; font-size: 12.5px; color: color-mix(in srgb, var(--texto-sobre-primaria) 72%, var(--marrom)); }
+@media (max-width: 900px) { .sim-layout { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .sim-plano-linha { grid-template-columns: 1fr; gap: 4px; } }
+@media (max-width: 560px) { .pagina-simulacao { width: calc(100% - 32px); } .sim-form, .sim-palco { padding: 18px; } .sim-cena { grid-template-columns: 1fr; } .sim-metricas { grid-template-columns: repeat(3, 1fr); } .sim-plano-cabecalho { align-items: flex-start; flex-direction: column; } }
+@media (prefers-reduced-motion: reduce) { .sim-bloco-fill { transition: none !important; } }

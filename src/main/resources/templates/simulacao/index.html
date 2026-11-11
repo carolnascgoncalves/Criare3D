@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragmentos :: cabecalho('Simulação de produção')}"></head>
+
+<body>
+<div th:replace="~{fragmentos :: menu}"></div>
+
+<main class="pagina pagina-simulacao" data-simulacao th:attr="data-url-calculo=@{/simulacao/calculo}">
+    <section class="pagina-intro">
+        <div>
+            <span class="texto-apoio">PLANEJAMENTO</span>
+            <h1>Simular produção</h1>
+            <p>Planeje o lote e veja uma estimativa de quando ele ficará pronto.</p>
+        </div>
+    </section>
+
+    <section class="cartao sim-vazio" th:if="${#lists.isEmpty(calculos)}">
+        <div class="formulario-conteudo">
+            <h2>Faça um cálculo para começar</h2>
+            <p>A simulação usa as unidades, os filamentos, o tempo e a impressora registrados no cálculo.</p>
+            <a th:href="@{/historico/novo}" class="botao botao-principal">Calcular peça</a>
+        </div>
+    </section>
+
+    <div class="sim-layout" th:unless="${#lists.isEmpty(calculos)}">
+        <form class="cartao sim-form" data-sim="formulario" data-turbo="false" novalidate>
+            <div class="campo">
+                <label for="simCalculo">Cálculo de referência</label>
+                <select id="simCalculo" data-sim="calculo" required>
+                    <option value="" selected>Escolha uma peça do histórico</option>
+                    <option th:each="c : ${calculos}" th:value="${c.id}"
+                            th:text="|${c.nomePeca} · ${#temporals.format(c.dataCalculo, 'dd/MM HH:mm')}|">Cálculo</option>
+                </select>
+                <p class="sim-dica">Os dados vêm do cálculo salvo e podem ser ajustados para planejar outro lote.</p>
+            </div>
+
+            <div class="sim-par">
+                <div class="campo">
+                    <label for="simUnidades">Unidades</label>
+                    <input type="number" id="simUnidades" data-sim="unidades" min="1" max="500" value="1" inputmode="numeric" required>
+                </div>
+                <div class="campo">
+                    <label for="simPorImpressao">Peças por impressão</label>
+                    <input type="number" id="simPorImpressao" data-sim="por-impressao" min="1" max="500" value="1" inputmode="numeric" required>
+                </div>
+            </div>
+            <div class="sim-referencia" data-sim="referencia" hidden></div>
+
+            <div class="campo">
+                <label for="simInicio">Início previsto</label>
+                <input type="datetime-local" id="simInicio" data-sim="inicio" required>
+                <button type="button" class="sim-link" data-sim="usar-agora">Usar o horário de agora</button>
+            </div>
+
+            <details class="sim-avancado">
+                <summary>Ajustes da estimativa</summary>
+                <div class="sim-par">
+                    <div class="campo">
+                        <label for="simIntervalo">Intervalo entre impressões (min)</label>
+                        <input type="number" id="simIntervalo" data-sim="intervalo" min="0" value="10" inputmode="numeric">
+                    </div>
+                    <div class="campo">
+                        <label for="simFolga">Folga de segurança (%)</label>
+                        <input type="number" id="simFolga" data-sim="folga" min="0" max="100" value="10" inputmode="numeric">
+                    </div>
+                </div>
+            </details>
+
+            <p class="sim-erro" data-sim="erro" role="alert" hidden></p>
+            <button type="submit" class="botao botao-principal">Simular produção</button>
+        </form>
+
+        <section class="cartao sim-palco" aria-labelledby="simTituloPalco">
+            <h2 id="simTituloPalco" class="visually-hidden">Simulação em time-lapse</h2>
+            <div class="sim-relogio" aria-hidden="true">
+                <small>Relógio da simulação</small>
+                <span class="sim-relogio-data" data-sim="relogio-data">Pronto para simular</span>
+                <strong class="sim-relogio-hora" data-sim="relogio-hora"></strong>
+            </div>
+
+            <div class="sim-cena" aria-hidden="true">
+                <svg class="sim-mesa" viewBox="0 0 200 170" focusable="false">
+                    <defs>
+                        <path id="simForma" d="M70 135C62 110 62 90 78 72C86 62 86 52 80 44L120 44C114 52 114 62 122 72C138 90 138 110 130 135Z"/>
+                        <clipPath id="simCorte"><rect data-sim="corte" x="0" y="135" width="200" height="100"/></clipPath>
+                        <pattern id="simCamadas" width="4" height="3" patternUnits="userSpaceOnUse"><rect class="sim-camada-linha" y="2" width="4" height="1"/></pattern>
+                    </defs>
+                    <use href="#simForma" class="sim-objeto-fantasma"/>
+                    <g clip-path="url(#simCorte)"><use href="#simForma" class="sim-objeto"/><use href="#simForma" fill="url(#simCamadas)"/></g>
+                    <rect class="sim-placa" x="24" y="135" width="152" height="12" rx="4"/>
+                    <line class="sim-portal" data-sim="portal" x1="24" x2="176" y1="119" y2="119"/>
+                    <polygon class="sim-bico" data-sim="bico" points="-7,0 7,0 3,12 -3,12" transform="translate(100 119)"/>
+                </svg>
+                <dl class="sim-metricas">
+                    <div><dt>Impressão</dt><dd data-sim="impressao-atual">–</dd></div>
+                    <div><dt>Peças prontas</dt><dd data-sim="pecas-prontas">–</dd></div>
+                    <div><dt>Progresso</dt><dd data-sim="camada">–</dd></div>
+                </dl>
+            </div>
+
+            <section class="sim-plano" data-sim="plano" hidden aria-label="Plano detalhado por impressão">
+                <div class="sim-plano-cabecalho">
+                    <div><h3>Plano por impressão</h3><p>Tempo estimado e filamento previsto em cada mesa.</p></div>
+                    <button type="button" class="botao botao-secundario sim-pular" data-sim="pular" hidden>Pular animação</button>
+                </div>
+                <div class="sim-plano-lista" data-sim="plano-lista"></div>
+            </section>
+
+            <div class="sim-tempo" aria-hidden="true">
+                <div class="sim-linha" data-sim="linha"></div>
+                <div class="sim-eixo" data-sim="eixo"></div>
+                <ul class="sim-legenda">
+                    <li><i class="sim-chip sim-chip-impressao"></i>Impressão</li>
+                    <li><i class="sim-chip sim-chip-noite"></i>Noite</li>
+                    <li><i class="sim-chip sim-chip-folga"></i>Folga</li>
+                </ul>
+            </div>
+
+            <div class="sim-resultado" data-sim="resultado" role="status" aria-live="polite" hidden>
+                <span>Previsão de conclusão</span>
+                <strong class="sim-pronto-em" data-sim="pronto-em"></strong>
+                <p data-sim="detalhe"></p>
+                <p class="sim-aviso">Estimativa. Pausas, troca de filamento e falhas podem alterar o horário.</p>
+            </div>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>
