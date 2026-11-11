@@ -9,6 +9,8 @@ public record SimulacaoHistoricoResponse(
         UUID id,
         String nomePeca,
         Boolean temFoto,
+        Boolean produzido,
+        Boolean vendido,
         LocalDateTime dataCalculo,
         String nomeImpressora,
         Integer unidades,

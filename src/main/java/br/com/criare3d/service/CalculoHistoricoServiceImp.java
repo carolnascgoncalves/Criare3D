@@ -823,7 +823,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             filamentos = List.of(new SimulacaoFilamentoResponse(calculo.getNomeFilamento(), null, null,
                     calculo.getQuantidadeFilamentoGramas() == null ? BigDecimal.ZERO : calculo.getQuantidadeFilamentoGramas()));
         }
-        return new SimulacaoHistoricoResponse(calculo.getId(), calculo.getNomePeca(), calculo.getTemFoto(), calculo.getDataCalculo(),
+        return new SimulacaoHistoricoResponse(calculo.getId(), calculo.getNomePeca(), calculo.getTemFoto(),
+                calculo.getProduzido(), calculo.getVendido(), calculo.getDataCalculo(),
                 calculo.getNomeImpressora(), calculo.getUnidades(), calculo.getPecasPorImpressao(),
                 calculo.getTempoImpressaoMinutos(), calculo.getTempoAquecimentoMinutos(), filamentos);
     }

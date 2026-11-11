@@ -26,12 +26,27 @@
     <div class="sim-layout" th:unless="${#lists.isEmpty(calculos)}">
         <form class="cartao sim-form" data-sim="formulario" data-turbo="false" novalidate>
             <div class="campo">
-                <label for="simCalculo">Cálculo de referência</label>
-                <select id="simCalculo" data-sim="calculo" required>
+                <label id="simCalculoRotulo">Cálculo de referência</label>
+                <select id="simCalculo" data-sim="calculo" class="sim-seletor-nativo" tabindex="-1" aria-hidden="true">
                     <option value="" selected>Escolha uma peça do histórico</option>
                     <option th:each="c : ${calculos}" th:value="${c.id}"
+                            th:attr="data-nome=${c.nomePeca},data-data=${c.dataCalculo},data-unidades=${c.unidades},data-tempo=${c.tempoPorUnidadeMinutos},data-por-impressao=${c.pecasPorImpressao},data-aquecimento=${c.aquecimentoMinutos},data-produzido=${c.produzido},data-vendido=${c.vendido},data-tem-foto=${c.temFoto}"
                             th:text="|${c.nomePeca} · ${c.unidades} un. · ${#temporals.format(c.dataCalculo, 'dd/MM HH:mm')}|">Cálculo</option>
                 </select>
+                <button type="button" class="sim-seletor-abrir" data-sim="abrir-seletor" aria-label="Escolher cálculo de referência" aria-describedby="simCalculoRotulo" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="sim-seletor-placeholder">Escolha um cálculo do histórico</span>
+                    <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div class="sim-seletor-painel" data-sim="seletor-painel" hidden>
+                    <div class="sim-seletor-filtros">
+                        <label class="sim-seletor-busca"><i class="bi bi-search" aria-hidden="true"></i><input type="search" data-sim="buscar-calculo" placeholder="Buscar pelo nome da peça" autocomplete="off" aria-label="Buscar cálculo pelo nome da peça"></label>
+                        <label class="sim-seletor-data" title="Filtrar por dia"><i class="bi bi-calendar3" aria-hidden="true"></i><input type="date" data-sim="filtrar-data" aria-label="Filtrar cálculos por dia"></label>
+                    </div>
+                    <button type="button" class="sim-seletor-limpar" data-sim="limpar-selecao" hidden>Limpar cálculo selecionado</button>
+                    <div class="sim-seletor-lista" data-sim="lista-calculos" role="listbox" aria-label="Cálculos do histórico"></div>
+                    <p class="sim-seletor-vazio" data-sim="seletor-vazio" hidden>Nenhum cálculo encontrado para essa busca.</p>
+                </div>
+                <div class="sim-referencia" data-sim="referencia" hidden></div>
                 <p class="sim-dica sim-dica-historico">Os dados vêm do cálculo salvo e podem ser ajustados para planejar outro lote.</p>
             </div>
 
@@ -45,8 +60,6 @@
                     <input type="number" id="simPorImpressao" data-sim="por-impressao" min="1" max="500" value="1" inputmode="numeric" required>
                 </div>
             </div>
-            <div class="sim-referencia" data-sim="referencia" hidden></div>
-
             <div class="campo">
                 <label for="simInicio">Início previsto</label>
                 <input type="datetime-local" id="simInicio" data-sim="inicio" required>

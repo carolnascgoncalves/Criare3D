@@ -4,7 +4,7 @@
     const NOITE_TERMINA_AS = 6;
     const OBJETO = { base: 135, topo: 44 };
     const DIAS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-    const CAMPOS = ['formulario', 'calculo', 'unidades', 'por-impressao', 'inicio', 'usar-agora', 'intervalo', 'folga', 'erro', 'relogio-data', 'relogio-hora', 'impressao-atual', 'pecas-prontas', 'camada', 'corte', 'portal', 'bico', 'linha', 'eixo', 'resultado', 'pronto-em', 'detalhe', 'referencia', 'plano', 'plano-lista', 'pular'];
+    const CAMPOS = ['formulario', 'calculo', 'abrir-seletor', 'seletor-painel', 'buscar-calculo', 'filtrar-data', 'limpar-selecao', 'lista-calculos', 'seletor-vazio', 'unidades', 'por-impressao', 'inicio', 'usar-agora', 'intervalo', 'folga', 'erro', 'relogio-data', 'relogio-hora', 'impressao-atual', 'pecas-prontas', 'camada', 'corte', 'portal', 'bico', 'linha', 'eixo', 'resultado', 'pronto-em', 'detalhe', 'referencia', 'plano', 'plano-lista', 'pular'];
     const pad = n => String(n).padStart(2, '0');
     const dataCurta = d => `${DIAS[d.getDay()]}, ${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
     const hora = d => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -16,6 +16,128 @@
         return h > 0 ? `${h}h ${pad(total % 60)}min` : `${total}min`;
     };
     const formatarGramas = valor => `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(valor)} g`;
+    const normalizarTexto = texto => (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+
+    function dataDaOpcao(opcao) {
+        const valor = opcao.dataset.data || '';
+        const data = new Date(valor);
+        return Number.isNaN(data.getTime()) ? null : data;
+    }
+
+    function rotuloRelativo(data) {
+        if (!data) return 'Data não informada';
+        const hoje = new Date();
+        const ontem = new Date(hoje); ontem.setDate(hoje.getDate() - 1);
+        const mesmoDia = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        if (mesmoDia(data, hoje)) return `Hoje, ${hora(data)}`;
+        if (mesmoDia(data, ontem)) return `Ontem, ${hora(data)}`;
+        return `${pad(data.getDate())}/${pad(data.getMonth() + 1)}, ${hora(data)}`;
+    }
+
+    function duracaoDoCalculo(opcao) {
+        const unidades = Number(opcao.dataset.unidades || 0);
+        const tempo = Number(opcao.dataset.tempo || 0);
+        const capacidade = Math.max(1, Number(opcao.dataset.porImpressao || 1));
+        const aquecimento = Math.max(0, Number(opcao.dataset.aquecimento || 0));
+        return unidades * tempo + Math.ceil(unidades / capacidade) * aquecimento;
+    }
+
+    function renderizarSeletor(ui) {
+        const termo = normalizarTexto(ui.buscarCalculo.value);
+        const dataFiltro = ui.filtrarData.value;
+        const opcoes = [...ui.calculo.options].filter(opcao => opcao.value);
+        const visiveis = opcoes.filter(opcao => {
+            const data = dataDaOpcao(opcao);
+            const nomeCorresponde = normalizarTexto(opcao.dataset.nome).includes(termo);
+            const dataCorresponde = !dataFiltro || (data && `${data.getFullYear()}-${pad(data.getMonth() + 1)}-${pad(data.getDate())}` === dataFiltro);
+            return nomeCorresponde && dataCorresponde;
+        });
+        const grupos = new Map([['Hoje', []], ['Ontem', []], ['Anteriores', []]]);
+        visiveis.forEach(opcao => {
+            const data = dataDaOpcao(opcao), hoje = new Date(), ontem = new Date(hoje);
+            ontem.setDate(hoje.getDate() - 1);
+            const mesmoDia = (a, b) => a && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+            const grupo = mesmoDia(data, hoje) ? 'Hoje' : mesmoDia(data, ontem) ? 'Ontem' : 'Anteriores';
+            grupos.get(grupo).push(opcao);
+        });
+        const fragmento = document.createDocumentFragment();
+        grupos.forEach((itens, titulo) => {
+            if (!itens.length) return;
+            const cabecalho = document.createElement('h3'); cabecalho.className = 'sim-seletor-grupo'; cabecalho.textContent = titulo;
+            fragmento.appendChild(cabecalho);
+            itens.forEach(opcao => {
+                const item = document.createElement('button'); item.type = 'button'; item.className = 'sim-seletor-item'; item.setAttribute('role', 'option');
+                item.setAttribute('aria-selected', String(opcao.value === ui.calculo.value)); item.dataset.calculoId = opcao.value;
+                const estado = estadoDaOpcao(opcao);
+                item.classList.add(`sim-status-${estado}`);
+                if (opcao.dataset.temFoto === 'true') {
+                    const foto = document.createElement('img'); foto.className = 'sim-seletor-foto'; foto.alt = ''; foto.loading = 'lazy';
+                    foto.src = `${ui.painel.dataset.urlHistorico}/${encodeURIComponent(opcao.value)}/foto?miniatura=true`;
+                    foto.addEventListener('error', () => foto.replaceWith(criarIconeSeletor(estado)), { once: true });
+                    item.appendChild(foto);
+                } else item.appendChild(criarIconeSeletor(estado));
+                const textos = document.createElement('span'); textos.className = 'sim-seletor-textos';
+                const nome = document.createElement('strong'); nome.className = 'sim-seletor-nome'; nome.textContent = opcao.dataset.nome || 'Peça sem nome';
+                const resumo = document.createElement('span'); resumo.className = 'sim-seletor-resumo';
+                const unidades = Number(opcao.dataset.unidades || 0);
+                resumo.textContent = `${unidades} ${unidades === 1 ? 'unidade' : 'unidades'} · ${formatarDuracao(duracaoDoCalculo(opcao))}`;
+                textos.append(nome, resumo); item.appendChild(textos);
+                const data = document.createElement('time'); data.className = 'sim-seletor-horario';
+                const dataCalculo = dataDaOpcao(opcao); data.textContent = rotuloRelativo(dataCalculo);
+                if (dataCalculo) data.dateTime = dataCalculo.toISOString();
+                item.appendChild(data);
+                item.addEventListener('click', () => {
+                    ui.calculo.value = opcao.value;
+                    atualizarBotaoSeletor(ui, opcao);
+                    fecharSeletor(ui);
+                    ui.calculo.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                fragmento.appendChild(item);
+            });
+        });
+        ui.listaCalculos.replaceChildren(fragmento);
+        ui.seletorVazio.hidden = visiveis.length > 0;
+        ui.limparSelecao.hidden = !ui.calculo.value;
+    }
+
+    function estadoDaOpcao(opcao) {
+        return opcao.dataset.vendido === 'true' ? 'vendido' : opcao.dataset.produzido === 'true' ? 'estoque' : 'calculo';
+    }
+
+    function criarIconeSeletor(estado = 'calculo') {
+        const icone = document.createElement('span'); icone.className = `sim-seletor-sem-foto sim-status-${estado}`;
+        const imagem = document.createElement('i'); imagem.className = 'bi bi-image'; imagem.setAttribute('aria-hidden', 'true');
+        icone.appendChild(imagem); return icone;
+    }
+
+    function atualizarBotaoSeletor(ui, opcao) {
+        if (!opcao || !opcao.value) {
+            ui.abrirSeletor.setAttribute('aria-label', 'Escolher cálculo de referência');
+            ui.abrirSeletor.replaceChildren();
+            const placeholder = document.createElement('span'); placeholder.className = 'sim-seletor-placeholder'; placeholder.textContent = 'Escolha um cálculo do histórico';
+            const icone = document.createElement('i'); icone.className = 'bi bi-chevron-down'; icone.setAttribute('aria-hidden', 'true');
+            ui.abrirSeletor.append(placeholder, icone); return;
+        }
+        const fragmento = document.createDocumentFragment();
+        ui.abrirSeletor.classList.remove('sim-status-calculo', 'sim-status-estoque', 'sim-status-vendido');
+        ui.abrirSeletor.classList.add(`sim-status-${estadoDaOpcao(opcao)}`);
+        if (opcao.dataset.temFoto === 'true') {
+            const foto = document.createElement('img'); foto.className = 'sim-seletor-foto sim-seletor-foto-selecionada'; foto.alt = ''; foto.src = `${ui.painel.dataset.urlHistorico}/${encodeURIComponent(opcao.value)}/foto?miniatura=true`;
+            foto.addEventListener('error', () => foto.replaceWith(criarIconeSeletor(estadoDaOpcao(opcao))), { once: true }); fragmento.appendChild(foto);
+        } else fragmento.appendChild(criarIconeSeletor(estadoDaOpcao(opcao)));
+        const textos = document.createElement('span'); textos.className = 'sim-seletor-textos';
+        const nome = document.createElement('strong'); nome.className = 'sim-seletor-nome'; nome.textContent = opcao.dataset.nome || 'Peça sem nome';
+        const unidades = Number(opcao.dataset.unidades || 0), resumo = document.createElement('span'); resumo.className = 'sim-seletor-resumo';
+        resumo.textContent = `${unidades} ${unidades === 1 ? 'unidade' : 'unidades'} · ${formatarDuracao(duracaoDoCalculo(opcao))} · ${rotuloRelativo(dataDaOpcao(opcao))}`;
+        ui.abrirSeletor.setAttribute('aria-label', `Cálculo selecionado: ${opcao.dataset.nome}, ${resumo.textContent}. Abrir lista`);
+        textos.append(nome, resumo); fragmento.appendChild(textos);
+        const seta = document.createElement('i'); seta.className = 'bi bi-chevron-down'; seta.setAttribute('aria-hidden', 'true'); fragmento.appendChild(seta);
+        ui.abrirSeletor.replaceChildren(fragmento);
+    }
+
+    function fecharSeletor(ui) {
+        ui.seletorPainel.hidden = true; ui.abrirSeletor.setAttribute('aria-expanded', 'false');
+    }
 
     function lerEntradas(ui, estado) {
         const base = estado.base;
@@ -143,10 +265,13 @@
     }
 
     async function carregarCalculo(ui, estado) {
+        cancelAnimationFrame(estado.raf);
+        estado.executando = false;
+        ui.pular.hidden = true;
         const id = ui.calculo.value;
         const tentativa = ++estado.tentativaBusca;
         estado.base = null; ui.referencia.hidden = true; ui.plano.hidden = true; ui.resultado.hidden = true;
-        if (!id) return;
+        if (!id) { atualizarBotaoSeletor(ui, null); renderizarSeletor(ui); return; }
         ui.calculo.disabled = true;
         try {
             const resposta = await fetch(`${ui.painel.dataset.urlCalculo}/${encodeURIComponent(id)}`, { headers: { Accept: 'application/json' } });
@@ -194,6 +319,23 @@
         if (!ui.formulario) return;
         const estado = { raf: 0, base: null, executando: false, tentativaBusca: 0 };
         ui.inicio.value = valorParaInput(new Date());
+        renderizarSeletor(ui);
+        const abrir = () => {
+            ui.seletorPainel.hidden = !ui.seletorPainel.hidden;
+            ui.abrirSeletor.setAttribute('aria-expanded', String(!ui.seletorPainel.hidden));
+            if (!ui.seletorPainel.hidden) { renderizarSeletor(ui); ui.buscarCalculo.focus(); }
+        };
+        ui.abrirSeletor.addEventListener('click', abrir);
+        ui.buscarCalculo.addEventListener('input', () => renderizarSeletor(ui));
+        ui.filtrarData.addEventListener('change', () => renderizarSeletor(ui));
+        ui.limparSelecao.addEventListener('click', () => {
+            ui.calculo.value = ''; atualizarBotaoSeletor(ui, null); ui.referencia.hidden = true; ui.base = null;
+            fecharSeletor(ui); renderizarSeletor(ui);
+        });
+        ui.seletorPainel.addEventListener('click', evento => evento.stopPropagation());
+        document.addEventListener('click', evento => {
+            if (!ui.seletorPainel.hidden && !evento.target.closest('.sim-seletor-abrir, .sim-seletor-painel')) fecharSeletor(ui);
+        });
         ui.calculo.addEventListener('change', () => carregarCalculo(ui, estado));
         ui.formulario.addEventListener('submit', evento => { evento.preventDefault(); executar(ui, estado); });
         ui.usarAgora.addEventListener('click', () => { ui.inicio.value = valorParaInput(new Date()); });
@@ -207,4 +349,6 @@
     }
     document.addEventListener('DOMContentLoaded', inicializarSimulacao);
     document.addEventListener('turbo:load', inicializarSimulacao);
+    document.addEventListener('turbo:render', inicializarSimulacao);
+    if (document.readyState !== 'loading') inicializarSimulacao();
 })();
