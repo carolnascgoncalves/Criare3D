@@ -209,6 +209,32 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         """)
     List<Object[]> somarLucroPorPlataformaDesde(@Param("inicio") LocalDateTime inicio);
 
+    @Query(value = """
+        WITH por_categoria AS (
+            SELECT COALESCE(NULLIF(BTRIM(ch.categoria_peca_hist), ''), 'Sem categoria') AS categoria,
+                   COALESCE(SUM(v.unidades), 0) AS unidades,
+                   COALESCE(SUM(ch.lucro_liquido_hist * v.unidades), 0) AS lucro
+            FROM venda_calculo v
+            JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
+            WHERE v.tenant_id = :tenantId
+              AND v.data_venda >= :inicio AND v.data_venda < :fim
+            GROUP BY COALESCE(NULLIF(BTRIM(ch.categoria_peca_hist), ''), 'Sem categoria')
+        ), ranqueadas AS (
+            SELECT categoria, unidades, lucro,
+                   ROW_NUMBER() OVER (ORDER BY unidades DESC, categoria) AS posicao
+            FROM por_categoria
+        ), resumo AS (
+            SELECT categoria, unidades, lucro FROM ranqueadas WHERE posicao <= 5
+            UNION ALL
+            SELECT 'Outras' AS categoria, SUM(unidades) AS unidades, SUM(lucro) AS lucro
+            FROM ranqueadas WHERE posicao > 5 HAVING COUNT(*) > 0
+        )
+        SELECT categoria, unidades, lucro FROM resumo ORDER BY unidades DESC, categoria
+        """, nativeQuery = true)
+    List<Object[]> somarVendasPorCategoria(@Param("tenantId") UUID tenantId,
+                                           @Param("inicio") LocalDateTime inicio,
+                                           @Param("fim") LocalDateTime fim);
+
     @Query("""
         SELECT YEAR(v.dataVenda), MONTH(v.dataVenda), COALESCE(SUM(h.lucroLiquido * v.unidades), 0)
         FROM VendaCalculo v JOIN v.calculo h

@@ -3009,7 +3009,7 @@ input[type="color"]:focus {
 .resumo-lote-item span { color: var(--marrom-claro); font-size: .92rem; }
 .resumo-lote-item strong { color: var(--marrom); font-size: 1.2rem; }
 .resumo-lote-item.resumo-lote-destaque { border-color: #e8b2a3; background: #fff1eb; }
-.resumo-lote-item.resumo-lote-destaque strong { color: var(--destaque-escuro); }
+.resumo-lote-item.resumo-lote-destaque strong { color: var(--cor-erro); }
 .resumo-lote-item.resumo-lote-lucro { border-color: #cbdcc8; background: #f3f8f1; }
 .resumo-lote-item.resumo-lote-lucro strong { color: #47764d; }
 .resumo-lote > .detalhes-conteudo + .formulario-acoes {
@@ -3782,4 +3782,63 @@ input[type="color"]:focus {
     align-self: end;
     width: 40px;
     min-width: 40px;
+}
+
+.dashboard-grade-recentes { grid-template-columns: minmax(0, 1.65fr) minmax(280px, .85fr); align-items: stretch; }
+.dashboard-grade-recentes .dashboard-recentes-bloco,
+.dashboard-grade-recentes .dashboard-categorias { min-width: 0; margin-bottom: 0; }
+.dashboard-grafico-categorias { position: relative; width: 100%; height: 245px; }
+@media (max-width: 1000px) {
+    .dashboard-grade-recentes { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Alinhamento do formulário de compra de filamento nos detalhes. */
+.filamento-detalhe-rodape {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+}
+.filamento-detalhe-rodape > p { max-width: none; }
+.filamento-detalhe-rodape > .formulario-acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+}
+.filamento-detalhe-rodape .filamento-compra-inline {
+    display: grid;
+    flex: 1 0 100%;
+    gap: 12px;
+    width: 100%;
+}
+.filamento-detalhe-rodape .filamento-compra-formulario {
+    width: min(900px, 100%);
+    margin: 0;
+    padding: 22px;
+    background: var(--superficie);
+}
+
+/* Cadastro de impressora começa compacto e revela os dados técnicos ao escolher modelo. */
+.dados-tecnicos-impressora[hidden] { display: none !important; }
+.dados-tecnicos-impressora { display: grid; gap: 18px; }
+.depreciacao-impressora-detalhes {
+    margin: 20px 0 12px;
+    padding: 16px 18px;
+    border: 1px solid var(--borda);
+    border-radius: 14px;
+    background: var(--superficie-suave);
+}
+.depreciacao-impressora-detalhes > summary {
+    color: var(--marrom);
+    font-weight: 650;
+    cursor: pointer;
+}
+.depreciacao-impressora-detalhes[open] > summary { margin-bottom: 18px; }
+.depreciacao-impressora-detalhes .grupo-custo-impressora { margin: 0; }
+@media (max-width: 760px) {
+    .filamento-detalhe-rodape .filamento-compra-formulario { width: 100%; padding: 16px; }
+    .depreciacao-impressora-detalhes { padding: 14px; }
 }

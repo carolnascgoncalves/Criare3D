@@ -24,6 +24,7 @@
     function destruirGraficosDashboard() {
         destruirGrafico('graficoLucroMensal');
         destruirGrafico('graficoPlataformas');
+        destruirGrafico('graficoCategorias');
     }
 
     function iniciarGraficosDashboard() {
@@ -131,6 +132,52 @@
                     maintainAspectRatio: false,
                     cutout: '66%',
                     plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        const canvasCategorias = document.getElementById('graficoCategorias');
+        if (canvasCategorias) {
+            new Chart(canvasCategorias, {
+                type: 'bar',
+                data: {
+                    labels: dados.categorias,
+                    datasets: [{
+                        data: dados.unidadesCategorias,
+                        backgroundColor: corCss('--cor-destaque') || corCss('--destaque'),
+                        borderRadius: 7,
+                        maxBarThickness: 24
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: contexto => {
+                                    const unidades = Number(contexto.raw) || 0;
+                                    const lucro = Number(dados.lucrosCategorias[contexto.dataIndex]) || 0;
+                                    return `${unidades} ${unidades === 1 ? 'unidade vendida' : 'unidades vendidas'} · lucro ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(lucro)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: corCss('--dashboard-chart-grid') },
+                            border: { display: false },
+                            ticks: { precision: 0, color: corCss('--dashboard-chart-text') }
+                        },
+                        y: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { color: corCss('--dashboard-chart-text'), autoSkip: false }
+                        }
+                    }
                 }
             });
         }

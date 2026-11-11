@@ -97,6 +97,7 @@
             campo.dataset.catalogoInicializado = "true";
             const aviso = document.getElementById("referenciaPotenciaFabricante");
             const campoPotencia = document.getElementById("potenciaWatts");
+            const dadosTecnicos = document.getElementById("dadosTecnicosImpressora");
             let preenchendoPotencia = false;
 
             campoPotencia?.addEventListener("input", () => {
@@ -104,17 +105,20 @@
             });
 
             campo.addEventListener("input", () => {
-                if (!aviso) return;
-                aviso.replaceChildren();
+                if (dadosTecnicos) dadosTecnicos.hidden = !campo.value.trim()
+                    && !dadosTecnicos.querySelector(".erro-campo");
+                if (aviso) aviso.replaceChildren();
                 const modelo = modelos.find(item => item.nome.toLocaleLowerCase("pt-BR") === campo.value.trim().toLocaleLowerCase("pt-BR"));
                 const valorCatalogoAnterior = campoPotencia?.dataset.valorCatalogo;
+                const valorAtualEhReferencia = modelos.some(item => item.potenciaMediaPLA
+                    && Number(item.potenciaMediaPLA) === Number(campoPotencia?.value));
                 if (campoPotencia && valorCatalogoAnterior && campoPotencia.value === valorCatalogoAnterior) {
                     campoPotencia.value = "";
                     delete campoPotencia.dataset.valorCatalogo;
                 }
 
                 if (modelo?.potenciaMediaPLA && campoPotencia
-                    && (!campoPotencia.value || valorCatalogoAnterior)) {
+                    && (!campoPotencia.value || valorCatalogoAnterior || valorAtualEhReferencia)) {
                     preenchendoPotencia = true;
                     campoPotencia.value = String(modelo.potenciaMediaPLA);
                     campoPotencia.dataset.valorCatalogo = String(modelo.potenciaMediaPLA);
@@ -122,6 +126,7 @@
                     preenchendoPotencia = false;
                 }
 
+                if (!aviso) return;
                 if (modelo?.potenciaMaxima) {
                     const outrasMedias = Object.entries(modelo.potenciasOutrosMateriais || {})
                         .map(([material, watts]) => `${material} ${watts} W`).join(" · ");
@@ -159,6 +164,8 @@
                     aviso.hidden = true;
                 }
             });
+            // Datalist/selectores de modelo podem disparar change sem um novo input.
+            campo.addEventListener("change", () => campo.dispatchEvent(new Event("input", {bubbles: true})));
             campo.dispatchEvent(new Event("input"));
         });
     }

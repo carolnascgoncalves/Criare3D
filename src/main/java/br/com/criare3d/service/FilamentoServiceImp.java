@@ -174,9 +174,32 @@ public class FilamentoServiceImp implements FilamentoService {
         if (filamento == null) return false;
 
         BigDecimal estoqueAtual = filamento.getEstoqueGramas() == null ? BigDecimal.ZERO : filamento.getEstoqueGramas();
-        filamento.setEstoqueGramas(estoqueAtual.add(compra.getGramasCompradas()));
-        filamento.setPesoRoloGramas(compra.getPesoRoloGramas());
-        filamento.setPrecoRolo(compra.getPrecoRolo());
+        BigDecimal pesoNovoRolo = compra.getPesoRoloGramas();
+        BigDecimal precoNovoRolo = compra.getPrecoRolo();
+        BigDecimal gramasAdicionadas = compra.getGramasCompradas() == null
+                ? pesoNovoRolo : compra.getGramasCompradas();
+        BigDecimal estoqueNovo = estoqueAtual.add(gramasAdicionadas);
+
+        BigDecimal valorEstoqueAtual = BigDecimal.ZERO;
+        if (estoqueAtual.signum() > 0) {
+            BigDecimal pesoRoloAtual = filamento.getPesoRoloGramas();
+            BigDecimal precoRoloAtual = filamento.getPrecoRolo();
+            if (pesoRoloAtual == null || pesoRoloAtual.signum() <= 0
+                    || precoRoloAtual == null || precoRoloAtual.signum() < 0) {
+                throw new IllegalStateException("O custo atual do filamento não está válido para calcular a média.");
+            }
+            valorEstoqueAtual = estoqueAtual.multiply(precoRoloAtual)
+                    .divide(pesoRoloAtual, 10, java.math.RoundingMode.HALF_UP);
+        }
+        BigDecimal valorCompraAdicionada = gramasAdicionadas.multiply(precoNovoRolo)
+                .divide(pesoNovoRolo, 10, java.math.RoundingMode.HALF_UP);
+        BigDecimal custoMedioPorGrama = valorEstoqueAtual.add(valorCompraAdicionada)
+                .divide(estoqueNovo, 12, java.math.RoundingMode.HALF_UP);
+
+        filamento.setEstoqueGramas(estoqueNovo);
+        filamento.setPesoRoloGramas(pesoNovoRolo);
+        filamento.setPrecoRolo(custoMedioPorGrama.multiply(pesoNovoRolo)
+                .setScale(2, java.math.RoundingMode.HALF_UP));
         filamentoRepository.saveAndFlush(filamento);
         return true;
     }

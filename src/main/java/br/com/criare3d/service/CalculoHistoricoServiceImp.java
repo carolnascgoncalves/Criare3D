@@ -670,6 +670,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         BigDecimal precoSugerido = custos.precoSugerido();
 
         historico.setPeca(peca);
+        historico.setCategoriaPeca(peca.getCategoria());
         historico.setImpressora(impressora);
         historico.setEmbalagem(embalagem);
 

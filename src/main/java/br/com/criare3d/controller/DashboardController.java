@@ -118,6 +118,13 @@ public class DashboardController {
         model.addAttribute("lucroPlataformaNomes", plataformas.stream().map(item -> item.get("nome")).toList());
         model.addAttribute("lucroPlataformaValores", plataformas.stream().map(item -> item.get("lucro")).toList());
         model.addAttribute("lucroPlataformaCores", plataformas.stream().map(item -> item.get("cor")).toList());
+        List<Object[]> linhasCategorias = historicoRepository.somarVendasPorCategoria(
+                usuarioLogadoService.buscarTenantIdAtual(), inicio, fim);
+        List<Map<String, Object>> vendasCategorias = montarVendasPorCategoria(linhasCategorias);
+        model.addAttribute("vendasCategorias", vendasCategorias);
+        model.addAttribute("vendasCategoriaNomes", vendasCategorias.stream().map(item -> item.get("nome")).toList());
+        model.addAttribute("vendasCategoriaUnidades", vendasCategorias.stream().map(item -> item.get("unidades")).toList());
+        model.addAttribute("vendasCategoriaLucros", vendasCategorias.stream().map(item -> item.get("lucro")).toList());
         adicionarSerieLucro(model, periodo, hoje, inicio, fim, lucroVendido);
         List<Map<String, Object>> composicao = montarComposicao(
                 historicoRepository.somarComposicaoCustosProduzidosDesde(inicio));
@@ -156,6 +163,18 @@ public class DashboardController {
         BigDecimal maior = resultado.stream().map(item -> (BigDecimal) item.get("lucro"))
                 .max(BigDecimal::compareTo).orElse(ZERO);
         resultado.forEach(item -> item.put("largura", percentual((BigDecimal) item.get("lucro"), maior)));
+        return resultado;
+    }
+
+    private List<Map<String, Object>> montarVendasPorCategoria(List<Object[]> linhas) {
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Object[] linha : linhas) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", linha[0]);
+            item.put("unidades", numero(linha[1]));
+            item.put("lucro", valor(linha[2]));
+            resultado.add(item);
+        }
         return resultado;
     }
 

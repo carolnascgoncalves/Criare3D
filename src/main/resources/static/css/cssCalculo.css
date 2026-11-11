@@ -462,7 +462,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico {
     width: 100%;
-    min-width: 1100px;
+    min-width: 980px;
     table-layout: fixed;
     border-collapse: collapse;
     text-align: left;
@@ -494,8 +494,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 .tabela-historico th:nth-child(4) { width: 10%; }
 .tabela-historico th:nth-child(5) { width: 15%; }
 .tabela-historico th:nth-child(6) { width: 10%; }
-.tabela-historico th:nth-child(7) { width: 10%; }
-.tabela-historico th:nth-child(8) { width: 10%; }
+.tabela-historico th:nth-child(7) { width: 8%; }
+.tabela-historico th:nth-child(8) { width: 12%; }
 
 .tabela-historico tbody tr:last-child td {
     border-bottom: none;
@@ -3519,7 +3519,6 @@ a:focus-visible {
     }
 }
 
-
 .detalhes-preco:not(.detalhes-preco-venda) .detalhes-preco-final {
     background: #e8f5e9;
     border-color: #b7dfbc;
@@ -4264,5 +4263,62 @@ main.pagina:has(> .cartao form.busca-filamentos) .vendas-filtros > .botao {
     main.pagina:has(> .cartao form.busca-filamentos) .vendas-filtros > .botao {
         grid-column: 1 / -1;
         width: 100%;
+    }
+}
+
+/* No histórico, o nome ocupa a linha inteira e o tamanho do lote vem abaixo. */
+.tabela-historico th.coluna-acoes,
+.tabela-historico td.coluna-acoes {
+    min-width: 0;
+    padding-right: 6px;
+    padding-left: 6px;
+}
+.tabela-historico .acoes { gap: 6px; }
+.tabela-historico td.coluna-acoes .botao-acao-excluir {
+    box-sizing: border-box;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+}
+.tabela-historico .peca-historico {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 4px;
+    min-width: 0;
+}
+.tabela-historico .peca-historico-foto,
+.tabela-historico .peca-historico-icone {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+.tabela-historico .peca-historico strong {
+    grid-column: 2;
+    grid-row: 1;
+    display: block;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+.tabela-historico .peca-historico small {
+    grid-column: 2;
+    grid-row: 2;
+    display: block;
+    color: var(--marrom-claro);
+    line-height: 1.3;
+}
+@media (max-width: 650px) {
+    .tabela-historico .peca-historico {
+        grid-template-columns: 56px minmax(0, 1fr);
+        column-gap: 9px;
+    }
+    .tabela-historico .peca-historico-foto,
+    .tabela-historico .peca-historico-icone {
+        width: 56px;
+        height: 56px;
     }
 }

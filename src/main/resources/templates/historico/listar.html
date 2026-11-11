@@ -420,8 +420,8 @@
                                 <strong th:text="${historico.nomePeca}">
                                     Nome da peça
                                 </strong>
-                                <small th:if="${historico.unidades != null and historico.unidades > 1}"
-                                       th:text="|${historico.unidades} unidades no lote|">Unidades no lote</small>
+                                <small th:if="${historico.unidades != null}"
+                                       th:text="|${historico.unidades} ${historico.unidades == 1 ? 'unidade' : 'unidades'} no lote|">Unidades no lote</small>
                             </div>
                         </td>
 

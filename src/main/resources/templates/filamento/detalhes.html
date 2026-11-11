@@ -46,7 +46,7 @@
             </article>
             <article class="peca-detalhe-metrica">
                 <span class="peca-detalhe-metrica-icone"><i class="bi bi-cash-coin"></i></span>
-                <div><span>Preço do rolo</span><strong th:text="|R$ ${#numbers.formatDecimal(filamento.precoRolo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
+                <div><span>Custo médio do rolo</span><strong th:text="|R$ ${#numbers.formatDecimal(filamento.precoRolo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong></div>
             </article>
             <article class="peca-detalhe-metrica">
                 <span class="peca-detalhe-metrica-icone"><i class="bi bi-palette2"></i></span>
@@ -61,22 +61,24 @@
                 <details class="filamento-compra-inline">
                     <summary class="botao botao-secundario"><i class="bi bi-bag-plus"></i> Registrar compra</summary>
                     <form th:action="@{/filamento/compra/{id}(id=${filamento.id})}" th:object="${compra}" method="post" class="filamento-compra-formulario" novalidate data-turbo="false">
-                        <p>A compra será somada ao saldo atual. O peso e o preço informados passam a ser a referência para os próximos cálculos. Para corrigir apenas a quantidade disponível, use <strong>Corrigir saldo</strong> na listagem.</p>
+                        <p>O custo médio será atualizado com o estoque atual e esta compra. Os cálculos já salvos não serão alterados.</p>
                         <div class="campo">
-                            <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g)</label>
-                            <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01" required>
-                            <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
-                        </div>
-                        <div class="campo">
-                            <label for="pesoRoloGramas">Peso total do rolo comprado (g)</label>
+                            <label for="pesoRoloGramas">Peso do rolo comprado (g)</label>
                             <input id="pesoRoloGramas" type="number" th:field="*{pesoRoloGramas}" min="0.01" step="0.01" required>
-                            <small>Exemplo: informe 1.000 g para um rolo de 1 kg.</small>
+                            <small>Exemplo: 1.000 g para um rolo de 1 kg.</small>
                             <span class="erro-campo" th:if="${#fields.hasErrors('pesoRoloGramas')}" th:errors="*{pesoRoloGramas}"></span>
                         </div>
                         <div class="campo">
-                            <label for="precoRolo">Valor pago pelo rolo inteiro (R$)</label>
+                            <label for="precoRolo">Valor pago pelo rolo (R$)</label>
                             <input id="precoRolo" type="number" th:field="*{precoRolo}" min="0.01" step="0.01" required>
+                            <small>Informe o preço pago por um rolo com o peso acima.</small>
                             <span class="erro-campo" th:if="${#fields.hasErrors('precoRolo')}" th:errors="*{precoRolo}"></span>
+                        </div>
+                        <div class="campo">
+                            <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g) <span class="etiqueta-opcional">Opcional</span></label>
+                            <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01">
+                            <small>Use esta opção se for adicionar uma quantidade diferente do rolo completo. Se deixar vazio, será considerado automaticamente o peso do rolo: <span data-compra-peso-referencia th:text="|${#numbers.formatDecimal(filamento.pesoRoloGramas, 1, 'COMMA', 2, 'POINT')} g|">1.000 g</span>.</small>
+                            <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
                         </div>
                         <div class="formulario-acoes"><button type="submit" class="botao botao-principal"><i class="bi bi-check-lg"></i> Confirmar compra</button></div>
                     </form>

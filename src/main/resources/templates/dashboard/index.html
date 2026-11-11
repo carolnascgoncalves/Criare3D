@@ -144,26 +144,38 @@
         </article>
     </section>
 
-    <section class="dashboard-bloco dashboard-recentes-bloco">
-        <div class="dashboard-bloco-titulo">
-            <div><h2>Cálculos recentes</h2></div>
-            <a th:href="@{/historico/listar}" class="dashboard-link">Ver histórico <i class="bi bi-arrow-right"></i></a>
-        </div>
-        <div class="dashboard-tabela-wrap" th:if="${!#lists.isEmpty(calculosRecentes)}">
-            <table class="dashboard-tabela">
-                <thead><tr><th>Peça</th><th>Custo / unidade</th><th>Preço / unidade</th><th>Plataforma</th><th>Status</th></tr></thead>
-                <tbody>
-                <tr th:each="calculo : ${calculosRecentes}">
-                    <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="|${calculo.nomePeca}${calculo.unidades > 1 ? ' · ' + calculo.unidades + ' un.' : ''}|">Peça</a></td>
-                    <td th:text="|R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
-                    <td th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
-                    <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'AMAZON' ? 'Amazon' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda))))}">Sem plataforma</td>
-                    <td><span class="dashboard-status" th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}" th:text="${calculo.vendido ? 'Vendido' : (calculo.produzido ? 'Produzido' : 'Só cálculo')}">Só cálculo</span></td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <p class="dashboard-vazio" th:if="${#lists.isEmpty(calculosRecentes)}">Seus cálculos recentes aparecerão aqui.</p>
+    <section class="dashboard-grade dashboard-grade-recentes">
+        <article class="dashboard-bloco dashboard-recentes-bloco">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Cálculos recentes</h2></div>
+                <a th:href="@{/historico/listar}" class="dashboard-link">Ver histórico <i class="bi bi-arrow-right"></i></a>
+            </div>
+            <div class="dashboard-tabela-wrap" th:if="${!#lists.isEmpty(calculosRecentes)}">
+                <table class="dashboard-tabela">
+                    <thead><tr><th>Peça</th><th>Custo / unidade</th><th>Preço / unidade</th><th>Plataforma</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr th:each="calculo : ${calculosRecentes}">
+                        <td><a th:href="@{/historico/detalhes/{id}(id=${calculo.id})}" th:text="|${calculo.nomePeca}${calculo.unidades > 1 ? ' · ' + calculo.unidades + ' un.' : ''}|">Peça</a></td>
+                        <td th:text="|R$ ${#numbers.formatDecimal(calculo.custoTotal, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                        <td th:text="|R$ ${#numbers.formatDecimal(calculo.precoSugerido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                        <td th:text="${calculo.plataformaVenda == null || calculo.plataformaVenda == 'NENHUMA' ? 'Sem plataforma' : (calculo.plataformaVenda == 'AMAZON' ? 'Amazon' : (calculo.plataformaVenda == 'MERCADO_LIVRE' ? 'Mercado Livre' : (calculo.plataformaVenda == 'TIKTOK' || calculo.plataformaVenda == 'TIKTOK_SHOP' ? 'TikTok Shop' : (calculo.plataformaVenda == 'SHOPEE' ? 'Shopee' : calculo.plataformaVenda))))}">Sem plataforma</td>
+                        <td><span class="dashboard-status" th:classappend="${calculo.vendido ? ' vendido' : (calculo.produzido ? ' produzido' : '')}" th:text="${calculo.vendido ? 'Vendido' : (calculo.produzido ? 'Produzido' : 'Só cálculo')}">Só cálculo</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="dashboard-vazio" th:if="${#lists.isEmpty(calculosRecentes)}">Seus cálculos recentes aparecerão aqui.</p>
+        </article>
+
+        <article class="dashboard-bloco dashboard-categorias">
+            <div class="dashboard-bloco-titulo">
+                <div><h2>Vendas por categoria</h2><p>Unidades vendidas no período</p></div>
+            </div>
+            <div class="dashboard-grafico-categorias" th:if="${!#lists.isEmpty(vendasCategorias)}">
+                <canvas id="graficoCategorias" role="img" aria-label="Unidades vendidas por categoria"></canvas>
+            </div>
+            <p class="dashboard-vazio" th:if="${#lists.isEmpty(vendasCategorias)}">As vendas por categoria aparecerão aqui quando você registrar vendas.</p>
+        </article>
     </section>
 
     <footer class="rodape" th:text="|${tenantNome} · Gestão e cálculo de custos de impressão 3D|">Criare 3D · Gestão e cálculo de custos de impressão 3D</footer>
@@ -175,7 +187,10 @@
         "valoresLucro": [[${valoresLucro}]],
         "plataformas": [[${lucroPlataformaNomes}]],
         "lucroPlataformas": [[${lucroPlataformaValores}]],
-        "coresPlataformas": [[${lucroPlataformaCores}]]
+        "coresPlataformas": [[${lucroPlataformaCores}]],
+        "categorias": [[${vendasCategoriaNomes}]],
+        "unidadesCategorias": [[${vendasCategoriaUnidades}]],
+        "lucrosCategorias": [[${vendasCategoriaLucros}]]
     }
 </script>
 </body>

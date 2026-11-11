@@ -66,7 +66,7 @@
                            min="0"
                            step="0.01"
                            placeholder="Ex.: 30">
-                    <small>Ex.: aumento de 100% dobra o custo.</small>
+                    <small>Exemplo: 30% transforma R$ 10,00 de custo em R$ 13,00 antes das taxas.</small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('markupPercentual')}"
                           th:errors="*{markupPercentual}"></span>
@@ -80,7 +80,7 @@
                 <div class="configuracao-markup-atalhos">
                     <div>
                         <strong>Atalhos de markup</strong>
-                        <small>Escolha os três aumentos rápidos disponíveis no cálculo.</small>
+                        <small>Exemplo: 30%, 40% e 50% são atalhos comuns; 50% transforma R$ 10,00 em R$ 15,00 antes das taxas.</small>
                     </div>
                     <div class="configuracao-markup-atalhos-grade">
                         <div class="campo">
@@ -265,7 +265,7 @@
                     <label for="purgaGramasPorImpressao">Purga de filamento por impressão (g)</label>
                     <input type="number" id="purgaGramasPorImpressao" th:field="*{purgaGramasPorImpressao}"
                            min="0" step="0.01" placeholder="Ex.: 2">
-                    <small>Gramas extras por impressão para limpeza do bico. Use 0 se não se aplica.</small>
+                    <small>Exemplo: 1 a 3 g por impressão para purga. Use o valor médio do seu fatiador; se não houver purga, deixe 0.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('purgaGramasPorImpressao')}" th:errors="*{purgaGramasPorImpressao}"></span>
                 </div>
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
@@ -283,6 +283,7 @@
                     <label for="valorMaoObraHora">Custo da mão de obra (R$/hora)</label>
                     <input type="number" id="valorMaoObraHora" th:field="*{valorMaoObraHora}"
                            min="0" step="0.01" placeholder="Ex.: 25,00">
+                    <small>Exemplo: R$ 20,00 por hora equivale a R$ 5,00 em 15 minutos de trabalho.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('maoObraValida')}"
                           th:errors="*{maoObraValida}"></span>
                 </div>
@@ -337,6 +338,7 @@
                     <label for="percentualFalha">Margem para falhas (%)</label>
                     <input type="number" id="percentualFalha" th:field="*{percentualFalha}"
                            min="0" max="100" step="0.01" placeholder="Ex.: 5">
+                    <small>Exemplo: 5% acrescenta R$ 0,50 sobre R$ 10,00 de filamento e energia.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('percentualFalhaValido')}"
                           th:errors="*{percentualFalhaValido}"></span>
                 </div>

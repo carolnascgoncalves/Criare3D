@@ -33,6 +33,9 @@ public class CalculoHistorico {
     @Column(name = "nomePeca_hist", nullable = false, length = 150)
     private @Getter @Setter String nomePeca;
 
+    @Column(name = "categoria_peca_hist", length = 60)
+    private @Getter @Setter String categoriaPeca;
+
     @Column(name = "tem_foto_hist", nullable = false)
     @Builder.Default
     private @Getter @Setter Boolean temFoto = false;
