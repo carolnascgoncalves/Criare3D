@@ -160,9 +160,25 @@
             };
             ui.unidades.value = dados.unidades || 1;
             ui.porImpressao.value = Math.min(dados.pecasPorImpressao || 1, Number(ui.unidades.value));
-            const referencia = document.createElement('p');
-            referencia.textContent = `${dados.nomePeca} · ${dados.nomeImpressora || 'Impressora não informada'} · ${dados.tempoPorUnidadeMinutos || 0} min por unidade${dados.aquecimentoMinutos > 0 ? ` · ${dados.aquecimentoMinutos} min de aquecimento por impressão` : ''}`;
-            ui.referencia.replaceChildren(referencia); ui.referencia.hidden = false; limparErro(ui);
+            const cartao = document.createElement('div'); cartao.className = 'sim-referencia-cartao';
+            if (dados.temFoto) {
+                const foto = document.createElement('img');
+                foto.src = `${ui.painel.dataset.urlHistorico}/${encodeURIComponent(dados.id)}/foto?miniatura=true`;
+                foto.alt = '';
+                foto.loading = 'lazy';
+                foto.className = 'sim-referencia-foto';
+                foto.addEventListener('error', () => foto.remove(), { once: true });
+                cartao.appendChild(foto);
+            }
+            const conteudo = document.createElement('div'); conteudo.className = 'sim-referencia-conteudo';
+            const nome = document.createElement('strong'); nome.textContent = dados.nomePeca;
+            const data = new Date(dados.dataCalculo);
+            const registro = document.createElement('span');
+            registro.textContent = `${Number(dados.unidades || 0)} ${Number(dados.unidades) === 1 ? 'unidade' : 'unidades'} · ${Number.isNaN(data.getTime()) ? '' : `${pad(data.getDate())}/${pad(data.getMonth() + 1)}/${data.getFullYear()} às ${hora(data)}`}`;
+            const impressora = document.createElement('span');
+            impressora.textContent = `${dados.nomeImpressora || 'Impressora não informada'} · ${dados.tempoPorUnidadeMinutos || 0} min por unidade${dados.aquecimentoMinutos > 0 ? ` · ${dados.aquecimentoMinutos} min de aquecimento por impressão` : ''}`;
+            conteudo.append(nome, registro, impressora); cartao.appendChild(conteudo);
+            ui.referencia.replaceChildren(cartao); ui.referencia.hidden = false; limparErro(ui);
         } catch (erro) {
             if (tentativa !== estado.tentativaBusca) return;
             ui.erro.textContent = erro.message || 'Não foi possível carregar esse cálculo.'; ui.erro.hidden = false;

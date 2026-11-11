@@ -6,7 +6,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina pagina-simulacao" data-simulacao th:attr="data-url-calculo=@{/simulacao/calculo}">
+<main class="pagina pagina-simulacao" data-simulacao th:attr="data-url-calculo=@{/simulacao/calculo},data-url-historico=@{/historico}">
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">PLANEJAMENTO</span>
@@ -30,9 +30,9 @@
                 <select id="simCalculo" data-sim="calculo" required>
                     <option value="" selected>Escolha uma peça do histórico</option>
                     <option th:each="c : ${calculos}" th:value="${c.id}"
-                            th:text="|${c.nomePeca} · ${#temporals.format(c.dataCalculo, 'dd/MM HH:mm')}|">Cálculo</option>
+                            th:text="|${c.nomePeca} · ${c.unidades} un. · ${#temporals.format(c.dataCalculo, 'dd/MM HH:mm')}|">Cálculo</option>
                 </select>
-                <p class="sim-dica">Os dados vêm do cálculo salvo e podem ser ajustados para planejar outro lote.</p>
+                <p class="sim-dica sim-dica-historico">Os dados vêm do cálculo salvo e podem ser ajustados para planejar outro lote.</p>
             </div>
 
             <div class="sim-par">

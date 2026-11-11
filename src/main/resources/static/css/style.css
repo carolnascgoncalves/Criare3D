@@ -3842,3 +3842,119 @@ input[type="color"]:focus {
     .filamento-detalhe-rodape .filamento-compra-formulario { width: 100%; padding: 16px; }
     .depreciacao-impressora-detalhes { padding: 14px; }
 }
+
+/* Navegação lateral compacta e adaptável ao tema do cliente. */
+body:has(.menu-principal) {
+    --menu-lateral-largura: 248px;
+    padding-left: var(--menu-lateral-largura);
+    transition: padding-left .2s ease;
+}
+body:has(.menu-principal).menu-lateral-recolhido { --menu-lateral-largura: 72px; }
+.menu-principal {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    z-index: 1000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    width: var(--menu-lateral-largura, 248px) !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 14px 10px !important;
+    background: var(--marrom) !important;
+    box-shadow: 3px 0 14px rgba(73, 46, 30, .16) !important;
+    transition: width .2s ease;
+}
+.menu-lateral-topo { display: flex; align-items: center; gap: 6px; min-height: 40px; }
+.menu-lateral-topo .marca { flex: 1 1 auto; min-width: 0; gap: 9px; font-size: 15px; }
+.menu-lateral-topo .marca span { overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+.menu-lateral-topo .marca-icone { width: 36px; height: 36px; }
+.menu-lateral-alternar {
+    display: inline-flex; flex: 0 0 34px; align-items: center; justify-content: center;
+    width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px;
+    background: transparent; color: var(--texto-sobre-primaria); cursor: pointer;
+}
+.menu-lateral-alternar:hover, .menu-lateral-alternar:focus-visible { background: color-mix(in srgb, var(--destaque) 20%, transparent); color: var(--destaque); }
+.menu-calcular {
+    display: flex !important; width: 100%; min-height: 44px; align-items: center; justify-content: center;
+    gap: 8px; margin: 0 !important; padding: 10px 12px !important; white-space: nowrap;
+}
+.menu-lateral-conteudo { display: grid; align-content: start; gap: 9px; flex: 1 1 auto; min-height: 0; }
+.menu-lateral-grupo { display: grid; gap: 2px; padding: 7px 0 9px; border-bottom: 1px solid color-mix(in srgb, var(--fundo) 18%, transparent); }
+.menu-lateral-grupo:last-child { border-bottom: 0; }
+.menu-lateral-titulo { padding: 4px 10px 3px; color: color-mix(in srgb, var(--texto-sobre-primaria) 72%, var(--marrom)); font-size: 11px; letter-spacing: .04em; }
+.menu-lateral-link {
+    display: flex !important; align-items: center; gap: 10px; width: 100%; min-height: 38px;
+    padding: 8px 10px !important; border-radius: 8px !important; color: var(--texto-sobre-primaria) !important;
+    font-size: 13px !important; font-weight: 600 !important; text-decoration: none; white-space: nowrap;
+}
+.menu-lateral-link > i { display: inline-flex; flex: 0 0 20px; align-items: center; justify-content: center; font-size: 17px; }
+.menu-lateral-link > span { overflow: hidden; text-overflow: ellipsis; }
+.menu-lateral-link:hover { background: color-mix(in srgb, var(--destaque) 18%, transparent) !important; color: var(--texto-sobre-primaria) !important; }
+.menu-lateral-link.menu-link-ativo { background: var(--destaque) !important; color: var(--texto-sobre-destaque) !important; }
+.menu-lateral-link.menu-link-ativo::after { display: none; }
+.menu-lateral-rodape { display: grid; gap: 5px; margin-top: auto; padding-top: 9px; border-top: 1px solid color-mix(in srgb, var(--fundo) 18%, transparent); }
+.menu-lateral-rodape .menu-configuracoes { width: 100%; height: auto; min-height: 38px; border: 0; }
+.menu-usuario { position: relative; min-width: 0; }
+.menu-usuario-botao {
+    display: flex !important; width: 100% !important; min-height: 38px !important; align-items: center; justify-content: flex-start !important;
+    gap: 10px !important; padding: 8px 10px !important; border: 0 !important; border-radius: 8px !important;
+    color: var(--texto-sobre-primaria) !important; font-size: 13px !important; font-weight: 600; cursor: pointer;
+}
+.menu-usuario-botao > i { flex: 0 0 20px; text-align: center; }
+.menu-usuario-botao:hover { background: color-mix(in srgb, var(--destaque) 18%, transparent); }
+.menu-usuario-painel {
+    position: fixed !important; top: auto !important; right: auto !important; bottom: 12px; left: calc(var(--menu-lateral-largura, 248px) + 10px);
+    z-index: 1010; width: min(300px, calc(100vw - var(--menu-lateral-largura, 248px) - 28px));
+}
+body.menu-lateral-recolhido .menu-principal { --menu-lateral-largura: 72px; align-items: center !important; padding-inline: 8px !important; }
+body.menu-lateral-recolhido .menu-lateral-topo { flex-direction: column; gap: 6px; }
+body.menu-lateral-recolhido .menu-lateral-topo .marca { flex: 0 0 auto; justify-content: center; }
+body.menu-lateral-recolhido .menu-lateral-topo .marca span,
+body.menu-lateral-recolhido .menu-lateral-titulo,
+body.menu-lateral-recolhido .menu-lateral-link > span,
+body.menu-lateral-recolhido .menu-calcular > span,
+body.menu-lateral-recolhido .menu-usuario-botao > span { display: none; }
+body.menu-lateral-recolhido .menu-lateral-conteudo,
+body.menu-lateral-recolhido .menu-lateral-rodape { width: 100%; }
+body.menu-lateral-recolhido .menu-lateral-grupo { justify-items: center; padding: 5px 0 7px; }
+body.menu-lateral-recolhido .menu-lateral-link,
+body.menu-lateral-recolhido .menu-usuario-botao { width: 44px !important; justify-content: center !important; padding: 8px !important; }
+body.menu-lateral-recolhido .menu-lateral-link > i,
+body.menu-lateral-recolhido .menu-usuario-botao > i { flex-basis: auto; }
+body.menu-lateral-recolhido .menu-calcular { width: 44px; height: 44px; padding: 8px !important; }
+body.menu-lateral-recolhido .menu-lateral-rodape { justify-items: center; }
+body.menu-lateral-recolhido .menu-lateral-rodape .menu-configuracoes { width: 44px; justify-content: center !important; }
+.menu-lateral-alternar:focus-visible, .menu-lateral-link:focus-visible, .menu-calcular:focus-visible, .menu-usuario-botao:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+.pagina { padding-top: 24px; }
+
+@media (max-width: 760px) {
+    body:has(.menu-principal), body:has(.menu-principal).menu-lateral-recolhido { --menu-lateral-largura: 64px; padding-left: 64px !important; }
+    .menu-principal, body.menu-lateral-recolhido .menu-principal { width: 64px !important; padding-inline: 6px !important; }
+    body.menu-lateral-aberto .menu-principal { width: min(250px, 85vw) !important; align-items: stretch !important; padding-inline: 10px !important; box-shadow: 5px 0 24px rgba(40, 24, 15, .3) !important; }
+    body.menu-lateral-aberto .menu-lateral-topo { flex-direction: row; }
+    body.menu-lateral-aberto .menu-lateral-topo .marca { flex: 1 1 auto; justify-content: flex-start; }
+    body.menu-lateral-aberto .menu-lateral-topo .marca span,
+    body.menu-lateral-aberto .menu-lateral-titulo,
+    body.menu-lateral-aberto .menu-lateral-link > span,
+    body.menu-lateral-aberto .menu-calcular > span,
+    body.menu-lateral-aberto .menu-usuario-botao > span { display: initial; }
+    body.menu-lateral-aberto .menu-lateral-conteudo,
+    body.menu-lateral-aberto .menu-lateral-rodape { width: 100%; }
+    body.menu-lateral-aberto .menu-lateral-grupo { justify-items: stretch; }
+    body.menu-lateral-aberto .menu-lateral-link,
+    body.menu-lateral-aberto .menu-usuario-botao { width: 100% !important; justify-content: flex-start !important; padding: 8px 10px !important; }
+    body.menu-lateral-aberto .menu-calcular { width: 100%; }
+    body.menu-lateral-aberto .menu-lateral-rodape .menu-configuracoes { width: 100%; justify-content: flex-start !important; }
+    .menu-lateral-topo .marca { flex: 0 0 auto; justify-content: center; }
+    .menu-lateral-topo .marca span, .menu-lateral-titulo, .menu-lateral-link > span, .menu-calcular > span, .menu-usuario-botao > span { display: none; }
+    .menu-lateral-conteudo, .menu-lateral-rodape { width: 100%; }
+    .menu-lateral-grupo { justify-items: center; }
+    .menu-lateral-link, .menu-usuario-botao { width: 44px !important; justify-content: center !important; padding: 8px !important; }
+    .menu-calcular { width: 44px; padding: 8px !important; }
+    .menu-lateral-rodape .menu-configuracoes { width: 44px; justify-content: center !important; }
+    body.menu-lateral-aberto .menu-usuario-painel { left: 72px; width: min(300px, calc(100vw - 84px)); }
+}

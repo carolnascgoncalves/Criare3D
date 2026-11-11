@@ -8,6 +8,7 @@ import java.util.UUID;
 public record SimulacaoHistoricoResponse(
         UUID id,
         String nomePeca,
+        Boolean temFoto,
         LocalDateTime dataCalculo,
         String nomeImpressora,
         Integer unidades,
