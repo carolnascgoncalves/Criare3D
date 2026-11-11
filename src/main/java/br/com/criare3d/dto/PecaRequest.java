@@ -16,6 +16,7 @@ public class PecaRequest {
     @Column(name= "nome_peca", nullable = false, length = 150)
     private @Getter @Setter String nome;
 
+    @NotBlank(message = "A categoria é obrigatória.")
     @Size(max = 60, message = "A categoria deve ter no máximo 60 caracteres.")
     private @Getter @Setter String categoria;
 

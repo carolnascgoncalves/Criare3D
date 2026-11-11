@@ -14,6 +14,7 @@
     }
 
     function posicionarNotificacoes() {
+        document.querySelectorAll('.notificacao-flutuante.alerta-erro, .notificacao-flutuante.alert-danger').forEach((aviso, indice) => { if (indice > 0) aviso.remove(); });
         const menu = document.querySelector('.menu-principal');
         const notificacoes = [
             ...document.querySelectorAll('.notificacao-flutuante')
@@ -74,6 +75,9 @@
         const main = document.querySelector('main.pagina');
         if (!main) return;
 
+        if (tipo === 'erro') {
+            document.querySelectorAll('.notificacao-flutuante.alerta-erro, .notificacao-flutuante.alert-danger').forEach(aviso => aviso.remove());
+        }
         const aviso = document.createElement('div');
 
         aviso.className = `${tipo === 'info' ? 'aviso-info' : `alerta-${tipo}`} notificacao-flutuante`;

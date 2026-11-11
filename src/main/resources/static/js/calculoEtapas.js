@@ -126,7 +126,8 @@ function inicializarCalculoEtapas() {
 
         requestAnimationFrame(() => {
             window.validacaoInline?.validar(campo);
-            campo.focus();
+            if (window.validacaoInline?.focar) window.validacaoInline.focar(campo);
+            else campo.focus();
         });
     }
 

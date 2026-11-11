@@ -1,4 +1,5 @@
 (() => {
+    const camposInicializados = new WeakSet();
     const modelos = [
         {
             nome: "Bambu Lab A1 mini",
@@ -93,8 +94,8 @@
 
     function inicializarModelos() {
         document.querySelectorAll("#modelo[list='modelosBambu']").forEach(campo => {
-            if (campo.dataset.catalogoInicializado === "true") return;
-            campo.dataset.catalogoInicializado = "true";
+            if (camposInicializados.has(campo)) return;
+            camposInicializados.add(campo);
             const aviso = document.getElementById("referenciaPotenciaFabricante");
             const campoPotencia = document.getElementById("potenciaWatts");
             const dadosTecnicos = document.getElementById("dadosTecnicosImpressora");
@@ -105,8 +106,7 @@
             });
 
             campo.addEventListener("input", () => {
-                if (dadosTecnicos) dadosTecnicos.hidden = !campo.value.trim()
-                    && !dadosTecnicos.querySelector(".erro-campo");
+                if (dadosTecnicos) dadosTecnicos.hidden = !campo.value.trim();
                 if (aviso) aviso.replaceChildren();
                 const modelo = modelos.find(item => item.nome.toLocaleLowerCase("pt-BR") === campo.value.trim().toLocaleLowerCase("pt-BR"));
                 const valorCatalogoAnterior = campoPotencia?.dataset.valorCatalogo;

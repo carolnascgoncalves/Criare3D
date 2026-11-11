@@ -4,11 +4,11 @@ package br.com.criare3d.dto;
 import br.com.criare3d.models.Impressora;
 import br.com.criare3d.models.Peca;
 import jakarta.persistence.Column;
+import jakarta.validation.GroupSequence;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import jakarta.validation.constraints.AssertTrue;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,20 +16,24 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@GroupSequence({ImpressoraRequest.ModeloSelecionado.class, ImpressoraRequest.class, ImpressoraRequest.DadosTecnicos.class})
 public class ImpressoraRequest {
+    public interface ModeloSelecionado {}
+    public interface DadosTecnicos {}
+
     @NotBlank(message="O nome da impressora é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
     @Column(name= "nome_imp", nullable = false, length = 150)
     private @Getter @Setter String nome;
 
-    @NotBlank(message="O modelo da impressora é obrigatório")
-    @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
+    @NotBlank(message="Selecione ou informe o modelo da impressora.", groups = ModeloSelecionado.class)
+    @Size(min = 2, max = 150, message = "O modelo deve ter entre 2 e 150 caracteres.", groups = ModeloSelecionado.class)
     @Column(name="modelo_imp", nullable = false, length = 150)
     private @Getter @Setter String modelo;
 
-    @NotNull(message = "A potencia da impressora é obrigatória")
+    @NotNull(message = "A potência da impressora é obrigatória", groups = DadosTecnicos.class)
     @Column(name="potencia_imp", nullable = false, precision = 10, scale = 2)
-    @DecimalMin(value = "0.0", message = "A potência não pode ser negativa.")
+    @DecimalMin(value = "0.0", message = "A potência não pode ser negativa.", groups = DadosTecnicos.class)
     private @Getter @Setter BigDecimal potenciaWatts;
 
     @DecimalMin(value = "0.0", message = "O valor de compra não pode ser negativo")
@@ -55,14 +59,6 @@ public class ImpressoraRequest {
     @jakarta.validation.constraints.Max(value = 10000, message = "O aquecimento deve ser de até 10.000 minutos.")
     @Builder.Default
     private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
-
-    @AssertTrue(message = "Para usar o cálculo antigo, informe também as horas estimadas da impressora.")
-    public boolean isDadosDepreciacaoValidos() {
-        boolean taxaValida = depreciacaoPorHora == null || depreciacaoPorHora.signum() >= 0;
-        boolean dadosLegadosValidos = depreciacaoPorHora != null || valorCompra == null
-                || (vidaUtilHoras != null && vidaUtilHoras.signum() > 0);
-        return taxaValida && dadosLegadosValidos;
-    }
 
     public static ImpressoraRequest toDto(final Impressora impressora){
         return ImpressoraRequest.builder()

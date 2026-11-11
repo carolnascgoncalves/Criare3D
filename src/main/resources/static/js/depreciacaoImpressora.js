@@ -46,8 +46,9 @@
     async function buscarReferencia() {
         const valorModelo = modelo.value.trim();
         if (valorModelo.length < 2) {
-            aviso.textContent = "Informe o modelo da impressora para buscar anúncios compatíveis.";
-            aviso.hidden = false;
+            aviso.hidden = true;
+            window.mostrarNotificacao?.("Selecione ou informe o modelo da impressora.", "erro");
+            window.validacaoInline?.destacar(modelo);
             return;
         }
         botao.disabled = true;
@@ -90,8 +91,8 @@
             aviso.hidden = false;
         } catch (erro) {
             if (erro.name === "AbortError") return;
-            aviso.textContent = erro.message || "Não foi possível consultar o Mercado Livre agora.";
-            aviso.hidden = false;
+            aviso.hidden = true;
+            window.mostrarNotificacao?.(erro.message || "Não foi possível consultar o Mercado Livre agora.", "erro");
         } finally {
             botao.disabled = false;
             botao.innerHTML = '<i class="bi bi-search"></i> Buscar referência de preços';

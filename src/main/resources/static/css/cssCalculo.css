@@ -2333,22 +2333,22 @@ input[type="search"] {
 }
 
 /* Mantém o campo Modelo da impressora no padrão visual do Criare 3D */
-#modelo {
+#modelo:not(.campo-erro-temporario) {
     background-color: var(--superficie);
     color: var(--marrom);
     border: 1px solid var(--borda);
 }
 
-#modelo:focus {
+#modelo:not(.campo-erro-temporario):focus {
     background-color: var(--superficie);
     border-color: var(--destaque);
     outline: none;
     box-shadow: 0 0 0 3px rgba(233, 166, 149, 0.2);
 }
 
-#modelo:-webkit-autofill,
-#modelo:-webkit-autofill:hover,
-#modelo:-webkit-autofill:focus {
+#modelo:not(.campo-erro-temporario):-webkit-autofill,
+#modelo:not(.campo-erro-temporario):-webkit-autofill:hover,
+#modelo:not(.campo-erro-temporario):-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0 1000px var(--superficie) inset !important;
     -webkit-text-fill-color: var(--marrom);
 }
@@ -3919,13 +3919,7 @@ main.pagina:has(> .cartao form.busca-filamentos) .vendas-filtros > .botao {
     #paginaResultado .pagina-intro { display: block !important; margin-bottom: 16px; }
     #paginaResultado { width: 100%; margin: 0; padding: 0; }
     #paginaResultado > .cartao { overflow: visible; border: 0; box-shadow: none; }
-    #paginaResultado .formulario-conteudo { padding: 0; }
-    #paginaResultado .resultado-conteudo-layout { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    #paginaResultado .resumo-peca { max-width: 180px; max-height: 180px; margin: 0; }
-    #paginaResultado .resultado-foto-peca { max-height: 180px; object-fit: contain; }
-    #paginaResultado .resultado-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    #paginaResultado .resultado-item { min-height: 0; padding: 10px; gap: 4px; font-size: 10pt; }
-    #paginaResultado .preco-sugerido { padding: 10px; margin: 0; }
+    #paginaResultado .formulario-conteudo { padding: 12px 0; }
     #paginaResultado .resumo-lote { box-shadow: none; break-inside: avoid; }
     #paginaResultado .resultado-item,
     #paginaResultado .resumo-lote-item { break-inside: avoid; }

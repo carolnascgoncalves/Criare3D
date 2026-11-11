@@ -82,6 +82,16 @@
     document.addEventListener('submit', evento => {
         const form = evento.target;
         if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post' || form.id === 'formCalculo') return;
+        const modeloImpressora = form.querySelector('#modelo[list="modelosBambu"]');
+        if (modeloImpressora && modeloImpressora.value.trim().length < 2) {
+            evento.preventDefault();
+            destacar(modeloImpressora);
+            const nomeImpressora = form.querySelector('#nome');
+            if (nomeImpressora && !nomeImpressora.validity.valid) destacar(nomeImpressora);
+            avisar('Selecione ou informe o modelo da impressora.');
+            modeloImpressora.focus();
+            return;
+        }
         const invalidos = [...form.elements].filter(campo => campo.willValidate && !validar(campo, false));
         if (!invalidos.length) return;
         evento.preventDefault();
@@ -99,6 +109,6 @@
     document.addEventListener('change', editar);
     document.addEventListener('DOMContentLoaded', inicializar);
     document.addEventListener('turbo:load', inicializar);
-    window.validacaoInline = { validar, limpar, destacar };
+    window.validacaoInline = { validar, limpar, destacar, focar: campo => visual(campo).focus() };
     if (document.readyState !== 'loading') inicializar();
 })();

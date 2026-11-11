@@ -21,8 +21,8 @@
     --texto-sobre-destaque: var(--cor-primaria);
     --texto-sobre-primaria: var(--cor-fundo);
     --cor-erro: #a23c37;
-    --fundo-erro: color-mix(in srgb, var(--cor-erro) 6%, var(--cor-fundo));
-    --borda-erro: color-mix(in srgb, var(--cor-erro) 28%, var(--cor-fundo));
+    --fundo-erro: color-mix(in srgb, var(--cor-erro) 10%, white);
+    --borda-erro: color-mix(in srgb, var(--cor-erro) 28%, white);
     --cor-sucesso: #27613a;
     --fundo-sucesso: color-mix(in srgb, var(--cor-sucesso) 8%, var(--cor-fundo));
     --borda-sucesso: color-mix(in srgb, var(--cor-sucesso) 28%, var(--cor-fundo));
@@ -1437,14 +1437,6 @@ tr:nth-child(even) {
     background: var(--fundo);
 }
 
-.alerta-erro {
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background: #ffe5e5;
-    color: #a40000;
-}
-
 .alerta-sucesso {
     padding: 12px;
     margin-bottom: 15px;
@@ -1947,13 +1939,14 @@ tr:nth-child(even) {
         width: 100%;
     }
 }
-.alerta-erro {
+.alerta-erro,
+.alert-danger {
     margin-bottom: 20px;
     padding: 15px 18px;
-    border: 1px solid var(--destaque-escuro);
+    border: 1px solid var(--borda-erro);
     border-radius: 10px;
-    background: var(--destaque-suave);
-    color: #7c3027;
+    background: var(--fundo-erro);
+    color: var(--cor-erro);
 }
 
 .alerta-sucesso {
@@ -4021,6 +4014,7 @@ body.menu-lateral-recolhido .menu-lateral-rodape .menu-configuracoes { width: 44
 .campo .sim-seletor-busca input:focus { border: 0; outline: 0; box-shadow: none; }
 .sim-seletor-busca:focus-within { border-color: var(--destaque); }
 .campo input.campo-erro-temporario,
+.campo input.campo-erro-temporario:focus,
 .campo select.campo-erro-temporario,
 .campo textarea.campo-erro-temporario,
 .campo .campo-erro-temporario,
@@ -4029,6 +4023,9 @@ body.menu-lateral-recolhido .menu-lateral-rodape .menu-configuracoes { width: 44
     background-color: var(--fundo-erro);
     box-shadow: 0 0 0 2px var(--borda-erro);
     outline-color: var(--cor-erro);
+}
+input.campo-erro-temporario:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px var(--fundo-erro) inset;
 }
 .peca-lista-item.item-exclusao-falhou {
     border-color: var(--cor-erro);

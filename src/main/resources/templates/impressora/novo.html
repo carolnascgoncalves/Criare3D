@@ -40,7 +40,7 @@
 
                 <div class="campo">
                     <label for="nome">Nome da impressora</label>
-                    <input type="text" id="nome" th:field="*{nome}">
+                    <input type="text" id="nome" th:field="*{nome}" required minlength="2" maxlength="150">
 
                     <div class="erro-campo"
                          th:if="${#fields.hasErrors('nome')}"
@@ -49,7 +49,7 @@
 
                 <div class="campo">
                     <label for="modelo">Modelo</label>
-                    <input type="text" id="modelo" th:field="*{modelo}" list="modelosBambu" autocomplete="off">
+                    <input type="text" id="modelo" th:field="*{modelo}" required minlength="2" maxlength="150" data-mensagem-obrigatoria="Selecione ou informe o modelo da impressora." list="modelosBambu" autocomplete="off">
                     <datalist id="modelosBambu">
                         <option value="Bambu Lab A1 mini"></option><option value="Bambu Lab A1"></option>
                         <option value="Bambu Lab P1P"></option><option value="Bambu Lab P1S"></option>
@@ -66,12 +66,12 @@
                          th:errors="*{modelo}"></div>
                 </div>
 
-                <div class="dados-tecnicos-impressora" id="dadosTecnicosImpressora" th:hidden="${#strings.isEmpty(impressora.modelo) and !#fields.hasErrors('potenciaWatts') and !#fields.hasErrors('tempoAquecimentoMinutos')}">
+                <div class="dados-tecnicos-impressora" id="dadosTecnicosImpressora" th:hidden="${#strings.isEmpty(impressora.modelo)}">
                 <div class="campo">
                     <label for="potenciaWatts">Potência média durante a impressão (W)</label>
                     <input type="number"
                            id="potenciaWatts"
-                           th:field="*{potenciaWatts}"
+                           th:field="*{potenciaWatts}" required
                            step="0.01"
                            min="0">
                     <small>Este valor é usado no cálculo de energia. Se o fabricante informar apenas a potência máxima, use uma medição ou uma estimativa própria; não use o limite máximo como média.</small>
@@ -90,7 +90,7 @@
                 </div>
                 </div>
 
-                <details class="depreciacao-impressora-detalhes" data-estimativa-depreciacao th:open="${#fields.hasErrors('vidaUtilHoras') or #fields.hasErrors('horasMensaisUso') or #fields.hasErrors('depreciacaoPorHora') or #fields.hasErrors('dadosDepreciacaoValidos') or #fields.hasErrors('valorCompra')}">
+                <details class="depreciacao-impressora-detalhes" data-estimativa-depreciacao th:open="${#fields.hasErrors('vidaUtilHoras') or #fields.hasErrors('horasMensaisUso') or #fields.hasErrors('depreciacaoPorHora') or #fields.hasErrors('valorCompra')}">
                 <summary>Depreciação da impressora</summary>
                 <div class="grupo-custo-impressora">
                 <div class="campo">
@@ -101,7 +101,7 @@
                 </div>
                 <div class="campo">
                     <label for="horasMensaisUso">Horas de impressão estimadas por mês</label>
-                    <input type="number" id="horasMensaisUso" th:field="*{horasMensaisUso}" min="0" step="0.1" placeholder="Preenchido com o histórico ou 100 h">
+                    <input type="number" id="horasMensaisUso" th:field="*{horasMensaisUso}" min="0" step="0.01" placeholder="Preenchido com o histórico ou 100 h">
                     <input type="hidden" id="horasMensaisManual" th:field="*{horasMensaisManual}">
                     <small id="custoDepreciacaoMensal">A estimativa mensal aparecerá junto com a referência de preços.</small>
                 </div>
@@ -115,7 +115,6 @@
                     <small id="referenciaDepreciacaoResumo" class="referencia-modelo-impressora" hidden></small>
                     <small id="referenciaDepreciacaoMensagem" class="referencia-modelo-impressora" role="status" hidden></small>
                     <div class="erro-campo" th:if="${#fields.hasErrors('depreciacaoPorHora')}" th:errors="*{depreciacaoPorHora}"></div>
-                    <div class="erro-campo" th:if="${#fields.hasErrors('dadosDepreciacaoValidos')}" th:errors="*{dadosDepreciacaoValidos}"></div>
                     <input type="hidden" id="depreciacaoOrigem" th:field="*{depreciacaoOrigem}">
                     <input type="hidden" id="anunciosNovos" th:field="*{anunciosNovos}">
                     <input type="hidden" id="anunciosUsados" th:field="*{anunciosUsados}">

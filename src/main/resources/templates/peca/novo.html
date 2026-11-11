@@ -83,7 +83,7 @@
 
                 <div class="campo">
                     <label for="categoria">Categoria</label>
-                    <input type="text" id="categoria" th:field="*{categoria}" list="categoriasPeca" maxlength="60" placeholder="Escolha ou digite uma categoria">
+                    <input type="text" id="categoria" th:field="*{categoria}" required list="categoriasPeca" maxlength="60" placeholder="Escolha ou digite uma categoria">
                     <datalist id="categoriasPeca">
                         <option value="Decoração"></option><option value="Utilidades"></option><option value="Organização"></option><option value="Brinquedos"></option>
                         <option value="Miniaturas"></option><option value="Acessórios"></option><option value="Casa"></option><option value="Outros"></option>

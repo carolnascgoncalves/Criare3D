@@ -108,7 +108,7 @@ test('formulário inválido emite um único aviso e destaca todos os campos por 
   constructor(){this.type='text';this.disabled=false;this.willValidate=true;this.validity={valid:false,valueMissing:true};this.dataset={};this.attrs={};this.classes=new Set();this.classList={contains:c=>this.classes.has(c),add:c=>this.classes.add(c),remove:c=>this.classes.delete(c)};}
   closest(){return null;}setAttribute(k,v){this.attrs[k]=v;}removeAttribute(k){delete this.attrs[k];}focus(){this.focado=true;}
  }
- class Form {constructor(){this.method='post';this.elements=[new Campo(),new Campo()];}}
+ class Form {constructor(){this.method='post';this.elements=[new Campo(),new Campo()];}querySelector(){return null;}}
  const form=new Form();
  const document={readyState:'loading',querySelectorAll:s=>s==='form'?[form]:[],addEventListener:(n,f)=>eventos[n]=f};
  vm.runInNewContext(script('validacaoInline.js'),{document,window:{mostrarNotificacao:(...a)=>avisos.push(a)},HTMLFormElement:Form,WeakMap,Set,queueMicrotask,setTimeout:(fn,ms)=>{timers.push({fn,ms});return timers.length;},clearTimeout(){}});
@@ -130,20 +130,6 @@ test('erro de validação do servidor aparece no topo em vez de abaixo do campo'
  assert.equal(erro.hidden,true);assert.equal(classes.has('campo-erro-temporario'),true);assert.match(avisos[0],/nome da peça é obrigatório/);
 });
 
-test('seletor identifica Hoje, Ontem e datas antigas sem inventar datas ausentes',()=>{
- const eventos={};const root={querySelector:()=>({})};
- const document={readyState:'loading',querySelector:()=>root,getElementById:()=>({}),addEventListener:(n,f)=>eventos[n]=f};
- const context={document,window:{},WeakSet,Date};vm.createContext(context);
- const source=script('pecaSeletor.js').replace('        const resumo = opcao =>','        globalThis.api = {dataCadastro, imagem}; return;\n        const resumo = opcao =>');
- vm.runInContext(source,context);eventos.DOMContentLoaded();
- const key=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
- const hoje=new Date(),ontem=new Date(hoje);ontem.setDate(ontem.getDate()-1);
- assert.equal(context.api.dataCadastro({dataset:{dataCadastro:key(hoje)}}),'Hoje');
- assert.equal(context.api.dataCadastro({dataset:{dataCadastro:key(ontem)}}),'Ontem');
- assert.equal(context.api.dataCadastro({dataset:{dataCadastro:'2020-02-01'}}),'01/02/2020');
- assert.equal(context.api.dataCadastro({dataset:{}}),'Data não registrada');
-});
-
 test('seletor utiliza a miniatura salva e mantém ícone quando não há imagem',()=>{
  const eventos={};const root={querySelector:()=>({})};
  const document={readyState:'loading',querySelector:()=>root,getElementById:()=>({}),addEventListener:(n,f)=>eventos[n]=f,createElement:tag=>({tag,addEventListener(){}})};
@@ -152,4 +138,63 @@ test('seletor utiliza a miniatura salva e mantém ícone quando não há imagem'
  const foto=context.api.imagem({dataset:{fotoUrl:'/peca/1/arquivo/placa/1'}});
  assert.equal(foto.tag,'img');assert.equal(foto.src,'/peca/1/arquivo/placa/1');
  assert.equal(context.api.imagem({dataset:{}}).className,'sim-seletor-sem-foto');
+});
+
+test('avisos de erro de chamadas separadas substituem o anterior',()=>{
+ const avisos=[];
+ const main={prepend:n=>avisos.unshift(n)};
+ function criar(){const e={dataset:{},style:{},className:'',setAttribute(){},getBoundingClientRect:()=>({height:50}),remove(){const i=avisos.indexOf(e);if(i>=0)avisos.splice(i,1);}};e.classList={contains:c=>e.className.split(' ').includes(c),add(){}};return e;}
+ const document={querySelector:s=>s==='main.pagina'?main:{getBoundingClientRect:()=>({right:64})},querySelectorAll:s=>s.includes('alerta-erro')?avisos.filter(n=>n.classList.contains('alerta-erro')):s==='.notificacao-flutuante'?[...avisos]:[],createElement:criar,addEventListener(){}};
+ const window={innerWidth:320,location:{search:''},setTimeout(){},addEventListener(){}};
+ vm.runInNewContext(script('notificacoes.js'),{document,window,URLSearchParams});
+ window.mostrarNotificacao('Preencha o nome.');window.mostrarNotificacao('Preencha o modelo.');window.mostrarNotificacao('Preencha a potência.');
+ assert.equal(avisos.length,1);assert.equal(avisos[0].textContent,'Preencha a potência.');
+});
+
+test('erro na peça não impede abrir e reabrir o seletor',async()=>{
+ const eventos={},observadores=[];
+ class E extends Node {
+  constructor(){super();this.dataset={};this.attrs={};this.listeners={};this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),contains:c=>this.classes.has(c)};this.hidden=false;this.disabled=false;this.value='';}
+  addEventListener(n,f){(this.listeners[n]??=[]).push(f);}
+  fire(n,e={}){(this.listeners[n]||[]).forEach(f=>f(e));}
+  setAttribute(n,v){this.attrs[n]=v;for(const o of observadores)if(o.target===this&&o.options.attributeFilter.includes(n))o.fn();}
+  removeAttribute(n){delete this.attrs[n];for(const o of observadores)if(o.target===this&&o.options.attributeFilter.includes(n))o.fn();}
+  getAttribute(n){return this.attrs[n]??null;}
+  get childElementCount(){return this.children.length;}
+  focus(){this.focado=true;}
+ }
+ const select=new E();select.type='select-one';select.validity={valid:false,valueMissing:true};select.options=[{value:'',textContent:'Escolha',dataset:{}},{value:'a',textContent:'Peça A',dataset:{gramas:'10',tempo:'20'}}];select.selectedOptions=[select.options[0]];
+ const root=new E(),abrir=new E(),painel=new E(),busca=new E(),lista=new E(),vazio=new E();painel.hidden=true;let icone=new E();icone.replaceWith=n=>{icone=n;icone.replaceWith=()=>{};};abrir.querySelector=()=>icone;
+ const nodes={'[data-peca-abrir]':abrir,'[data-peca-painel]':painel,'[data-peca-busca]':busca,'[data-peca-lista]':lista,'[data-peca-vazio]':vazio,'[data-peca-nome]':new E(),'[data-peca-resumo]':new E(),'[data-peca-cadastrar]':new E()};
+ root.querySelector=s=>nodes[s]||null;root.contains=()=>true;
+ select.closest=s=>s==='.campo'?{querySelector:q=>q==='.sim-seletor-abrir'?abrir:null}:null;
+ const document={readyState:'loading',querySelector:()=>root,getElementById:()=>select,querySelectorAll:()=>[],createElement:()=>new E(),createDocumentFragment:()=>Object.assign(new E(),{fragment:true}),addEventListener:(n,f)=>(eventos[n]??=[]).push(f)};
+ class Observer {constructor(fn){this.fn=fn;observadores.push(this);}observe(target,options){this.target=target;this.options=options;}}
+ const window={mostrarNotificacao(){}};
+ const context={document,window,MutationObserver:Observer,WeakMap,WeakSet,Set,queueMicrotask,setTimeout(){},clearTimeout(){},Event};vm.createContext(context);
+ vm.runInContext(script('validacaoInline.js'),context);vm.runInContext(script('pecaSeletor.js'),context);
+ eventos.DOMContentLoaded.forEach(f=>f());
+ window.validacaoInline.validar(select);window.validacaoInline.focar(select);await Promise.resolve();
+ assert.equal(abrir.disabled,false);assert.equal(abrir.focado,true);assert.equal(select.focado,undefined);
+ abrir.fire('click');assert.equal(painel.hidden,false);
+ abrir.fire('click');assert.equal(painel.hidden,true);
+ abrir.fire('click');assert.equal(painel.hidden,false);
+ assert.deepEqual(Array.from(observadores[0].options.attributeFilter),['disabled']);
+});
+
+test('cadastro de impressora valida modelo antes de acessar potência oculta',async()=>{
+ const eventos={},avisos=[];
+ function campo(){const classes=new Set();return {value:'',dataset:{},type:'text',willValidate:true,validity:{valid:false,valueMissing:true},classList:{contains:()=>false,add:c=>classes.add(c),remove:c=>classes.delete(c)},classes,setAttribute(){},removeAttribute(){},focus(){},closest:()=>null};}
+ const nome=campo(),modelo=campo(),potencia=campo();
+ class Form {constructor(){this.method='post';this.elements=[nome,modelo,potencia];}querySelector(s){return s==='#nome'?nome:modelo;}}
+ const form=new Form(),document={readyState:'loading',querySelectorAll:s=>s==='form'?[form]:[],addEventListener:(n,f)=>eventos[n]=f};
+ const context={document,window:{mostrarNotificacao:m=>avisos.push(m)},HTMLFormElement:Form,WeakMap,Set,queueMicrotask,setTimeout(){},clearTimeout(){}};
+ vm.runInNewContext(script('validacaoInline.js'),context);eventos.DOMContentLoaded();
+ eventos.submit({target:form,preventDefault(){}});await Promise.resolve();
+ assert.match(avisos[0],/modelo da impressora/);assert.equal(modelo.classes.has('campo-erro-temporario'),true);assert.equal(potencia.classes.size,0);
+ assert.equal(nome.classes.has('campo-erro-temporario'),true);
+ nome.value='Minha impressora';nome.validity={valid:true};
+ modelo.value='Outro modelo';modelo.validity={valid:true};
+ eventos.submit({target:form,preventDefault(){}});await Promise.resolve();
+ assert.equal(potencia.classes.has('campo-erro-temporario'),true);
 });

@@ -13,18 +13,6 @@
         const busca = root.querySelector('[data-peca-busca]');
         const lista = root.querySelector('[data-peca-lista]');
         const vazio = root.querySelector('[data-peca-vazio]');
-        function dataCadastro(opcao) {
-            const valor = opcao.dataset.dataCadastro;
-            if (!valor) return 'Data não registrada';
-            const data = new Date(valor + 'T12:00:00');
-            if (Number.isNaN(data.getTime())) return 'Data não registrada';
-            const hoje = new Date();
-            const ontem = new Date(hoje); ontem.setDate(ontem.getDate() - 1);
-            const mesmoDia = dia => dia.getFullYear() === data.getFullYear() && dia.getMonth() === data.getMonth() && dia.getDate() === data.getDate();
-            if (mesmoDia(hoje)) return 'Hoje';
-            if (mesmoDia(ontem)) return 'Ontem';
-            return data.toLocaleDateString('pt-BR');
-        }
         function imagem(opcao) {
             const fallback = () => {
                 const icone = document.createElement('span');
@@ -41,7 +29,7 @@
             foto.addEventListener('error', () => foto.replaceWith(fallback()), { once: true });
             return foto;
         }
-        const resumo = opcao => `${numero(opcao.dataset.gramas)} g · ${numero(opcao.dataset.tempo)} min${opcao.dataset.temArquivo === 'true' ? ' · Arquivo fatiado' : ''} · ${dataCadastro(opcao)}`;
+        const resumo = opcao => `${numero(opcao.dataset.gramas)} g · ${numero(opcao.dataset.tempo)} min${opcao.dataset.temArquivo === 'true' ? ' · Arquivo fatiado' : ''}`;
         const fechar = () => { painel.hidden = true; abrir.setAttribute('aria-expanded', 'false'); };
         function atualizar() {
             const opcao = select.selectedOptions[0];
@@ -49,7 +37,6 @@
             root.querySelector('[data-peca-resumo]').textContent = select.value ? resumo(opcao) : 'Busque no catálogo';
             abrir.querySelector('.sim-seletor-sem-foto, .sim-seletor-foto')?.replaceWith(imagem(select.value ? opcao : null));
             abrir.disabled = select.disabled;
-            abrir.setAttribute('aria-invalid', String(select.getAttribute('aria-invalid') === 'true'));
         }
         function renderizar() {
             const termo = normalizar(busca.value.trim());
@@ -110,9 +97,8 @@
         select.addEventListener('change', atualizar);
         select.addEventListener('pecaSelecionada', atualizar);
         select.addEventListener('focus', () => abrir.focus());
-        select.addEventListener('invalid', event => { event.preventDefault(); abrir.setAttribute('aria-invalid', 'true'); });
-        const observador = new MutationObserver(atualizar);
-        observador.observe(select, { attributes: true, attributeFilter: ['disabled', 'aria-invalid'] });
+        const observador = new MutationObserver(() => { abrir.disabled = select.disabled; });
+        observador.observe(select, { attributes: true, attributeFilter: ['disabled'] });
         select.classList.add('sim-seletor-nativo');
         select.tabIndex = -1;
         select.setAttribute('aria-hidden', 'true');

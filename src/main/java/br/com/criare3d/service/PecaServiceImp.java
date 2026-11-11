@@ -82,6 +82,9 @@ public class PecaServiceImp implements PecaService {
             if (patch.getNome() != null)
                 existing.setNome(patch.getNome());
 
+            if (patch.getCategoria() != null)
+                existing.setCategoria(patch.getCategoria());
+
             if (patch.getQuantidadeFilamentoGramas() != null)
                 existing.setQuantidadeFilamentoGramas(patch.getQuantidadeFilamentoGramas());
 
