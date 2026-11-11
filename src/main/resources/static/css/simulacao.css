@@ -1,9 +1,11 @@
 .pagina-simulacao { width: min(1320px, calc(100% - 48px)); }
-.sim-layout { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
-.sim-form, .sim-palco { display: grid; gap: 18px; padding: 24px; }
+.sim-layout { display: grid; min-width: 0; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.sim-form, .sim-palco { display: grid; min-width: 0; gap: 18px; padding: 24px; }
 .sim-form { overflow: visible; }
 .sim-form > .campo { margin: 0; }
-.sim-par { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sim-par { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; }
+.sim-par > .campo { display: grid; grid-template-rows: 1fr auto; align-self: stretch; min-width: 0; }
+.sim-par > .campo > label { align-self: end; }
 .sim-dica { margin: -10px 0 0; color: var(--marrom-claro); font-size: 13px; line-height: 1.5; }
 .sim-dica-historico { margin: 8px 0 0; }
 .sim-link { justify-self: start; padding: 0; border: 0; background: none; color: var(--marrom); font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
@@ -55,7 +57,7 @@
 .sim-relogio small { flex-basis: 100%; color: var(--marrom-claro); font-size: 13px; font-weight: 600; }
 .sim-relogio-data { color: var(--marrom); font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.02em; }
 .sim-relogio-hora { color: var(--marrom); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.sim-cena { display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 20px; align-items: center; }
+.sim-cena { display: grid; min-width: 0; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: 20px; align-items: center; }
 .sim-mesa { width: 100%; height: auto; border: 1px solid var(--borda); border-radius: 14px; background: var(--fundo-suave); }
 .sim-placa { fill: var(--marrom); }
 .sim-objeto-fantasma { fill: var(--destaque-suave); stroke: var(--borda); stroke-width: 1; }
@@ -98,8 +100,8 @@
 .sim-pronto-em { font-size: clamp(24px, 3.6vw, 34px); font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
 .sim-resultado p { margin: 0; font-size: 14px; }
 .sim-resultado .sim-aviso { margin-top: 6px; font-size: 12.5px; color: color-mix(in srgb, var(--texto-sobre-primaria) 72%, var(--marrom)); }
-@media (max-width: 900px) { .sim-layout { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .sim-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 700px) { .sim-plano-linha { grid-template-columns: 1fr; gap: 4px; } }
-@media (max-width: 560px) { .pagina-simulacao { width: calc(100% - 32px); } .sim-form, .sim-palco { padding: 18px; } .sim-cena { grid-template-columns: 1fr; } .sim-metricas { grid-template-columns: repeat(3, 1fr); } .sim-plano-cabecalho { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 560px) { .pagina-simulacao { width: calc(100% - 32px); } .sim-form, .sim-palco { padding: 18px; } .sim-cena { grid-template-columns: minmax(0, 1fr); } .sim-metricas { grid-template-columns: repeat(3, minmax(0, 1fr)); overflow-wrap: anywhere; } .sim-plano-cabecalho { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 480px) { .sim-seletor-item { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; padding-inline: 4px; } .sim-seletor-foto, .sim-seletor-sem-foto { width: 44px; height: 44px; } .sim-seletor-horario { grid-column: 2; margin-top: -4px; } .sim-seletor-foto-selecionada { flex-basis: 44px; } }
 @media (prefers-reduced-motion: reduce) { .sim-bloco-fill { transition: none !important; } }
