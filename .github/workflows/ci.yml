@@ -23,5 +23,68 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Testes JavaScript
+        run: node --test src/test/js/*.test.cjs
+
       - name: Executar testes e empacotar
         run: mvn -B -ntp clean verify
+
+  browser:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: criare3d_e2e
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 15
+    env:
+      DB_URL: jdbc:postgresql://127.0.0.1:5432/criare3d_e2e
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      ADMIN_EMAIL: admin-e2e@example.test
+      ADMIN_PASSWORD: E2eAdminSenha123!
+      PORT: '8081'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: mvn -B -ntp -DskipTests package
+      - name: Iniciar aplicação de teste
+        run: |
+          java -jar target/criare3d-0.0.1-SNAPSHOT.jar > target/e2e-app.log 2>&1 &
+          for tentativa in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8081/login > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat target/e2e-app.log
+          exit 1
+      - name: Criar dados descartáveis
+        run: docker exec -i ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U postgres -d criare3d_e2e < src/test/e2e/seed.sql
+      - run: npm run test:e2e
+      - name: Guardar evidências
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-results
+          path: |
+            playwright-report/
+            test-results/
+            target/e2e-app.log

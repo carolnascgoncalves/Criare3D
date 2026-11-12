@@ -48,6 +48,8 @@ public interface CalculoHistoricoService {
     String registrarVendasEmLote(Collection<UUID> ids, Integer unidadesPorLote);
     String registrarVenda(UUID id, Integer unidades);
     String cancelarVendas(UUID id);
+    String registrarVenda(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas);
+    String cancelarVenda(UUID id, UUID vendaId, Integer unidades);
     CalculoHistorico calcular(CalculoRequest request);
     CalculoHistorico calcularComPrecoFixo(CalculoRequest request, BigDecimal precoVenda);
     List<HistoricoExportacaoResponse> exportarHistorico();

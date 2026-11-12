@@ -14,4 +14,8 @@ public interface EmbalagemRepository extends JpaRepository<Embalagem, UUID> {
     List<Embalagem> findAllByIdIn(Collection<UUID> ids);
 
     Page<Embalagem> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+    Page<Embalagem> findByArquivadoFalse(Pageable pageable);
+    Page<Embalagem> findByArquivadoTrue(Pageable pageable);
+    Page<Embalagem> findByNomeContainingIgnoreCaseAndArquivadoFalse(String nome, Pageable pageable);
+    long countByArquivadoFalse();
 }

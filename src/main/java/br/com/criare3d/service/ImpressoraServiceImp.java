@@ -92,12 +92,12 @@ public class ImpressoraServiceImp implements ImpressoraService {
 
     @Override
     public Page<Impressora> fetchAll(Pageable pageable) {
-        return impressoraRepository.findAll(pageable);
+        return impressoraRepository.findByArquivadoFalse(pageable);
     }
 
     @Override
     public long contar() {
-        return impressoraRepository.count();
+        return impressoraRepository.countByArquivadoFalse();
     }
 
     @Override

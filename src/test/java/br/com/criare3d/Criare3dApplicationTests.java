@@ -104,7 +104,7 @@ class Criare3dApplicationTests {
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
 				.forEach(tenant -> {
 					UUID tenantId = tenant.getId();
-					for (String tabela : java.util.List.of("calculo_foto", "item_calculo_historico",
+					for (String tabela : java.util.List.of("custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
 							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
 							"filamento", "impressora", "peca", "usuario")) {
 						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
@@ -317,6 +317,8 @@ class Criare3dApplicationTests {
 		calculo.setFornadas(3);
 		calculo.setLucroLiquido(new BigDecimal("25.00"));
 		calculoHistoricoRepository.saveAndFlush(calculo);
+        var vendaHistorica=new br.com.criare3d.models.VendaCalculo();vendaHistorica.setCalculo(calculo);
+        vendaHistorica.setUnidades(3);vendaHistorica.setDataVenda(dataVenda);vendaCalculoRepository.saveAndFlush(vendaHistorica);
 
 		try {
 		DashboardResumo resumoVenda = DashboardResumo.from(calculoHistoricoRepository.resumirDashboard(
@@ -339,7 +341,7 @@ class Criare3dApplicationTests {
 	}
 
 	@Test
-	void compraDeFilamentoSomaEstoqueEAtualizaPrecoDeReferencia() {
+	void compraDeFilamentoSomaEstoqueEAtualizaCustoMedioPonderado() {
 		Usuario usuario = criarUsuario("compra-" + UUID.randomUUID() + "@teste.local");
 		autenticarComo(usuario);
 		Filamento filamento = criarFilamento(usuario);
@@ -353,7 +355,9 @@ class Criare3dApplicationTests {
 			assertThat(filamentoService.registrarCompra(filamento.getId(), compra)).isTrue();
 			Filamento atualizado = filamentoService.fetchById(filamento.getId()).orElseThrow();
 			assertThat(atualizado.getEstoqueGramas()).isEqualByComparingTo("2000.00");
-			assertThat(atualizado.getPrecoRolo()).isEqualByComparingTo("95.50");
+			// 1.000 g a R$ 80,00 + 1.000 g a R$ 95,50: custo médio de R$ 87,75 por 1.000 g.
+			assertThat(atualizado.getPesoRoloGramas()).isEqualByComparingTo("1000");
+			assertThat(atualizado.getPrecoRolo()).isEqualByComparingTo("87.75");
 		} finally {
 			autenticarComo(usuario);
 			filamentoRepository.deleteById(filamento.getId());
@@ -465,6 +469,117 @@ class Criare3dApplicationTests {
 			usuarioRepository.deleteById(usuario.getId());
 		}
 	}
+
+    @Autowired private br.com.criare3d.repository.VendaCalculoRepository vendaCalculoRepository;
+    @Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
+    @Autowired private br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
+    @Autowired private br.com.criare3d.service.FalhaProducaoService falhaProducaoService;
+    @Autowired private br.com.criare3d.service.PlanejamentoProducaoService planejamentoProducaoService;
+
+    private CalculoHistorico criarLoteOperacao(Usuario usuario) {
+        var f = criarFilamento(usuario);
+        var impressora = impressoraRepository.saveAndFlush(Impressora.builder().nome("Impressora operação")
+                .modelo("Modelo teste").potenciaWatts(new BigDecimal("100")).usuario(usuario).build());
+        var peca = pecaRepository.saveAndFlush(Peca.builder().nome("Peça operação").categoria("Decoração")
+                .quantidadeFilamentoGramas(BigDecimal.TEN).tempoImpressaoMinutos(60L).usuario(usuario).build());
+        var c = criarCalculoHistorico(usuario);c.setUnidades(3);c.setFornadas(3);c.setFilamento(f);c.setImpressora(impressora);c.setPeca(peca);
+        c.setDataCalculo(LocalDateTime.now().minusMonths(6));c.setMinutosMaquinaLote(180L);c.setGramasTotaisLote(new BigDecimal("30"));
+        return calculoHistoricoRepository.saveAndFlush(c);
+    }
+    private void limparOperacao(Usuario usuario) {
+        UUID tenant=usuario.getTenant().getId();
+        for (String tabela : java.util.List.of("custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
+            jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?",tenant);
+        usuarioRepository.deleteById(usuario.getId());SecurityContextHolder.clearContext();tenantRepository.deleteById(tenant);
+    }
+    @Test
+    void producaoUsaDataRealENaoDataAntigaDoCalculo() {
+        var u=criarUsuario("producao-data-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
+            var salvo=calculoHistoricoRepository.findById(c.getId()).orElseThrow();
+            var agora=LocalDateTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
+            assertThat(salvo.getDataProducao()).isAfter(agora.minusMinutes(1));
+            var resumo=calculoHistoricoRepository.resumirDashboard(u.getTenant().getId(),agora.minusDays(1),agora.plusDays(1));
+            assertThat(resumo.getProduzidas().longValue()).isEqualTo(3L);
+        } finally {limparOperacao(u);}
+    }
+    @Test
+    void vendaParcialComPrecoRealECancelamentoPreservaAuditoria() {
+        var u=criarUsuario("venda-parcial-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            assertThat(calculoHistoricoService.registrarVenda(c.getId(),1)).isEqualTo("producaoNecessaria");
+            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
+            assertThat(calculoHistoricoService.registrarVenda(c.getId(),2,new BigDecimal("18"),new BigDecimal("2"),new BigDecimal("3"))).isEqualTo("ok");
+            var venda=vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(c.getId()).getFirst();
+            assertThat(calculoHistoricoService.cancelarVenda(c.getId(),venda.getId(),1)).isEqualTo("ok");
+            var ativa=vendaCalculoRepository.findById(venda.getId()).orElseThrow();
+            assertThat(ativa.getUnidadesAtivas()).isEqualTo(1);assertThat(ativa.getUnidadesCanceladas()).isEqualTo(1);
+            assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(1);
+            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),false)).isEqualTo("vendaAtiva");
+            var agora=LocalDateTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
+            assertThat(calculoHistoricoService.somarLucroVendidoEntre(agora.minusDays(1),agora.plusDays(1))).isEqualByComparingTo("10.12");
+        } finally {limparOperacao(u);}
+    }
+    @Test
+    void duasVendasSimultaneasNaoExcedemSaldoDoLote() throws Exception {
+        var u=criarUsuario("venda-concorrente-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            calculoHistoricoService.atualizarProduzido(c.getId(),true);
+            var iniciar=new java.util.concurrent.CountDownLatch(1);
+            try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+                java.util.concurrent.Callable<String> vender=() -> {
+                    autenticarComo(u);
+                    try {iniciar.await();return calculoHistoricoService.registrarVenda(c.getId(),2);}
+                    finally {SecurityContextHolder.clearContext();}
+                };
+                var a=pool.submit(vender);var b=pool.submit(vender);iniciar.countDown();
+                assertThat(java.util.List.of(a.get(15,java.util.concurrent.TimeUnit.SECONDS),b.get(15,java.util.concurrent.TimeUnit.SECONDS)))
+                        .containsExactlyInAnyOrder("ok","quantidadeVendaAcimaDisponivel");
+            }
+            assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(2);
+            assertThat(vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(c.getId())).hasSize(1);
+        } finally {limparOperacao(u);}
+    }
+    @Test
+    void perdaDeMaterialPodeSerCorrigidaSemAlterarUnidadesBoas() {
+        var u=criarUsuario("falha-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            falhaProducaoService.registrar(c.getId(),c.getFilamento().getId(),1,new BigDecimal("5"),10,"Tentativa extra");
+            assertThat(filamentoRepository.findById(c.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo("995");
+            var falha=falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(c.getId()).getFirst();
+            falhaProducaoService.cancelar(c.getId(),falha.getId());falhaProducaoService.cancelar(c.getId(),falha.getId());
+            assertThat(filamentoRepository.findById(c.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo("1000");
+            assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidades()).isEqualTo(3);
+        } finally {limparOperacao(u);}
+    }
+    @Test
+    void planejamentoEnfileiraNaMesmaImpressoraSemMovimentarEstoque() {
+        var u=criarUsuario("fila-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            var inicio=LocalDateTime.now().withNano(0).plusDays(1);
+            var a=planejamentoProducaoService.salvar(c.getId(),3,2,inicio,10,10);
+            var b=planejamentoProducaoService.salvar(c.getId(),3,2,inicio,10,10);
+            assertThat(b.getInicio()).isEqualTo(a.getFim());
+            assertThat(filamentoRepository.findById(c.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo("1000");
+            planejamentoProducaoService.cancelar(a.getId());
+            assertThat(planejamentoProducaoRepository.findById(b.getId()).orElseThrow().getInicio()).isEqualTo(b.getInicio());
+            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
+            assertThat(calculoHistoricoService.registrarVenda(c.getId(),3)).isEqualTo("ok");
+            assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+            assertThat(planejamentoProducaoRepository.findById(b.getId()).orElseThrow().isConcluido()).isTrue();
+        } finally {limparOperacao(u);}
+    }
+    @Test
+    void arquivarCadastroPreservaHistoricoESaiDasOpcoesAtivas() {
+        var u=criarUsuario("arquivo-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
+        try {
+            var p=pecaRepository.findById(c.getPeca().getId()).orElseThrow();p.setArquivado(true);pecaRepository.saveAndFlush(p);
+            assertThat(pecaRepository.findByArquivadoFalse(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+            assertThat(pecaRepository.findByArquivadoTrue(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
+            assertThat(calculoHistoricoRepository.findById(c.getId())).isPresent();
+        } finally {limparOperacao(u);}
+    }
 
 	private Usuario criarUsuario(String email) {
 		Tenant tenant = criarTenant("teste-" + UUID.randomUUID());

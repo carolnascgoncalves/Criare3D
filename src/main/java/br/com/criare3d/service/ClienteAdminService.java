@@ -163,6 +163,9 @@ public class ClienteAdminService {
 
         // Usa SQL explícito com tenant_id porque o ADMIN não possui tenant e o filtro
         // Hibernate @TenantId não deve ser desativado para executar esta operação.
+        jdbcTemplate.update("DELETE FROM custo_personalizado WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM planejamento_producao WHERE tenant_id = ?", id);
+        jdbcTemplate.update("DELETE FROM falha_producao WHERE tenant_id = ?", id);
         jdbcTemplate.update("DELETE FROM calculo_foto WHERE tenant_id = ?", id);
         jdbcTemplate.update("DELETE FROM item_calculo_historico WHERE tenant_id = ?", id);
         jdbcTemplate.update("DELETE FROM manutencao_impressora WHERE tenant_id = ?", id);

@@ -923,7 +923,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     gap: 8px;
     min-width: 0;
 }
@@ -968,7 +968,8 @@ a {
     white-space: nowrap;
 }
 
-.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados] {
+.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados],
+.lista-catalogo .controles-selecao-listagem [data-arquivar-selecionados] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -979,14 +980,19 @@ a {
     min-height: 38px;
     margin: 0;
     padding: 0;
-    border: 1px solid var(--borda-erro);
+    border: 1px solid var(--borda);
     border-radius: 10px;
-    background: var(--fundo-erro);
-    color: var(--cor-erro);
+    background: var(--fundo-suave);
+    color: var(--marrom);
+}
+.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados] {
+    border-color: var(--borda-erro); background: var(--fundo-erro); color: var(--cor-erro);
 }
 
+
 /* A regra de layout acima não deve sobrescrever o atributo HTML hidden. */
-.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados][hidden] {
+.lista-catalogo .controles-selecao-listagem [data-excluir-selecionados][hidden],
+.lista-catalogo .controles-selecao-listagem [data-arquivar-selecionados][hidden] {
     display: none !important;
 }
 
@@ -1047,7 +1053,8 @@ a {
         font-size: 0.85rem;
     }
 
-    .lista-catalogo .controles-selecao-listagem [data-excluir-selecionados] {
+    .lista-catalogo .controles-selecao-listagem [data-excluir-selecionados],
+    .lista-catalogo .controles-selecao-listagem [data-arquivar-selecionados] {
         flex-basis: 36px;
         width: 36px;
         min-width: 36px;
@@ -3637,9 +3644,11 @@ input[type="color"]:focus {
 .vendas-estoque-pagina .vendas-lote-foto { flex: 0 0 44px; width: 44px; height: 44px; border-radius: 11px; object-fit: cover; }
 .vendas-estoque-pagina .vendas-lote-sem-foto { display: grid; place-items: center; color: var(--cor-primaria, var(--marrom)); background: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 18%, white); font-size: 20px; }
 .vendas-estoque-pagina .vendas-lote-nome { display: grid; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.vendas-estoque-pagina .vendas-lote-titulo { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px; min-width:0; }
+.vendas-estoque-pagina .vendas-lote-titulo strong { white-space:normal; overflow-wrap:anywhere; }
 .vendas-estoque-pagina .vendas-lote-nome strong { overflow: hidden; color: var(--cor-primaria, var(--marrom)); text-overflow: ellipsis; white-space: nowrap; }
 .vendas-estoque-pagina .vendas-lote-nome small { color: var(--texto-secundario, var(--marrom-claro)); }
-.vendas-estoque-pagina .vendas-lote-icone { display: grid; place-items: center; flex: 0 0 36px; width: 36px; height: 36px; border: 1px solid var(--borda); border-radius: 9px; color: var(--cor-primaria, var(--marrom)); text-decoration: none; }
+.vendas-estoque-pagina .vendas-lote-icone { display: grid; place-items: center; flex: 0 0 32px; width: 32px; height: 32px; border: 1px solid var(--borda); border-radius: 9px; color: var(--cor-primaria, var(--marrom)); text-decoration: none; }
 .vendas-estoque-pagina .vendas-lote-dados,
 .vendas-estoque-pagina .vendas-lote-data { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; font-size: .88rem; }
 .vendas-estoque-pagina .vendas-lote-dados > span,
@@ -3680,8 +3689,8 @@ input[type="color"]:focus {
 
 .vendas-estoque-pagina .vendas-quantidade { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--texto-secundario, var(--marrom-claro)); font-size: .82rem; }
 .vendas-estoque-pagina .vendas-quantidade input { width: 76px; min-height: 40px; padding: 6px 8px; }
-.vendas-estoque-pagina .vendas-acao-individual:has(.vendas-quantidade) { display: flex; align-items: end; gap: 8px; }
-.vendas-estoque-pagina .vendas-acao-individual:has(.vendas-quantidade) .botao { flex: 1 1 auto; width: auto; }
+.vendas-estoque-pagina .vendas-acao-individual:has(.vendas-quantidade) { display: grid; grid-template-columns: minmax(0,1fr); gap: 8px; min-width:0; }
+.vendas-estoque-pagina .vendas-acao-individual:has(.vendas-quantidade) .botao { width:100%; min-width:0; white-space:normal; }
 .vendas-estoque-pagina .vendas-quantidade-lote { margin-right: auto; }
 .peca-categoria-chip { display: inline-flex; align-items: center; width: fit-content; padding: 5px 10px; border: 1px solid var(--borda); border-radius: 999px; background: color-mix(in srgb, var(--cor-fundo, var(--fundo)) 30%, white); color: var(--texto-secundario, var(--marrom-claro)); font-size: .84rem; font-weight: 600; }
 @media (max-width: 520px) {
@@ -3777,44 +3786,22 @@ input[type="color"]:focus {
     .vendas-estoque-pagina .vendas-grade-lotes { grid-template-columns: 1fr; }
 }
 
-/* Mantém as ações dos cartões de estoque tão organizadas quanto as de vendidos. */
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe-acoes {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 40px;
-    align-items: end;
-    gap: 8px;
-    min-width: 0;
+/* Ações dos lotes: uma ação por linha, com espaço próprio para a quantidade. */
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes {
+    display: grid; grid-template-columns: minmax(0, 1fr); align-items: stretch; gap: 8px; min-width: 0;
 }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe-acoes .vendas-acao-individual {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 7px;
-    min-width: 0;
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes > .botao,
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-acao-individual .botao {
+    width: 100%; min-width: 0; max-width: 100%; white-space: normal; margin: 0;
 }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-quantidade {
-    display: grid;
-    grid-template-columns: auto minmax(64px, 92px);
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    min-width: 0;
-    font-size: .8rem;
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-acao-individual {
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; width: 100%; min-width: 0;
 }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-quantidade input {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-quantidade {
+    display: grid; grid-template-columns: minmax(0,1fr) minmax(60px,90px); align-items: center; gap: 8px; min-width: 0;
 }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe-acoes .vendas-acao-individual .botao {
-    width: 100%;
-    min-width: 0;
-    white-space: nowrap;
-}
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe-acoes > .botao-acao {
-    align-self: end;
-    width: 40px;
-    min-width: 40px;
-}
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-quantidade input { width: 100%; min-width: 0; }
+.vendas-estoque-pagina .vendas-lote-detalhe-acoes > .botao-acao { justify-self: end; width: 36px; min-width: 0; }
 
 .dashboard-grade-recentes { grid-template-columns: minmax(0, 1.65fr) minmax(280px, .85fr); align-items: stretch; }
 .dashboard-grade-recentes .dashboard-recentes-bloco,
@@ -4000,19 +3987,6 @@ body.menu-lateral-recolhido .menu-lateral-rodape .menu-configuracoes { width: 44
 }
 
 /* Seletor com busca, compartilhado pelo cálculo e pela simulação. */
-.campo .sim-seletor-nativo { position: absolute; top: 0; left: 0; width: 1px; height: 1px; min-width: 0; max-width: 1px; padding: 0; border: 0; overflow: hidden; opacity: 0; pointer-events: none; clip-path: inset(50%); }
-.sim-seletor-abrir { display: flex; min-width: 0; max-width: 100%; width: 100%; min-height: 72px; align-items: center; gap: 12px; padding: 10px 13px; border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); color: var(--marrom); text-align: left; cursor: pointer; }
-.sim-seletor-abrir > .bi-chevron-down { flex: 0 0 auto; margin-left: auto; color: var(--marrom-claro); }
-.sim-seletor-placeholder { min-width: 0; overflow-wrap: anywhere; color: var(--marrom-claro); font-weight: 600; }
-.sim-seletor-abrir:focus-visible, .sim-seletor-item:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
-.sim-seletor-painel { position: static; z-index: 20; display: grid; gap: 8px; width: 100%; max-height: min(440px, 65vh); margin-top: 5px; padding: 8px; overflow: hidden; border: 1px solid var(--borda); border-radius: 13px; background: var(--superficie); box-shadow: 0 12px 32px rgba(40, 24, 15, .16); }
-.sim-seletor-painel[hidden] { display: none; }
-.sim-seletor-filtros { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: 8px; }
-.sim-seletor-busca, .sim-seletor-data { display: flex; min-width: 0; min-height: 42px; align-items: center; justify-content: center; gap: 8px; padding: 0 11px; border: 1px solid var(--borda); border-radius: 9px; background: var(--superficie); color: var(--marrom-claro); }
-.sim-seletor-busca input { width: 100%; min-width: 0; font-weight: 400; padding: 0; border: 0; outline: 0; background: transparent; color: var(--marrom); }
-.sim-seletor-busca input::placeholder { color: var(--marrom-claro); }
-.campo .sim-seletor-busca input:focus { border: 0; outline: 0; box-shadow: none; }
-.sim-seletor-busca:focus-within { border-color: var(--destaque); }
 .campo input.campo-erro-temporario,
 .campo input.campo-erro-temporario:focus,
 .campo select.campo-erro-temporario,
@@ -4037,32 +4011,3 @@ input.campo-erro-temporario:-webkit-autofill {
     background-color: var(--superficie);
     box-shadow: none;
 }
-
-.sim-seletor-data { position: relative; overflow: hidden; cursor: pointer; }
-.sim-seletor-data input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
-.sim-seletor-data:focus-within { outline: 2px solid var(--destaque); outline-offset: 2px; }
-.sim-seletor-limpar { justify-self: start; padding: 3px 5px; border: 0; background: transparent; color: var(--marrom-claro); font-size: 12px; text-decoration: underline; cursor: pointer; }
-.sim-seletor-limpar[hidden] { display: none; }
-.sim-seletor-lista { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.sim-seletor-grupo { margin: 8px 5px 4px; color: var(--marrom-claro); font-size: 13px; font-weight: 700; }
-.sim-seletor-item { display: grid; width: 100%; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 9px 7px; border: 0; border-radius: 9px; background: transparent; color: var(--marrom); text-align: left; cursor: pointer; }
-.sim-seletor-item:hover, .sim-seletor-item[aria-selected="true"] { background: var(--fundo-suave); }
-.sim-seletor-foto, .sim-seletor-sem-foto { display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid var(--borda); border-radius: 10px; object-fit: cover; background: var(--fundo-suave); color: var(--destaque); font-size: 19px; }
-.sim-seletor-sem-foto.sim-status-estoque { background: color-mix(in srgb, #e6a440 22%, var(--superficie)); color: #9c6414; }
-.sim-seletor-sem-foto.sim-status-vendido { background: color-mix(in srgb, #57956f 22%, var(--superficie)); color: #32724a; }
-.sim-seletor-foto-selecionada { flex: 0 0 52px; }
-.sim-seletor-textos { display: grid; min-width: 0; gap: 3px; }
-.sim-seletor-nome { display: -webkit-box; overflow: hidden; color: var(--marrom); font-size: 14px; font-weight: 650; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.sim-seletor-resumo { color: var(--marrom-claro); font-size: 12px; line-height: 1.35; }
-.sim-seletor-horario { color: var(--marrom-claro); font-size: 12px; white-space: nowrap; }
-.sim-seletor-vazio { margin: 6px; padding: 16px 8px; color: var(--marrom-claro); text-align: center; font-size: 13px; }
-.sim-seletor-vazio[hidden] { display: none; }
-.sim-seletor-abrir.sim-status-estoque .sim-seletor-sem-foto { background: color-mix(in srgb, #e6a440 22%, var(--superficie)); color: #9c6414; }
-.sim-seletor-abrir.sim-status-vendido .sim-seletor-sem-foto { background: color-mix(in srgb, #57956f 22%, var(--superficie)); color: #32724a; }
-
-@media (max-width: 480px) { .sim-seletor-item { grid-template-columns: 44px minmax(0, 1fr); gap: 8px; padding-inline: 4px; } .sim-seletor-foto, .sim-seletor-sem-foto { width: 44px; height: 44px; } .sim-seletor-horario { grid-column: 2; margin-top: -4px; } .sim-seletor-foto-selecionada { flex-basis: 44px; } }
-
-.peca-seletor .sim-seletor-filtros { grid-template-columns: minmax(0, 1fr); }
-.peca-seletor .sim-seletor-item { grid-template-columns: 44px minmax(0, 1fr); }
-
-.peca-seletor .sim-seletor-sem-foto, .peca-seletor .sim-seletor-foto { width: 44px; height: 44px; }

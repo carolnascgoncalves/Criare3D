@@ -9,7 +9,6 @@
 .sim-par > .campo > label { align-self: end; }
 .sim-dica { margin: -10px 0 0; color: var(--marrom-claro); font-size: 13px; line-height: 1.5; }
 .sim-dica-historico { margin: 8px 0 0; }
-.sim-link { justify-self: start; padding: 0; border: 0; background: none; color: var(--marrom); font-size: 13px; font-weight: 600; text-decoration: underline; cursor: pointer; }
 .sim-avancado summary { color: var(--marrom); font-size: 14px; font-weight: 600; cursor: pointer; }
 .sim-avancado[open] summary { margin-bottom: 14px; }
 .sim-avancado .sim-par { margin-top: 14px; }
@@ -23,7 +22,7 @@
 .sim-referencia-conteudo { display: grid; min-width: 0; gap: 3px; }
 .sim-referencia-conteudo strong { overflow: hidden; color: var(--marrom); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .sim-form .campo { position: relative; }
-.campo .sim-relogio { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+.sim-relogio { display: grid; justify-items: start; gap: 5px; min-width: 0; }
 .sim-relogio small { flex-basis: 100%; color: var(--marrom-claro); font-size: 13px; font-weight: 600; }
 .sim-relogio-data { color: var(--marrom); font-size: clamp(22px, 3vw, 30px); font-weight: 700; letter-spacing: -.02em; }
 .sim-relogio-producao { display: grid; min-width: 0; gap: 3px; color: var(--marrom-claro); font-size: 13px; }
@@ -62,6 +61,8 @@
 .sim-eixo { position: relative; height: 20px; margin-top: 6px; color: var(--marrom-claro); font-size: 12px; }
 .sim-eixo span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
 .sim-eixo .sim-eixo-inicio { transform: none; }
+.sim-eixo .sim-eixo-fim { transform:translateX(-100%); }
+.sim-intervalo { position:absolute; top:16px; bottom:16px; display:grid; place-items:center; padding-inline:4px; overflow:hidden; border:1px dashed var(--borda); border-radius:6px; background:var(--superficie); color:var(--marrom-claro); font-size:12px; white-space:nowrap; }
 .sim-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; padding: 0; list-style: none; color: var(--marrom-claro); font-size: 12.5px; }
 .sim-legenda li { display: inline-flex; align-items: center; gap: 6px; }
 .sim-chip { width: 14px; height: 10px; border-radius: 3px; }

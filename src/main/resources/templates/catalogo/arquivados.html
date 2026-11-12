@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{fragmentos :: cabecalho('Cadastros arquivados')}"></head>
+    <body>
+        <nav th:replace="~{fragmentos :: menu}"></nav>
+        <main class="pagina pagina-arquivados">
+            <div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+            <div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+            <section class="pagina-intro">
+                <div>
+                    <span class="texto-apoio">SEU CATÁLOGO</span>
+                    <h1>Cadastros arquivados</h1>
+                    <p>Restaure um cadastro para usá-lo novamente nos cálculos.</p>
+                </div>
+                <a class="botao botao-secundario" th:href="@{/peca/listar}">Voltar ao catálogo</a>
+            </section>
+            <section class="cartao catalogo-vazio" th:if="${#lists.isEmpty(itens)}">
+                <i class="bi bi-archive" aria-hidden="true"></i>
+                <h2>Nada arquivado por aqui</h2>
+                <p>Use a seleção do catálogo para arquivar cadastros.</p>
+            </section>
+            <div class="planejamentos-grade">
+                <article class="cartao arquivo-card" th:each="item : ${itens}">
+                    <span class="planejamento-icone">
+                        <i class="bi bi-archive" aria-hidden="true"></i>
+                    </span>
+                    <div>
+                        <span class="texto-apoio" th:text="${item.rotulo}"></span>
+                        <h2 th:text="${item.nome}"></h2>
+                    </div>
+                    <form method="post" th:action="@{/catalogo/{tipo}/{id}/arquivar(tipo=${item.tipo},id=${item.id})}">
+                        <input type="hidden" name="arquivar" value="false">
+                        <button class="botao botao-secundario">
+                            <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                            Restaurar
+                        </button>
+                    </form>
+                </article>
+            </div>
+            <div class="operacao-acoes">
+                <a th:if="${page > 0}" th:href="@{/catalogo/arquivados(page=${page - 1})}">Anterior</a>
+                <a th:if="${mais}" th:href="@{/catalogo/arquivados(page=${page + 1})}">Próxima</a>
+            </div>
+        </main>
+    </body>
+</html>

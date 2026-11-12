@@ -7,6 +7,9 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina lista-catalogo">
+<div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+<div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'pecaEmUso'}">
         Não é possível excluir esta peça porque ela está vinculada a
@@ -30,7 +33,7 @@
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU CATÁLOGO</span>
-            <h1>Peças</h1>
+            <h1>Peças</h1><a class="catalogo-arquivados-link" th:href="@{/catalogo/arquivados}" title="Cadastros arquivados"><i class="bi bi-archive" aria-hidden="true"></i> Arquivados</a>
             <p>Gerencie suas peças e os dados utilizados nos cálculos de impressão.</p>
         </div>
 
@@ -84,6 +87,9 @@
                 <input type="hidden" name="page" th:value="${pagina.number}">
                 <input type="hidden" name="totalRegistros" th:value="${pagina.totalElements}">
                 <input type="hidden" name="tamanhoPagina" th:value="${pagina.size}">
+                <button type="submit" class="botao botao-secundario" data-arquivar-selecionados
+                    th:formaction="@{/catalogo/peca/arquivar-lote}" data-turbo-confirm="Arquivar os cadastros selecionados? Os históricos serão preservados."
+                    data-confirm-label="Arquivar" title="Arquivar selecionados" aria-label="Arquivar selecionados" hidden disabled><i class="bi bi-archive" aria-hidden="true"></i></button>
                 <button type="submit"
                         class="botao botao-secundario"
                         data-excluir-selecionados
@@ -199,6 +205,7 @@
             </a>
         </div>
     </section>
+
 </main>
 
 </body>

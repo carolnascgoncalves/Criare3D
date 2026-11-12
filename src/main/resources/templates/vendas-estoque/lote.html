@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{fragmentos :: cabecalho('Operação do lote')}"></head>
+    <body>
+        <nav th:replace="~{fragmentos :: menu}"></nav>
+        <main class="pagina pagina-operacao">
+            <div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+            <div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+            <section class="pagina-intro">
+                <div>
+                    <span class="texto-apoio">OPERAÇÃO DO LOTE</span>
+                    <h1 th:text="${lote.nomePeca}"></h1>
+                    <p th:text="|${lote.unidades} unidades · ${lote.nomeImpressora != null ? lote.nomeImpressora : 'Impressão 3D'}|"></p>
+                </div>
+                <a class="botao botao-secundario botao-voltar" th:href="@{/vendas-estoque}">Voltar</a>
+            </section>
+            <div class="operacao-acoes">
+                <a th:href="@{/historico/detalhes/{id}(id=${lote.id})}">
+                    <i class="bi bi-calculator" aria-hidden="true"></i>
+                    Cálculo original
+                </a>
+                <a th:href="@{/historico/{id}/orcamento(id=${lote.id})}">
+                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                    Gerar orçamento
+                </a>
+            </div>
+            <div class="operacao-indicadores">
+                <div>
+                    <span>Produção</span>
+                    <strong th:text="${lote.produzido ? 'Concluída' : 'A produzir'}"></strong>
+                </div>
+                <div>
+                    <span>Em estoque</span>
+                    <strong th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas : 0} un.|"></strong>
+                </div>
+                <div>
+                    <span>Vendidas</span>
+                    <strong th:text="|${lote.unidadesVendidas} un.|"></strong>
+                </div>
+            </div>
+            <div class="operacao-grade">
+                <section class="cartao formulario-conteudo">
+                    <h2>
+                        <i class="bi bi-printer" aria-hidden="true"></i>
+                        Produção
+                    </h2>
+                    <p class="texto-apoio" th:if="${lote.produzido}" th:text="${lote.dataProducao == null ? 'Data não registrada no lote antigo.' : 'Produzido em ' + #temporals.format(lote.dataProducao,'dd/MM/yyyy HH:mm')}"></p>
+                    <p class="texto-apoio" th:unless="${lote.produzido}">Confira o material antes de produzir.</p>
+                    <div class="operacao-material" th:each="m : ${materiais}">
+                        <div>
+                            <strong th:text="${m.nome}"></strong>
+                            <span th:if="${m.saldo != null}" th:text="|Saldo atual: ${#numbers.formatDecimal(m.saldo,1,'POINT',2,'COMMA')} g|"></span>
+                        </div>
+                        <strong th:text="|${#numbers.formatDecimal(m.gramas,1,'POINT',2,'COMMA')} g no lote|"></strong>
+                    </div>
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${!lote.produzido}" th:attr="data-turbo-confirm=|Produzir ${lote.unidades} unidades e descontar o material deste lote?|">
+                        <button class="botao botao-principal">Registrar produção do lote</button>
+                    </form>
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas == 0}" data-turbo-confirm="Desfazer a produção e devolver o filamento? Custos extras serão mantidos.">
+                        <input type="hidden" name="produzir" value="false">
+                        <button class="botao botao-secundario">Desfazer produção</button>
+                    </form>
+                </section>
+                <section class="cartao formulario-conteudo">
+                    <h2>
+                        <i class="bi bi-bag-check" aria-hidden="true"></i>
+                        Registrar venda
+                    </h2>
+                    <p class="texto-apoio" th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas : 0} unidades prontas disponíveis|"></p>
+                    <p th:unless="${lote.produzido}">Registre a produção para liberar a venda.</p>
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/vender(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas < lote.unidades}" data-turbo-confirm="Registrar a venda desta quantidade? Apenas as unidades informadas serão vendidas.">
+                        <div class="campo">
+                            <label for="vendaUnidades">Unidades</label>
+                            <input id="vendaUnidades" name="unidades" type="number" min="1" th:max="${lote.unidades - lote.unidadesVendidas}" value="1" required>
+                        </div>
+                        <details>
+                            <summary>Preço, desconto e taxas reais (opcional)</summary>
+                            <p>Valores por unidade. Deixe vazio para usar a estimativa.</p>
+                            <div class="campo">
+                                <label for="vendaPreco">Preço antes do desconto (R$)</label>
+                                <input id="vendaPreco" name="preco" type="number" min="0" max="99999999" step="0.01" th:placeholder="${lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido}">
+                            </div>
+                            <div class="campo">
+                                <label for="vendaDesconto">Desconto por unidade (R$)</label>
+                                <input id="vendaDesconto" name="desconto" type="number" min="0" max="99999999" step="0.01">
+                            </div>
+                            <div class="campo">
+                                <label for="vendaTaxas">Taxas, impostos e frete (R$)</label>
+                                <input id="vendaTaxas" name="taxas" type="number" min="0" max="99999999" step="0.01">
+                            </div>
+                        </details>
+                        <button class="botao botao-principal">Registrar venda</button>
+                    </form>
+                </section>
+            </div>
+            <section class="cartao formulario-conteudo">
+                <h2>Vendas do lote</h2>
+                <div class="operacao-indicadores">
+                    <div>
+                        <span>Resultado previsto</span>
+                        <strong th:text="|R$ ${#numbers.formatDecimal(estimadoVendas,1,'POINT',2,'COMMA')}|"></strong>
+                    </div>
+                    <div>
+                        <span>Com os valores registrados</span>
+                        <strong th:text="|R$ ${#numbers.formatDecimal(resultadoVendas,1,'POINT',2,'COMMA')}|"></strong>
+                    </div>
+                </div>
+                <p class="texto-apoio">Valores das unidades vendidas; custos de produção estimados.</p>
+                <p th:if="${#lists.isEmpty(vendas)}">Nenhuma venda registrada.</p>
+                <article class="operacao-registro" th:each="v : ${vendas}">
+                    <div>
+                        <strong th:text="|${v.unidadesAtivas} unidades ativas · ${v.unidadesCanceladas} canceladas|"></strong>
+                        <small th:text="${#temporals.format(v.dataVenda,'dd/MM/yyyy HH:mm')}"></small>
+                        <span class="operacao-etiqueta" th:text="${v.valoresReais ? 'Valores reais informados' : 'Inclui estimativa'}"></span>
+                        <span th:if="${v.lucroUnitario != null}" th:text="|Resultado/un.: R$ ${#numbers.formatDecimal(v.lucroUnitario,1,'POINT',2,'COMMA')}|"></span>
+                    </div>
+                    <details th:if="${v.unidadesAtivas > 0}" class="operacao-cancelar">
+                        <summary>Cancelar unidades</summary>
+                        <form method="post" th:action="@{/vendas-estoque/lote/{id}/cancelar-venda(id=${lote.id})}" data-turbo-confirm="Cancelar esta quantidade e devolver as unidades ao estoque de peças?">
+                            <input type="hidden" name="vendaId" th:value="${v.id}">
+                            <div class="campo">
+                                <label th:for="|cancelar-${v.id}|">Quantidade</label>
+                                <input th:id="|cancelar-${v.id}|" name="unidades" type="number" min="1" th:max="${v.unidadesAtivas}" value="1" required>
+                            </div>
+                            <button class="botao botao-secundario">Cancelar unidades</button>
+                        </form>
+                    </details>
+                </article>
+            </section>
+            <section class="cartao formulario-conteudo">
+                <div class="operacao-secao-titulo">
+                    <div>
+                        <h2>
+                            <i class="bi bi-receipt" aria-hidden="true"></i>
+                            Custos personalizados
+                        </h2>
+                        <p class="texto-apoio">Gastos extras deste lote, separados do cálculo original.</p>
+                    </div>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(totalExtras != null ? totalExtras : 0,1,'POINT',2,'COMMA')}|"></strong>
+                </div>
+                <form class="operacao-custo-form" method="post" th:action="@{/vendas-estoque/lote/{id}/custo(id=${lote.id})}">
+                    <div class="campo">
+                        <label for="custoDescricao">Descrição</label>
+                        <input id="custoDescricao" name="descricao" required minlength="2" maxlength="150" placeholder="Ex.: tinta, cola ou acabamento">
+                    </div>
+                    <div class="campo">
+                        <label for="custoValor">Valor total (R$)</label>
+                        <input id="custoValor" name="valor" type="number" min="0.01" max="9999999999.99" step="0.01" required>
+                    </div>
+                    <button class="botao botao-principal">Adicionar custo</button>
+                </form>
+                <article class="operacao-registro" th:each="custo : ${custosExtras}" th:classappend="${custo.cancelado} ? ' registro-cancelado' : ''">
+                    <div>
+                        <strong th:text="${custo.descricao}"></strong>
+                        <small th:text="${#temporals.format(custo.dataRegistro,'dd/MM/yyyy HH:mm')}"></small>
+                        <span th:if="${custo.cancelado}">Cancelado</span>
+                    </div>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(custo.valor,1,'POINT',2,'COMMA')}|"></strong>
+                    <form th:unless="${custo.cancelado}" method="post" th:action="@{/vendas-estoque/lote/{id}/cancelar-custo(id=${lote.id})}" data-turbo-confirm="Cancelar este custo extra?">
+                        <input type="hidden" name="custoId" th:value="${custo.id}">
+                        <button class="botao botao-secundario" title="Cancelar custo" aria-label="Cancelar custo">
+                            <i class="bi bi-x-lg" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                </article>
+                <details class="operacao-perda">
+                    <summary>
+                        <i class="bi bi-palette" aria-hidden="true"></i>
+                        Perda de filamento
+                    </summary>
+                    <p class="texto-apoio">Desconta o material perdido do estoque. As unidades boas previstas no lote são preservadas.</p>
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/falha(id=${lote.id})}" data-turbo-confirm="Registrar esta perda e descontar os gramas informados do filamento?">
+                        <div class="operacao-grade">
+                            <div class="campo">
+                                <label for="falhaFilamento">Filamento consumido</label>
+                                <select id="falhaFilamento" name="filamentoId" required>
+                                    <option value="">Escolha</option>
+                                    <option th:each="f : ${filamentos}" th:value="${f.id}" th:text="|${f.nome} · ${f.cor}|"></option>
+                                </select>
+                            </div>
+                            <div class="campo">
+                                <label for="falhaUnidades">Unidades afetadas</label>
+                                <input id="falhaUnidades" name="unidades" type="number" min="1" max="10000" value="1" required>
+                            </div>
+                            <div class="campo">
+                                <label for="falhaGramas">Material perdido (g)</label>
+                                <input id="falhaGramas" name="gramas" type="number" min="0.01" max="1000000" step="0.01" required>
+                            </div>
+                            <div class="campo">
+                                <label for="falhaMinutos">Tempo perdido (min)</label>
+                                <input id="falhaMinutos" name="minutos" type="number" min="0" max="10000000" value="0">
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="falhaObs">Descrição (opcional)</label>
+                            <textarea id="falhaObs" name="observacao" maxlength="500"></textarea>
+                        </div>
+                        <button class="botao botao-principal">Registrar perda</button>
+                    </form>
+                </details>
+                <p class="texto-apoio" th:if="${perdaMaterial > 0}" th:text="|Material perdido: R$ ${#numbers.formatDecimal(perdaMaterial,1,'POINT',2,'COMMA')}|"></p>
+                <article class="operacao-registro" th:each="f : ${falhas}" th:classappend="${f.cancelada} ? ' registro-cancelado' : ''">
+                    <div>
+                        <strong th:text="|${#numbers.formatDecimal(f.gramas,1,'POINT',2,'COMMA')} g · ${f.minutos} min|"></strong>
+                        <small th:text="${f.observacao != null and !#strings.isEmpty(f.observacao) ? f.observacao : 'Perda de material'}"></small>
+                        <span th:if="${f.cancelada}">Cancelado</span>
+                    </div>
+                    <strong th:text="|R$ ${#numbers.formatDecimal(f.custoMaterial,1,'POINT',2,'COMMA')}|"></strong>
+                    <form method="post" th:unless="${f.cancelada}" th:action="@{/vendas-estoque/lote/{id}/cancelar-falha(id=${lote.id})}" data-turbo-confirm="Cancelar esta perda e devolver o material ao estoque?">
+                        <input type="hidden" name="falhaId" th:value="${f.id}">
+                        <button class="botao botao-secundario">Corrigir perda</button>
+                    </form>
+                </article>
+            </section>
+        </main>
+    </body>
+</html>

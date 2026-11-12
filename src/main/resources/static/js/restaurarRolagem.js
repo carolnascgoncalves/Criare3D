@@ -80,13 +80,13 @@
         document.querySelectorAll("main.pagina a[href]").forEach(link => {
             const destino = new URL(link.href, window.location.origin);
 
+            if (link.hasAttribute("data-nao-restaurar-destino")) return;
             const ehVoltar =
                 destino.pathname.endsWith("/listar")
                 || link.matches(
                     "a.botao-voltar, " +
                     ".pagina-intro a.botao-secundario, " +
-                    ".formulario-acoes a.botao-secundario, " +
-                    ".detalhes-acoes a"
+                    ".formulario-acoes a.botao-voltar"
                 );
 
             if (ehVoltar) {

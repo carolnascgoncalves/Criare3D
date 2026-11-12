@@ -1,0 +1,11 @@
+{
+  "name": "criare3d-ui-tests",
+  "private": true,
+  "scripts": {
+    "test:ui": "node --test src/test/js/*.test.cjs",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1"
+  }
+}

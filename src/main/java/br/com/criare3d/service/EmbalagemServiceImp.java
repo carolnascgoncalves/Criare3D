@@ -71,12 +71,12 @@ public class EmbalagemServiceImp implements EmbalagemService {
 
     @Override
     public Page<Embalagem> fetchAll(Pageable pageable) {
-        return embalagemRepository.findAll(pageable);
+        return embalagemRepository.findByArquivadoFalse(pageable);
     }
 
     @Override
     public long contar() {
-        return embalagemRepository.count();
+        return embalagemRepository.countByArquivadoFalse();
     }
 
     @Override

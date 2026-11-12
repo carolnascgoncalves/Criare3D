@@ -46,6 +46,10 @@
         };
 
         const atualizarMensagemPadrao = () => {
+            [['prazo', campoPrazo, 'Prazo'], ['pagamento', campoPagamento, 'Pagamento'], ['validade', campoValidade, 'Validade']].forEach(([chave,campo,rotulo]) => {
+                const resumo = painel.querySelector?.(`[data-condicao-${chave}]`);
+                if (resumo) resumo.textContent = `${rotulo}: ${campo?.value.trim() || 'A combinar'}`;
+            });
             if (campoMensagem && campoMensagem.dataset.editadaManualmente !== 'true') {
                 campoMensagem.value = gerarMensagemPadrao();
             }
@@ -79,7 +83,7 @@
                 if (campo) campo.value = campo.defaultValue;
             });
             delete campoMensagem.dataset.editadaManualmente;
-            campoMensagem.value = gerarMensagemPadrao();
+            atualizarMensagemPadrao();
             window.mostrarNotificacao?.('Mensagem padrão restaurada.', 'sucesso');
         });
 

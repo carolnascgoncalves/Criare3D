@@ -7,6 +7,8 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina">
+<div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div><div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+
     <div class="alerta-erro notificacao-flutuante" role="alert"
          th:if="${erro != null}" th:text="${erro}"></div>
     <div class="aviso-info" role="status" th:if="${avisoConfiguracaoIncompleta}">
@@ -101,6 +103,8 @@
 
 
                         </select>
+<a class="sim-link" data-reutilizar-peca hidden data-turbo-confirm="Carregar o último cálculo desta peça? O rascunho atual será substituído.">Usar último cálculo desta peça</a><small>Ao reutilizar, os custos serão conferidos novamente com os cadastros atuais.</small>
+
                         <div class="peca-seletor" data-peca-seletor hidden>
                             <button id="abrirPecaSeletor" type="button" class="sim-seletor-abrir" aria-labelledby="pecaSeletorRotulo pecaSeletorNome" aria-haspopup="listbox" aria-controls="pecaSeletorLista" aria-expanded="false" data-peca-abrir>
                                 <span class="sim-seletor-sem-foto"><i class="bi bi-box" aria-hidden="true"></i></span>
@@ -368,7 +372,7 @@
                     </div>
 
                     <div class="campo">
-                        <label for="tempoImpressaoMinutos">Tempo por impressão (minutos)</label>
+                        <label for="tempoImpressaoMinutos">Tempo por impressão por unidade (minutos)</label>
                         <input type="number"
                                id="tempoImpressaoMinutos"
                                th:field="*{tempoImpressaoMinutos}"
@@ -376,7 +380,7 @@
                                min="1"
                                step="1"
                                required>
-                        <small>Informe o tempo total de uma impressão com a quantidade de peças definida acima. Se a última impressão tiver menos peças, o Criare estima o tempo proporcionalmente e soma o aquecimento de cada impressão.</small>
+                        <small>Informe o tempo de uma unidade. O total considera todas as unidades e o aquecimento de cada impressão.</small>
                         <small id="tempoTotalLoteResumo" class="texto-apoio" hidden></small>
                         <small id="avisoImpressaoParcial" class="texto-apoio" hidden></small>
                         <div class="erro-campo" th:if="${#fields.hasErrors('tempoImpressaoMinutos')}" th:errors="*{tempoImpressaoMinutos}"></div>
@@ -440,7 +444,7 @@
                             <option value="">Selecione uma embalagem</option>
                             <option th:each="embalagem : ${embalagens}"
                                     th:value="${embalagem.id}"
-                                    th:text="${embalagem.nome}"
+                                    th:text="|${embalagem.nome} - R$ ${#numbers.formatDecimal(embalagem.custoUnitario,1,'POINT',2,'COMMA')}|"
                                     th:attr="data-custo=${embalagem.custoUnitario}">
                             </option>
                             <option value="" data-acao="cadastrar-embalagem">+ Cadastrar nova embalagem</option>

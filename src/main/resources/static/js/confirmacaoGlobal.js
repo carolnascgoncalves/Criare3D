@@ -1,7 +1,7 @@
 (() => {
     let configurado = false;
 
-    function confirmarAcao(mensagem, elemento) {
+    function confirmarAcao(mensagem, elemento, botao) {
         let dialogo = document.getElementById("confirmacaoGlobal");
         if (!dialogo) {
             dialogo = document.createElement("dialog");
@@ -21,10 +21,10 @@
         if (!dialogo.isConnected) document.body.append(dialogo);
 
         dialogo.querySelector("[data-confirmacao-titulo]").textContent =
-            elemento?.dataset.confirmTitle || "Confirmar ação";
+            botao?.dataset.confirmTitle || elemento?.dataset.confirmTitle || "Confirmar ação";
         dialogo.querySelector("[data-confirmacao-mensagem]").textContent = mensagem || "Deseja continuar com esta ação?";
         dialogo.querySelector("[data-confirmacao-aceitar]").textContent =
-            elemento?.dataset.confirmLabel || "Confirmar";
+            botao?.dataset.confirmLabel || elemento?.dataset.confirmLabel || "Confirmar";
 
         return new Promise(resolve => {
             const finalizar = () => {

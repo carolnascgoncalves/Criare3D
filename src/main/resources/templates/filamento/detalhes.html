@@ -6,7 +6,7 @@
 
 <main class="pagina pagina-detalhes-filamento">
     <div class="alerta-sucesso notificacao-flutuante" role="status" th:if="${param.sucesso != null and param.sucesso[0] == 'compraRegistrada'}">
-        Compra registrada. O estoque e o preço atual do rolo foram atualizados.
+        Compra registrada. O estoque e o custo médio do rolo foram atualizados.
     </div>
     <div class="alerta-erro notificacao-flutuante" role="alert" th:if="${param.erro != null and param.erro[0] == 'estoqueConflito'}">
         O filamento foi alterado em outra tela. Atualize a página e registre a compra novamente.
@@ -86,6 +86,7 @@
             </div>
         </footer>
     </section>
+
 </main>
 <script th:replace="~{fragmentos :: bootstrap-script}"></script>
 </body>

@@ -395,11 +395,9 @@
         </div>
     </section>
 
-    <div class="detalhes-acoes">
+    <div class="detalhes-acoes"><a class="botao botao-principal" data-nao-restaurar-destino th:href="@{/vendas-estoque/lote/{id}(id=${historico.id})}">Produção e vendas do lote</a>
         <div>
-            <button type="button" class="botao botao-secundario" data-recalculo-bloqueado>
-                <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Recalcular com valores atuais
-            </button>
+            <a class="botao botao-secundario" th:href="@{/historico/{id}/reutilizar(id=${historico.id})}">Reutilizar com custos atuais</a>
         </div>
         <a th:href="@{/historico/listar}" class="botao botao-secundario botao-voltar" data-turbo="false">Voltar ao histórico</a>
     </div>

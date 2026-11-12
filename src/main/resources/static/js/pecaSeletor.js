@@ -37,6 +37,11 @@
             root.querySelector('[data-peca-resumo]').textContent = select.value ? resumo(opcao) : 'Busque no catálogo';
             abrir.querySelector('.sim-seletor-sem-foto, .sim-seletor-foto')?.replaceWith(imagem(select.value ? opcao : null));
             abrir.disabled = select.disabled;
+            const reutilizar = document.querySelector('[data-reutilizar-peca]');
+            if (reutilizar) {
+                reutilizar.hidden = !select.value;
+                reutilizar.href = `/historico/reutilizar?pecaId=${encodeURIComponent(select.value)}`;
+            }
         }
         function renderizar() {
             const termo = normalizar(busca.value.trim());

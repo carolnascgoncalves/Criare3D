@@ -182,6 +182,12 @@ public class CalculoHistorico {
     @Column(name = "data_hist", nullable = false)
     private @Getter @Setter LocalDateTime dataCalculo;
 
+    @Version
+    private @Getter @Setter Long versao;
+
+    @Column(name = "data_producao_hist")
+    private @Getter @Setter LocalDateTime dataProducao;
+
     @Column(name = "data_venda_hist")
     private @Getter @Setter LocalDateTime dataVenda;
 

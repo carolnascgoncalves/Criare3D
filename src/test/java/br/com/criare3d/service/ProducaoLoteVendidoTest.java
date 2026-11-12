@@ -28,9 +28,11 @@ class ProducaoLoteVendidoTest {
 
     private CalculoHistorico preparar(int unidadesVendidas) {
         CalculoHistorico calculo = new CalculoHistorico();
+        calculo.setId(id);
+        calculo.setProduzido(true);
         calculo.setUnidades(3);
         calculo.setUnidadesVendidas(unidadesVendidas);
-        when(historicos.findById(id)).thenReturn(Optional.of(calculo));
+        when(historicos.bloquearPorId(id)).thenReturn(Optional.of(calculo));
         // A flag legado pode estar falsa mesmo havendo venda parcial.
         when(historicos.buscarDadosParaAtualizarStatus(id)).thenReturn(List.of(
                 new AjusteEstoqueCalculoResponse(id, true, false, filamentoId,
@@ -50,7 +52,7 @@ class ProducaoLoteVendidoTest {
     @Test
     void registroDeVendaTambemProtegeLoteComContadorInconsistente() {
         preparar(0);
-        when(vendas.existsByCalculo_Id(id)).thenReturn(true);
+        when(vendas.existeVendaAtiva(id)).thenReturn(true);
         assertThat(service.atualizarProduzido(id, false)).isEqualTo("vendaAtiva");
         verify(historicos, never()).atualizarStatus(any(), anyBoolean(), anyBoolean());
         verifyNoInteractions(filamentos);
@@ -58,14 +60,15 @@ class ProducaoLoteVendidoTest {
 
     @Test
     void permiteDesfazerLoteSemVendasEDevolveSomenteOFilamentoConsumido() {
-        preparar(0);
+        CalculoHistorico calculo = preparar(0);
         Filamento filamento = new Filamento();
         filamento.setId(filamentoId);
         filamento.setEstoqueGramas(new BigDecimal("100"));
         when(filamentos.fetchByIds(any())).thenReturn(List.of(filamento));
         assertThat(service.atualizarProduzido(id, false)).isEqualTo("ok");
         assertThat(filamento.getEstoqueGramas()).isEqualByComparingTo("130");
-        verify(historicos).atualizarStatus(id, false, false);
+        assertThat(calculo.getProduzido()).isFalse();
+        assertThat(calculo.getDataProducao()).isNull();
         verify(vendas, never()).deleteByCalculo_Id(any());
     }
 }

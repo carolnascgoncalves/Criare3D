@@ -14,6 +14,14 @@ Aplicação web para organizar os cadastros usados na impressão 3D e calcular o
 - Histórico dos cálculos com valores registrados no momento da operação.
 - Rascunho temporário para reduzir a perda de dados durante a navegação e cadastro rápido de itens auxiliares.
 
+## Produção, vendas e planejamento
+
+O fluxo separa estimativa, produção e venda. A produção registra sua própria data e baixa filamento; a venda trabalha com unidades prontas e pode registrar preço, desconto e taxas por unidade. Cancelamentos parciais preservam os registros e devolvem apenas as unidades canceladas ao estoque de peças.
+
+Cadastros podem ser arquivados e restaurados. A simulação permite salvar planejamentos em uma fila por impressora, sem movimentar estoque. Perdas de tentativas extras podem ser registradas e corrigidas separadamente da estimativa de falha do cálculo.
+
+Consulte [a revisão e o roteiro de conferência](docs/revisao-operacao.md) para regras, migrations e cobertura de testes. Além dos testes Java, o CI executa os testes JavaScript e possui um job de navegador em 320 px e desktop.
+
 ## Tecnologias
 
 Java 21 · Spring Boot 4.1.2 · Spring MVC/WebMVC · Spring Data JPA · Hibernate · Spring Security · Thymeleaf · PostgreSQL · Testcontainers · Maven · Bootstrap 5.3.3 · Bootstrap Icons · Hotwire Turbo · JavaScript · Docker · GitHub Actions.

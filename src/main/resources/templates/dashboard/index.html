@@ -10,7 +10,7 @@
             <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
             <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
             <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
-            <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> Tarifas e lucros das plataformas são estimativas; os valores reais podem variar.</small>
+            <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> O resultado usa preço e taxas registrados em cada venda; campos não informados e custos de produção continuam estimados. Produções antigas sem data não entram nos totais de produção por período.</small>
         </div>
         <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período da dashboard">
             <button type="submit" name="periodo" value="30" th:classappend="${periodo == '30' ? ' selecionado' : ''}">30 dias</button>

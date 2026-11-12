@@ -29,6 +29,25 @@ for (const [hora,minutos,classes] of [[10,120,['sim-periodo-dia']],[17,120,['sim
   assert.ok(Math.abs(periodos.reduce((s,n)=>s+parseFloat(n.style.width),0)-100)<1e-6);
  });
 }
+test('simulação curta distingue 2 min de impressão de 10 min de intervalo e mostra início e fim',()=>{
+ const api=simulacao();
+ const p=api.planejar({inicio:new Date(2026,10,11,21,12),unidades:2,porImpressao:1,tempoPorUnidadeMinutos:1,aquecimentoMinutos:0,intervalo:10,folga:10,filamentos:[]});
+ assert.equal(p.minutosImpressao,2);assert.equal(p.minutosIntervalos,10);assert.equal(p.total,12);assert.equal(p.eixo,13);
+ const ui={linha:new Node(),eixo:new Node()};ui.eixo.clientWidth=180;api.desenharLinha(ui,p);
+ const pausa=ui.linha.children.find(n=>n.className==='sim-intervalo');
+ assert.equal(pausa.textContent,'Intervalo: 10min');
+ assert.deepEqual(Array.from(ui.eixo.children,n=>n.textContent),['21:12','21:25']);
+ assert.equal(ui.linha.children.filter(n=>n.className==='sim-bloco').length,2);
+});
+test('uma impressão de 1 minuto sem pausa mantém blocos e eixo válidos',()=>{
+ const api=simulacao(),p=plano(api,new Date(2026,10,11,21,12),1),ui={linha:new Node(),eixo:new Node()};
+ api.desenharLinha(ui,p);
+ assert.equal(p.minutosImpressao,1);assert.equal(p.minutosIntervalos,0);
+ assert.deepEqual(Array.from(ui.eixo.children,n=>n.textContent),['21:12','21:13']);
+ assert.equal(ui.linha.children.some(n=>n.className==='sim-intervalo'),false);
+ assert.equal(ui.linha.children.find(n=>n.className==='sim-bloco').style.width,'100%');
+});
+
 test('tempo decorrido aumenta e termina no total sem confundir a hora do dia',()=>{
  const api=simulacao(),p=plano(api,new Date(2026,10,11,10),120),ui={linha:new Node(),eixo:new Node()};
  for(const k of ['relogioData','relogioHora','relogioDuracao','impressaoAtual','pecasProntas','camada','corte','portal','bico'])ui[k]=new Node();

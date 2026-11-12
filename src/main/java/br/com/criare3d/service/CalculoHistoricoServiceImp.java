@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,8 +48,12 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final BigDecimal CEM = new BigDecimal("100");
 
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
+    private final OperacaoProducaoService operacao;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
-    private final CalculoFotoRepository calculoFotoRepository;
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository;
+    private final FotosCalculoService fotos;
     private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
     private final CalculoPlataformaService calculoPlataformaService;
@@ -76,8 +79,9 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             UsuarioLogadoService usuarioLogadoService,
             ManutencaoImpressoraService manutencaoImpressoraService
     ) {
+        this.operacao = new OperacaoProducaoService(calculoHistoricoRepository, vendaCalculoRepository, filamentoService);
         this.calculoHistoricoRepository = calculoHistoricoRepository;
-        this.calculoFotoRepository = calculoFotoRepository;
+        this.fotos = new FotosCalculoService(calculoFotoRepository, calculoHistoricoRepository);
         this.itemCalculoHistoricoRepository = itemCalculoHistoricoRepository;
         this.vendaCalculoRepository = vendaCalculoRepository;
         this.calculoPlataformaService = calculoPlataformaService;
@@ -92,7 +96,8 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
     @Override
     public long contarPorFilamento(UUID filamentoId) {
-        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId);
+        return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId)
+                + (falhaProducaoRepository == null ? 0 : falhaProducaoRepository.countByFilamento_Id(filamentoId));
     }
 
     @Override
@@ -133,60 +138,18 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     @Override
     public CalculoHistorico create(CalculoHistorico calculoHistorico, String tipoFoto, byte[] bytesFoto) {
         CalculoHistorico salvo = create(calculoHistorico);
-        if (bytesFoto == null || bytesFoto.length == 0) return salvo;
-        CalculoFoto foto = new CalculoFoto();
-        foto.setCalculoId(salvo.getId());
-        foto.setTipo(tipoFoto);
-        foto.setBytes(bytesFoto);
-        foto.setMiniatura(null);
-        calculoFotoRepository.save(foto);
+        fotos.salvar(salvo.getId(), tipoFoto, bytesFoto);
         return salvo;
     }
 
     @Override
-    public Optional<CalculoFoto> buscarFoto(UUID calculoId) {
-        if (!existsById(calculoId)) return Optional.empty();
-        return calculoFotoRepository.findById(calculoId);
+    public Optional<CalculoFoto> buscarFoto(UUID id) {
+        return fotos.buscarFoto(id);
     }
 
     @Override
-    public Optional<br.com.criare3d.dto.FotoConteudo> buscarConteudoFoto(UUID calculoId, boolean miniatura) {
-        if (!existsById(calculoId)) return Optional.empty();
-        if (miniatura) {
-            var miniSalva = calculoFotoRepository.buscarMiniatura(calculoId);
-            if (miniSalva.isPresent()) return Optional.of(new br.com.criare3d.dto.FotoConteudo("image/jpeg", miniSalva.get()));
-        }
-        return calculoFotoRepository.findById(calculoId).map(foto -> {
-            if (!miniatura) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
-            byte[] mini = gerarMiniatura(foto.getBytes());
-            if (mini == null) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
-            foto.setMiniatura(mini);
-            calculoFotoRepository.save(foto);
-            return new br.com.criare3d.dto.FotoConteudo("image/jpeg", mini);
-        });
-    }
-
-    private byte[] gerarMiniatura(byte[] originalBytes) {
-        try {
-            java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(
-                    new java.io.ByteArrayInputStream(originalBytes));
-            if (original == null) return null;
-            double escala = Math.min(1d, 320d / Math.max(original.getWidth(), original.getHeight()));
-            int largura = Math.max(1, (int) Math.round(original.getWidth() * escala));
-            int altura = Math.max(1, (int) Math.round(original.getHeight() * escala));
-            java.awt.image.BufferedImage mini = new java.awt.image.BufferedImage(
-                    largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
-            java.awt.Graphics2D g = mini.createGraphics();
-            g.setColor(java.awt.Color.WHITE);
-            g.fillRect(0, 0, largura, altura);
-            g.drawImage(original, 0, 0, largura, altura, null);
-            g.dispose();
-            java.io.ByteArrayOutputStream saida = new java.io.ByteArrayOutputStream();
-            javax.imageio.ImageIO.write(mini, "jpg", saida);
-            return saida.toByteArray();
-        } catch (java.io.IOException ignored) {
-            return null;
-        }
+    public Optional<br.com.criare3d.dto.FotoConteudo> buscarConteudoFoto(UUID id, boolean miniatura) {
+        return fotos.buscarConteudoFoto(id, miniatura);
     }
 
     @Override
@@ -206,12 +169,19 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
 
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return;
+        for (UUID id : solicitados.stream().sorted().toList()) {
+            var h = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
+            if (h != null && (Boolean.TRUE.equals(h.getProduzido()) || vendaCalculoRepository.existsByCalculo_Id(id)
+                    || (falhaProducaoRepository != null && !falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(id).isEmpty())
+                    || (custoPersonalizadoRepository != null && custoPersonalizadoRepository.existsByCalculo_Id(id))
+                    || (planejamentoProducaoRepository != null && planejamentoProducaoRepository.existsByCalculo_Id(id)))) {
+                throw new IllegalArgumentException("Este cálculo possui produção, vendas, perdas ou planejamento. Preserve o histórico e gerencie as operações em Vendas e estoque.");
+            }
+        }
 
         List<AjusteEstoqueCalculoResponse> dados =
                 calculoHistoricoRepository.buscarDadosParaExclusaoEmLote(solicitados);
         if (dados.isEmpty()) return;
-
-        ajustarEstoqueEmLote(dados);
 
         List<UUID> encontrados = dados.stream()
                 .map(AjusteEstoqueCalculoResponse::calculoId).distinct().toList();
@@ -220,206 +190,40 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
     }
 
     @Override
-    public String atualizarProduzido(UUID id, boolean produzido) {
-        List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaAtualizarStatus(id);
-        if (dados.isEmpty()) return "naoEncontrado";
-
-        AjusteEstoqueCalculoResponse historico = dados.get(0);
-        boolean jaProduzido = Boolean.TRUE.equals(historico.produzido());
-        if (jaProduzido == produzido) return "ok";
-
-        if (!produzido) {
-            CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
-            if (calculo == null) return "naoEncontrado";
-            if (Boolean.TRUE.equals(historico.vendido())
-                    || valorOuZero(calculo.getUnidadesVendidas()) > 0
-                    || vendaCalculoRepository.existsByCalculo_Id(id)) {
-                return "vendaAtiva";
-            }
-        }
-
-        if (produzido && !ajustarEstoque(dados, false)) {
-            return "estoqueInsuficiente";
-        }
-        if (!produzido) ajustarEstoque(dados, true);
-
-        calculoHistoricoRepository.atualizarStatus(
-                id, produzido, Boolean.TRUE.equals(historico.vendido()));
-        return "ok";
-    }
+    public String atualizarProduzido(UUID id, boolean produzido) { return operacao.atualizarProduzido(id, produzido); }
 
     @Override
-    public String atualizarVendido(UUID id, boolean vendido) {
-        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
-        if (calculo == null) return "naoEncontrado";
-        if (!vendido) return cancelarVendas(id);
-        int restantes = Math.max(0, calculo.getUnidades() - valorOuZero(calculo.getUnidadesVendidas()));
-        return restantes == 0 ? "ok" : registrarVenda(id, restantes);
-    }
+    public String atualizarVendido(UUID id, boolean vendido) { return concluirSeVendido(id, operacao.atualizarVendido(id, vendido)); }
 
     @Override
-    public String registrarVenda(UUID id, Integer unidades) {
-        if (unidades == null || unidades < 1) return "quantidadeVendaInvalida";
-        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
-        if (calculo == null) return "naoEncontrado";
-
-        int vendidas = valorOuZero(calculo.getUnidadesVendidas());
-        int restantes = calculo.getUnidades() - vendidas;
-        if (unidades > restantes) return "quantidadeVendaAcimaDisponivel";
-
-        if (!Boolean.TRUE.equals(calculo.getProduzido())) {
-            String resultadoProducao = atualizarProduzido(id, true);
-            if (!"ok".equals(resultadoProducao)) return resultadoProducao;
-            calculo = calculoHistoricoRepository.findById(id).orElse(null);
-            if (calculo == null) return "naoEncontrado";
-            vendidas = valorOuZero(calculo.getUnidadesVendidas());
-        }
-
-        LocalDateTime agora = LocalDateTime.now(ZoneId.of("America/Sao_Paulo"));
-        VendaCalculo venda = new VendaCalculo();
-        venda.setCalculo(calculo);
-        venda.setUnidades(unidades);
-        venda.setDataVenda(agora);
-        vendaCalculoRepository.save(venda);
-
-        int totalVendido = vendidas + unidades;
-        calculo.setUnidadesVendidas(totalVendido);
-        calculo.setVendido(totalVendido > 0);
-        calculo.setDataVenda(agora);
-        return "ok";
-    }
+    public String registrarVenda(UUID id, Integer unidades) { return concluirSeVendido(id, operacao.registrarVenda(id, unidades)); }
 
     @Override
-    public String cancelarVendas(UUID id) {
-        CalculoHistorico calculo = calculoHistoricoRepository.findById(id).orElse(null);
-        if (calculo == null) return "naoEncontrado";
-        vendaCalculoRepository.deleteByCalculo_Id(id);
-        calculo.setUnidadesVendidas(0);
-        calculo.setVendido(false);
-        calculo.setDataVenda(null);
-        return "ok";
-    }
+    public String cancelarVendas(UUID id) { return operacao.cancelarVendas(id); }
 
     @Override
-    public String registrarVendasEmLote(Collection<UUID> ids, Integer unidadesPorLote) {
-        if (ids == null || ids.isEmpty()) return "nenhumSelecionado";
-        if (unidadesPorLote == null || unidadesPorLote < 1) return "quantidadeVendaInvalida";
-        for (UUID id : ids.stream().filter(java.util.Objects::nonNull).distinct().toList()) {
-            String resultado = registrarVenda(id, unidadesPorLote);
-            if (!"ok".equals(resultado)) {
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return resultado;
-            }
-        }
-        return "ok";
-    }
-
-    private int valorOuZero(Integer valor) {
-        return valor == null ? 0 : valor;
-    }
+    public String registrarVendasEmLote(Collection<UUID> ids, Integer unidadesPorLote) { return concluirLotesVendidos(ids, operacao.registrarVendasEmLote(ids, unidadesPorLote)); }
 
     @Override
-    public String atualizarStatusEmLote(Collection<UUID> ids, String acao) {
-        if (ids == null || ids.isEmpty()) return "nenhumSelecionado";
-        if (!List.of("PRODUZIR", "VENDER", "DESFAZER_PRODUCAO", "CANCELAR_VENDA").contains(acao)) {
-            return "acaoInvalida";
-        }
+    public String atualizarStatusEmLote(Collection<UUID> ids, String acao) { return concluirLotesVendidos(ids, operacao.atualizarStatusEmLote(ids, acao)); }
 
-        List<UUID> unicos = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
-        if (unicos.isEmpty()) return "nenhumSelecionado";
-        for (UUID id : unicos) {
-            String resultado = switch (acao) {
-                case "PRODUZIR" -> atualizarProduzido(id, true);
-                case "VENDER" -> atualizarVendido(id, true);
-                case "DESFAZER_PRODUCAO" -> atualizarProduzido(id, false);
-                case "CANCELAR_VENDA" -> cancelarVendas(id);
-                default -> "acaoInvalida";
-            };
-            if (!"ok".equals(resultado)) {
-                // Não deixa uma seleção parcialmente aplicada se algum lote falhar.
-                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-                return resultado;
-            }
-        }
-        return "ok";
+    @Override
+    public String registrarVenda(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas) { return concluirSeVendido(id, operacao.registrarVenda(id, unidades, preco, desconto, taxas)); }
+
+    @Override
+    public String cancelarVenda(UUID id, UUID vendaId, Integer unidades) { return operacao.cancelarVenda(id, vendaId, unidades); }
+
+    private String concluirLotesVendidos(Collection<UUID> ids, String resultado) {
+        if ("ok".equals(resultado) && ids != null) ids.stream().filter(java.util.Objects::nonNull).distinct().forEach(id -> concluirSeVendido(id,resultado));
+        return resultado;
     }
 
-    /** Ajusta o estoque usando apenas os campos mínimos lidos para a troca de status. */
-    private boolean ajustarEstoque(List<AjusteEstoqueCalculoResponse> dados, boolean devolver) {
-        Map<UUID, BigDecimal> quantidades = new HashMap<>();
-        for (AjusteEstoqueCalculoResponse item : dados) {
-            if (item.filamentoItemId() != null && item.quantidadeItem() != null) {
-                quantidades.merge(item.filamentoItemId(), item.quantidadeItem(), BigDecimal::add);
-            }
+    private String concluirSeVendido(UUID id, String resultado) {
+        if ("ok".equals(resultado) && planejamentoProducaoRepository != null) {
+            calculoHistoricoRepository.findById(id).filter(c -> c.getUnidadesVendidas() != null && c.getUnidadesVendidas() >= c.getUnidades())
+                    .ifPresent(c -> planejamentoProducaoRepository.concluirPorCalculo(id));
         }
-
-        // Compatibilidade com históricos antigos sem itens de filamento vinculados.
-        if (quantidades.isEmpty()) {
-            AjusteEstoqueCalculoResponse principal = dados.get(0);
-            if (principal.filamentoPrincipalId() != null && principal.quantidadePrincipal() != null) {
-                quantidades.put(principal.filamentoPrincipalId(), principal.quantidadePrincipal());
-            }
-        }
-
-        Map<UUID, Filamento> filamentos = new HashMap<>();
-        for (Filamento filamento : filamentoService.fetchByIds(quantidades.keySet())) {
-            filamentos.put(filamento.getId(), filamento);
-        }
-        if (!devolver && filamentos.size() != quantidades.size()) return false;
-
-        if (!devolver) {
-            for (Map.Entry<UUID, Filamento> entrada : filamentos.entrySet()) {
-                BigDecimal disponivel = entrada.getValue().getEstoqueGramas() == null
-                        ? ZERO : entrada.getValue().getEstoqueGramas();
-                if (disponivel.compareTo(quantidades.get(entrada.getKey())) < 0) return false;
-            }
-        }
-
-        quantidades.forEach((filamentoId, quantidade) -> {
-            Filamento filamento = filamentos.get(filamentoId);
-            if (filamento == null) return;
-            BigDecimal saldo = filamento.getEstoqueGramas() == null
-                    ? ZERO : filamento.getEstoqueGramas();
-            filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
-        });
-        return true;
-    }
-
-    private void ajustarEstoqueEmLote(List<AjusteEstoqueCalculoResponse> dados) {
-        Map<UUID, Map<UUID, BigDecimal>> quantidadesPorCalculo = new HashMap<>();
-        Map<UUID, AjusteEstoqueCalculoResponse> exemploPorCalculo = new HashMap<>();
-
-        for (AjusteEstoqueCalculoResponse item : dados) {
-            if (!Boolean.TRUE.equals(item.produzido())) continue;
-            exemploPorCalculo.putIfAbsent(item.calculoId(), item);
-            Map<UUID, BigDecimal> quantidades = quantidadesPorCalculo.computeIfAbsent(
-                    item.calculoId(), ignorado -> new HashMap<>());
-            if (item.filamentoItemId() != null && item.quantidadeItem() != null) {
-                quantidades.merge(item.filamentoItemId(), item.quantidadeItem(), BigDecimal::add);
-            }
-        }
-
-        Map<UUID, BigDecimal> totaisPorFilamento = new HashMap<>();
-        quantidadesPorCalculo.forEach((calculoId, quantidades) -> {
-            if (quantidades.isEmpty()) {
-                AjusteEstoqueCalculoResponse legado = exemploPorCalculo.get(calculoId);
-                if (legado != null && legado.filamentoPrincipalId() != null
-                        && legado.quantidadePrincipal() != null) {
-                    quantidades.put(legado.filamentoPrincipalId(), legado.quantidadePrincipal());
-                }
-            }
-            quantidades.forEach((filamentoId, quantidade) ->
-                    totaisPorFilamento.merge(filamentoId, quantidade, BigDecimal::add));
-        });
-
-        if (totaisPorFilamento.isEmpty()) return;
-
-        for (Filamento filamento : filamentoService.fetchByIds(totaisPorFilamento.keySet())) {
-            BigDecimal saldo = filamento.getEstoqueGramas() == null
-                    ? ZERO : filamento.getEstoqueGramas();
-            filamento.setEstoqueGramas(saldo.add(totaisPorFilamento.get(filamento.getId())));
-        }
+        return resultado;
     }
 
     @Override
@@ -435,6 +239,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         Impressora impressora = impressoraService.fetchById(request.getImpressoraId())
                 .orElseThrow(() -> new IllegalArgumentException("Impressora não encontrada"));
 
+        if (peca.isArquivado() || impressora.isArquivado()) throw new IllegalArgumentException("Restaure a peça e a impressora arquivadas antes de calcular.");
         Configuracao configuracao = configuracaoService.buscarOuCriarConfiguracao();
 
         if (impressora.getPotenciaWatts() == null
@@ -512,7 +317,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
             }
 
             Filamento filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
-            if (filamento == null) {
+            if (filamento == null || filamento.isArquivado()) {
                 throw new IllegalArgumentException("Filamento não encontrado");
             }
 
@@ -681,6 +486,7 @@ public class CalculoHistoricoServiceImp implements CalculoHistoricoService {
         historico.setPeca(peca);
         historico.setCategoriaPeca(peca.getCategoria());
         historico.setImpressora(impressora);
+        if (embalagem != null && embalagem.isArquivado()) throw new IllegalArgumentException("Restaure a embalagem antes de calcular.");
         historico.setEmbalagem(embalagem);
 
         historico.setNomePeca(peca.getNome());

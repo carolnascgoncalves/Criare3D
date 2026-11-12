@@ -8,6 +8,8 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina" id="paginaResultado">
+<section th:if="${custoReferencia != null}" class="aviso-info"><strong>Comparação com o cálculo anterior</strong><p th:text="|Custo anterior por unidade: R$ ${#numbers.formatDecimal(custoReferencia,1,'POINT',2,'COMMA')} · Custo atual: R$ ${#numbers.formatDecimal(resultado.custoTotal,1,'POINT',2,'COMMA')} · Variação: R$ ${#numbers.formatDecimal(resultado.custoTotal - custoReferencia,1,'POINT',2,'COMMA')}|"></p><p>O cálculo anterior foi preservado. Salvar este resultado cria um novo registro.</p></section>
+
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
@@ -432,8 +434,6 @@
 
             <!-- AÇÕES -->
             <div class="acoes-resultado">
-                <button type="button" class="botao botao-secundario" onclick="window.print()"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Exportar PDF</button>
-
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
@@ -524,6 +524,8 @@
                    class="botao botao-secundario">
                     Novo cálculo
                 </a>
+
+                <button type="button" class="botao botao-secundario" onclick="window.print()"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Exportar PDF</button>
             </div>
 
         </div>

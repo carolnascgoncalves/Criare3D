@@ -5,6 +5,9 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina lista-catalogo">
+<div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+<div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'filamentoEmUso'}">
         Não é possível excluir este filamento porque ele está vinculado a
@@ -60,7 +63,7 @@
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEUS MATERIAIS</span>
-            <h1>Filamentos</h1>
+            <h1>Filamentos</h1><a class="catalogo-arquivados-link" th:href="@{/catalogo/arquivados}" title="Cadastros arquivados"><i class="bi bi-archive" aria-hidden="true"></i> Arquivados</a>
             <p>Gerencie os filamentos utilizados nos seus cálculos de impressão 3D.</p>
         </div>
 
@@ -179,6 +182,9 @@
                 <input type="hidden" name="totalRegistros" th:value="${pagina.totalElements}">
                 <input type="hidden" name="tamanhoPagina" th:value="${pagina.size}">
 
+                <button type="submit" class="botao botao-secundario" data-arquivar-selecionados
+                    th:formaction="@{/catalogo/filamento/arquivar-lote}" data-turbo-confirm="Arquivar os cadastros selecionados? Os históricos serão preservados."
+                    data-confirm-label="Arquivar" title="Arquivar selecionados" aria-label="Arquivar selecionados" hidden disabled><i class="bi bi-archive" aria-hidden="true"></i></button>
                 <button type="submit"
                         class="botao botao-secundario"
                         data-excluir-selecionados
@@ -364,6 +370,7 @@
             </div>
         </div>
     </div>
+
 </main>
 <script th:replace="~{fragmentos :: bootstrap-script}"></script>
 </body>

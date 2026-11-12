@@ -35,4 +35,13 @@ public class VendaCalculo {
     @Column(name = "data_venda", nullable = false)
     @Getter @Setter
     private LocalDateTime dataVenda;
+    @Column(nullable = false)
+    @Getter @Setter private int unidadesCanceladas;
+    @Getter @Setter private LocalDateTime dataCancelamento;
+    @Column(precision = 16, scale = 8) @Getter @Setter private java.math.BigDecimal precoUnitario;
+    @Column(precision = 16, scale = 8) @Getter @Setter private java.math.BigDecimal descontoUnitario;
+    @Column(precision = 16, scale = 8) @Getter @Setter private java.math.BigDecimal taxasUnitarias;
+    @Column(precision = 16, scale = 8) @Getter @Setter private java.math.BigDecimal lucroUnitario;
+    @Column(nullable = false) @Getter @Setter private boolean valoresReais;
+    public int getUnidadesAtivas() { return unidades - unidadesCanceladas; }
 }

@@ -25,6 +25,7 @@ public class NavegacaoModelAdvice {
         if (caminho.equals("/") || caminho.equals("/home")) pagina = "inicio";
         else if (caminho.startsWith("/dashboard")) pagina = "dashboard";
         else if (caminho.startsWith("/configuracao")) pagina = "configuracao";
+        else if (caminho.startsWith("/simulacao/planejamentos")) pagina = "planejamentos";
         else if (caminho.startsWith("/simulacao")) pagina = "simulacao";
         else if (caminho.startsWith("/peca")) pagina = "pecas";
         else if (caminho.startsWith("/filamento")) pagina = "filamentos";

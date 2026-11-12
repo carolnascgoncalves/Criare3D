@@ -27,7 +27,6 @@
             '.checkbox-selecao-listagem:checked'
         );
 
-        const remover = root.querySelector('[data-excluir-selecionados]');
         const contador = root.querySelector('[data-contador-selecao]');
         const modoAtivo = root.classList.contains('modo-selecao');
 
@@ -35,10 +34,10 @@
             botao.setAttribute('aria-pressed', String(modoAtivo));
         }
 
-        if (remover) {
-            remover.hidden = !modoAtivo;
-            remover.disabled = selecionados.length === 0;
-        }
+        root.querySelectorAll('[data-excluir-selecionados], [data-arquivar-selecionados]').forEach(acao => {
+            acao.hidden = !modoAtivo;
+            acao.disabled = selecionados.length === 0;
+        });
 
         if (contador) {
             contador.textContent = `${selecionados.length} selecionado(s)`;

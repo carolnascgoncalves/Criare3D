@@ -14,4 +14,8 @@ public interface PecaRepository extends JpaRepository<Peca, UUID> {
     List<Peca> findAllByIdIn(Collection<UUID> ids);
 
     Page<Peca> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+    Page<Peca> findByArquivadoFalse(Pageable pageable);
+    Page<Peca> findByArquivadoTrue(Pageable pageable);
+    Page<Peca> findByNomeContainingIgnoreCaseAndArquivadoFalse(String nome, Pageable pageable);
+    long countByArquivadoFalse();
 }

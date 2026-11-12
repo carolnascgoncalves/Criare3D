@@ -16,6 +16,11 @@ import java.util.UUID;
 
 @Controller
 public class CalculoHistoricoAcoesController {
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public String operacaoVinculada(IllegalArgumentException erro) {
+        return "redirect:/historico/listar?erro=operacaoRegistrada";
+    }
+
     private final CalculoHistoricoService calculoHistoricoService;
 
     public CalculoHistoricoAcoesController(CalculoHistoricoService calculoHistoricoService) {

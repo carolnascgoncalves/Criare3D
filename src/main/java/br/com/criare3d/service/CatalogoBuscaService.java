@@ -34,19 +34,19 @@ public class CatalogoBuscaService {
     }
 
     public Page<Peca> buscarPecas(String nome, Pageable pageable) {
-        return pecaRepository.findByNomeContainingIgnoreCase(nome, pageable);
+        return pecaRepository.findByNomeContainingIgnoreCaseAndArquivadoFalse(nome, pageable);
     }
 
     public Page<Impressora> buscarImpressoras(String nome, Pageable pageable) {
-        return impressoraRepository.findByNomeContainingIgnoreCase(nome, pageable);
+        return impressoraRepository.findByNomeContainingIgnoreCaseAndArquivadoFalse(nome, pageable);
     }
 
     public Page<Filamento> buscarFilamentos(String nome, Pageable pageable) {
-        return filamentoRepository.findByNomeContainingIgnoreCase(nome, pageable);
+        return filamentoRepository.findByNomeContainingIgnoreCaseAndArquivadoFalse(nome, pageable);
     }
 
     public Page<Embalagem> buscarEmbalagens(String nome, Pageable pageable) {
-        return embalagemRepository.findByNomeContainingIgnoreCase(nome, pageable);
+        return embalagemRepository.findByNomeContainingIgnoreCaseAndArquivadoFalse(nome, pageable);
     }
 
     public Page<HistoricoListaResponse> buscarHistorico(

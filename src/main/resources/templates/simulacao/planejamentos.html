@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{fragmentos :: cabecalho('Planejamentos salvos')}"></head>
+    <body>
+        <nav th:replace="~{fragmentos :: menu}"></nav>
+        <main class="pagina pagina-planejamentos">
+            <div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+            <div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
+            <section class="pagina-intro">
+                <div>
+                    <span class="texto-apoio">ORGANIZE SUA PRODUÇÃO</span>
+                    <h1>Planejamentos salvos</h1>
+                    <p>O horário é uma previsão. O planejamento é concluído após a venda de todas as unidades do lote.</p>
+                </div>
+                <a class="botao botao-principal" th:href="@{/simulacao}">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                    Novo planejamento
+                </a>
+            </section>
+            <nav class="operacao-abas" aria-label="Estado dos planejamentos">
+                <a th:href="@{/simulacao/planejamentos}" th:classappend="${concluidos != true} ? ' ativo' : ''">Na fila</a>
+                <a th:href="@{/simulacao/planejamentos(concluidos=true)}" th:classappend="${concluidos == true} ? ' ativo' : ''">Concluídos</a>
+                <span th:text="|${pagina.totalElements} planejamentos|"></span>
+            </nav>
+            <section class="cartao catalogo-vazio" th:if="${pagina.empty}">
+                <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                <h2 th:text="${concluidos == true ? 'Nenhum planejamento concluído' : 'Sua fila está livre'}"></h2>
+                <p th:unless="${concluidos == true}">Salve uma simulação para organizar os próximos trabalhos.</p>
+            </section>
+            <div class="planejamentos-grade">
+                <article class="cartao planejamento-card" th:each="p : ${pagina.content}">
+                    <header>
+                        <span class="planejamento-icone">
+                            <i class="bi bi-printer" aria-hidden="true"></i>
+                        </span>
+                        <div>
+                            <span class="texto-apoio" th:text="${p.nomeImpressora}"></span>
+                            <h2 th:text="${p.nomePeca}"></h2>
+                        </div>
+                        <span class="operacao-etiqueta" th:text="${p.concluido ? 'Concluído' : 'Na fila'}"></span>
+                    </header>
+                    <p class="texto-apoio" th:text="|${p.unidades} unidades · ${p.pecasPorImpressao} por impressão|"></p>
+                    <dl class="planejamento-horarios">
+                        <div>
+                            <dt>Início</dt>
+                            <dd th:text="${#temporals.format(p.inicio,'dd/MM · HH:mm')}"></dd>
+                        </div>
+                        <div>
+                            <dt>Previsão com folga</dt>
+                            <dd th:text="${#temporals.format(p.fim,'dd/MM · HH:mm')}"></dd>
+                        </div>
+                    </dl>
+                    <div class="planejamento-acoes">
+                        <a class="botao botao-principal" th:href="@{/vendas-estoque/lote/{id}(id=${p.calculo.id})}">Operação do lote</a>
+                        <form th:unless="${p.concluido}" method="post" th:action="@{/simulacao/planejamentos/{id}/cancelar(id=${p.id})}" data-turbo-confirm="Retirar da fila? Os demais horários serão mantidos.">
+                            <button class="botao botao-secundario" title="Retirar da fila" aria-label="Retirar da fila">
+                                <i class="bi bi-calendar-x" aria-hidden="true"></i>
+                            </button>
+                        </form>
+                    </div>
+                </article>
+            </div>
+            <div class="operacao-acoes">
+                <a th:if="${pagina.hasPrevious()}" th:href="@{/simulacao/planejamentos(page=${pagina.number - 1},concluidos=${concluidos})}">Anterior</a>
+                <a th:if="${pagina.hasNext()}" th:href="@{/simulacao/planejamentos(page=${pagina.number + 1},concluidos=${concluidos})}">Próxima</a>
+            </div>
+        </main>
+    </body>
+</html>

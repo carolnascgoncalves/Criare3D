@@ -147,6 +147,8 @@ public class CalculoHistoricoController {
             HttpSession session) {
 
         if (novo) {
+            session.removeAttribute("custoReferencia");
+            session.removeAttribute("pecaReferencia");
             session.removeAttribute(REQUEST_CALCULO);
             session.removeAttribute(RESULTADO_CALCULO);
             session.removeAttribute(CALCULO_PARA_EDITAR);
@@ -334,6 +336,9 @@ public class CalculoHistoricoController {
 
         mv.addObject("calculo", request);
         mv.addObject("resultado", resultado);
+        if (request.getPecaId().equals(session.getAttribute("pecaReferencia"))) {
+            mv.addObject("custoReferencia",session.getAttribute("custoReferencia"));
+        }
         adicionarResumoLote(mv, resultado);
         mv.addObject("modoComparacao", modoComparacao);
         mv.addObject("precoVendaFixo", precoVendaFixo);
@@ -665,6 +670,9 @@ public class CalculoHistoricoController {
             calculo.setTemFoto(foto != null && foto.length > 0);
 
             calculoHistoricoService.create(calculo, tipoFoto, foto);
+
+            session.removeAttribute("custoReferencia");
+            session.removeAttribute("pecaReferencia");
 
             session.removeAttribute(REQUEST_CALCULO);
             session.removeAttribute(RESULTADO_CALCULO);

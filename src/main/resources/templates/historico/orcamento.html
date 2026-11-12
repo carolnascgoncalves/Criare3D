@@ -27,6 +27,7 @@
             <label for="nomeCliente">Nome do cliente <span class="etiqueta-opcional">Opcional</span></label>
             <input id="nomeCliente" type="text" maxlength="100" placeholder="Ex.: Ana">
         </div>
+        <img th:if="${calculo.temFoto}" th:src="@{/historico/{id}/foto(id=${calculo.id},miniatura=true)}" class="orcamento-foto" th:alt="|Foto de ${calculo.nomePeca}|">
         <div class="orcamento-produto">
             <div>
                 <span>Peça</span>
@@ -50,6 +51,7 @@
             <span>Total do orçamento</span>
             <strong data-total-orcamento th:text="|R$ ${#numbers.formatDecimal(precoTotalLote, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
         </div>
+        <div class="orcamento-condicoes-resumo" aria-label="Condições do orçamento"><span data-condicao-prazo>Prazo: A combinar</span><span data-condicao-pagamento>Pagamento: A combinar</span><span data-condicao-validade>Validade: A combinar</span></div>
         <p class="orcamento-nota" th:text="|Orçamento gerado com base nos valores registrados no ${tenantNome}. Prazo e frete podem ser combinados à parte.|">Orçamento gerado com base nos valores registrados no Criare 3D. Prazo e frete podem ser combinados à parte.</p>
         <div class="formulario-acoes orcamento-acoes">
             <button type="button" class="botao botao-secundario" data-copiar-orcamento>

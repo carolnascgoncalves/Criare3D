@@ -164,8 +164,8 @@
             deslocamento += duracao + (i < impressoes - 1 ? e.intervalo : 0);
             restante -= unidadesNaImpressao;
         }
-        const total = deslocamento, folgaMin = Math.round(total * e.folga / 100);
-        return { ...e, impressoes, execucoes, total, folgaMin, eixo: total + folgaMin };
+        const total = deslocamento, minutosImpressao = execucoes.reduce((soma, execucao) => soma + execucao.duracao, 0), minutosIntervalos = Math.max(0, impressoes - 1) * e.intervalo, folgaMin = Math.round(total * e.folga / 100);
+        return { ...e, impressoes, execucoes, minutosImpressao, minutosIntervalos, total, folgaMin, eixo: total + folgaMin };
     }
 
     function desenharLinha(ui, p) {
@@ -186,18 +186,29 @@
         const meiasNoites = [];
         for (let d = new Date(p.inicio.getFullYear(), p.inicio.getMonth(), p.inicio.getDate() + 1); d < fim; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
             const minutos = (d - p.inicio) / 60000, posicao = minutos / p.eixo * 100;
-            if (posicao > 8 && posicao < 92) meiasNoites.push({ d, minutos });
+            if (posicao > 18 && posicao < 82) meiasNoites.push({ d, minutos });
         }
-        const salto = Math.max(1, Math.ceil(meiasNoites.length / 6)), rotulos = [{ minutos: 0, texto: hora(p.inicio), inicio: true }];
-        meiasNoites.forEach(({ d, minutos }, i) => { if (i % salto === 0) { criar('sim-dia', { left: pct(minutos) }); rotulos.push({ minutos, texto: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}` }); } });
+        const largura = ui.eixo.clientWidth || 600;
+        const limiteRotulos = Math.max(0, Math.min(4, Math.floor(largura / 100) - 2));
+        const salto = Math.max(1, Math.ceil(meiasNoites.length / Math.max(1, limiteRotulos)));
+        const rotulos = [{ minutos: 0, texto: hora(p.inicio), inicio: true }];
+        meiasNoites.forEach(({ d, minutos }, i) => { if (limiteRotulos > 0 && i % salto === 0) { criar('sim-dia', { left: pct(minutos) }); rotulos.push({ minutos, texto: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}` }); } });
+        const mesmoDia = p.inicio.toDateString() === fim.toDateString();
+        rotulos.push({ minutos: p.eixo, texto: mesmoDia ? hora(fim) : `${pad(fim.getDate())}/${pad(fim.getMonth()+1)} ${hora(fim)}`, fim: true });
         const preenchimentos = [];
-        p.execucoes.forEach(execucao => {
+        p.execucoes.forEach((execucao, indice) => {
+            const proxima = p.execucoes[indice + 1];
+            if (proxima && proxima.inicio > execucao.fim) {
+                const pausa = criar('sim-intervalo', { left: pct(execucao.fim), width: pct(proxima.inicio - execucao.fim) });
+                pausa.title = `Intervalo: ${formatarDuracao(proxima.inicio - execucao.fim)}`;
+                if ((proxima.inicio - execucao.fim) / p.eixo >= 0.18) pausa.textContent = pausa.title;
+            }
             const bloco = criar('sim-bloco', { left: pct(execucao.inicio), width: pct(execucao.duracao) });
             const fill = document.createElement('div'); fill.className = 'sim-bloco-fill'; bloco.appendChild(fill); preenchimentos.push(fill);
         });
         const agora = criar('sim-agora', { left: '0%' });
         ui.linha.replaceChildren(fragmento);
-        ui.eixo.replaceChildren(...rotulos.map(r => { const el = document.createElement('span'); el.textContent = r.texto; el.style.left = pct(r.minutos); if (r.inicio) el.classList.add('sim-eixo-inicio'); return el; }));
+        ui.eixo.replaceChildren(...rotulos.map(r => { const el = document.createElement('span'); el.textContent = r.texto; el.style.left = pct(r.minutos); if (r.inicio) el.classList.add('sim-eixo-inicio'); if (r.fim) el.classList.add('sim-eixo-fim'); el.title = dataCompleta(emMinutos(p.inicio, r.minutos)); return el; }));
         return { preenchimentos, agora };
     }
 
@@ -246,7 +257,7 @@
         estado.executando = false; ui.pular.hidden = true;
         const previsto = emMinutos(p.inicio, p.total), limite = emMinutos(p.inicio, p.eixo);
         ui.prontoEm.textContent = dataCompleta(previsto);
-        ui.detalhe.textContent = `${p.unidades} unidades em ${p.impressoes} ${p.impressoes === 1 ? 'impressão' : 'impressões'} · ${formatarDuracao(p.total)} de produção${p.intervalo > 0 && p.impressoes > 1 ? ` · ${formatarDuracao(p.intervalo * (p.impressoes - 1))} em intervalos` : ''}`
+        ui.detalhe.textContent = `${p.unidades} unidades em ${p.impressoes} ${p.impressoes === 1 ? 'impressão' : 'impressões'} · ${formatarDuracao(p.minutosImpressao)} de impressão${p.minutosIntervalos > 0 ? ` · ${formatarDuracao(p.minutosIntervalos)} em intervalos` : ''} · ${formatarDuracao(p.total)} no total`
             + (p.folgaMin > 0 ? ` · com ${p.folga}% de folga, até ${dataCompleta(limite)}` : '');
         ui.resultado.hidden = false;
     }

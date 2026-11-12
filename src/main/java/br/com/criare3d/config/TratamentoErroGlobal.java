@@ -15,6 +15,15 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class TratamentoErroGlobal {
     private static final Logger log = LoggerFactory.getLogger(TratamentoErroGlobal.class);
 
+    @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
+            org.springframework.dao.PessimisticLockingFailureException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String conflitoDeEstoque(Model model) {
+        model.addAttribute("codigo",409);
+        model.addAttribute("mensagem","Os dados foram atualizados em outra operação. Nenhuma alteração desta tentativa foi salva. Atualize a página e confira o saldo antes de tentar novamente.");
+        return "erro";
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String requisicaoInvalida(IllegalArgumentException erro, Model model) {

@@ -39,12 +39,12 @@ public class PecaServiceImp implements PecaService {
 
     @Override
     public Page<Peca> fetchAll(Pageable pageable) {
-        return pecaRepository.findAll(pageable);
+        return pecaRepository.findByArquivadoFalse(pageable);
     }
 
     @Override
     public long contar() {
-        return pecaRepository.count();
+        return pecaRepository.countByArquivadoFalse();
     }
 
     @Override

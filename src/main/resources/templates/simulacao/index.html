@@ -7,10 +7,12 @@
 <nav th:replace="~{fragmentos :: menu}"></nav>
 
 <main class="pagina pagina-simulacao" data-simulacao tabindex="0" aria-label="Simular produção" th:attr="data-url-calculo=@{/simulacao/calculo},data-url-historico=@{/historico}">
+<div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
+
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">PLANEJAMENTO</span>
-            <h1>Simular produção</h1>
+            <h1>Simular produção</h1><a th:href="@{/simulacao/planejamentos}">Ver planejamentos salvos</a>
             <p>Planeje o lote e veja uma estimativa de quando ele ficará pronto.</p>
         </div>
     </section>
@@ -82,15 +84,17 @@
 
             <p class="sim-erro" data-sim="erro" role="alert" hidden></p>
             <button type="submit" class="botao botao-principal">Simular produção</button>
+            <button type="submit" class="botao botao-secundario" data-salvar-planejamento>Salvar na fila da impressora</button>
+            <p class="sim-dica">Ao salvar, o início será ajustado se a impressora já tiver um planejamento. Não movimenta estoque.</p>
         </form>
 
         <section class="cartao sim-palco" aria-labelledby="simTituloPalco">
             <h2 id="simTituloPalco" class="visually-hidden">Simulação em time-lapse</h2>
             <div class="sim-relogio" aria-hidden="true">
-                <small>Relógio da simulação</small>
                 <span class="sim-relogio-data" data-sim="relogio-data">Pronto para simular</span>
+                <small>Relógio da simulação</small>
                 <strong class="sim-relogio-hora" data-sim="relogio-hora"></strong>
-                <span class="sim-relogio-producao"><span>Tempo de produção</span><strong data-sim="relogio-duracao">0min</strong></span>
+                <span class="sim-relogio-producao"><span>Tempo decorrido</span><strong data-sim="relogio-duracao">0min</strong></span>
             </div>
 
             <div class="sim-cena" aria-hidden="true">
@@ -140,6 +144,7 @@
             </div>
         </section>
     </div>
+<form method="post" th:action="@{/simulacao/planejamentos}" id="salvarPlanejamento" hidden></form>
 </main>
 
 </body>

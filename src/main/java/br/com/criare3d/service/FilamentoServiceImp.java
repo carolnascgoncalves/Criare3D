@@ -24,6 +24,7 @@ import java.util.Set;
 @Transactional
 public class FilamentoServiceImp implements FilamentoService {
 
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
     private final FilamentoRepository filamentoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
@@ -86,7 +87,8 @@ public class FilamentoServiceImp implements FilamentoService {
         List<UUID> existentes = filamentoRepository.findAllByIdIn(solicitados)
                 .stream().map(Filamento::getId).toList();
         if (existentes.isEmpty()) return List.of();
-        Set<UUID> bloqueados = Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(existentes));
+        Set<UUID> bloqueados = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(existentes));
+        if (falhaProducaoRepository != null) bloqueados.addAll(falhaProducaoRepository.buscarFilamentosComRegistro(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueados.contains(id)).toList();
         if (!removiveis.isEmpty()) filamentoRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueados::contains).toList();
@@ -94,18 +96,18 @@ public class FilamentoServiceImp implements FilamentoService {
 
     @Override
     public Page<Filamento> fetchAll(Pageable pageable) {
-        return filamentoRepository.findAll(pageable);
+        return filamentoRepository.findByArquivadoFalse(pageable);
     }
 
     @Override
     public long contar() {
-        return filamentoRepository.count();
+        return filamentoRepository.countByArquivadoFalse();
     }
 
     @Override
     public Page<Filamento> fetchAll(Pageable pageable, String busca) {
         if (busca == null || busca.isBlank()) {
-            return filamentoRepository.findAll(pageable);
+            return filamentoRepository.findByArquivadoFalse(pageable);
         }
 
         String[] termos = busca.trim()
@@ -114,6 +116,7 @@ public class FilamentoServiceImp implements FilamentoService {
 
         Specification<Filamento> especificacao = (root, query, criteriaBuilder) -> {
             List<jakarta.persistence.criteria.Predicate> filtros = new java.util.ArrayList<>();
+            filtros.add(criteriaBuilder.isFalse(root.get("arquivado")));
 
             for (String termo : termos) {
                 String padrao = "%" + termo + "%";
@@ -153,7 +156,7 @@ public class FilamentoServiceImp implements FilamentoService {
         if (limite <= 0) {
             return List.of();
         }
-        return filamentoRepository.findAllByOrderByDataCadastroDescNomeAsc(PageRequest.of(0, limite));
+        return filamentoRepository.findByArquivadoFalseOrderByDataCadastroDescNomeAsc(PageRequest.of(0, limite));
     }
 
     @Override

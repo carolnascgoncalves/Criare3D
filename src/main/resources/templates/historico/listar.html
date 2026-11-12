@@ -5,6 +5,8 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina lista-catalogo">
+<div th:if="${param.erro != null and param.erro[0] == 'operacaoRegistrada'}" class="alerta-erro notificacao-flutuante" role="alert">Este cálculo já tem operações registradas. Preserve o histórico e gerencie produção, vendas e cancelamentos em Vendas e estoque.</div>
+
 
     <div class="alerta-erro notificacao-flutuante"
          th:if="${param.erro != null and param.erro[0] == 'estoqueInsuficiente'}">
@@ -33,12 +35,12 @@
 
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'vendaAtualizada'}">
-        Venda atualizada; ao marcar como vendido, a produção e o desconto no estoque também são registrados.
+        Venda atualizada. Apenas as unidades de lotes produzidos podem ser vendidas.
     </div>
 
     <div class="alerta-sucesso notificacao-flutuante"
          th:if="${param.sucesso != null and param.sucesso[0] == 'historicosRemovidos'}">
-        Cálculos excluídos; o estoque dos que estavam marcados como produzidos foi restaurado.
+        Cálculos sem operações excluídos do histórico.
     </div>
 
     <div class="alerta-sucesso notificacao-flutuante"
@@ -362,7 +364,7 @@
                 <form id="form-remover-lote"
                       th:action="@{/historico/remover-lote}"
                       method="post"
-                      data-turbo-confirm="Excluir os cálculos selecionados? O estoque dos cálculos produzidos será restaurado."
+                      data-turbo-confirm="Excluir os cálculos selecionados? Somente cálculos sem operações podem ser excluídos."
                       data-confirm-label="Excluir selecionados">
 
                     <input type="hidden" name="busca" th:value="${busca}">
@@ -475,7 +477,7 @@
                                 <form th:action="@{/historico/remover/{id}(id=${historico.id})}"
                                       method="post"
                                       class="formulario-excluir"
-                                      data-turbo-confirm="Tem certeza de que deseja excluir este cálculo do histórico? O estoque será restaurado se ele estiver produzido."
+                                      data-turbo-confirm="Tem certeza de que deseja excluir este cálculo do histórico? Cálculos com operações serão preservados."
                                       data-confirm-label="Excluir">
 
                                     <button type="submit"

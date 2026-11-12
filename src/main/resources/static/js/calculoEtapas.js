@@ -49,7 +49,7 @@ function inicializarCalculoEtapas() {
         }
         const previsto = Number(pecaSelect?.selectedOptions[0]?.dataset.tempo) || 0;
         if (atualizarTempo && tempoInput && tempoInput.dataset.tempoManual !== "true" && previsto > 0) {
-            tempoInput.value = String(previsto * Math.min(capacidade, unidades));
+            tempoInput.value = String(previsto);
         }
         const tempoPorImpressao = Number(tempoInput?.value) || 0;
         const aquecimento = Number(impressoraSelect?.selectedOptions[0]?.dataset.tempoAquecimento) || 0;
@@ -73,7 +73,7 @@ function inicializarCalculoEtapas() {
         if (avisoParcial) {
             avisoParcial.hidden = !parcial;
             if (parcial && tempoPorImpressao > 0) {
-                const minutosParciais = Math.ceil(tempoPorImpressao * (unidades % capacidade) / capacidade);
+                const minutosParciais = tempoPorImpressao * (unidades % capacidade);
                 avisoParcial.textContent = `A última impressão terá ${unidades % capacidade} peças; estimamos ${minutosParciais} min para ela (${tempoPorImpressao} min por unidade × ${unidades % capacidade} unidades).`;
             }
         }
@@ -372,7 +372,7 @@ function inicializarCalculoEtapas() {
         }
 
         resumoTempo.hidden = false;
-        tempoInformadoResumo.textContent = `${informado} min`;
+        tempoInformadoResumo.textContent = `${informado} min por unidade`;
         tempoPrevistoResumo.textContent = `${previsto} min por unidade`;
 
         let classe;

@@ -17,6 +17,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Embalagem {
+    @Column(nullable = false)
+    private @Getter @Setter boolean arquivado;
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private @Getter @Setter UUID id;

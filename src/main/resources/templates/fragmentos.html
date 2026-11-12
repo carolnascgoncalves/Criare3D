@@ -16,6 +16,7 @@
 
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
+    <link th:href="@{/css/componentes.css}" rel="stylesheet" data-turbo-track="reload">
     <link th:if="${paginaAtiva == 'simulacao'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
@@ -51,6 +52,7 @@
     <script th:if="${paginaAtiva == 'simulacao'}" th:src="@{/js/simulacaoProducao.js}" defer></script>
     <script th:src="@{/js/ordenacaoListagem.js}" defer></script>
     <script th:src="@{/js/clientes.js}" defer></script>
+    <script th:src="@{/js/planejamentoProducao.js}" defer></script>
 </head>
 
 <body>
@@ -88,6 +90,7 @@
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Operação">
             <span class="menu-lateral-titulo">Operação</span>
             <a th:href="@{/simulacao}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'simulacao' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'simulacao' ? 'page' : null}" title="Simulação"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Simulação</span></a>
+            <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Planejamentos</span></a>
             <a th:href="@{/vendas-estoque}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}" title="Vendas e estoque"><i class="bi bi-boxes" aria-hidden="true"></i><span>Vendas e estoque</span></a>
             <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Histórico</span></a>
         </section>
