@@ -43,8 +43,31 @@ class PedidoTemplatesTest {
     @Test void mostraMateriaisFaltantesEAsPecasAtendidasPeloEstoque() {
         var p=pedido();var pronta=new ItemPedido();pronta.setNome("T-Rex");pronta.setQuantidade(4);pronta.setUsarEstoque(4);pronta.setPrecoUnitario(BigDecimal.TEN);pronta.setCusto(BigDecimal.ZERO);p.getItens().add(pronta);
         var m=new br.com.criare3d.service.MateriaisPedido.Material(UUID.randomUUID(),"PLA","Azul",new BigDecimal("1100"),new BigDecimal("100"),new BigDecimal("1000"),1,new BigDecimal("80"));
-        var dados=new HashMap<String,Object>();dados.put("pedido",p);dados.put("etapa",2);dados.put("referencias",List.of());dados.put("dados",new PedidoDadosRequest());dados.put("previsoes",List.of());dados.put("materiaisPedido",new br.com.criare3d.service.MateriaisPedido.Resumo(List.of(m),new BigDecimal("80"),false));
-        assertThat(renderizar("orcamentos/editar",dados)).contains("T-Rex","4 do estoque","Vai usar","Falta repor","80,00");
+        var dados=new HashMap<String,Object>();dados.put("pedido",p);dados.put("etapa",4);dados.put("referencias",List.of());dados.put("dados",new PedidoDadosRequest());dados.put("previsoes",List.of());dados.put("materiaisPedido",new br.com.criare3d.service.MateriaisPedido.Resumo(List.of(m),new BigDecimal("80"),false));
+        assertThat(renderizar("orcamentos/editar",dados)).contains("T-Rex","4 un.","Vai usar","Falta repor","80,00");
+    }
+    @Test void cadaEtapaMostraApenasSuasInformacoes(){
+        var dados=new HashMap<String,Object>();dados.put("pedido",pedido());dados.put("referencias",List.of());dados.put("dados",new PedidoDadosRequest());dados.put("previsoes",List.of());
+        for(int etapa=1;etapa<=4;etapa++){dados.put("etapa",etapa);var html=renderizar("orcamentos/editar",dados);
+            assertThat(html).doesNotContain("Atualizar item","Simular produção");
+            if(etapa<4)assertThat(html).contains("pedido-barra").doesNotContain("<h2>Resumo</h2>","PLANEJAMENTO DE MATERIAIS");
+            if(etapa==4)assertThat(html).contains("Confira a proposta","Enviar por WhatsApp","Outros canais");
+        }
+    }
+    @Test void prazoRenderizaSemCliqueComBarraEAnimacaoOpcional(){
+        var p=pedido();var inicio=java.time.LocalDateTime.of(2026,11,20,8,0);var fim=inicio.plusHours(2);
+        var t=new br.com.criare3d.service.AgendaPedido.Impressao(inicio,fim,3,0);
+        var l=new br.com.criare3d.service.PlanejamentoPedidoService.Linha(p.getItens().getFirst().getId(),"Suporte",inicio,fim,List.of(t));
+        var d=new HashMap<String,Object>();d.put("pedido",p);d.put("etapa",2);d.put("dados",new PedidoDadosRequest());d.put("referencias",List.of());d.put("previsoes",List.of(l));d.put("previsaoAtual",fim);
+        assertThat(renderizar("orcamentos/editar",d)).contains("Pronto em","Ver animação","20/11","Continuar: preço","data-inicio=\"2026-11-20T08:00\"").doesNotContain("Simular produção","Peças prontas na simulação","PLANEJAMENTO DE MATERIAIS");
+    }
+    @Test void expedienteVemAntesDaPreviaERentabilidadeNaoVaiAoCliente(){
+        var p=pedido();p.getItens().getFirst().setCusto(new BigDecimal("120"));
+        var inicio=java.time.LocalDateTime.of(2026,11,20,8,0);var fim=inicio.plusHours(2);
+        var dados=new HashMap<String,Object>();dados.put("pedido",p);dados.put("etapa",2);dados.put("dados",new PedidoDadosRequest());dados.put("referencias",List.of());dados.put("previsoes",List.of());dados.put("previsaoAtual",fim);
+        var html=renderizar("orcamentos/editar",dados);assertThat(html.indexOf("Expediente e início da produção")).isLessThan(html.indexOf("PRAZO ESTIMADO"));
+        dados.put("etapa",4);assertThat(renderizar("orcamentos/editar",dados)).contains("Não recomendado neste preço","-20,00");
+        assertThat(renderizar("orcamentos/proposta",Map.of("pedido",p))).contains("Compartilhar PDF").doesNotContain("Não recomendado neste preço","data-pedido-rentabilidade","Lucro estimado");
     }
     @Test void todasAsEtapasRenderizamSemSalvarOuMovimentarEstoque() {
         for(int etapa=1;etapa<=4;etapa++) {
@@ -70,7 +93,7 @@ class PedidoTemplatesTest {
     @Test void listaEInicioFuncionamVaziosEComRascunhoSalvo() {
         assertThat(renderizar("orcamentos/listar",Map.of("pagina",new PageImpl<>(List.of(pedido())),"busca",""))).contains("Maria");
         var novo=new PedidoOrcamento();
-        assertThat(renderizar("orcamentos/editar",Map.of("pedido",novo,"etapa",1,"referencias",List.of(),"dados",new PedidoDadosRequest(),"previsoes",List.of()))).contains("primeiro cálculo","/orcamentos/iniciar","Produção");
+        assertThat(renderizar("orcamentos/editar",Map.of("pedido",novo,"etapa",1,"referencias",List.of(),"dados",new PedidoDadosRequest(),"previsoes",List.of()))).contains("primeiro cálculo","/orcamentos/iniciar","Prazo");
     }
     @Test void freteEConexaoRenderizamConfiguradosESemConfiguracao(){
         assertThat(renderizar("orcamentos/melhor-envio",Map.of("configurado",false,"conectado",false,"ambiente","sandbox","callback",""))).contains("Configure Client ID");

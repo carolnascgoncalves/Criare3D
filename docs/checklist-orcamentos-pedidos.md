@@ -129,3 +129,40 @@ Até 20 itens por orçamento e 500 unidades por item. Entrega e registro de paga
 - [ ] O bloco Próxima etapa deve explicar a ação atual. Entregar só aparece quando todas as peças estão prontas; cancelar fica em Outras ações.
 - [ ] Sem falta de filamento, os detalhes de consumo começam recolhidos. Com falta, começam abertos e indicam reposição.
 - [ ] Confira os blocos no celular: ações, materiais e fila não devem ultrapassar a largura da tela.
+
+
+### Fluxo simplificado e salvamento automático
+- [ ] Novo orçamento: preencha cliente e contato antes de adicionar a primeira peça; ambos devem permanecer após adicionar.
+- [ ] Edite quantidades em sequência e avance imediatamente: confira que todas foram salvas, sem salto de etapa ou perda de foco.
+- [ ] Sem peças prontas, o campo de estoque não aparece. Com estoque, o máximo respeita a quantidade solicitada e o saldo livre.
+- [ ] Em Prazo, a previsão aparece ao entrar, sem clicar em Simular; altere expediente e confira a atualização automática. Abra Ver animação e use repetir/pular.
+- [ ] Em Preço, altere dois valores rapidamente, desconto em reais/porcentagem e frete; confira subtotais e total da barra, e recarregue para validar persistência.
+- [ ] Durante um salvamento, interrompa a conexão: deve aparecer erro com opção de tentar novamente. Os campos preenchidos devem permanecer.
+- [ ] Em Revisar e enviar, confira cliente, peças, prazo, total e observações. WhatsApp, e-mail e Gmail devem abrir com a proposta correta.
+- [ ] A proposta só vira Enviada ao marcar explicitamente; abrir um canal não significa que a mensagem foi enviada.
+- [ ] No pedido aprovado, confira Próxima etapa e as linhas recolhidas de materiais/fila/custos. A confirmação da produção continua manual.
+- [ ] Confira a barra inferior em tela estreita e desktop, sem cobrir campos ou ultrapassar a largura da página.
+
+
+### Prazo, PDF e rentabilidade
+- [ ] Na etapa Prazo, altere a data para um dia futuro de trabalho e aguarde o recálculo, sem sair do campo. Confira data na prévia e na barra inferior.
+- [ ] Altere a data várias vezes rapidamente: o resultado deve corresponder à última data válida. A previsão respeita dias de trabalho e fila da impressora.
+- [ ] Na prévia da proposta, salve um PDF; use Compartilhar PDF, selecione o arquivo e teste o compartilhamento nativo. Em navegador sem suporte, siga a orientação de anexar no WhatsApp.
+- [ ] Confira que cancelar o menu de compartilhamento não marca o orçamento como enviado.
+- [ ] Faça um orçamento com R$ 214 de receita e R$ 234 de custos e taxas: lucro -R$ 20, sinalização vermelha.
+- [ ] Confira amarelo com margem positiva abaixo de 15% e verde a partir de 15%. Mude preço/desconto/frete e confira atualização automática.
+- [ ] O PDF e a mensagem para o cliente não devem mostrar lucro, margem, cores de recomendação ou custos internos.
+
+
+### Pausas e saldo para produção
+- [ ] Reproduza uma simulação com intervalo entre peças: na pausa, o vaso anterior permanece completo e a próxima peça/horário aparecem no aviso.
+- [ ] No lote ainda não produzido, confira 80,94 g necessários e 8,78 g de saldo: deve destacar em vermelho e mostrar falta de 72,16 g.
+- [ ] Com saldo exatamente igual ao necessário, não deve haver alerta. Em lote já produzido, o saldo reduzido não deve indicar falta para aquela produção concluída.
+
+
+### Isolamento e motivo da espera
+- [ ] Em um cliente A, salve um planejamento futuro. Em outro cliente B sem fila, faça orçamento com impressora própria: a previsão deve respeitar apenas o início e expediente de B.
+- [ ] Com fila vazia e uma segunda-feira às 08h como início, confira que não há aviso de outro planejamento pendente.
+- [ ] Escolha sábado com expediente segunda a sexta: a observação deve explicar o ajuste ao expediente, sem atribuir a outra impressão.
+- [ ] Planejamentos de lotes já produzidos/vendidos devem aparecer entre concluídos e deixar de atrasar novos orçamentos.
+- [ ] Na lista de orçamentos, Abrir e Arquivar/Restaurar devem ocupar a mesma largura.

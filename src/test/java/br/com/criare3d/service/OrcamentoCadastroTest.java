@@ -30,6 +30,11 @@ class OrcamentoCadastroTest {
         when(calculos.calcular(any())).thenReturn(h);when(calculos.calcularComPrecoFixo(any(),any())).thenReturn(h);
         return h;
     }
+    @Test void clienteInformadoAntesDaPrimeiraPecaFicaNoOrcamento(){
+        var h=referencia(true);var dados=new br.com.criare3d.dto.SelecaoPedidoRequest();dados.setCliente("Maria");dados.setContato("11999999999");dados.setTitulo("Presente da Maria");
+        var item=new br.com.criare3d.dto.SelecaoPedidoRequest.Item();item.setSelecionado(true);item.setReferencia(h.getId());dados.getItens().add(item);
+        var p=service.adicionarVarios(null,dados);assertThat(p.getCliente()).isEqualTo("Maria");assertThat(p.getContato()).isEqualTo("11999999999");assertThat(p.getTitulo()).isEqualTo("Presente da Maria");
+    }
     @Test void itemRecebeIdAntesDeCopiarFotoDeLoteComVariasUnidades() {
         var h=referencia(true);var p=service.iniciar(h.getId(),2,1);var i=p.getItens().getFirst();
         assertThat(i.getId()).isNotNull();assertThat(i.getQuantidade()).isEqualTo(2);assertThat(i.getProduzir()).isEqualTo(1);

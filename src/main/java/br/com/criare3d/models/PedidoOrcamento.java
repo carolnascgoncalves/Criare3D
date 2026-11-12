@@ -44,6 +44,7 @@ public class PedidoOrcamento {
  public BigDecimal getCusto() { return itens.stream().map(ItemPedido::getCusto).reduce(custoFrete,BigDecimal::add); }
  public BigDecimal getTaxas() { return itens.stream().map(i -> i.getTaxasUnitarias().multiply(BigDecimal.valueOf(i.getQuantidade()))).reduce(BigDecimal.ZERO,BigDecimal::add); }
  public BigDecimal getLucro() { return getTotal().subtract(getCusto()).subtract(getTaxas()); }
+ public br.com.criare3d.dto.RentabilidadePedido getRentabilidade(){return br.com.criare3d.dto.RentabilidadePedido.avaliar(getTotal(),getCusto(),getTaxas());}
  public int getQuantidadeProduzir() { return itens.stream().mapToInt(ItemPedido::getProduzir).sum(); }
  public String getSituacao() { return status==StatusPedido.APROVADO && itens.stream().allMatch(ItemPedido::isPronto)?StatusPedido.PRONTO.getDescricao():status.getDescricao(); }
  public boolean isOperacional() { return status==StatusPedido.APROVADO || status==StatusPedido.PRONTO; }

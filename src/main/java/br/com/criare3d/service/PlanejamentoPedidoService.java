@@ -16,30 +16,41 @@ public class PlanejamentoPedidoService {
   for(var i:p.getItens()) {
    if(i.getProduzir()==0)continue;
    if(i.getPlanejamento()!=null) {linhas.add(new Linha(i.getId(),i.getNome(),i.getPlanejamento().getInicio(),i.getPlanejamento().getFim()));continue;}
-   var cursor=fila.computeIfAbsent(i.getImpressoraId(),id->inicioLivre(p,id));
+   boolean anterior=fila.containsKey(i.getImpressoraId());
+   var livre=anterior?new InicioLivre(fila.get(i.getImpressoraId()),""):inicioLivre(p,i.getImpressoraId());
+   var cursor=anterior?fila.get(i.getImpressoraId()):livre.horario();
+   String motivo=anterior?"Após a impressão anterior deste orçamento.":livre.motivo();
    var r=entradas.ler(i.getEntradaJson(),i.getProduzir());
    // Aquecimento foi preservado na fotografia do cálculo dentro da entrada do orçamento.
    var agenda=AgendaPedido.de(p.getTurnoInicio(),p.getTurnoFim(),p.getDias());
    var previsao=agenda.prever(cursor,r.getTempoImpressaoMinutos(),i.getAquecimento(),i.getProduzir(),r.getPecasPorImpressao(),p.getIntervalo(),p.getFolga());
-   fila.put(i.getImpressoraId(),previsao.fim().plusMinutes(p.getIntervalo()));linhas.add(new Linha(i.getId(),i.getNome(),previsao.inicio(),previsao.fim(),previsao.impressoes()));
+   fila.put(i.getImpressoraId(),previsao.fim().plusMinutes(p.getIntervalo()));linhas.add(new Linha(i.getId(),i.getNome(),previsao.inicio(),previsao.fim(),previsao.impressoes(),motivo+(previsao.inicio().isAfter(cursor)?" Início ajustado ao expediente e aos dias de trabalho.":"")));
   }
   return linhas;
  }
- private LocalDateTime inicioLivre(PedidoOrcamento p,UUID impressora) {
-  var inicio=p.getInicioPretendido()==null?LocalDateTime.now(clock):p.getInicioPretendido();
-  if(inicio.isBefore(LocalDateTime.now(clock)))inicio=LocalDateTime.now(clock);
+ private InicioLivre inicioLivre(PedidoOrcamento p,UUID impressora) {
+  var agora=LocalDateTime.now(clock);
+  var inicio=p.getInicioPretendido()==null?agora:p.getInicioPretendido();
+  String motivo="Sem impressão anterior na fila desta impressora.";
+  if(inicio.isBefore(agora)){inicio=agora;motivo="A data escolhida já passou; previsão a partir de agora.";}
   var ultimo=planos.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressora);
-  return ultimo.isPresent() && ultimo.get().getFim().plusMinutes(p.getIntervalo()).isAfter(inicio)?ultimo.get().getFim().plusMinutes(p.getIntervalo()):inicio;
+  if(ultimo.isPresent() && ultimo.get().getFim().plusMinutes(p.getIntervalo()).isAfter(inicio)){
+   inicio=ultimo.get().getFim().plusMinutes(p.getIntervalo());
+   motivo="Aguardando planejamento pendente desta impressora até "+ultimo.get().getFim().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))+" e intervalo de "+p.getIntervalo()+" min.";
+  }
+  return new InicioLivre(inicio,motivo);
  }
+ private record InicioLivre(LocalDateTime horario,String motivo) {}
  public void programar(PedidoOrcamento p,ItemPedido i,CalculoHistorico calculo) {
   var r=entradas.ler(i.getEntradaJson(),i.getProduzir());
-  var previa=AgendaPedido.de(p.getTurnoInicio(),p.getTurnoFim(),p.getDias()).prever(inicioLivre(p,i.getImpressoraId()),r.getTempoImpressaoMinutos(),i.getAquecimento(),i.getProduzir(),r.getPecasPorImpressao(),p.getIntervalo(),p.getFolga());
+  var previa=AgendaPedido.de(p.getTurnoInicio(),p.getTurnoFim(),p.getDias()).prever(inicioLivre(p,i.getImpressoraId()).horario(),r.getTempoImpressaoMinutos(),i.getAquecimento(),i.getProduzir(),r.getPecasPorImpressao(),p.getIntervalo(),p.getFolga());
   var plano=new PlanejamentoProducao();plano.setCalculo(calculo);plano.setImpressora(calculo.getImpressora());plano.setNomePeca(i.getNome());plano.setNomeImpressora(calculo.getNomeImpressora());
   plano.setUnidades(i.getProduzir());plano.setPecasPorImpressao(r.getPecasPorImpressao());plano.setIntervalo(p.getIntervalo());plano.setFolga(p.getFolga());plano.setInicio(previa.inicio());plano.setFim(previa.fim());
   i.setPlanejamento(planos.saveAndFlush(plano));
   if(p.getPrevisao()==null || previa.fim().isAfter(p.getPrevisao()))p.setPrevisao(previa.fim());
  }
- public record Linha(UUID itemId,String nome,LocalDateTime inicio,LocalDateTime fim,List<AgendaPedido.Impressao> impressoes) {
-  public Linha(UUID id,String nome,LocalDateTime inicio,LocalDateTime fim){this(id,nome,inicio,fim,List.of());}
+ public record Linha(UUID itemId,String nome,LocalDateTime inicio,LocalDateTime fim,List<AgendaPedido.Impressao> impressoes,String observacao) {
+  public Linha(UUID id,String nome,LocalDateTime inicio,LocalDateTime fim,List<AgendaPedido.Impressao> impressoes){this(id,nome,inicio,fim,impressoes,"");}
+  public Linha(UUID id,String nome,LocalDateTime inicio,LocalDateTime fim){this(id,nome,inicio,fim,List.of(),"");}
  }
 }

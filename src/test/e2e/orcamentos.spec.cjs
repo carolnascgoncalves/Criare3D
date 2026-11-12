@@ -18,14 +18,14 @@ test('orçamento vira pedido sem movimentar estoque antes da aprovação',async(
  await page.getByRole('button',{name:'Adicionar peças selecionadas',exact:true}).click();
  await expect(page).toHaveURL(/orcamentos\/[a-f0-9-]+\?etapa=1/);
  await expect(page.locator('main')).toContainText('Nenhum estoque foi reservado');await semOverflow();
- await page.getByRole('link',{name:'Continuar para produção',exact:true}).click();
- await page.getByRole('button',{name:'Simular produção',exact:true}).click();
- await page.getByRole('button',{name:'Pular para o resultado',exact:true}).click();
- await page.getByRole('button',{name:'Salvar e continuar',exact:true}).click();
+ await page.locator('[name=cliente]').fill('Cliente navegador');await page.locator('[name=cliente]').press('Tab');
+ await page.getByRole('button',{name:'Continuar: prazo',exact:true}).click();
+ await expect(page.locator('[data-sim-fim]')).not.toBeEmpty();
+ await page.getByRole('button',{name:'Continuar: preço',exact:true}).click();
  await expect(page).toHaveURL(/etapa=3/);await semOverflow();
- await page.getByRole('button',{name:'Salvar e continuar',exact:true}).click();
+ await page.getByRole('button',{name:'Continuar: revisar e enviar',exact:true}).click();
  await expect(page).toHaveURL(/etapa=4/);
- await page.locator('[name=cliente]').fill('Cliente navegador');
+
  await page.getByRole('button',{name:'Salvar e marcar como enviada',exact:true}).click();
  await expect(page.getByRole('button',{name:'Cliente aprovou',exact:true})).toBeVisible();
  const proposta=await page.getByRole('link',{name:'Proposta / salvar PDF'}).getAttribute('href');
@@ -38,7 +38,7 @@ test('orçamento vira pedido sem movimentar estoque antes da aprovação',async(
  await expect(page.locator('main')).toContainText('Pronto para entregar');
  await confirmar('Registrar pagamento integral');await expect(page.locator('main')).toContainText('Pagamento registrado');
  await confirmar('Confirmar entrega e venda');await expect(page.locator('main')).toContainText('Entregue');await semOverflow();
- await confirmar('Cancelar pedido');await expect(page.locator('main')).toContainText('Cancelado');
+ await page.getByText('Outras ações',{exact:true}).click();await confirmar('Cancelar pedido');await expect(page.locator('main')).toContainText('Cancelado');
  await expect(page.locator('main')).toContainText('eventual reembolso');
  expect(erros).toEqual([]);
 });

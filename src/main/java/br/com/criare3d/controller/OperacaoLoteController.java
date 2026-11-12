@@ -28,7 +28,10 @@ public class OperacaoLoteController {
  @Autowired private CustoPersonalizadoRepository custos;
  @Autowired private CustoPersonalizadoService custoService;
  @Autowired private ItemPedidoRepository reservas;
- public record Material(String nome,BigDecimal gramas,BigDecimal saldo) {}
+ public record Material(String nome,BigDecimal gramas,BigDecimal saldo) {
+  public boolean isInsuficiente(){return saldo!=null && saldo.compareTo(gramas)<0;}
+  public BigDecimal getFalta(){return saldo==null?BigDecimal.ZERO:gramas.subtract(saldo).max(BigDecimal.ZERO);}
+ }
  @GetMapping("/vendas-estoque/lote/{id}") @Transactional(readOnly=true)
  public ModelAndView abrir(@PathVariable UUID id) {
   var c = repository.findById(id).orElse(null);

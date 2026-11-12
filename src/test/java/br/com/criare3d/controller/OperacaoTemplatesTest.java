@@ -41,6 +41,13 @@ class OperacaoTemplatesTest {
         String html=renderizar("vendas-estoque/lote",dados);
         assertThat(html).contains("Registrar produção do lote","10,00 g no lote").doesNotContain("id=\"vendaUnidades\"");
     }
+    @Test void materialInsuficienteDestacaFaltaSomenteAntesDaProducao(){
+        var dados=new HashMap<String,Object>();var c=lote(false);dados.put("lote",c);dados.put("materiais",List.of(new OperacaoLoteController.Material("PLA",new BigDecimal("80.94"),new BigDecimal("8.78"))));
+        dados.put("vendas",List.of());dados.put("falhas",List.of());dados.put("filamentos",List.of());dados.put("perdaMaterial",BigDecimal.ZERO);dados.put("estimadoVendas",BigDecimal.ZERO);dados.put("resultadoVendas",BigDecimal.ZERO);
+        assertThat(renderizar("vendas-estoque/lote",dados)).contains("operacao-material-insuficiente","faltam 72,16 g");
+        c.setProduzido(true);assertThat(renderizar("vendas-estoque/lote",dados)).doesNotContain("operacao-material-insuficiente","Estoque insuficiente");
+        var exato=new OperacaoLoteController.Material("PLA",BigDecimal.TEN,BigDecimal.TEN);assertThat(exato.isInsuficiente()).isFalse();assertThat(exato.getFalta()).isZero();
+    }
     @Test void loteComVendaRenderizaCancelamentoPorQuantidade() {
         var c=lote(true);var v=new VendaCalculo();v.setId(UUID.randomUUID());v.setCalculo(c);v.setUnidades(2);v.setUnidadesCanceladas(1);v.setDataVenda(LocalDateTime.now());
         var dados=new HashMap<String,Object>();dados.put("lote",c);dados.put("materiais",List.of());dados.put("vendas",List.of(v));dados.put("falhas",List.of());dados.put("filamentos",List.of());

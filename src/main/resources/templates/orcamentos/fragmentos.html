@@ -1,17 +1,17 @@
 <!DOCTYPE html><html xmlns:th="http://www.thymeleaf.org"><body>
 <th:block th:fragment="avisos"><div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div><div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div></th:block>
-<section th:fragment="simulacao" class="cartao pedido-simulacao" data-pedido-simulacao th:hidden="${iniciarSimulacao != true}" th:attr="data-auto=${iniciarSimulacao == true}">
- <header class="pedido-sim-cabecalho"><div><span class="texto-apoio">PRÉVIA DA PRODUÇÃO</span><h2 data-sim-estado>Pronto para simular</h2></div><div class="pedido-sim-controles"><button type="button" class="botao botao-secundario" data-sim-repetir aria-label="Repetir animação" title="Repetir animação"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button><button type="button" class="botao botao-secundario" data-sim-pular aria-label="Pular para o resultado" title="Pular para o resultado"><i class="bi bi-skip-end-fill" aria-hidden="true"></i></button></div></header>
- <p data-sim-relogio>Salve os horários e clique em Simular produção.</p>
+<section th:fragment="simulacao" class="cartao pedido-simulacao" data-pedido-simulacao data-auto="true">
+ <header class="pedido-sim-cabecalho"><div><span class="texto-apoio">PRAZO ESTIMADO</span><h2 data-sim-estado>Pronto para simular</h2></div><div class="pedido-sim-controles"><button type="button" class="botao botao-secundario" data-sim-repetir aria-label="Repetir animação" title="Repetir animação"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button><button type="button" class="botao botao-secundario" data-sim-pular aria-label="Pular para o resultado" title="Pular para o resultado"><i class="bi bi-skip-end-fill" aria-hidden="true"></i></button></div></header>
+ <p class="pedido-prazo-resposta"><span>Pronto em</span><strong data-sim-fim th:text="${previsaoAtual==null?'':#temporals.format(previsaoAtual,'EEEE, dd/MM · HH:mm')}"></strong></p>
+ <details class="pedido-animacao"><summary>Ver animação</summary><p data-sim-relogio>Prévia da impressão com os horários calculados.</p>
  <div class="sim-cena pedido-cena"><svg class="sim-mesa" viewBox="0 0 200 170" aria-hidden="true"><defs><path id="pedidoForma" d="M70 135C62 110 62 90 78 72C86 62 86 52 80 44L120 44C114 52 114 62 122 72C138 90 138 110 130 135Z"/><clipPath id="pedidoCorte"><rect data-pedido-corte x="0" y="135" width="200" height="100"/></clipPath></defs><use href="#pedidoForma" class="sim-objeto-fantasma"/><g clip-path="url(#pedidoCorte)"><use href="#pedidoForma" class="pedido-vaso"/></g><rect class="sim-placa" x="24" y="135" width="152" height="12" rx="4"/><line class="sim-portal" data-pedido-portal x1="24" x2="176" y1="119" y2="119"/><polygon class="sim-bico" data-pedido-bico points="-7,0 7,0 3,12 -3,12" transform="translate(100 119)"/></svg><div><span class="texto-apoio" data-sim-item-label>Peça em impressão</span><strong data-sim-item>Preparando</strong><small>O vaso muda de cor quando muda a peça.</small></div></div>
+ </details>
+ <p data-sim-espera class="aviso-info" hidden></p>
  <div data-pedido-linha class="pedido-linha"></div><div class="pedido-legenda"><span>Dia · 6h–18h</span><span>Noite · 18h–6h</span><span>Folga de segurança ▨</span></div>
- <div class="pedido-grade pedido-datas"><div><span>Início da produção</span><strong data-sim-inicio></strong></div><div><span>Conclusão prevista</span><strong data-sim-fim></strong></div></div>
- <div class="pedido-grade"><span>Peças produzidas na simulação <strong data-sim-prontas>0</strong></span><span>Período <strong data-sim-periodo>—</strong></span></div>
- <th:block th:replace="~{orcamentos/fragmentos :: pecasSimulacao}"></th:block>
+ <p class="texto-apoio">Os espaços entre as barras coloridas são períodos sem impressão. O motivo do início de cada peça aparece abaixo.</p>
+ <span hidden data-sim-inicio></span><span hidden data-sim-prontas></span><span hidden data-sim-periodo></span>
  <div data-sim-resumo class="pedido-sim-resumo" aria-label="Horários e duração de cada peça"></div>
- <button type="submit" form="pedidoDados" name="proxima" value="3" class="botao botao-principal" data-sim-continuar hidden>Salvar e continuar</button>
- <p class="texto-apoio">As esperas pelo expediente e pelos intervalos entram na previsão. Nenhuma peça é marcada como produzida.</p>
- <div hidden data-sim-fontes><th:block th:each="l:${previsoes}"><span th:each="t:${l.impressoes}" th:attr="data-inicio=${t.inicio},data-fim=${t.fim},data-unidades=${t.unidades},data-nome=${l.nome},data-item=${l.itemId},data-folga=${t.minutosFolga}"></span></th:block></div>
+ <div hidden data-sim-fontes><th:block th:each="l:${previsoes}"><span th:each="t:${l.impressoes}" th:attr="data-inicio=${t.inicio},data-fim=${t.fim},data-unidades=${t.unidades},data-nome=${l.nome},data-item=${l.itemId},data-folga=${t.minutosFolga},data-observacao=${l.observacao}"></span></th:block></div>
 </section>
 <section th:fragment="materiais" class="cartao pedido-materiais" th:if="${materiaisPedido != null or erroMateriais != null}">
  <header class="pedido-secao-cabecalho"><div><span class="texto-apoio">PLANEJAMENTO DE MATERIAIS</span><h2>Filamentos para produzir</h2></div><span class="operacao-etiqueta" th:if="${materiaisPedido != null}" th:text="${materiaisPedido.faltantes>0?materiaisPedido.faltantes+' material(is) para repor':'Sem falta de filamento'}"></span></header>
@@ -29,16 +29,16 @@
 <section th:fragment="pecasSimulacao" class="pedido-origens"><h3>Peças deste pedido</h3><p class="texto-apoio">Todas as peças aparecem abaixo. A barra e a animação representam somente as que precisam ser impressas.</p><div class="pedido-grade"><article th:each="i:${pedido.itens}"><strong th:text="${i.nome}"></strong><p th:text="|${i.usarEstoque} do estoque · ${i.produzir} de nova produção|"></p><small th:if="${i.produzir==0}">Atendida pelo estoque, sem tempo de impressão.</small></article></div></section>
 <div th:fragment="contatos" class="pedido-contatos pedido-nao-imprimir" data-pedido-contatos th:attr="data-contato=${pedido.contato},data-titulo=${pedido.titulo},data-total=${#numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}">
  <div hidden><span data-pedido-item-texto th:each="i:${pedido.itens}" th:text="|${i.nome}: ${i.quantidade} un. × R$ ${#numbers.formatDecimal(i.precoUnitario,1,'POINT',2,'COMMA')}|"></span></div>
- <div class="pedido-acoes"><a href="#" target="_blank" rel="noopener noreferrer" class="botao botao-secundario" data-pedido-destino="whatsapp"><i class="bi bi-whatsapp" aria-hidden="true"></i> Abrir WhatsApp</a><a href="#" class="botao botao-secundario" data-pedido-destino="email" data-turbo="false"><i class="bi bi-envelope" aria-hidden="true"></i> Abrir e-mail</a><a href="#" target="_blank" rel="noopener noreferrer" class="botao botao-secundario" data-pedido-destino="gmail" data-turbo="false"><i class="bi bi-envelope-at"></i> Gmail no navegador</a></div>
- <small>Informe um telefone com DDD ou um e-mail. O aplicativo abre com a mensagem pronta; você confere e envia.</small>
+ <div class="pedido-acoes"><a href="#" target="_blank" rel="noopener noreferrer" class="botao botao-principal" data-pedido-destino="whatsapp"><i class="bi bi-whatsapp" aria-hidden="true"></i> <span th:text="${enviarComoTexto==true?'Enviar texto por WhatsApp':'Enviar por WhatsApp'}">Enviar por WhatsApp</span></a></div><details class="pedido-outros-canais"><summary>Outros canais</summary><div class="pedido-acoes"><a href="#" class="botao botao-secundario" data-pedido-destino="email" data-turbo="false"><i class="bi bi-envelope" aria-hidden="true"></i> Abrir e-mail</a><a href="#" target="_blank" rel="noopener noreferrer" class="botao botao-secundario" data-pedido-destino="gmail" data-turbo="false"><i class="bi bi-envelope-at"></i> Gmail no navegador</a></div></details>
+ <small>O canal abre com a mensagem pronta para você conferir e enviar.</small>
 </div>
 <details th:fragment="comoFunciona" class="pedido-ajuda">
  <summary>Como funciona o orçamento e o pedido?</summary>
  <p>Escolha as peças e quantidades, confira o prazo e os preços e prepare a proposta para o cliente.</p>
  <p class="texto-apoio">Até a aprovação, nada sai do estoque. Quando o cliente aprovar, reservamos as peças prontas e colocamos só o que falta na fila. Depois, você confirma a produção, o pagamento e a entrega. O horário previsto não conclui a produção sozinho.</p>
 </details>
-<form th:fragment="adicionar(acao,selecionada)" th:action="${acao}" method="post" class="pedido-adicionar">
- <details class="pedido-escolha" data-pedido-escolha th:open="${pedido == null or #lists.isEmpty(pedido.itens)}"><summary><span><strong>Qual peça o cliente quer?</strong><span class="texto-apoio" th:text="${pedido == null or pedido.id==null ? 'Escolha um cálculo salvo e informe a quantidade do pedido.' : 'Para adicionar outra peça, escolha um cálculo salvo e informe a quantidade.'}"></span></span><i class="bi bi-chevron-down" aria-hidden="true"></i></summary><div class="pedido-escolha-conteudo">
+<form th:fragment="adicionar(acao,selecionada)" id="pedidoAdicionar" th:action="${acao}" method="post" class="pedido-adicionar">
+ <details class="pedido-escolha" data-pedido-escolha th:open="${pedido == null or #lists.isEmpty(pedido.itens)}"><summary><span><strong th:text="${pedido==null or #lists.isEmpty(pedido.itens)?'Qual peça o cliente quer?':'+ Adicionar outra peça'}"></strong><span class="texto-apoio" th:text="${pedido == null or pedido.id==null ? 'Escolha um cálculo salvo e informe a quantidade do pedido.' : 'Para adicionar outra peça, escolha um cálculo salvo e informe a quantidade.'}"></span></span><i class="bi bi-chevron-down" aria-hidden="true"></i></summary><div class="pedido-escolha-conteudo">
  <div th:if="${#lists.isEmpty(referencias)}" class="aviso-info">Faça o primeiro cálculo de uma peça para montar o orçamento. Depois use “Usar em um orçamento” no resultado.</div>
  <label class="campo" th:unless="${#lists.isEmpty(referencias)}">Buscar peça<input type="search" data-pedido-busca placeholder="Nome, material ou impressora" autocomplete="off"></label>
  <div class="pedido-referencias" role="group" aria-label="Peças disponíveis">
@@ -49,14 +49,21 @@
   <span><strong th:text="${r.nome}"></strong><small th:text="|${r.material} · ${r.impressora}|"></small><small th:text="|${r.disponivel} unidades livres no estoque|"></small></span></label>
   <div class="pedido-grade" data-pedido-multi-campos th:hidden="${r.id!=selecionada}">
   <label class="campo">Quantidade que o cliente quer<input type="number" min="1" max="500" value="1" required data-multi-quantidade th:name="|itens[${idx.index}].quantidade|" th:disabled="${r.id!=selecionada}"></label>
-  <label class="campo">Quantas do estoque vão ser utilizadas<input type="number" min="0" value="0" required data-multi-estoque th:name="|itens[${idx.index}].estoque|" th:max="${r.disponivel}" th:disabled="${r.id!=selecionada}"></label></div>
+  <label class="campo" th:hidden="${r.disponivel==0}"><span th:text="|Usar do estoque (máx. ${r.disponivel})|"></span><input th:type="${r.disponivel==0?'hidden':'number'}" min="0" value="0" required data-multi-estoque th:name="|itens[${idx.index}].estoque|" th:max="${r.disponivel}" th:disabled="${r.id!=selecionada}"></label></div>
  </article></div>
  <p data-pedido-sem-resultados hidden>Nenhuma referência encontrada.</p>
- <p class="texto-apoio">Marque uma ou mais peças e ajuste a quantidade de cada uma. Use zero no estoque para produzir todas.</p>
+ <p class="texto-apoio">Marque as peças e informe as quantidades.</p>
  <div class="pedido-acoes"><button th:unless="${#lists.isEmpty(referencias)}" class="botao botao-principal" type="submit">Adicionar peças selecionadas</button><a class="botao botao-secundario" th:href="${pedido != null and pedido.id!=null ? '/historico/novo?novo=true&amp;orcamento='+pedido.id : '/historico/novo?novo=true'}">Calcular outra peça</a></div>
  </div></details>
 </form>
-<section th:fragment="totais" class="cartao pedido-totais"><h2>Resumo</h2><dl>
+<footer th:fragment="barraEtapa(rotulo,valor,textoBotao,proxima)" class="pedido-barra"><div><span th:text="${rotulo}"></span><strong data-pedido-barra-valor th:attr="data-valor-total=${etapa!=2}" th:text="${valor}"></strong><small data-pedido-barra-status></small></div><button type="submit" form="pedidoDados" name="proxima" th:value="${proxima}" class="botao" th:disabled="${#lists.isEmpty(pedido.itens)}" th:attr="aria-disabled=${#lists.isEmpty(pedido.itens)}" th:text="${textoBotao}"></button></footer>
+<div th:fragment="avisoMateriais" class="pedido-aviso-material" role="status" th:if="${erroMateriais!=null or (materiaisPedido!=null and materiaisPedido.faltantes>0)}"><span th:if="${erroMateriais}" th:text="${erroMateriais}"></span><span th:if="${materiaisPedido!=null}" th:each="m:${materiaisPedido.materiais}" th:object="${m}"><span th:if="${m.falta.signum()>0}" th:text="|Falta ${#numbers.formatDecimal(m.falta,1,'POINT',2,'COMMA')} g de ${m.nome} · ${m.cor}. |"></span></span></div>
+<section th:fragment="rentabilidade" data-pedido-rentabilidade class="pedido-rentabilidade" th:if="${!#lists.isEmpty(pedido.itens)}" th:attr="data-estado=${pedido.rentabilidade.estado}" role="status">
+ <strong data-rentabilidade-titulo th:text="${pedido.rentabilidade.titulo}"></strong>
+ <p><span>Lucro estimado: </span><strong data-rentabilidade-lucro th:text="|R$ ${#numbers.formatDecimal(pedido.rentabilidade.lucro,1,'POINT',2,'COMMA')}|"></strong><span> · Margem: </span><strong data-rentabilidade-margem th:text="|${#numbers.formatDecimal(pedido.rentabilidade.margem,1,'POINT',1,'COMMA')}%|"></strong></p>
+ <small>Com base nos custos estimados do cálculo, taxas, desconto e envio. Vermelho: lucro ≤ 0; amarelo: margem abaixo de 15%; verde: a partir de 15%. Confira se todos os custos foram informados.</small>
+</section>
+<section th:fragment="totais" class="cartao pedido-totais"><h2>Resumo</h2><th:block th:replace="~{orcamentos/fragmentos :: rentabilidade}"></th:block><dl>
  <div><dt>Peças</dt><dd th:text="|R$ ${#numbers.formatDecimal(pedido.subtotal,1,'POINT',2,'COMMA')}|"></dd></div>
  <div><dt>Desconto</dt><dd th:text="|R$ ${#numbers.formatDecimal(pedido.desconto,1,'POINT',2,'COMMA')}|"></dd></div>
  <div><dt>Frete cobrado</dt><dd th:text="|R$ ${#numbers.formatDecimal(pedido.frete,1,'POINT',2,'COMMA')}|"></dd></div>

@@ -119,3 +119,7 @@
     .planejamento-card header > .operacao-etiqueta { margin-left:54px; }
     .operacao-perda { padding:12px; }
 }
+
+.operacao-material-insuficiente{background:#fff0f0;border:1px solid #dfaaaa;border-left:4px solid #b73b3b;border-radius:10px;padding:12px;margin:8px 0;color:#862424}
+.operacao-material-insuficiente span{color:#862424}
+.operacao-material-falta{font-weight:600}

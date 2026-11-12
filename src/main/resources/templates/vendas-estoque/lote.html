@@ -46,9 +46,10 @@
                     </h2>
                     <p class="texto-apoio" th:if="${lote.produzido}" th:text="${lote.dataProducao == null ? 'Data não registrada no lote antigo.' : 'Produzido em ' + #temporals.format(lote.dataProducao,'dd/MM/yyyy HH:mm')}"></p>
                     <p class="texto-apoio" th:unless="${lote.produzido}">Confira o material antes de produzir.</p>
-                    <div class="operacao-material" th:each="m : ${materiais}">
+                    <div class="operacao-material" th:each="m : ${materiais}" th:classappend="${!lote.produzido and m.insuficiente ? ' operacao-material-insuficiente' : ''}">
                         <div>
                             <strong th:text="${m.nome}"></strong>
+                            <span class="operacao-material-falta" th:if="${!lote.produzido and m.insuficiente}" th:text="|Estoque insuficiente · faltam ${#numbers.formatDecimal(m.falta,1,'POINT',2,'COMMA')} g|"></span>
                             <span th:if="${m.saldo != null}" th:text="|Saldo atual: ${#numbers.formatDecimal(m.saldo,1,'POINT',2,'COMMA')} g|"></span>
                         </div>
                         <strong th:text="|${#numbers.formatDecimal(m.gramas,1,'POINT',2,'COMMA')} g no lote|"></strong>

@@ -537,6 +537,21 @@ class Criare3dApplicationTests {
         assertThat(filamentoRepository.findById(lote.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo(depois);
     }
 
+    @Test void filaDeImpressoraIsolaContasEIgnoraLoteProduzidoMesmoComPlanoPendente(){
+        var a=criarUsuario("fila-a-"+UUID.randomUUID()+"@teste.local");autenticarComo(a);var loteA=criarLoteOperacao(a);
+        var plano=new br.com.criare3d.models.PlanejamentoProducao();plano.setCalculo(loteA);plano.setImpressora(loteA.getImpressora());plano.setInicio(LocalDateTime.now().plusDays(1));plano.setFim(LocalDateTime.now().plusDays(10));planejamentoProducaoRepository.saveAndFlush(plano);
+        var impressoraA=loteA.getImpressora().getId();
+        assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isPresent();
+        var b=criarUsuario("fila-b-"+UUID.randomUUID()+"@teste.local");autenticarComo(b);var loteB=criarLoteOperacao(b);
+        assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
+        assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(loteB.getImpressora().getId())).isEmpty();
+        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+        autenticarComo(a);loteA.setProduzido(true);calculoHistoricoRepository.saveAndFlush(loteA);
+        assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
+        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
+    }
+
     @Test
     void orcamentoItemEReservasNaoSaoAcessiveisPorOutroCliente() {
         var a=criarUsuario("pedido-a-"+UUID.randomUUID()+"@teste.local");autenticarComo(a);

@@ -8,10 +8,11 @@
         let telefone=/^[+\d\s().-]+$/.test(contato)?contato.replace(/\D/g,''):'';
         if(!contato.startsWith('+') && (telefone.length===10 || telefone.length===11))telefone='55'+telefone;
         const telefoneValido=/^\d{10,15}$/.test(telefone);
-        const titulo=document.querySelector('input:not([type="hidden"])[name="titulo"]')?.value || caixa.dataset.titulo;
+        const titulo=document.querySelector('[data-pedido-titulo]')?.value || document.querySelector('input:not([type="hidden"])[name="titulo"]')?.value || caixa.dataset.titulo;
         const itens=[...caixa.querySelectorAll('[data-pedido-item-texto]')].map(el=>el.textContent).filter(Boolean).join('\n');
         const observacoes=document.querySelector('textarea[name="observacoes"]')?.value || '';
-        const texto=document.querySelector('[data-pedido-proposta]')?.innerText || `${titulo}\n${itens}\nTotal: R$ ${caixa.dataset.total}\n${observacoes}\nPrazo e entrega conforme a proposta. Confira a prévia antes de enviar.`;
+        const proposta=document.querySelector('[data-pedido-proposta]');
+        const texto=proposta ? proposta.innerText+(observacoes?'\n'+observacoes:'') : `${titulo}\n${itens}\nTotal: R$ ${caixa.dataset.total}\n${observacoes}\nPrazo e entrega conforme a proposta. Confira a prévia antes de enviar.`;
         caixa.querySelectorAll('[data-pedido-destino]').forEach(link=>{
             const whatsapp=link.dataset.pedidoDestino==='whatsapp',valido=whatsapp?telefoneValido:email;
             link.setAttribute('aria-disabled',String(!valido));

@@ -47,7 +47,8 @@ public class OrcamentoPedidoService {
   var selecionados=d.getItens().stream().filter(SelecaoPedidoRequest.Item::isSelecionado).toList();
   if(selecionados.isEmpty()||selecionados.size()>20)throw new IllegalArgumentException("Selecione de 1 a 20 peças para adicionar.");
   var p=id==null?novo():editavel(id);if(p.getItens().size()+selecionados.size()>20)throw new IllegalArgumentException("Use até 20 itens por orçamento.");
-  for(var i:selecionados){if(i.getReferencia()==null)throw new IllegalArgumentException("Selecione um cálculo válido.");adicionar(p,i.getReferencia(),i.getQuantidade(),i.getEstoque());}return p;
+  if(id==null){p.setCliente(d.getCliente());p.setContato(d.getContato());}
+  for(var i:selecionados){if(i.getReferencia()==null)throw new IllegalArgumentException("Selecione um cálculo válido.");adicionar(p,i.getReferencia(),i.getQuantidade(),i.getEstoque());}if(id==null && d.getTitulo()!=null&&!d.getTitulo().isBlank()&&!d.getTitulo().equals("Novo orçamento"))p.setTitulo(d.getTitulo().strip());return p;
  }
  public PedidoOrcamento iniciar(UUID referencia,int quantidade,int estoque) {
   var p=novo();adicionar(p,referencia,quantidade,estoque);return p;
