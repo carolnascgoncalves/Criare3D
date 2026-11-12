@@ -539,7 +539,13 @@ class Criare3dApplicationTests {
 
     @Test void filaDeImpressoraIsolaContasEIgnoraLoteProduzidoMesmoComPlanoPendente(){
         var a=criarUsuario("fila-a-"+UUID.randomUUID()+"@teste.local");autenticarComo(a);var loteA=criarLoteOperacao(a);
-        var plano=new br.com.criare3d.models.PlanejamentoProducao();plano.setCalculo(loteA);plano.setImpressora(loteA.getImpressora());plano.setInicio(LocalDateTime.now().plusDays(1));plano.setFim(LocalDateTime.now().plusDays(10));planejamentoProducaoRepository.saveAndFlush(plano);
+        var plano=new br.com.criare3d.models.PlanejamentoProducao();
+        plano.setCalculo(loteA);plano.setImpressora(loteA.getImpressora());
+        plano.setNomePeca(loteA.getNomePeca());plano.setNomeImpressora(loteA.getNomeImpressora());
+        plano.setUnidades(loteA.getUnidades());plano.setPecasPorImpressao(1);
+        plano.setIntervalo(10);plano.setFolga(10);
+        plano.setInicio(LocalDateTime.now().plusDays(1));plano.setFim(plano.getInicio().plusDays(9));
+        planejamentoProducaoRepository.saveAndFlush(plano);
         var impressoraA=loteA.getImpressora().getId();
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isPresent();
         var b=criarUsuario("fila-b-"+UUID.randomUUID()+"@teste.local");autenticarComo(b);var loteB=criarLoteOperacao(b);
