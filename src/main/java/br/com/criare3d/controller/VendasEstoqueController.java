@@ -35,13 +35,15 @@ public class VendasEstoqueController {
     private final AcaoEmLoteService acaoEmLoteService;
     private final IndicadoresService indicadoresService;
     private final VendaService vendaService;
+    private final br.com.criare3d.repository.ItemPedidoRepository reservas;
 
     public VendasEstoqueController(CatalogoBuscaService catalogoBuscaService,
-                                   AcaoEmLoteService acaoEmLoteService, IndicadoresService indicadoresService, VendaService vendaService) {
+                                   AcaoEmLoteService acaoEmLoteService, IndicadoresService indicadoresService, VendaService vendaService, br.com.criare3d.repository.ItemPedidoRepository reservas) {
         this.catalogoBuscaService = catalogoBuscaService;
         this.acaoEmLoteService = acaoEmLoteService;
         this.indicadoresService = indicadoresService;
         this.vendaService = vendaService;
+        this.reservas = reservas;
     }
 
     @GetMapping("/vendas-estoque")
@@ -73,6 +75,9 @@ public class VendasEstoqueController {
         BigDecimal lucroVendidoMes = indicadoresService.somarLucroVendidoEntre(inicioMes, fimMes);
 
         ModelAndView mv = new ModelAndView("vendas-estoque/listar");
+        var saldos = new java.util.HashMap<UUID, Long>();
+        java.util.stream.Stream.concat(emEstoque.stream(), pagina.stream()).forEach(l -> saldos.computeIfAbsent(l.id(), reservas::reservadas));
+        mv.addObject("reservadas", saldos);
         mv.addObject("modoDetalhe", !aba.isBlank());
         mv.addObject("aba", aba);
         mv.addObject("abaTitulo", tituloAba(aba));

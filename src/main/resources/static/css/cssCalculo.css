@@ -339,16 +339,6 @@
 
 /* FILAMENTOS E CORES NO RESULTADO */
 
-.amostra-cor {
-    display: inline-block;
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border: 1px solid rgba(73, 46, 30, 0.2);
-    border-radius: 50%;
-    background: #eee;
-}
-
 .resultado-filamento {
     padding: 16px;
     margin-bottom: 14px;
@@ -499,10 +489,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico tbody tr:last-child td {
     border-bottom: none;
-}
-
-.tabela-historico tbody tr:hover {
-    background: var(--superficie-suave);
 }
 
 .tabela-historico td:nth-child(2),
@@ -719,7 +705,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     font-size: 0.9rem;
 }
 
-
 .resumo-consumo-medidor {
     margin-top: 2px;
 }
@@ -770,7 +755,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     font-size: 0.9rem;
     font-weight: 600;
 }
-
 
 .resumo-consumo-progresso.acima-do-previsto {
     background: var(--cor-erro);
@@ -871,7 +855,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     margin: 0;
     justify-content: center;
 }
-
 
 #statusConsumoResumo {
     display: inline-block;
@@ -1069,7 +1052,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 }
 
 /* ===== Regras incorporadas de cssDetalhesCalculo.css ===== */
-
 
 .detalhes-calculo {
     padding-bottom: 40px;
@@ -1609,10 +1591,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     padding: 3px 0;
 }
 
-.foto-peca-preview.visivel {
-    display: flex;
-}
-
 .foto-peca-preview img {
     width: 84px;
     height: 84px;
@@ -1923,7 +1901,6 @@ input[type="search"] {
     background-image: none !important;
 }
 
-
 /* ========================================
    RESULTADO - NOVO LAYOUT
 ======================================== */
@@ -2019,7 +1996,6 @@ input[type="search"] {
     gap: 9px;
 }
 
-
 .resultado-item span {
     font-size: 1rem;
     line-height: 1.45;
@@ -2030,7 +2006,6 @@ input[type="search"] {
     line-height: 1.3;
     overflow-wrap: anywhere;
 }
-
 
 .resultado-resumo-layout > .preco-sugerido {
     margin-top: 0;
@@ -2078,7 +2053,6 @@ input[type="search"] {
         font-size: 1.25rem;
     }
 }
-
 
 /* ========================================
    DETALHES - IDENTIFICAÇÃO E FOTO AMPLIADA
@@ -2263,12 +2237,10 @@ input[type="search"] {
     background: transparent;
 }
 
-
 /* GARANTE QUE CAMPOS OCULTOS NÃO SEJAM EXIBIDOS */
 [hidden] {
     display: none !important;
 }
-
 
 /* ========================================
    PADRONIZAÇÃO DOS CABEÇALHOS DAS LISTAGENS
@@ -2360,7 +2332,6 @@ input[type="search"] {
 }
 
 /* ===== Regras incorporadas de ajustesListagens.css ===== */
-
 
 /* =========================================
    PADRONIZAÇÃO DAS PÁGINAS DE LISTAGEM
@@ -2551,39 +2522,11 @@ main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select:foc
 
 /* ALERTAS */
 
-main.pagina:has(> .cartao form.busca-filamentos) > .alerta-erro,
-main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
-    order: initial;
-    margin: 0 0 18px;
-}
-
 /* PLACEHOLDERS */
-
-:root {
-    --texto-secundario-acessivel: var(--marrom-claro);
-}
-
-.busca-filamentos-campo input::placeholder,
-.busca-listagem-campo input::placeholder {
-    color: var(--texto-secundario-acessivel);
-    opacity: 1;
-}
 
 /* RESPONSIVIDADE DAS LISTAGENS */
 
 @media (max-width: 700px) {
-    main.pagina:has(> .cartao form.busca-filamentos) .busca-filamentos {
-        flex-wrap: wrap;
-        padding: 0 18px 20px;
-    }
-
-    main.pagina:has(> .cartao form.busca-filamentos) .busca-filamentos-campo {
-        flex: 1 1 100%;
-    }
-
-    main.pagina:has(> .cartao form.busca-filamentos) .busca-listagem-data {
-        flex: 1 1 100%;
-    }
 
     main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros {
         grid-template-columns: minmax(0, 1fr) 46px 46px;
@@ -2744,24 +2687,18 @@ main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina labe
 }
 
 @media (min-width: 1251px) {
-    main.pagina:has(> .cartao form.historico-filtros) .historico-filtros {
-        grid-template-columns: minmax(220px, 1.8fr) 46px minmax(140px, 1fr)
-            minmax(140px, 1fr) auto minmax(118px, auto) minmax(100px, auto);
-    }
+
 }
 
 @media (min-width: 701px) and (max-width: 1250px) {
-    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina { grid-area: tamanho; }
+
 }
 
 @media (max-width: 700px) {
     main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
         grid-column: 1 / -1;
     }
-    main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina {
-        grid-column: 1 / -1;
-        justify-self: start;
-    }
+
 }
 
 main.pagina.lista-catalogo > .cartao:has(> form.historico-filtros .historico-ordenar[open]) {
@@ -2981,7 +2918,6 @@ a:focus-visible {
     }
 }
 
-
 /* ========================================
    RESULTADO - AUSÊNCIA DE FOTO
 ======================================== */
@@ -3081,7 +3017,6 @@ a:focus-visible {
         grid-column: auto;
     }
 }
-
 
 .detalhes-custos-grupo {
     padding: 14px 16px 4px;
@@ -3188,7 +3123,6 @@ a:focus-visible {
 .detalhes-preco:not(.detalhes-preco-venda) .detalhes-preco-final strong {
     color: #256b35;
 }
-
 
 .controle-plataforma > summary {
     position: relative;

@@ -27,6 +27,7 @@ public class OperacaoLoteController {
  @Autowired private FalhaProducaoService falhaService;
  @Autowired private CustoPersonalizadoRepository custos;
  @Autowired private CustoPersonalizadoService custoService;
+ @Autowired private ItemPedidoRepository reservas;
  public record Material(String nome,BigDecimal gramas,BigDecimal saldo) {}
  @GetMapping("/vendas-estoque/lote/{id}") @Transactional(readOnly=true)
  public ModelAndView abrir(@PathVariable UUID id) {
@@ -45,7 +46,7 @@ public class OperacaoLoteController {
   var registrosVenda = vendas.findByCalculo_IdOrderByDataVendaDesc(id);
   var estimado = c.getLucroLiquido() != null ? c.getLucroLiquido() : c.getPrecoSugerido().subtract(c.getCustoTotal());
   var resultadoVendas = registrosVenda.stream().map(v -> (v.getLucroUnitario() == null ? estimado : v.getLucroUnitario()).multiply(BigDecimal.valueOf(v.getUnidadesAtivas()))).reduce(BigDecimal.ZERO,BigDecimal::add);
-  return new ModelAndView("vendas-estoque/lote").addObject("lote",c).addObject("materiais",materiais)
+  return new ModelAndView("vendas-estoque/lote").addObject("lote",c).addObject("reservadas",reservas.reservadas(id)).addObject("materiais",materiais)
    .addObject("resultadoVendas",resultadoVendas).addObject("estimadoVendas",estimado.multiply(BigDecimal.valueOf(c.getUnidadesVendidas())))
    .addObject("custosExtras",custosExtras).addObject("totalExtras",totalExtras)
    .addObject("vendas",registrosVenda).addObject("falhas",perdas)
@@ -95,6 +96,8 @@ public class OperacaoLoteController {
  private String resposta(UUID id,ResultadoOperacao resultado,RedirectAttributes flash,String sucesso) {
   if (ResultadoOperacao.OK.equals(resultado)) flash.addFlashAttribute("mensagemSucesso",sucesso);
   else flash.addFlashAttribute("mensagemErro",switch(resultado) {
+   case RESERVA_ATIVA -> "Há unidades reservadas para um pedido. Gerencie a reserva em Orçamentos e pedidos.";
+   case PEDIDO_VINCULADO -> "Esta venda pertence a um pedido. Cancele pelo pedido para manter os registros consistentes.";
    case PRODUCAO_NECESSARIA -> "Registre a produção antes de vender. A venda não produz o lote automaticamente.";
    case ESTOQUE_INSUFICIENTE -> "O estoque de filamento é insuficiente para produzir o lote.";
    case VENDA_ATIVA -> "Este lote tem vendas ativas. Cancele as vendas antes de desfazer a produção.";

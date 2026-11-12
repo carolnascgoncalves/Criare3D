@@ -1,5 +1,7 @@
 # Segurança, operação e arquitetura
 
+Veja também [a conferência da instalação](conferencia-producao.md) para diagnóstico de IP, retenção efetiva, monitoramento do backup e configuração externa de tarifas.
+
 ## Serviços
 
 | Serviço | Responsabilidade |
@@ -68,8 +70,9 @@ Para alertas de erros 500/503, configure `CRIARE_ALERTA_WEBHOOK` com um endpoint
 | Variável | `BACKUP_AWS_REGION` |
 | Segredos | `BACKUP_PGHOST`, `BACKUP_PGPORT`, `BACKUP_PGDATABASE`, `BACKUP_PGUSER`, `BACKUP_PGPASSWORD` |
 | Segredos | `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_S3_URI` |
+| Segredos | `BACKUP_ALERTA_WEBHOOK`, `BACKUP_HEARTBEAT_URL` |
 
-Use um usuário com permissão de leitura de todas as tabelas do banco, SSL e um bucket privado dedicado. A rotina usa ferramentas PostgreSQL 17: ajuste a imagem se o servidor tiver versão principal mais nova. O formato custom é verificado com `pg_restore --list` e recebe checksum SHA-256. Cada execução restaura em PostgreSQL descartável antes de enviar a cópia ao S3 com criptografia AES256 no servidor. Dumps não são artifacts do GitHub nem entram no Git.
+Use um usuário com permissão de leitura de todas as tabelas do banco, SSL e um bucket privado dedicado. A rotina usa ferramentas PostgreSQL 17: ajuste a imagem se o servidor tiver versão principal mais nova. O formato custom é verificado com `pg_restore --list`; o dump e o manifesto de contagens recebem checksum SHA-256. As contagens de doze tabelas principais usam o mesmo snapshot do dump e são comparadas após a restauração. Cada execução restaura em PostgreSQL descartável antes de enviar a cópia ao S3 com criptografia AES256 no servidor. Dumps não são artifacts do GitHub nem entram no Git.
 
 Configure no bucket versionamento e política de retenção (por exemplo, 30 cópias diárias), bloqueio de acesso público e permissões limitadas ao prefixo de backup. Habilite avisos de falha do workflow. O ensaio automatizado valida a restauração do arquivo; periodicamente inicie também uma aplicação isolada usando a cópia restaurada e confira os fluxos principais.
 

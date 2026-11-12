@@ -11,10 +11,14 @@ import java.util.Map;
 /** Adaptador de entrega: credenciais somente no ambiente; links nunca usam o Host da requisição. */
 @Service
 public class EmailAcessoService {
+    public EmailAcessoService(HttpIntegracaoService http) {
+        this.http = java.util.Objects.requireNonNull(http, "http");
+    }
+
     @Value("${CRIARE_EMAIL_API_KEY:}") private String apiKey;
     @Value("${CRIARE_EMAIL_REMETENTE:}") private String remetente;
     @Value("${CRIARE_PUBLIC_URL:}") private String publicUrl;
-    @org.springframework.beans.factory.annotation.Autowired private HttpIntegracaoService http;
+    private final HttpIntegracaoService http;
 
     public boolean habilitado() {
         if (apiKey.isBlank() || remetente.isBlank() || publicUrl.isBlank()) return false;

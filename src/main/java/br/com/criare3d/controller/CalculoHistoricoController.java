@@ -156,9 +156,15 @@ public class CalculoHistoricoController {
             @RequestParam(required = false) UUID embalagemCriada,
             @RequestParam(defaultValue = "false") boolean editar,
             @RequestParam(defaultValue = "false") boolean novo,
+            @RequestParam(required = false) UUID orcamento,
             HttpSession session) {
 
+        if (!editar && !novo && pecaCriada == null && filamentoCriado == null && impressoraCriada == null && embalagemCriada == null) {
+            session.removeAttribute("orcamentoDestino");
+        }
         if (novo) {
+            session.removeAttribute("orcamentoDestino");
+            if (orcamento != null) session.setAttribute("orcamentoDestino", orcamento);
             session.removeAttribute("custoReferencia");
             session.removeAttribute("pecaReferencia");
             session.removeAttribute(REQUEST_CALCULO);
@@ -342,6 +348,7 @@ public class CalculoHistoricoController {
         }
 
         ModelAndView mv = presenter.resultado(request, resultado, modoComparacao, precoVendaFixo, valoresAtualizados);
+        mv.addObject("orcamentoDestino", session.getAttribute("orcamentoDestino"));
         if (request.getPecaId().equals(session.getAttribute("pecaReferencia"))) {
             mv.addObject("custoReferencia", session.getAttribute("custoReferencia"));
         }

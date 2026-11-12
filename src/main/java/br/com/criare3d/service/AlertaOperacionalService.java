@@ -1,7 +1,6 @@
 package br.com.criare3d.service;
 
 import com.github.benmanes.caffeine.cache.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -14,11 +13,16 @@ import java.util.Map;
 /** Webhook HTTPS para o monitoramento. Não inclui usuário, URL, parâmetros ou mensagem da exceção. */
 @Service
 public class AlertaOperacionalService {
+    public AlertaOperacionalService(ThreadPoolTaskExecutor notificacoesExecutor, HttpIntegracaoService http) {
+        this.notificacoesExecutor = java.util.Objects.requireNonNull(notificacoesExecutor, "notificacoesExecutor");
+        this.http = java.util.Objects.requireNonNull(http, "http");
+    }
+
     @Value("${CRIARE_ALERTA_WEBHOOK:}") private String webhook;
-    @Autowired private ThreadPoolTaskExecutor notificacoesExecutor;
+    private final ThreadPoolTaskExecutor notificacoesExecutor;
     private final Cache<String, Boolean> recentes = Caffeine.newBuilder().maximumSize(1000)
             .expireAfterWrite(Duration.ofMinutes(5)).build();
-    @org.springframework.beans.factory.annotation.Autowired private HttpIntegracaoService http;
+    private final HttpIntegracaoService http;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AlertaOperacionalService.class);
 
     public void registrar(Exception erro, int status) {

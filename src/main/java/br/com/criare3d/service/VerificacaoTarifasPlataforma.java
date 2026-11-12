@@ -20,6 +20,7 @@ public class VerificacaoTarifasPlataforma {
 
     @PostConstruct
     void avisarSePrecisaConferir() {
+        TabelaTarifasPlataforma.validar();
         var data = dataConferencia();
         if (data.isEmpty()) {
             log.warn("Data de conferência das tarifas das plataformas não configurada.");

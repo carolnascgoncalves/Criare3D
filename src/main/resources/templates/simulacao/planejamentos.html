@@ -10,7 +10,7 @@
                 <div>
                     <span class="texto-apoio">ORGANIZE SUA PRODUÇÃO</span>
                     <h1>Planejamentos salvos</h1>
-                    <p>O horário é uma previsão. O planejamento é concluído após a venda de todas as unidades do lote.</p>
+                    <p>O horário é uma previsão. Nos pedidos, confirme a produção para concluir o planejamento. Nas simulações avulsas, ele é concluído após a venda do lote.</p>
                 </div>
                 <a class="botao botao-principal" th:href="@{/simulacao}">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -51,8 +51,9 @@
                         </div>
                     </dl>
                     <div class="planejamento-acoes">
-                        <a class="botao botao-principal" th:href="@{/vendas-estoque/lote/{id}(id=${p.calculo.id})}">Operação do lote</a>
-                        <form th:unless="${p.concluido}" method="post" th:action="@{/simulacao/planejamentos/{id}/cancelar(id=${p.id})}" data-turbo-confirm="Retirar da fila? Os demais horários serão mantidos.">
+                        <a th:if="${pedidos != null and pedidos[p.id] != null}" class="botao botao-principal" th:href="@{/orcamentos/{id}(id=${pedidos[p.id]})}">Acompanhar pedido</a>
+                        <a th:unless="${pedidos != null and pedidos[p.id] != null}" class="botao botao-principal" th:href="@{/vendas-estoque/lote/{id}(id=${p.calculo.id})}">Operação do lote</a>
+                        <form th:unless="${p.concluido or (pedidos != null and pedidos[p.id] != null)}" method="post" th:action="@{/simulacao/planejamentos/{id}/cancelar(id=${p.id})}" data-turbo-confirm="Retirar da fila? Os demais horários serão mantidos.">
                             <button class="botao botao-secundario" title="Retirar da fila" aria-label="Retirar da fila">
                                 <i class="bi bi-calendar-x" aria-hidden="true"></i>
                             </button>

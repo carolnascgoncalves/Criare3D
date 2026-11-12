@@ -630,7 +630,7 @@ a {
 .dashboard-status.produzido { background: var(--destaque-suave); }
 
 @media (max-width: 900px) {
-    .dashboard-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
     .dashboard-grade-superior, .dashboard-grade-inferior { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -2502,7 +2502,7 @@ input[type="color"]:focus {
     flex-wrap: wrap;
     gap: 8px;
 }
-.vendas-estoque-pagina .vendas-indicador-valor small { font-size: .92rem; }
+
 .vendas-estoque-pagina .vendas-indicador-complemento { font-size: .86rem; }
 .vendas-estoque-pagina .vendas-indicador-producao { color: var(--cor-primaria, var(--marrom)); }
 .vendas-estoque-pagina .vendas-indicador-producao .vendas-indicador-titulo,
@@ -2532,34 +2532,6 @@ input[type="color"]:focus {
     box-shadow: 0 3px 12px rgb(48 130 77 / 12%);
 }
 
-.vendas-estoque-pagina .vendas-coluna-producao { --estado-cor: var(--cor-destaque, var(--destaque)); --estado-icone: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 22%, white); }
-.vendas-estoque-pagina .vendas-coluna-estoque { --estado-cor: #c97820; --estado-icone: #f8e1c2; }
-.vendas-estoque-pagina .vendas-coluna-vendidos { --estado-cor: #358452; --estado-icone: #d5efdd; }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-sem-foto { color: var(--estado-cor); background: var(--estado-icone); }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-nome strong,
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-icone { color: var(--estado-cor); }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-icone:hover { background: var(--estado-icone); }
-.vendas-estoque-pagina .vendas-coluna-estoque .vendas-acao-individual .botao-principal { background: #d98935; border-color: #d98935; color: #fff; }
-.vendas-estoque-pagina .vendas-coluna-vendidos .vendas-lote-dados > strong { color: #267446; }
-
-.vendas-estoque-pagina .vendas-grade-para_produzir { --estado-cor: var(--cor-destaque, var(--destaque)); --estado-icone: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 22%, white); }
-.vendas-estoque-pagina .vendas-grade-estoque { --estado-cor: #c97820; --estado-icone: #f8e1c2; }
-.vendas-estoque-pagina .vendas-grade-vendidos { --estado-cor: #358452; --estado-icone: #d5efdd; }
-.vendas-estoque-pagina .vendas-lote-detalhe { gap: 7px; padding: 11px; border-color: color-mix(in srgb, var(--estado-cor, var(--borda)) 27%, white); }
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-foto { flex-basis: 38px; width: 38px; height: 38px; border-radius: 10px; }
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-sem-foto { color: var(--estado-cor); background: var(--estado-icone); }
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-nome strong,
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-icone { color: var(--estado-cor); }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe .vendas-lote-icone:hover { background: #fff4e6; }
-.vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe .vendas-lote-icone:hover { background: #edf8f0; }
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-status { display: none; }
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-dados,
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-data { font-size: .82rem; }
-.vendas-estoque-pagina .vendas-lote-detalhe-acoes { gap: 7px; margin-top: 2px; }
-.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-acao-individual .botao { min-height: 34px; padding: 6px 9px; font-size: .82rem; }
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-detalhe-acoes .botao-principal { background: #d98935; border-color: #d98935; color: #fff; }
-.vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe .vendas-lote-dados > strong,
-.vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe .vendas-lote-data > span:last-child { color: #267446; }
 .vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe-acoes > .botao { color: #267446; border-color: #a8d4b5; background: #edf8f0; }
 .vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe-acoes .botao-acao { color: #267446; border-color: #a8d4b5; }
 .vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-detalhe-acoes .botao-acao:hover { background: #edf8f0; }
@@ -2605,7 +2577,6 @@ input[type="color"]:focus {
     border: 2px solid #55a872;
 }
 
-.vendas-estoque-pagina .vendas-coluna-producao { background: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 10%, white); }
 .vendas-estoque-pagina .vendas-coluna-estoque { background: #fff4e6; }
 .vendas-estoque-pagina .vendas-coluna-vendidos { background: #edf8f0; }
 .vendas-estoque-pagina .vendas-coluna-estoque,
@@ -2626,8 +2597,7 @@ input[type="color"]:focus {
 }
 .vendas-estoque-pagina .vendas-coluna .vendas-lote-nome strong,
 .vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-nome strong { color: #171717; }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-dados > strong,
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-dados > strong { color: #171717; }
+
 .vendas-estoque-pagina .vendas-lote-detalhe-acoes .botao-acao {
     color: var(--cor-primaria, var(--marrom));
     border-color: var(--borda);
@@ -2655,42 +2625,24 @@ input[type="color"]:focus {
     background: var(--superficie, #fff);
 }
 
-.vendas-estoque-pagina .vendas-grade-lotes { gap: 18px; }
-.vendas-estoque-pagina .vendas-lote-detalhe { gap: 10px; padding: 15px; }
 .vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-topo { gap: 11px; }
 .vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-dados,
 .vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-data { gap: 12px; }
-.vendas-estoque-pagina .vendas-lote-detalhe-acoes { gap: 10px; margin-top: 4px; }
-.vendas-estoque-pagina .vendas-lote-detalhe-acoes .vendas-acao-individual .botao { min-height: 38px; padding: 8px 12px; }
 
 @media (max-width: 760px) {
-    .vendas-estoque-pagina .vendas-grade-lotes { gap: 14px; }
-    .vendas-estoque-pagina .vendas-lote-detalhe { gap: 9px; padding: 13px; }
+
 }
 
 /* Cores das colunas e espaçamento das listas detalhadas */
-.vendas-estoque-pagina .vendas-coluna { border-top: 1px solid var(--borda); }
-.vendas-estoque-pagina .vendas-coluna > header h2,
-.vendas-estoque-pagina .vendas-coluna > header h2 i { color: var(--estado-cor); }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-nome strong,
-.vendas-estoque-pagina .vendas-lote-detalhe .vendas-lote-nome strong { color: #303030; }
-.vendas-estoque-pagina .vendas-coluna .vendas-lote-dados > strong,
-.vendas-estoque-pagina .vendas-grade-para_produzir .vendas-lote-dados > strong,
-.vendas-estoque-pagina .vendas-grade-estoque .vendas-lote-dados > strong,
-.vendas-estoque-pagina .vendas-grade-vendidos .vendas-lote-dados > strong { color: var(--estado-cor); }
-.vendas-estoque-pagina .vendas-detalhe-cartao { padding: 26px; }
+
 @media (max-width: 760px) {
-    .vendas-estoque-pagina .vendas-detalhe-cartao { padding: 16px; }
+
 }
 
 /* A listagem específica começa pela busca, sem repetir o título da etapa. */
-.vendas-estoque-pagina .vendas-detalhe-cartao { padding: 18px; }
-.vendas-estoque-pagina .vendas-detalhe-cabecalho { justify-content: flex-end; min-height: 0; margin: 0 0 10px; padding: 0; }
-.vendas-estoque-pagina .vendas-busca-detalhe { margin-bottom: 14px; }
-.vendas-estoque-pagina .vendas-busca-detalhe .busca-filamentos-campo { flex: 1 1 auto; }
+
 @media (max-width: 760px) {
-    .vendas-estoque-pagina .vendas-detalhe-cartao { padding: 14px; }
-    .vendas-estoque-pagina .vendas-detalhe-cabecalho { align-items: center; flex-direction: row; }
+
 }
 
 /* Seleção em lote: controles discretos no topo e ações fixas no rodapé. */
@@ -2746,13 +2698,9 @@ input[type="color"]:focus {
 }
 
 /* A listagem específica começa pela busca, sem repetir o título da etapa. */
-.vendas-estoque-pagina .vendas-detalhe-cartao { padding: 18px; }
-.vendas-estoque-pagina .vendas-detalhe-cabecalho { justify-content: flex-end; min-height: 0; margin: 0 0 10px; padding: 0; }
-.vendas-estoque-pagina .vendas-busca-detalhe { margin-bottom: 14px; }
-.vendas-estoque-pagina .vendas-busca-detalhe .busca-filamentos-campo { flex: 1 1 auto; }
+
 @media (max-width: 760px) {
-    .vendas-estoque-pagina .vendas-detalhe-cartao { padding: 14px; }
-    .vendas-estoque-pagina .vendas-detalhe-cabecalho { align-items: center; flex-direction: row; }
+
 }
 
 /* Aparência final dos três estados na área de vendas e estoque */
@@ -2764,18 +2712,14 @@ input[type="color"]:focus {
 .vendas-estoque-pagina .vendas-indicador-producao,
 .vendas-estoque-pagina .vendas-indicador-producao .vendas-indicador-titulo,
 .vendas-estoque-pagina .vendas-indicador-producao .vendas-indicador-valor { color: var(--cor-primaria, var(--marrom)); }
-.vendas-estoque-pagina .vendas-indicador-producao:hover,
-.vendas-estoque-pagina .vendas-indicador-producao.ativo { background: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 15%, white); border: 2px solid var(--cor-destaque, var(--destaque)); }
+
 .vendas-estoque-pagina .vendas-indicador-estoque,
 .vendas-estoque-pagina .vendas-indicador-estoque .vendas-indicador-titulo,
 .vendas-estoque-pagina .vendas-indicador-estoque .vendas-indicador-valor { color: #a85b13; }
-.vendas-estoque-pagina .vendas-indicador-estoque:hover,
-.vendas-estoque-pagina .vendas-indicador-estoque.ativo { background: #fff4e6; border: 2px solid #d98935; }
+
 .vendas-estoque-pagina .vendas-indicador-vendidos,
 .vendas-estoque-pagina .vendas-indicador-vendidos .vendas-indicador-titulo,
 .vendas-estoque-pagina .vendas-indicador-vendidos .vendas-indicador-valor { color: #267446; }
-.vendas-estoque-pagina .vendas-indicador-vendidos:hover,
-.vendas-estoque-pagina .vendas-indicador-vendidos.ativo { background: #edf8f0; border: 2px solid #55a872; }
 
 .vendas-estoque-pagina .vendas-coluna-producao { --estado-cor: var(--cor-destaque, var(--destaque)); --estado-icone: color-mix(in srgb, var(--cor-destaque, var(--destaque)) 22%, white); }
 .vendas-estoque-pagina .vendas-coluna-estoque { --estado-cor: #c97820; --estado-icone: #f8e1c2; }

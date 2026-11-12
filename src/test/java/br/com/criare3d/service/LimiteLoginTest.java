@@ -42,7 +42,10 @@ class LimiteLoginTest {
         new LimiteLoginFilter(limite).doFilter(request, response, (a,b) -> {
             throw new AssertionError("Não deveria tentar autenticar durante o bloqueio");
         });
-        assertThat(response.getStatus()).isEqualTo(429);
+        assertThat(response.getStatus()).isEqualTo(303);
+        assertThat(response.getHeader("Location")).isEqualTo("/login?bloqueado");
+        assertThat(response.getContentAsString()).isEmpty();
+        assertThat(request.getSession().getAttribute(br.com.criare3d.security.AvisoLogin.BLOQUEADO_ATE)).isInstanceOf(Instant.class);
         assertThat(response.getHeader("Retry-After")).isNotBlank();
     }
 

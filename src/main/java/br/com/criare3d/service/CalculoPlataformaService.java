@@ -15,9 +15,6 @@ import static br.com.criare3d.service.TabelaTarifasPlataforma.*;
 public class CalculoPlataformaService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final BigDecimal CEM = new BigDecimal("100");
-    private static final BigDecimal DOIS = new BigDecimal("2");
-    private static final BigDecimal AMAZON_COMISSAO_CASA = new BigDecimal("12");
-    private static final BigDecimal AMAZON_COMISSAO_MINIMA = new BigDecimal("2");
 
     void calcularVendaPlataforma(CalculoRequest request, CalculoHistorico historico, BigDecimal base, Configuracao configuracao) {
         boolean avancado = Boolean.TRUE.equals(configuracao.getFormularioAvancado());
@@ -460,7 +457,7 @@ public class CalculoPlataformaService {
         if (preco.compareTo(SHOPEE_LIMITE_80) <= 0) {
             percentual = SHOPEE_COMISSAO_ATE_79_99;
             fixo = preco.compareTo(SHOPEE_PRECO_MINIMO) < 0
-                    ? preco.divide(DOIS, 2, RoundingMode.HALF_UP)
+                    ? preco.multiply(SHOPEE_COMISSAO_EQUIVALENTE_PRECO_BAIXO).divide(CEM, 2, RoundingMode.HALF_UP)
                     : SHOPEE_FIXO_ATE_79_99;
         } else if (preco.compareTo(SHOPEE_LIMITE_100) <= 0) {
             percentual = SHOPEE_COMISSAO_ACIMA_79_99;

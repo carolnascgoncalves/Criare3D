@@ -22,6 +22,13 @@ jobs:
         options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 15
     steps:
       - uses: actions/checkout@v4
+      - name: Conferir monitoramento obrigatório
+        env:
+          HEARTBEAT: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+          ALERTA: ${{ secrets.BACKUP_ALERTA_WEBHOOK }}
+        run: |
+          case "$HEARTBEAT" in https://?*) ;; *) echo 'Configure BACKUP_HEARTBEAT_URL'; exit 1;; esac
+          case "$ALERTA" in https://?*) ;; *) echo 'Configure BACKUP_ALERTA_WEBHOOK'; exit 1;; esac
       - name: Preparar pasta privada
         run: mkdir -m 700 backups
       - name: Gerar backup completo
@@ -53,3 +60,17 @@ jobs:
           case "$DESTINO" in s3://?*) ;; *) echo 'Configure BACKUP_S3_URI'; exit 1;; esac
           aws s3 cp backups/ "$DESTINO" --recursive --sse AES256 --only-show-errors
       # Dumps nunca são publicados como artifacts do GitHub.
+      - name: Registrar conclusão no monitor independente
+        env:
+          HEARTBEAT: ${{ secrets.BACKUP_HEARTBEAT_URL }}
+        run: curl --fail --silent --show-error --retry 2 --max-time 20 "$HEARTBEAT" > /dev/null
+      - name: Avisar falha de backup
+        if: failure()
+        env:
+          ALERTA: ${{ secrets.BACKUP_ALERTA_WEBHOOK }}
+        run: |
+          case "$ALERTA" in https://?*) ;; *) echo '::error::Alerta externo não configurado. Verifique as notificações do GitHub.'; exit 1;; esac
+          curl --fail --silent --show-error --retry 2 --max-time 20 \
+            -H 'Content-Type: application/json' \
+            --data '{"aplicacao":"Criare3D","evento":"backup_falhou","mensagem":"Consulte o workflow de backup no GitHub Actions."}' \
+            "$ALERTA" > /dev/null

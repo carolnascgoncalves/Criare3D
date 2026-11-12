@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title th:text="${#strings.replace(titulo, 'Criare 3D', tenantNome)}">Criare 3D</title>
+    <title th:text="${#strings.replace(titulo, 'Criare 3D', tenantNome ?: 'Criare 3D')}">Criare 3D</title>
     <link rel="icon" th:href="${tenantLogoUrl}" data-turbo-track="reload">
 
     <link th:href="@{/vendor/bootstrap.min.css}" rel="stylesheet">
@@ -17,7 +17,7 @@
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
     <link th:href="@{/css/componentes.css}" rel="stylesheet" data-turbo-track="reload">
-    <link th:if="${paginaAtiva == 'simulacao'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
+    <link th:if="${paginaAtiva == 'simulacao' or paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
     <meta name="turbo-cache-control" content="no-preview">
@@ -49,6 +49,10 @@
     <script th:src="@{/js/mercadoLivreFrete.js}" defer></script>
     <script th:src="@{/js/detalhesHistorico.js}" defer></script>
     <script th:src="@{/js/orcamento.js}" defer></script>
+    <script th:if="${paginaAtiva == 'orcamentos'}" th:src="@{/js/pedidos.js}" defer></script>
+    <script th:if="${paginaAtiva == 'orcamentos'}" th:src="@{/js/pedidoSimulacao.js}" defer></script>
+    <script th:if="${paginaAtiva == 'orcamentos'}" th:src="@{/js/pedidoContatos.js}" defer></script>
+    <link th:if="${paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/pedidos.css}">
     <script th:if="${paginaAtiva == 'simulacao'}" th:src="@{/js/simulacaoProducao.js}" defer></script>
     <script th:src="@{/js/ordenacaoListagem.js}" defer></script>
     <script th:src="@{/js/clientes.js}" defer></script>
@@ -89,10 +93,11 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Operação">
             <span class="menu-lateral-titulo">Operação</span>
+            <a th:href="@{/orcamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'orcamentos' ? ' menu-link-ativo' : ''}" title="Orçamentos e pedidos"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>Orçamentos e pedidos</span></a>
             <a th:href="@{/simulacao}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'simulacao' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'simulacao' ? 'page' : null}" title="Simulação"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Simulação</span></a>
-            <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Planejamentos</span></a>
+            <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Fila de produção</span></a>
             <a th:href="@{/vendas-estoque}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}" title="Vendas e estoque"><i class="bi bi-boxes" aria-hidden="true"></i><span>Vendas e estoque</span></a>
-            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Histórico</span></a>
+            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Cálculos salvos</span></a>
         </section>
 
         <section class="menu-lateral-grupo" sec:authorize="hasRole('ADMIN')" aria-label="Administração">

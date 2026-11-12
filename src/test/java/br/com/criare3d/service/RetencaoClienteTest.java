@@ -22,7 +22,7 @@ class RetencaoClienteTest {
         var tenants = mock(TenantRepository.class);
         var cache = mock(TenantTemaCache.class);
         var jdbc = mock(org.springframework.jdbc.core.JdbcTemplate.class);
-        var service = new ClienteAdminService(tenants, null, null, jdbc, cache);
+        var service = new ClienteAdminService(tenants, null, null, jdbc, cache, java.time.Clock.systemUTC());
         var t = new Tenant(); t.setId(UUID.randomUUID()); t.setNome("Cliente");
         when(tenants.findById(t.getId())).thenReturn(Optional.of(t));
         service.excluir(t.getId(), "Cliente");
@@ -34,7 +34,7 @@ class RetencaoClienteTest {
     }
     @Test void prazoExpiradoNaoPermiteRestauracao() {
         var tenants = mock(TenantRepository.class);
-        var service = new ClienteAdminService(tenants, null, null, null, null);
+        var service = new ClienteAdminService(tenants, null, null, null, null, java.time.Clock.systemUTC());
         var t = new Tenant(); t.setId(UUID.randomUUID()); t.setExcluidoEm(Instant.now().minusSeconds(31 * 86400));
         when(tenants.findById(t.getId())).thenReturn(Optional.of(t));
         assertThatIllegalArgumentException().isThrownBy(() -> service.restaurar(t.getId()));

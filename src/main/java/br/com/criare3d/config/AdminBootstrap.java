@@ -15,6 +15,7 @@ import java.util.Locale;
 
 @Component
 public class AdminBootstrap implements ApplicationRunner {
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(AdminBootstrap.class);
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
@@ -64,11 +65,20 @@ public class AdminBootstrap implements ApplicationRunner {
                 );
             }
 
-            if (adminExistente.getTenant() != null) {
-                adminExistente.setTenant(null);
-                usuarioRepository.save(adminExistente);
+            boolean alterouAdmin = false;
+            if (Boolean.parseBoolean(environment.getProperty("ADMIN_REDEFINIR_SENHA", "false"))) {
+                adminExistente.setPassword(passwordEncoder.encode(password));
+                adminExistente.setTrocaSenhaObrigatoria(false);
+                alterouAdmin = true;
+                LOG.warn("Senha do ADMIN redefinida por configuração explícita. Remova ADMIN_REDEFINIR_SENHA do ambiente após a recuperação.");
             }
 
+            if (adminExistente.getTenant() != null) {
+                adminExistente.setTenant(null);
+                alterouAdmin = true;
+            }
+
+            if (alterouAdmin) usuarioRepository.save(adminExistente);
             return;
         }
 

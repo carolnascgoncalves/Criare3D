@@ -16,7 +16,12 @@ class RecuperacaoSenhaTest {
     }
 
     @Test void recuperacaoRejeitaTokenMalformadoAntesDeAcessarBanco() {
-        var service = new RecuperacaoSenhaService();
+        var service = new RecuperacaoSenhaService(org.mockito.Mockito.mock(br.com.criare3d.repository.UsuarioRepository.class),
+                org.mockito.Mockito.mock(org.springframework.jdbc.core.JdbcTemplate.class), java.time.Clock.systemUTC(),
+                org.mockito.Mockito.mock(org.springframework.security.crypto.password.PasswordEncoder.class),
+                org.mockito.Mockito.mock(EmailAcessoService.class), org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class),
+                org.mockito.Mockito.mock(org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor.class),
+                org.mockito.Mockito.mock(org.springframework.security.core.session.SessionRegistry.class));
         for (String token : new String[]{"", "a".repeat(42), "a".repeat(44), "<script>"})
             assertThatIllegalArgumentException().isThrownBy(() -> service.redefinir(token, "SenhaDeTeste123!"))
                     .withMessageContaining("Link inválido ou expirado");
@@ -24,7 +29,7 @@ class RecuperacaoSenhaTest {
     }
 
     @Test void emailSoAtivaComConfiguracaoCompletaEUrlHttpsConfiavel() {
-        var service = new EmailAcessoService();
+        var service = new EmailAcessoService(org.mockito.Mockito.mock(HttpIntegracaoService.class));
         ReflectionTestUtils.setField(service, "apiKey", "teste");
         ReflectionTestUtils.setField(service, "remetente", "acesso@example.test");
         for (String url : new String[]{"", "http://example.test", "não é uma URL", "https://pessoa:senha@example.test", "https://example.test?origem=1"}) {

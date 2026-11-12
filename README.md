@@ -16,6 +16,8 @@ Aplicação web para organizar os cadastros usados na impressão 3D e calcular o
 
 ## Produção, vendas e planejamento
 
+Em **Orçamentos e pedidos**, monte uma proposta em quatro etapas: peças, produção, preço e cliente. A aprovação reserva as unidades prontas e planeja somente a produção faltante. Produção, pagamento e entrega são confirmados separadamente, mantendo o vínculo com estoque e vendas. Consulte o [checklist de orçamentos e pedidos](docs/checklist-orcamentos-pedidos.md) para testar o fluxo e conhecer seus limites.
+
 O fluxo separa estimativa, produção e venda. A produção registra sua própria data e baixa filamento; a venda trabalha com unidades prontas e pode registrar preço, desconto e taxas por unidade. Cancelamentos parciais preservam os registros e devolvem apenas as unidades canceladas ao estoque de peças.
 
 Cadastros podem ser arquivados e restaurados. A simulação permite salvar planejamentos em uma fila por impressora, sem movimentar estoque. Perdas de tentativas extras podem ser registradas e corrigidas separadamente da estimativa de falha do cálculo.
@@ -45,6 +47,8 @@ src/
     └── application.properties
 ```
 
+Confira também [a instalação em produção](docs/conferencia-producao.md) para IP do proxy, backup, retenção e tarifas configuráveis.
+
 ## Variáveis de ambiente
 
 A aplicação usa variáveis de ambiente para conexão e criação inicial do administrador. Não coloque credenciais reais no código-fonte nem as envie ao Git.
@@ -59,7 +63,7 @@ A aplicação usa variáveis de ambiente para conexão e criação inicial do ad
 | `SESSION_COOKIE_SECURE` | Use `true` em produção com HTTPS; o padrão local é `false`. |
 | `CRIARE_ML_ACCESS_TOKEN` | Token da aplicação do Mercado Livre usado para consultar anúncios novos e usados. Opcional; sem ele, a taxa de depreciação pode ser preenchida manualmente. Configure como segredo no Render, nunca no Git. |
 
-O `AdminBootstrap` cria o ADMIN na primeira inicialização. Se já existir um ADMIN com o mesmo e-mail, a conta é mantida. Se o e-mail pertencer a um usuário comum, a inicialização é interrompida para evitar alteração indevida de perfil. O token do Mercado Livre precisa vir de uma aplicação de desenvolvedor e pode expirar; a renovação OAuth automática ainda não está implementada, então atualize o segredo do ambiente quando o token vencer.
+O `AdminBootstrap` cria o ADMIN na primeira inicialização. Se já existir um ADMIN com o mesmo e-mail, a conta é mantida. A senha de `ADMIN_PASSWORD` não sobrescreve a senha salva. Para recuperar explicitamente essa conta, configure temporariamente `ADMIN_REDEFINIR_SENHA=true`, reinicie e remova a variável após entrar; a opção não promove uma conta USER. Se o e-mail pertencer a um usuário comum, a inicialização é interrompida para evitar alteração indevida de perfil. O token do Mercado Livre precisa vir de uma aplicação de desenvolvedor e pode expirar; a renovação OAuth automática ainda não está implementada, então atualize o segredo do ambiente quando o token vencer.
 
 ## Executar localmente no Windows
 
@@ -120,3 +124,5 @@ Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com es
 - Validar isolamento dos dados por usuário.
 - Testar cadastros, cálculo, marketplace e histórico.
 - Confirmar as variáveis de ambiente do Render e manter backup do PostgreSQL.
+
+A etapa Preço dos orçamentos permite [conectar e cotar fretes com o Melhor Envio](docs/melhor-envio.md). A integração usa credenciais privadas e autorização separada por empresa; pode ser testada no Sandbox antes de usar em produção.

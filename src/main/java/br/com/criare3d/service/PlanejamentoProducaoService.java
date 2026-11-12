@@ -11,7 +11,9 @@ public class PlanejamentoProducaoService {
  @Autowired private CalculoHistoricoRepository historicos;
  @Autowired private ImpressoraRepository impressoras;
  @Autowired private PlanejamentoProducaoRepository planos;
+ @Autowired private ItemPedidoRepository itensPedido;
  public PlanejamentoProducao salvar(UUID id,int unidades,int capacidade,LocalDateTime inicio,int intervalo,int folga) {
+  if(itensPedido.existsByLoteProducao_Id(id))throw new IllegalArgumentException("Este lote já está vinculado à fila de um pedido. Acompanhe em Orçamentos e pedidos.");
   if (inicio == null || unidades < 1 || unidades > 500 || capacidade < 1 || capacidade > unidades || intervalo < 0 || intervalo > 1440 || folga < 0 || folga > 100)
    throw new IllegalArgumentException("Confira as quantidades, a data e os ajustes do planejamento.");
   var c = historicos.findById(id).orElseThrow(() -> new IllegalArgumentException("Cálculo não encontrado."));
@@ -36,6 +38,7 @@ public class PlanejamentoProducaoService {
   return Math.max(1, Math.addExact(total,Math.round(total * (folga / 100d))));
  }
  public void cancelar(UUID id) {
+  if(itensPedido.existsByPlanejamento_Id(id))throw new IllegalArgumentException("Este planejamento pertence a um pedido. Gerencie o cancelamento em Orçamentos e pedidos.");
   var plano = planos.findById(id).orElseThrow(() -> new IllegalArgumentException("Planejamento não encontrado."));
   impressoras.bloquearPorId(plano.getImpressora().getId()).orElseThrow();
   plano.setCancelado(true);

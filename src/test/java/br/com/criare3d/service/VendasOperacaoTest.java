@@ -11,7 +11,8 @@ import static org.mockito.ArgumentMatchers.*;
 class VendasOperacaoTest {
  private final CalculoHistoricoRepository historicos=mock(CalculoHistoricoRepository.class);
  private final VendaCalculoRepository vendas=mock(VendaCalculoRepository.class);
- private final VendaService service=new VendaService(historicos,vendas);
+ private final ItemPedidoRepository reservas=mock(ItemPedidoRepository.class);
+ private final VendaService service=new VendaService(historicos,vendas,java.time.Clock.fixed(java.time.Instant.parse("2026-11-12T01:30:00Z"),java.time.ZoneId.of("America/Sao_Paulo")),mock(PlanejamentoProducaoRepository.class),reservas);
  private final UUID id=UUID.randomUUID();
  private CalculoHistorico lote(boolean produzido) {
   var c=new CalculoHistorico();c.setId(id);c.setUnidades(3);c.setUnidadesVendidas(0);c.setProduzido(produzido);
@@ -22,10 +23,26 @@ class VendasOperacaoTest {
   var c=lote(false);assertThat(service.registrarVenda(id,1)).isEqualTo(ResultadoOperacao.PRODUCAO_NECESSARIA);
   assertThat(c.getProduzido()).isFalse();verifyNoInteractions(vendas);
  }
+ @Test void reservaDoPedidoImpedeVendaAvulsaAcimaDoSaldoLivre() {
+  var c=lote(true);when(reservas.reservadas(id)).thenReturn(2L);
+  assertThat(service.registrarVenda(id,2)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
+  assertThat(c.getUnidadesVendidas()).isZero();verifyNoInteractions(vendas);
+  assertThat(service.registrarVenda(id,1)).isEqualTo(ResultadoOperacao.OK);
+ }
+ @Test void vendaDoPedidoNaoPodeSerCanceladaPelaOperacaoAvulsa() {
+  var c=lote(true);c.setUnidadesVendidas(2);
+  var v=new VendaCalculo();v.setId(UUID.randomUUID());v.setCalculo(c);v.setUnidades(2);v.setPedidoId(UUID.randomUUID());
+  when(vendas.findById(v.getId())).thenReturn(Optional.of(v));
+  when(vendas.findByCalculo_IdOrderByDataVendaDesc(id)).thenReturn(List.of(v));
+  assertThat(service.cancelarVenda(id,v.getId(),1)).isEqualTo(ResultadoOperacao.PEDIDO_VINCULADO);
+  assertThat(service.cancelarVendas(id)).isEqualTo(ResultadoOperacao.PEDIDO_VINCULADO);
+  assertThat(v.getUnidadesAtivas()).isEqualTo(2);assertThat(c.getUnidadesVendidas()).isEqualTo(2);
+ }
  @Test void registraPrecoDescontoETaxasPorUnidade() {
   var c=lote(true);assertThat(service.registrarVenda(id,2,new BigDecimal("18"),new BigDecimal("2"),new BigDecimal("3"))).isEqualTo(ResultadoOperacao.OK);
   var captor=org.mockito.ArgumentCaptor.forClass(VendaCalculo.class);verify(vendas).save(captor.capture());
   assertThat(captor.getValue().getLucroUnitario()).isEqualByComparingTo("8");
+  assertThat(captor.getValue().getDataVenda()).isEqualTo(LocalDateTime.of(2026,11,11,22,30));
   assertThat(captor.getValue().isValoresReais()).isTrue();assertThat(c.getUnidadesVendidas()).isEqualTo(2);
  }
  @Test void saldoAtualDoLoteImpedeVenderAcimaDoDisponivel() {

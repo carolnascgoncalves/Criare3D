@@ -3,7 +3,6 @@ package br.com.criare3d.service;
 import br.com.criare3d.repository.UsuarioRepository;
 import br.com.criare3d.security.LimiteLogin;
 import br.com.criare3d.security.UsuarioPrincipal;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.session.SessionRegistry;
@@ -19,16 +18,36 @@ import java.util.*;
 
 @Service
 public class RecuperacaoSenhaService {
+    public RecuperacaoSenhaService(
+            UsuarioRepository usuarios,
+            JdbcTemplate jdbc,
+            Clock clock,
+            PasswordEncoder encoder,
+            EmailAcessoService emailService,
+            PlatformTransactionManager transactions,
+            ThreadPoolTaskExecutor notificacoesExecutor,
+            SessionRegistry sessoes) {
+        this.usuarios = java.util.Objects.requireNonNull(usuarios, "usuarios");
+        this.jdbc = java.util.Objects.requireNonNull(jdbc, "jdbc");
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+        this.limite = new LimiteLogin(clock);
+        this.encoder = java.util.Objects.requireNonNull(encoder, "encoder");
+        this.emailService = java.util.Objects.requireNonNull(emailService, "emailService");
+        this.transactions = java.util.Objects.requireNonNull(transactions, "transactions");
+        this.notificacoesExecutor = java.util.Objects.requireNonNull(notificacoesExecutor, "notificacoesExecutor");
+        this.sessoes = java.util.Objects.requireNonNull(sessoes, "sessoes");
+    }
+
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RecuperacaoSenhaService.class);
-    @Autowired private UsuarioRepository usuarios;
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private Clock clock;
-    @Autowired private PasswordEncoder encoder;
-    @Autowired private EmailAcessoService emailService;
-    @Autowired private PlatformTransactionManager transactions;
-    @Autowired private ThreadPoolTaskExecutor notificacoesExecutor;
-    @Autowired private SessionRegistry sessoes;
-    private final LimiteLogin limite = new LimiteLogin();
+    private final UsuarioRepository usuarios;
+    private final JdbcTemplate jdbc;
+    private final Clock clock;
+    private final PasswordEncoder encoder;
+    private final EmailAcessoService emailService;
+    private final PlatformTransactionManager transactions;
+    private final ThreadPoolTaskExecutor notificacoesExecutor;
+    private final SessionRegistry sessoes;
+    private final LimiteLogin limite;
     private final SecureRandom random = new SecureRandom();
 
     public boolean habilitado() { return emailService.habilitado(); }

@@ -8,7 +8,6 @@ import java.util.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -16,9 +15,17 @@ public class VendaService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
-    @Autowired private Clock clock = Clock.system(ZoneId.of("America/Sao_Paulo"));
-    @Autowired(required = false) private PlanejamentoProducaoRepository planejamentoProducaoRepository;
-    public VendaService(CalculoHistoricoRepository calculoHistoricoRepository, VendaCalculoRepository vendaCalculoRepository) {
+    private final Clock clock;
+    private final ItemPedidoRepository reservas;
+    private final PlanejamentoProducaoRepository planejamentoProducaoRepository;
+    public VendaService(
+            CalculoHistoricoRepository calculoHistoricoRepository,
+            VendaCalculoRepository vendaCalculoRepository,
+            Clock clock,
+            PlanejamentoProducaoRepository planejamentoProducaoRepository, ItemPedidoRepository reservas) {
+        this.reservas = java.util.Objects.requireNonNull(reservas);
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+        this.planejamentoProducaoRepository = java.util.Objects.requireNonNull(planejamentoProducaoRepository, "planejamentoProducaoRepository");
         this.calculoHistoricoRepository = calculoHistoricoRepository;
         this.vendaCalculoRepository = vendaCalculoRepository;
     }
@@ -36,6 +43,14 @@ public class VendaService {
     }
 
     public ResultadoOperacao registrarVenda(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas) {
+        return registrar(id, unidades, preco, desconto, taxas, null);
+    }
+
+    public ResultadoOperacao registrarVendaDoPedido(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas, UUID pedidoId) {
+        return registrar(id, unidades, preco, desconto, taxas, java.util.Objects.requireNonNull(pedidoId));
+    }
+
+    private ResultadoOperacao registrar(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas, UUID pedidoId) {
         for (BigDecimal valor : new BigDecimal[]{preco, desconto, taxas}) {
             if (valor != null && (valor.signum() < 0 || valor.compareTo(new BigDecimal("99999999")) > 0)) return ResultadoOperacao.VALOR_VENDA_INVALIDO;
         }
@@ -46,12 +61,14 @@ public class VendaService {
         int vendidas = valorOuZero(calculo.getUnidadesVendidas());
         int restantes = calculo.getUnidades() - vendidas;
         if (unidades > restantes) return ResultadoOperacao.QUANTIDADE_VENDA_ACIMA_DISPONIVEL;
+        if (unidades > restantes - reservas.reservadas(id)) return ResultadoOperacao.RESERVA_ATIVA;
 
         if (!Boolean.TRUE.equals(calculo.getProduzido())) return ResultadoOperacao.PRODUCAO_NECESSARIA;
 
         LocalDateTime agora = LocalDateTime.now(clock);
         VendaCalculo venda = new VendaCalculo();
         venda.setCalculo(calculo);
+        venda.setPedidoId(pedidoId);
         venda.setUnidades(unidades);
         venda.setDataVenda(agora);
         BigDecimal sugerido = calculo.getPrecoVendaPlataforma() != null ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
@@ -71,7 +88,7 @@ public class VendaService {
         calculo.setUnidadesVendidas(totalVendido);
         calculo.setVendido(totalVendido > 0);
         calculo.setDataVenda(agora);
-        if (planejamentoProducaoRepository != null && totalVendido >= calculo.getUnidades()) {
+        if (totalVendido >= calculo.getUnidades()) {
             planejamentoProducaoRepository.concluirPorCalculo(id);
         }
         return ResultadoOperacao.OK;
@@ -80,7 +97,9 @@ public class VendaService {
     public ResultadoOperacao cancelarVendas(UUID id) {
         CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
         if (calculo == null) return ResultadoOperacao.NAO_ENCONTRADO;
-        for (VendaCalculo venda : vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(id)) {
+        var registros = vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(id);
+        if (registros.stream().anyMatch(v -> v.getPedidoId()!=null && v.getUnidadesAtivas()>0)) return ResultadoOperacao.PEDIDO_VINCULADO;
+        for (VendaCalculo venda : registros) {
             venda.setUnidadesCanceladas(venda.getUnidades());
             venda.setDataCancelamento(LocalDateTime.now(clock));
         }
@@ -93,10 +112,20 @@ public class VendaService {
     }
 
     public ResultadoOperacao cancelarVenda(UUID calculoId, UUID vendaId, Integer unidades) {
+        return cancelarVenda(calculoId,vendaId,unidades,false);
+    }
+    public void cancelarPedido(UUID pedidoId) {
+        for (var v : vendaCalculoRepository.findByPedidoId(pedidoId)) {
+            if (v.getUnidadesAtivas()>0 && cancelarVenda(v.getCalculo().getId(),v.getId(),v.getUnidadesAtivas(),true)!=ResultadoOperacao.OK)
+                throw new IllegalArgumentException("Não foi possível cancelar as vendas do pedido.");
+        }
+    }
+    private ResultadoOperacao cancelarVenda(UUID calculoId, UUID vendaId, Integer unidades, boolean peloPedido) {
         CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(calculoId).orElse(null);
         if (calculo == null) return ResultadoOperacao.NAO_ENCONTRADO;
         VendaCalculo venda = vendaCalculoRepository.findById(vendaId).orElse(null);
         if (venda == null || !calculoId.equals(venda.getCalculo().getId())) return ResultadoOperacao.NAO_ENCONTRADO;
+        if (venda.getPedidoId()!=null && !peloPedido) return ResultadoOperacao.PEDIDO_VINCULADO;
         if (unidades == null || unidades < 1 || unidades > venda.getUnidadesAtivas()) return ResultadoOperacao.QUANTIDADE_VENDA_INVALIDA;
         venda.setUnidadesCanceladas(venda.getUnidadesCanceladas() + unidades);
         venda.setDataCancelamento(LocalDateTime.now(clock));

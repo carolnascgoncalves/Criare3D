@@ -6,7 +6,7 @@ import br.com.criare3d.repository.CalculoHistoricoRepository;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Persistência e miniaturas executadas na transação da fachada do histórico. */
+/** Armazenamento de fotos e geração de miniaturas em transação própria. */
 @org.springframework.stereotype.Service
 @org.springframework.transaction.annotation.Transactional
 public class FotoCalculoService {

@@ -21,8 +21,17 @@
         <p>Entre com os dados de acesso da sua conta para continuar.</p>
     </header>
 
-    <div th:if="${param.erro}" class="login-aviso login-aviso-erro" role="alert">
+    <div th:if="${param.erro != null and esperaLogin == 0}" class="login-aviso login-aviso-erro" role="alert">
         E-mail ou senha incorretos. Confira os dados e tente novamente.
+    </div>
+
+    <div th:if="${esperaLogin > 0}" class="login-aviso login-aviso-erro" role="alert"
+         th:attr="data-login-espera=${esperaLogin}">
+        Muitas tentativas de acesso. Tente novamente em <strong data-login-segundos th:text="${esperaLogin}">30</strong> segundos.
+    </div>
+
+    <div th:if="${param.indisponivel}" class="login-aviso login-aviso-erro" role="alert">
+        Não foi possível verificar seu acesso agora. Tente novamente em alguns instantes.
     </div>
 
     <div th:if="${param.suspenso}" class="login-aviso login-aviso-erro" role="alert">
@@ -65,7 +74,7 @@
             </div>
         </div>
 
-        <button type="submit" class="login-botao">Entrar</button>
+        <button type="submit" class="login-botao" th:disabled="${esperaLogin > 0}">Entrar</button>
     </form>
 
     <p class="login-ajuda"><a th:href="@{/recuperar-senha}">Esqueci minha senha</a></p>

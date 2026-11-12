@@ -30,8 +30,7 @@ import java.util.UUID;
 @Service
 @Transactional
 public class ClienteAdminService {
-    @org.springframework.beans.factory.annotation.Autowired
-    private java.time.Clock clock = java.time.Clock.systemUTC();
+    private final java.time.Clock clock;
     private static final int LOGO_MAX_BYTES = 1_000_000;
     private static final int LOGO_MAX_LADO = 1024;
     private static final SecureRandom GERADOR = new SecureRandom();
@@ -46,7 +45,8 @@ public class ClienteAdminService {
                                UsuarioRepository usuarioRepository,
                                PasswordEncoder passwordEncoder,
                                JdbcTemplate jdbcTemplate,
-                               TenantTemaCache tenantTemaCache) {
+                               TenantTemaCache tenantTemaCache, java.time.Clock clock) {
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
         this.tenantRepository = tenantRepository;
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;

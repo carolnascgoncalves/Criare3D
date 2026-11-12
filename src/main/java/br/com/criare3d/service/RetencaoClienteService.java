@@ -1,6 +1,5 @@
 package br.com.criare3d.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,10 +11,17 @@ import java.util.*;
 
 @Service
 public class RetencaoClienteService {
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private Clock clock;
-    @Autowired private PlatformTransactionManager transactions;
-    @Autowired private TenantTemaCache cache;
+    public RetencaoClienteService(JdbcTemplate jdbc, Clock clock, PlatformTransactionManager transactions, TenantTemaCache cache) {
+        this.jdbc = java.util.Objects.requireNonNull(jdbc, "jdbc");
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+        this.transactions = java.util.Objects.requireNonNull(transactions, "transactions");
+        this.cache = java.util.Objects.requireNonNull(cache, "cache");
+    }
+
+    private final JdbcTemplate jdbc;
+    private final Clock clock;
+    private final PlatformTransactionManager transactions;
+    private final TenantTemaCache cache;
     @Value("${CRIARE_PURGA_CLIENTES_HABILITADA:false}") private boolean habilitada;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(RetencaoClienteService.class);
 

@@ -28,6 +28,8 @@ public class VendaCalculo {
     @Getter @Setter
     private CalculoHistorico calculo;
 
+    @Getter @Setter private UUID pedidoId;
+
     @Column(name = "unidades", nullable = false)
     @Getter @Setter
     private Integer unidades;

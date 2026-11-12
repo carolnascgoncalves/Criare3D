@@ -14,9 +14,13 @@ import java.util.UUID;
 public class PlanejamentoProducaoController {
  @Autowired private PlanejamentoProducaoRepository planos;
  @Autowired private PlanejamentoProducaoService service;
+ @Autowired private br.com.criare3d.repository.ItemPedidoRepository itensPedido;
  @GetMapping("/simulacao/planejamentos")
  public ModelAndView listar(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="false") boolean concluidos) {
-  return new ModelAndView("simulacao/planejamentos").addObject("pagina",concluidos ? planos.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(PageRequest.of(Math.max(0,page),20)) : planos.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(PageRequest.of(Math.max(0,page),20))).addObject("concluidos",concluidos);
+  var pagina=concluidos ? planos.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(PageRequest.of(Math.max(0,page),20)) : planos.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(PageRequest.of(Math.max(0,page),20));
+  var pedidos=new java.util.HashMap<UUID,UUID>();
+  if(!pagina.isEmpty())for(var linha:itensPedido.vinculosPlanejamento(pagina.stream().map(p->p.getId()).toList()))pedidos.put((UUID)linha[0],(UUID)linha[1]);
+  return new ModelAndView("simulacao/planejamentos").addObject("pagina",pagina).addObject("pedidos",pedidos).addObject("concluidos",concluidos);
  }
  @PostMapping("/simulacao/planejamentos")
  public String salvar(@RequestParam UUID calculoId,@RequestParam int unidades,@RequestParam int capacidade,

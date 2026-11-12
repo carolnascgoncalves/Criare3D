@@ -19,7 +19,7 @@ class ConsultasOperacaoTest {
                 .build();
         try {
             var metadata = new MetadataSources(registry);
-            for (String entidade : new String[]{"CalculoFoto","CustoPersonalizado","CalculoHistorico","Configuracao","Embalagem","FalhaProducao",
+            for (String entidade : new String[]{"PedidoOrcamento","ItemPedido","FotoItemPedido","CalculoFoto","CustoPersonalizado","CalculoHistorico","Configuracao","Embalagem","FalhaProducao",
                     "Filamento","Impressora","ItemCalculoHistorico","ManutencaoImpressora","Peca","PecaArquivoPlaca",
                     "PlanejamentoProducao","Tenant","Usuario","VendaCalculo"}) {
                 metadata.addAnnotatedClass(Class.forName("br.com.criare3d.models."+entidade));
@@ -29,6 +29,8 @@ class ConsultasOperacaoTest {
                 for (Class<?> repository : new Class<?>[]{br.com.criare3d.repository.CalculoHistoricoRepository.class,
                         br.com.criare3d.repository.VendaCalculoRepository.class,
                         br.com.criare3d.repository.PlanejamentoProducaoRepository.class,
+                        br.com.criare3d.repository.ItemPedidoRepository.class,
+                        br.com.criare3d.repository.PedidoOrcamentoRepository.class,
                         br.com.criare3d.repository.FalhaProducaoRepository.class}) {
                     for (var metodo : repository.getMethods()) {
                         Query query = metodo.getAnnotation(Query.class);

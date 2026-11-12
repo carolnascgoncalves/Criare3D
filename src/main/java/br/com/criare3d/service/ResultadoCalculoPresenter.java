@@ -25,10 +25,21 @@ import java.util.Map;
 
 @org.springframework.stereotype.Service
 public class ResultadoCalculoPresenter {
-    @org.springframework.beans.factory.annotation.Autowired private CalculoService calculoService;
-    @org.springframework.beans.factory.annotation.Autowired private FilamentoService filamentoService;
-    @org.springframework.beans.factory.annotation.Autowired private ConfiguracaoService configuracaoService;
-    @org.springframework.beans.factory.annotation.Autowired private VerificacaoTarifasPlataforma verificacaoTarifas;
+    public ResultadoCalculoPresenter(
+            CalculoService calculoService,
+            FilamentoService filamentoService,
+            ConfiguracaoService configuracaoService,
+            VerificacaoTarifasPlataforma verificacaoTarifas) {
+        this.calculoService = java.util.Objects.requireNonNull(calculoService, "calculoService");
+        this.filamentoService = java.util.Objects.requireNonNull(filamentoService, "filamentoService");
+        this.configuracaoService = java.util.Objects.requireNonNull(configuracaoService, "configuracaoService");
+        this.verificacaoTarifas = java.util.Objects.requireNonNull(verificacaoTarifas, "verificacaoTarifas");
+    }
+
+    private final CalculoService calculoService;
+    private final FilamentoService filamentoService;
+    private final ConfiguracaoService configuracaoService;
+    private final VerificacaoTarifasPlataforma verificacaoTarifas;
 
     public ModelAndView resultado(CalculoRequest request, CalculoResponse resultado,
             String modoComparacao, BigDecimal precoVendaFixo, boolean valoresAtualizados) {

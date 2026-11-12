@@ -83,12 +83,24 @@ public class SecurityConfig {
                             senhaObrigatoriaLoginSuccessHandler.onAuthenticationSuccess(request, response, authentication);
                         })
                         .failureHandler((request, response, exception) -> {
-                            limiteLogin.falhou(request.getParameter("email"), request.getRemoteAddr());
-                            LOG.warn("Falha de autenticação; conta={}, origem={}, espera={}s",
-                                    limiteLogin.identificadorConta(request.getParameter("email")),
-                                    limiteLogin.identificadorOrigem(request.getRemoteAddr()), limiteLogin.esperaSegundos(
-                                    request.getParameter("email"), request.getRemoteAddr()));
-                            response.sendRedirect(request.getContextPath() + "/login?erro");
+                            if (exception instanceof org.springframework.security.authentication.AuthenticationServiceException) {
+                                LOG.error("Autenticação indisponível; tipo={}", exception.getClass().getSimpleName());
+                                response.sendRedirect(request.getContextPath() + "/login?indisponivel");
+                                return;
+                            }
+                            String email = request.getParameter("email");
+                            String ip = request.getRemoteAddr();
+                            limiteLogin.falhou(email, ip);
+                            long espera = limiteLogin.esperaSegundos(email, ip);
+                            LOG.warn("Falha de autenticação; conta={}, origem={}, tipo={}, espera={}s",
+                                    limiteLogin.identificadorConta(email), limiteLogin.identificadorOrigem(ip),
+                                    exception.getClass().getSimpleName(), espera);
+                            if (espera > 0) {
+                                br.com.criare3d.security.AvisoLogin.bloquear(request, response,
+                                        limiteLogin.bloqueadoAte(email, ip), espera);
+                            } else {
+                                response.sendRedirect(request.getContextPath() + "/login?erro");
+                            }
                         })
                         .permitAll()
                 )

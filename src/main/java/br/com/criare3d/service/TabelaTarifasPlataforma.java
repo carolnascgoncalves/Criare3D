@@ -4,53 +4,56 @@ import java.math.BigDecimal;
 
 /** Reúne os parâmetros das estimativas de tarifas usadas pelos dois modos de cálculo. */
 final class TabelaTarifasPlataforma {
-    static final BigDecimal SHOPEE_COMISSAO_ATE_79_99 = new BigDecimal("20.00");
-    static final BigDecimal SHOPEE_COMISSAO_ACIMA_79_99 = new BigDecimal("14.00");
-    static final BigDecimal SHOPEE_TAXA_CPF = new BigDecimal("3.00");
-    static final BigDecimal SHOPEE_FIXO_ATE_79_99 = new BigDecimal("4.50");
-    static final BigDecimal SHOPEE_FIXO_80_A_99_99 = new BigDecimal("16.00");
-    static final BigDecimal SHOPEE_FIXO_100_A_199_99 = new BigDecimal("20.00");
-    static final BigDecimal SHOPEE_FIXO_A_PARTIR_200 = new BigDecimal("26.00");
-    static final BigDecimal SHOPEE_LIMITE_80 = new BigDecimal("79.99");
-    static final BigDecimal SHOPEE_LIMITE_100 = new BigDecimal("99.99");
-    static final BigDecimal SHOPEE_LIMITE_200 = new BigDecimal("199.99");
-    static final BigDecimal SHOPEE_PRECO_MINIMO = new BigDecimal("9.00");
-    static final BigDecimal SHOPEE_COMISSAO_EQUIVALENTE_PRECO_BAIXO = new BigDecimal("50.00");
-    static final BigDecimal SHOPEE_INICIO_FAIXA_80 = new BigDecimal("80.00");
-    static final BigDecimal SHOPEE_INICIO_FAIXA_100 = new BigDecimal("100.00");
-    static final BigDecimal SHOPEE_INICIO_FAIXA_200 = new BigDecimal("200.00");
+    private static final ParametrosTarifas PARAMETROS = ParametrosTarifas.carregar();
+    static final BigDecimal SHOPEE_COMISSAO_ATE_79_99 = PARAMETROS.decimal("SHOPEE_COMISSAO_ATE_79_99");
+    static final BigDecimal SHOPEE_COMISSAO_ACIMA_79_99 = PARAMETROS.decimal("SHOPEE_COMISSAO_ACIMA_79_99");
+    static final BigDecimal SHOPEE_TAXA_CPF = PARAMETROS.decimal("SHOPEE_TAXA_CPF");
+    static final BigDecimal SHOPEE_FIXO_ATE_79_99 = PARAMETROS.decimal("SHOPEE_FIXO_ATE_79_99");
+    static final BigDecimal SHOPEE_FIXO_80_A_99_99 = PARAMETROS.decimal("SHOPEE_FIXO_80_A_99_99");
+    static final BigDecimal SHOPEE_FIXO_100_A_199_99 = PARAMETROS.decimal("SHOPEE_FIXO_100_A_199_99");
+    static final BigDecimal SHOPEE_FIXO_A_PARTIR_200 = PARAMETROS.decimal("SHOPEE_FIXO_A_PARTIR_200");
+    static final BigDecimal SHOPEE_LIMITE_80 = PARAMETROS.decimal("SHOPEE_LIMITE_80");
+    static final BigDecimal SHOPEE_LIMITE_100 = PARAMETROS.decimal("SHOPEE_LIMITE_100");
+    static final BigDecimal SHOPEE_LIMITE_200 = PARAMETROS.decimal("SHOPEE_LIMITE_200");
+    static final BigDecimal SHOPEE_PRECO_MINIMO = PARAMETROS.decimal("SHOPEE_PRECO_MINIMO");
+    static final BigDecimal SHOPEE_COMISSAO_EQUIVALENTE_PRECO_BAIXO = PARAMETROS.decimal("SHOPEE_COMISSAO_EQUIVALENTE_PRECO_BAIXO");
+    static final BigDecimal SHOPEE_INICIO_FAIXA_80 = PARAMETROS.decimal("SHOPEE_INICIO_FAIXA_80");
+    static final BigDecimal SHOPEE_INICIO_FAIXA_100 = PARAMETROS.decimal("SHOPEE_INICIO_FAIXA_100");
+    static final BigDecimal SHOPEE_INICIO_FAIXA_200 = PARAMETROS.decimal("SHOPEE_INICIO_FAIXA_200");
 
-    static final BigDecimal TIKTOK_LIMITE_PRIMEIRA_FAIXA = new BigDecimal("50.00");
-    static final BigDecimal TIKTOK_COMISSAO_PRIMEIRA_FAIXA = new BigDecimal("10.00");
-    static final BigDecimal TIKTOK_COMISSAO_DEMAIS_FAIXAS = new BigDecimal("6.00");
-    static final BigDecimal TIKTOK_TAXA_FIXA_PRIMEIRA_FAIXA = new BigDecimal("4.00");
-    static final BigDecimal TIKTOK_TAXA_FIXA_DEMAIS_FAIXAS = new BigDecimal("6.00");
-    static final BigDecimal TIKTOK_PERCENTUAL_FRETE_GRATIS = new BigDecimal("6.00");
-    static final BigDecimal TIKTOK_TETO_TAXA_FRETE = new BigDecimal("50.00");
+    static final BigDecimal TIKTOK_LIMITE_PRIMEIRA_FAIXA = PARAMETROS.decimal("TIKTOK_LIMITE_PRIMEIRA_FAIXA");
+    static final BigDecimal TIKTOK_COMISSAO_PRIMEIRA_FAIXA = PARAMETROS.decimal("TIKTOK_COMISSAO_PRIMEIRA_FAIXA");
+    static final BigDecimal TIKTOK_COMISSAO_DEMAIS_FAIXAS = PARAMETROS.decimal("TIKTOK_COMISSAO_DEMAIS_FAIXAS");
+    static final BigDecimal TIKTOK_TAXA_FIXA_PRIMEIRA_FAIXA = PARAMETROS.decimal("TIKTOK_TAXA_FIXA_PRIMEIRA_FAIXA");
+    static final BigDecimal TIKTOK_TAXA_FIXA_DEMAIS_FAIXAS = PARAMETROS.decimal("TIKTOK_TAXA_FIXA_DEMAIS_FAIXAS");
+    static final BigDecimal TIKTOK_PERCENTUAL_FRETE_GRATIS = PARAMETROS.decimal("TIKTOK_PERCENTUAL_FRETE_GRATIS");
+    static final BigDecimal TIKTOK_TETO_TAXA_FRETE = PARAMETROS.decimal("TIKTOK_TETO_TAXA_FRETE");
 
-    static final BigDecimal ML_CLASSICO_COMISSAO_PADRAO = new BigDecimal("14.00");
-    static final BigDecimal ML_PREMIUM_COMISSAO_PADRAO = new BigDecimal("19.00");
-    static final BigDecimal ML_CLASSICO_COMISSAO_MINIMA = new BigDecimal("10.00");
-    static final BigDecimal ML_PREMIUM_COMISSAO_MINIMA = new BigDecimal("15.00");
-    static final BigDecimal ML_CLASSICO_COMISSAO_MAXIMA = new BigDecimal("14.00");
-    static final BigDecimal ML_PREMIUM_COMISSAO_MAXIMA = new BigDecimal("19.00");
+    static final BigDecimal ML_CLASSICO_COMISSAO_PADRAO = PARAMETROS.decimal("ML_CLASSICO_COMISSAO_PADRAO");
+    static final BigDecimal ML_PREMIUM_COMISSAO_PADRAO = PARAMETROS.decimal("ML_PREMIUM_COMISSAO_PADRAO");
+    static final BigDecimal ML_CLASSICO_COMISSAO_MINIMA = PARAMETROS.decimal("ML_CLASSICO_COMISSAO_MINIMA");
+    static final BigDecimal ML_PREMIUM_COMISSAO_MINIMA = PARAMETROS.decimal("ML_PREMIUM_COMISSAO_MINIMA");
+    static final BigDecimal ML_CLASSICO_COMISSAO_MAXIMA = PARAMETROS.decimal("ML_CLASSICO_COMISSAO_MAXIMA");
+    static final BigDecimal ML_PREMIUM_COMISSAO_MAXIMA = PARAMETROS.decimal("ML_PREMIUM_COMISSAO_MAXIMA");
 
-    private static final BigDecimal[] LIMITES_PRECO_ML = {
-            new BigDecimal("48.99"), new BigDecimal("78.99"),
-            new BigDecimal("99.99"), new BigDecimal("119.99")
-    };
+    static final BigDecimal AMAZON_COMISSAO_CASA = PARAMETROS.decimal("AMAZON_COMISSAO_CASA");
+    static final BigDecimal AMAZON_COMISSAO_MINIMA = PARAMETROS.decimal("AMAZON_COMISSAO_MINIMA");
+
+    private static final BigDecimal[] LIMITES_PRECO_ML = PARAMETROS.lista("ML_LIMITES_PRECO", 4);
     private static final BigDecimal[][] FRETES_ML = {
-            {new BigDecimal("6.85"), new BigDecimal("8.15"), new BigDecimal("12.95"), new BigDecimal("14.95")},
-            {new BigDecimal("6.95"), new BigDecimal("8.25"), new BigDecimal("13.85"), new BigDecimal("16.15")},
-            {new BigDecimal("7.15"), new BigDecimal("8.45"), new BigDecimal("14.45"), new BigDecimal("16.85")},
-            {new BigDecimal("7.35"), new BigDecimal("8.65"), new BigDecimal("14.75"), new BigDecimal("17.15")},
-            {new BigDecimal("7.45"), new BigDecimal("8.75"), new BigDecimal("15.05"), new BigDecimal("17.65")},
-            {new BigDecimal("8.65"), new BigDecimal("9.15"), new BigDecimal("16.45"), new BigDecimal("19.15")},
-            {new BigDecimal("8.75"), new BigDecimal("9.75"), new BigDecimal("17.85"), new BigDecimal("20.75")},
-            {new BigDecimal("8.85"), new BigDecimal("10.25"), new BigDecimal("19.75"), new BigDecimal("22.85")}
+            PARAMETROS.lista("ML_FRETES_ATE_300G", 4),
+            PARAMETROS.lista("ML_FRETES_DE_300G_500G", 4),
+            PARAMETROS.lista("ML_FRETES_DE_500G_1KG", 4),
+            PARAMETROS.lista("ML_FRETES_DE_1KG_1_5KG", 4),
+            PARAMETROS.lista("ML_FRETES_DE_1_5KG_2KG", 4),
+            PARAMETROS.lista("ML_FRETES_DE_2KG_3KG", 4),
+            PARAMETROS.lista("ML_FRETES_DE_3KG_4KG", 4),
+            PARAMETROS.lista("ML_FRETES_DE_4KG_5KG", 4)
     };
 
     private TabelaTarifasPlataforma() { }
+
+    static void validar() { PARAMETROS.validar(); }
 
     static BigDecimal freteMercadoLivre(String faixaPeso, BigDecimal preco) {
         int coluna = 0;
@@ -59,7 +62,7 @@ final class TabelaTarifasPlataforma {
         }
         if (coluna == LIMITES_PRECO_ML.length) {
             throw new IllegalArgumentException(
-                    "O preço calculado passou de R$ 119,99. Informe o frete manualmente.");
+                    "O preço calculado passou de R$ " + LIMITES_PRECO_ML[LIMITES_PRECO_ML.length - 1].toPlainString().replace('.', ',') + ". Informe o frete manualmente.");
         }
 
         int linha = switch (faixaPeso) {

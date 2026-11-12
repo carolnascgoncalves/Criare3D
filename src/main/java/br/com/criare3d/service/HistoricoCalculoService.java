@@ -27,10 +27,23 @@ public class HistoricoCalculoService {
     private final VendaCalculoRepository vendaCalculoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
     private final FotoCalculoService fotos;
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository;
-    public HistoricoCalculoService(CalculoHistoricoRepository calculoHistoricoRepository, ItemCalculoHistoricoRepository itemCalculoHistoricoRepository, VendaCalculoRepository vendaCalculoRepository, UsuarioLogadoService usuarioLogadoService, FotoCalculoService fotos) {
+    private final br.com.criare3d.repository.ItemPedidoRepository reservas;
+    private final br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
+    private final br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
+    private final br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository;
+    public HistoricoCalculoService(
+            CalculoHistoricoRepository calculoHistoricoRepository,
+            ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
+            VendaCalculoRepository vendaCalculoRepository,
+            UsuarioLogadoService usuarioLogadoService,
+            FotoCalculoService fotos,
+            br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository,
+            br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository,
+            br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository, br.com.criare3d.repository.ItemPedidoRepository reservas) {
+        this.reservas=reservas;
+        this.falhaProducaoRepository = java.util.Objects.requireNonNull(falhaProducaoRepository, "falhaProducaoRepository");
+        this.planejamentoProducaoRepository = java.util.Objects.requireNonNull(planejamentoProducaoRepository, "planejamentoProducaoRepository");
+        this.custoPersonalizadoRepository = java.util.Objects.requireNonNull(custoPersonalizadoRepository, "custoPersonalizadoRepository");
         this.calculoHistoricoRepository = calculoHistoricoRepository;
         this.itemCalculoHistoricoRepository = itemCalculoHistoricoRepository;
         this.vendaCalculoRepository = vendaCalculoRepository;
@@ -40,7 +53,7 @@ public class HistoricoCalculoService {
 
     public long contarPorFilamento(UUID filamentoId) {
         return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId)
-                + (falhaProducaoRepository == null ? 0 : falhaProducaoRepository.countByFilamento_Id(filamentoId));
+                + falhaProducaoRepository.countByFilamento_Id(filamentoId);
     }
 
     public List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
@@ -59,11 +72,11 @@ public class HistoricoCalculoService {
     }
 
     public long contarPorImpressora(UUID impressoraId) {
-        return calculoHistoricoRepository.countByImpressora_Id(impressoraId);
+        return calculoHistoricoRepository.countByImpressora_Id(impressoraId)+reservas.countByImpressoraId(impressoraId);
     }
 
     public long contarPorPeca(UUID pecaId) {
-        return calculoHistoricoRepository.countByPeca_Id(pecaId);
+        return calculoHistoricoRepository.countByPeca_Id(pecaId)+reservas.countByPecaId(pecaId);
     }
 
     public CalculoHistorico create(CalculoHistorico calculoHistorico) {
@@ -94,10 +107,11 @@ public class HistoricoCalculoService {
         if (solicitados.isEmpty()) return;
         for (UUID id : solicitados.stream().sorted().toList()) {
             var h = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
+            if (reservas.vinculado(id)) throw new IllegalArgumentException("Este cálculo está vinculado a um orçamento ou pedido. Preserve o registro.");
             if (h != null && (Boolean.TRUE.equals(h.getProduzido()) || vendaCalculoRepository.existsByCalculo_Id(id)
-                    || (falhaProducaoRepository != null && !falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(id).isEmpty())
-                    || (custoPersonalizadoRepository != null && custoPersonalizadoRepository.existsByCalculo_Id(id))
-                    || (planejamentoProducaoRepository != null && planejamentoProducaoRepository.existsByCalculo_Id(id)))) {
+                    || (!falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(id).isEmpty())
+                    || (custoPersonalizadoRepository.existsByCalculo_Id(id))
+                    || (planejamentoProducaoRepository.existsByCalculo_Id(id)))) {
                 throw new IllegalArgumentException("Este cálculo possui produção, vendas, perdas ou planejamento. Preserve o histórico e gerencie as operações em Vendas e estoque.");
             }
         }

@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <span>Em estoque</span>
-                    <strong th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas : 0} un.|"></strong>
+                    <strong th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas) : 0} un.|"></strong>
                 </div>
                 <div>
                     <span>Vendidas</span>
@@ -56,7 +56,7 @@
                     <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${!lote.produzido}" th:attr="data-turbo-confirm=|Produzir ${lote.unidades} unidades e descontar o material deste lote?|">
                         <button class="botao botao-principal">Registrar produção do lote</button>
                     </form>
-                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas == 0}" data-turbo-confirm="Desfazer a produção e devolver o filamento? Custos extras serão mantidos.">
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas == 0 and (reservadas == null or reservadas == 0)}" data-turbo-confirm="Desfazer a produção e devolver o filamento? Custos extras serão mantidos.">
                         <input type="hidden" name="produzir" value="false">
                         <button class="botao botao-secundario">Desfazer produção</button>
                     </form>
@@ -66,12 +66,14 @@
                         <i class="bi bi-bag-check" aria-hidden="true"></i>
                         Registrar venda
                     </h2>
-                    <p class="texto-apoio" th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas : 0} unidades prontas disponíveis|"></p>
+                    <p class="texto-apoio" th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas) : 0} unidades prontas disponíveis|"></p>
+                    <p class="texto-apoio" th:if="${reservadas != null and reservadas > 0}" th:text="|${reservadas} unidades reservadas para pedidos.|"></p>
+                    <a th:if="${reservadas != null and reservadas > 0}" th:href="@{/orcamentos}">Gerenciar reservas nos pedidos</a>
                     <p th:unless="${lote.produzido}">Registre a produção para liberar a venda.</p>
-                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/vender(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas < lote.unidades}" data-turbo-confirm="Registrar a venda desta quantidade? Apenas as unidades informadas serão vendidas.">
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/vender(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas + (reservadas == null ? 0 : reservadas) < lote.unidades}" data-turbo-confirm="Registrar a venda desta quantidade? Apenas as unidades informadas serão vendidas.">
                         <div class="campo">
                             <label for="vendaUnidades">Unidades</label>
-                            <input id="vendaUnidades" name="unidades" type="number" min="1" th:max="${lote.unidades - lote.unidadesVendidas}" value="1" required>
+                            <input id="vendaUnidades" name="unidades" type="number" min="1" th:max="${lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas)}" value="1" required>
                         </div>
                         <details>
                             <summary>Preço, desconto e taxas reais (opcional)</summary>
@@ -114,9 +116,10 @@
                         <span class="operacao-etiqueta" th:text="${v.valoresReais ? 'Valores reais informados' : 'Inclui estimativa'}"></span>
                         <span th:if="${v.lucroUnitario != null}" th:text="|Resultado/un.: R$ ${#numbers.formatDecimal(v.lucroUnitario,1,'POINT',2,'COMMA')}|"></span>
                     </div>
-                    <details th:if="${v.unidadesAtivas > 0}" class="operacao-cancelar">
+                    <a th:if="${v.pedidoId != null}" class="botao botao-secundario" th:href="@{/orcamentos/{id}(id=${v.pedidoId})}">Gerenciar no pedido</a>
+                    <details th:if="${v.unidadesAtivas > 0 and v.pedidoId == null}" class="operacao-cancelar">
                         <summary>Cancelar unidades</summary>
-                        <form method="post" th:action="@{/vendas-estoque/lote/{id}/cancelar-venda(id=${lote.id})}" data-turbo-confirm="Cancelar esta quantidade e devolver as unidades ao estoque de peças?">
+                        <form th:if="${v.pedidoId == null}" method="post" th:action="@{/vendas-estoque/lote/{id}/cancelar-venda(id=${lote.id})}" data-turbo-confirm="Cancelar esta quantidade e devolver as unidades ao estoque de peças?">
                             <input type="hidden" name="vendaId" th:value="${v.id}">
                             <div class="campo">
                                 <label th:for="|cancelar-${v.id}|">Quantidade</label>

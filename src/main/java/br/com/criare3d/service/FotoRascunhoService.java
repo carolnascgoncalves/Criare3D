@@ -1,7 +1,6 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.FotoConteudo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import java.time.Clock;
@@ -10,9 +9,15 @@ import java.util.*;
 /** Um rascunho por usuário, fora da sessão HTTP e com expiração de 30 minutos. */
 @Service
 public class FotoRascunhoService {
-    @Autowired private JdbcTemplate jdbc;
-    @Autowired private UsuarioLogadoService usuario;
-    @Autowired private Clock clock;
+    public FotoRascunhoService(JdbcTemplate jdbc, UsuarioLogadoService usuario, Clock clock) {
+        this.jdbc = java.util.Objects.requireNonNull(jdbc, "jdbc");
+        this.usuario = java.util.Objects.requireNonNull(usuario, "usuario");
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
+    }
+
+    private final JdbcTemplate jdbc;
+    private final UsuarioLogadoService usuario;
+    private final Clock clock;
 
     public UUID salvar(String tipo, byte[] bytes) {
         if (bytes == null || bytes.length == 0) return null;

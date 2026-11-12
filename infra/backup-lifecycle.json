@@ -1,0 +1,18 @@
+{
+  "Rules": [
+    {
+      "ID": "Criare3D-expirar-backups",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "criare3d/" },
+      "Expiration": { "Days": 30 },
+      "NoncurrentVersionExpiration": { "NoncurrentDays": 1 },
+      "AbortIncompleteMultipartUpload": { "DaysAfterInitiation": 7 }
+    },
+    {
+      "ID": "Criare3D-limpar-marcadores",
+      "Status": "Enabled",
+      "Filter": { "Prefix": "criare3d/" },
+      "Expiration": { "ExpiredObjectDeleteMarker": true }
+    }
+  ]
+}

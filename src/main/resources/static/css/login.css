@@ -122,7 +122,12 @@ body.login-pagina {
     transition: background-color 150ms ease, transform 150ms ease;
 }
 
-.login-botao:hover {
+.login-botao:disabled {
+    opacity: .65;
+    cursor: wait;
+}
+
+.login-botao:hover:not(:disabled) {
     background: var(--login-acao-hover);
 }
 

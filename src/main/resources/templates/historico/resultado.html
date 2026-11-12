@@ -8,6 +8,7 @@
 <div th:replace="~{fragmentos :: menu}"></div>
 
 <main class="pagina" id="paginaResultado">
+            <div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
 <section th:if="${custoReferencia != null}" class="aviso-info"><strong>Comparação com o cálculo anterior</strong><p th:text="|Custo anterior por unidade: R$ ${#numbers.formatDecimal(custoReferencia,1,'POINT',2,'COMMA')} · Custo atual: R$ ${#numbers.formatDecimal(resultado.custoTotal,1,'POINT',2,'COMMA')} · Variação: R$ ${#numbers.formatDecimal(resultado.custoTotal - custoReferencia,1,'POINT',2,'COMMA')}|"></p><p>O cálculo anterior foi preservado. Salvar este resultado cria um novo registro.</p></section>
 
     <section class="pagina-intro">
@@ -434,6 +435,8 @@
 
             <!-- AÇÕES -->
             <div class="acoes-resultado">
+                <form th:if="${orcamentoDestino != null}" th:action="@{/orcamentos/do-calculo}" method="post"><input type="hidden" name="pedido" th:value="${orcamentoDestino}"><button class="botao botao-principal">Adicionar ao orçamento em edição</button></form>
+                <form th:action="@{/orcamentos/do-calculo}" method="post"><button class="botao botao-principal"><i class="bi bi-file-earmark-text"></i> Usar em um orçamento</button></form>
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">

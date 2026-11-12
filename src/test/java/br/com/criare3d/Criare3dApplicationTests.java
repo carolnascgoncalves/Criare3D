@@ -112,7 +112,7 @@ class Criare3dApplicationTests {
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
 				.forEach(tenant -> {
 					UUID tenantId = tenant.getId();
-					for (String tabela : java.util.List.of("foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
+					for (String tabela : java.util.List.of("melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
 							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
 							"filamento", "impressora", "peca", "usuario")) {
 						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
@@ -489,6 +489,67 @@ class Criare3dApplicationTests {
     @Autowired private br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
     @Autowired private br.com.criare3d.service.FalhaProducaoService falhaProducaoService;
     @Autowired private br.com.criare3d.service.PlanejamentoProducaoService planejamentoProducaoService;
+    @Autowired private br.com.criare3d.service.OrcamentoPedidoService orcamentos;
+    @Autowired private br.com.criare3d.service.OperacaoPedidoService pedidos;
+    @Autowired private br.com.criare3d.repository.ItemPedidoRepository reservasPedido;
+
+    @Test
+    void pedidoMistoReservaProduzSomenteFaltanteEntregaECancelaSemApagarOutraVenda() {
+        var u=criarUsuario("pedido-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);
+        var lote=criarLoteOperacao(u);
+        configuracaoRepository.saveAndFlush(Configuracao.builder().usuario(u).markupFixo(false)
+                .markupPercentual(new BigDecimal("100")).tarifaEnergiaKwh(new BigDecimal("0.8"))
+                .embalagemFixa(true).custoEmbalagemFixa(BigDecimal.ONE).build());
+        assertThat(producaoService.atualizarProduzido(lote.getId(),true)).isEqualTo(ResultadoOperacao.OK);
+        var antes=filamentoRepository.findById(lote.getFilamento().getId()).orElseThrow().getEstoqueGramas();
+        long calculosAntes=calculoHistoricoRepository.count();
+        var fotoOrigem=new CalculoFoto();fotoOrigem.setCalculoId(lote.getId());fotoOrigem.setTipo("image/png");
+        fotoOrigem.setBytes(java.util.Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/Z1sAAAAASUVORK5CYII="));
+        calculoFotoRepository.saveAndFlush(fotoOrigem);
+        var p=orcamentos.iniciar(lote.getId(),4,2);
+        assertThat(p.getItens().getFirst().getId()).isNotNull();
+        assertThat(fotosPedidoRepository.existsById(p.getItens().getFirst().getId())).isTrue();
+        var dados=new br.com.criare3d.dto.PedidoDadosRequest();dados.setTitulo("Pedido integrado");dados.setCliente("Cliente teste");
+        orcamentos.salvarDados(p.getId(),dados);orcamentos.enviar(p.getId());
+        assertThat(calculoHistoricoRepository.count()).isEqualTo(calculosAntes);
+        assertThat(filamentoRepository.findById(lote.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo(antes);
+        p=orcamentos.buscar(p.getId());pedidos.aprovar(p.getId(),p.getRevisao());p=orcamentos.buscar(p.getId());
+        // Simula abrir o pedido em outra requisição, sem sessão Hibernate anterior.
+        assertThat(orcamentos.materiais(p).materiais()).isNotEmpty();
+        assertThat(orcamentos.materiais(orcamentos.buscar(p.getId())).materiais()).isNotEmpty();
+        var item=p.getItens().getFirst();
+        assertThat(item.getLoteProducao().getUnidades()).isEqualTo(2);
+        assertThat(reservasPedido.reservadas(lote.getId())).isEqualTo(2);
+        assertThat(vendaService.registrarVenda(lote.getId(),2)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
+        assertThat(vendaService.registrarVenda(lote.getId(),1)).isEqualTo(ResultadoOperacao.OK);
+        assertThat(producaoService.atualizarProduzido(lote.getId(),false)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
+        pedidos.produzir(p.getId(),item.getId(),p.getRevisao());p=orcamentos.buscar(p.getId());
+        var depois=filamentoRepository.findById(lote.getFilamento().getId()).orElseThrow().getEstoqueGramas();
+        assertThat(depois).isLessThan(antes);
+        pedidos.entregar(p.getId(),p.getRevisao());p=orcamentos.buscar(p.getId());
+        assertThat(p.getStatus()).isEqualTo(br.com.criare3d.models.enums.StatusPedido.ENTREGUE);
+        assertThat(reservasPedido.reservadas(lote.getId())).isZero();
+        assertThat(calculoHistoricoRepository.findById(lote.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(3);
+        pedidos.cancelar(p.getId(),p.getRevisao());
+        assertThat(calculoHistoricoRepository.findById(lote.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(1);
+        var produzido=calculoHistoricoRepository.findById(item.getLoteProducao().getId()).orElseThrow();
+        assertThat(produzido.getProduzido()).isTrue();assertThat(produzido.getUnidadesVendidas()).isZero();
+        assertThat(filamentoRepository.findById(lote.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo(depois);
+    }
+
+    @Test
+    void orcamentoItemEReservasNaoSaoAcessiveisPorOutroCliente() {
+        var a=criarUsuario("pedido-a-"+UUID.randomUUID()+"@teste.local");autenticarComo(a);
+        var p=new br.com.criare3d.models.PedidoOrcamento();p.setCriadoEm(LocalDateTime.now());
+        var repository=orcamentoRepository;
+        p=repository.saveAndFlush(p);
+        var b=criarUsuario("pedido-b-"+UUID.randomUUID()+"@teste.local");autenticarComo(b);
+        assertThat(repository.findById(p.getId())).isEmpty();
+        final var id=p.getId();
+        org.assertj.core.api.Assertions.assertThatIllegalArgumentException().isThrownBy(()->pedidos.aprovar(id,0));
+    }
+    @Autowired private br.com.criare3d.repository.PedidoOrcamentoRepository orcamentoRepository;
+    @Autowired private br.com.criare3d.repository.FotoItemPedidoRepository fotosPedidoRepository;
 
     private CalculoHistorico criarLoteOperacao(Usuario usuario) {
         var f = criarFilamento(usuario);
@@ -502,7 +563,7 @@ class Criare3dApplicationTests {
     }
     private void limparOperacao(Usuario usuario) {
         UUID tenant=usuario.getTenant().getId();
-        for (String tabela : java.util.List.of("foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
+        for (String tabela : java.util.List.of("melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
             jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?",tenant);
         usuarioRepository.deleteById(usuario.getId());SecurityContextHolder.clearContext();tenantRepository.deleteById(tenant);
     }

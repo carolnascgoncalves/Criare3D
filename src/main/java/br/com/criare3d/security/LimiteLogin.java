@@ -28,6 +28,10 @@ public class LimiteLogin {
         return Math.max(espera(chave("email", normalizar(email))), espera(chave("ip", ip)));
     }
 
+    public synchronized Instant bloqueadoAte(String email, String ip) {
+        return clock.instant().plusSeconds(esperaSegundos(email, ip));
+    }
+
     public synchronized void falhou(String email, String ip) {
         registrar(chave("email", normalizar(email)));
         registrar(chave("ip", ip));

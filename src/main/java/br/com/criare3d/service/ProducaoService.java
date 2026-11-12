@@ -10,7 +10,6 @@ import java.util.*;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @Transactional
@@ -19,8 +18,15 @@ public class ProducaoService {
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
     private final FilamentoService filamentoService;
-    @Autowired private Clock clock = Clock.system(ZoneId.of("America/Sao_Paulo"));
-    public ProducaoService(CalculoHistoricoRepository calculoHistoricoRepository, VendaCalculoRepository vendaCalculoRepository, FilamentoService filamentoService) {
+    private final Clock clock;
+    private final ItemPedidoRepository reservas;
+    public ProducaoService(
+            CalculoHistoricoRepository calculoHistoricoRepository,
+            VendaCalculoRepository vendaCalculoRepository,
+            FilamentoService filamentoService,
+            Clock clock, ItemPedidoRepository reservas) {
+        this.reservas=java.util.Objects.requireNonNull(reservas);
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
         this.calculoHistoricoRepository = calculoHistoricoRepository;
         this.vendaCalculoRepository = vendaCalculoRepository;
         this.filamentoService = filamentoService;
@@ -38,6 +44,7 @@ public class ProducaoService {
         if (jaProduzido == produzido) return ResultadoOperacao.OK;
 
         if (!produzido) {
+            if (reservas.reservadas(id)>0) return ResultadoOperacao.RESERVA_ATIVA;
             CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
             if (calculo == null) return ResultadoOperacao.NAO_ENCONTRADO;
             if (Boolean.TRUE.equals(historico.vendido())
@@ -54,6 +61,7 @@ public class ProducaoService {
 
         bloqueado.setProduzido(produzido);
         bloqueado.setDataProducao(produzido ? LocalDateTime.now(clock) : null);
+        if (produzido) reservas.concluirPlanejamentoPorLote(id);
         return ResultadoOperacao.OK;
     }
 

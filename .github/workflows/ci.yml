@@ -80,9 +80,27 @@ jobs:
         run: docker exec -i ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U postgres -d criare3d_e2e < src/test/e2e/seed.sql
       - name: Conferir backup e restauração do schema completo
         run: |
-          docker exec ${{ job.services.postgres.id }} pg_dump -U postgres -d criare3d_e2e -Fc -f /tmp/criare3d-ci.dump
-          docker exec -i -e PGHOST=localhost -e PGDATABASE=criare3d_e2e -e PGUSER=postgres -e PGPASSWORD=postgres \
-            ${{ job.services.postgres.id }} sh -s -- /tmp/criare3d-ci.dump < scripts/testar-restauracao.sh
+          docker cp scripts ${{ job.services.postgres.id }}:/tmp/criare-scripts
+          docker exec -e PGHOST=localhost -e PGDATABASE=criare3d_e2e -e PGUSER=postgres -e PGPASSWORD=postgres -e BACKUP_DIR=/tmp/backup-ci \
+            ${{ job.services.postgres.id }} sh /tmp/criare-scripts/backup-postgres.sh
+          docker exec -e PGHOST=localhost -e PGDATABASE=criare3d_e2e -e PGUSER=postgres -e PGPASSWORD=postgres \
+            ${{ job.services.postgres.id }} sh -c 'for arquivo in /tmp/backup-ci/*.dump; do sh /tmp/criare-scripts/testar-restauracao.sh "$arquivo"; done'
+      - name: Rejeitar restauração com contagem divergente
+        run: |
+          docker exec -e PGHOST=localhost -e PGDATABASE=criare3d_e2e -e PGUSER=postgres -e PGPASSWORD=postgres \
+            ${{ job.services.postgres.id }} sh -c '
+              set -eu
+              for arquivo in /tmp/backup-ci/*.dump; do
+                cp "$arquivo.rows" "$arquivo.rows.original"
+                printf "calculo_historico|999999999\n" > "$arquivo.rows"
+                (cd /tmp/backup-ci && sha256sum "$(basename "$arquivo")" "$(basename "$arquivo").rows") > "$arquivo.sha256"
+                if sh /tmp/criare-scripts/testar-restauracao.sh "$arquivo" > /tmp/restore-divergente.log 2>&1; then
+                  echo "A verificação aceitou contagens divergentes"; exit 1
+                fi
+                grep -q "diverge das contagens" /tmp/restore-divergente.log
+                mv "$arquivo.rows.original" "$arquivo.rows"
+                (cd /tmp/backup-ci && sha256sum "$(basename "$arquivo")" "$(basename "$arquivo").rows") > "$arquivo.sha256"
+              done'
       - run: npm run test:e2e
       - name: Guardar evidências
         if: always()

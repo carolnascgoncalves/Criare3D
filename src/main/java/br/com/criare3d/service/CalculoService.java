@@ -28,8 +28,7 @@ import static br.com.criare3d.service.CalculoFinanceiro.ratear;
 @Transactional(readOnly = true)
 public class CalculoService {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
-    @org.springframework.beans.factory.annotation.Autowired
-    private java.time.Clock clock = java.time.Clock.system(ZoneId.of("America/Sao_Paulo"));
+    private final java.time.Clock clock;
     private final CalculoPlataformaService calculoPlataformaService;
     private final PecaService pecaService;
     private final FilamentoService filamentoService;
@@ -37,7 +36,16 @@ public class CalculoService {
     private final EmbalagemService embalagemService;
     private final ConfiguracaoService configuracaoService;
     private final ManutencaoImpressoraService manutencaoImpressoraService;
-    public CalculoService(CalculoPlataformaService calculoPlataformaService, PecaService pecaService, FilamentoService filamentoService, ImpressoraService impressoraService, EmbalagemService embalagemService, ConfiguracaoService configuracaoService, ManutencaoImpressoraService manutencaoImpressoraService) {
+    public CalculoService(
+            CalculoPlataformaService calculoPlataformaService,
+            PecaService pecaService,
+            FilamentoService filamentoService,
+            ImpressoraService impressoraService,
+            EmbalagemService embalagemService,
+            ConfiguracaoService configuracaoService,
+            ManutencaoImpressoraService manutencaoImpressoraService,
+            java.time.Clock clock) {
+        this.clock = java.util.Objects.requireNonNull(clock, "clock");
         this.calculoPlataformaService = calculoPlataformaService;
         this.pecaService = pecaService;
         this.filamentoService = filamentoService;

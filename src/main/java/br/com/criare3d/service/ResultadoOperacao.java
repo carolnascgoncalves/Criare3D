@@ -10,6 +10,8 @@ public enum ResultadoOperacao {
     QUANTIDADE_VENDA_ACIMA_DISPONIVEL("quantidadeVendaAcimaDisponivel"),
     PRODUCAO_NECESSARIA("producaoNecessaria"),
     NENHUM_SELECIONADO("nenhumSelecionado"),
+    RESERVA_ATIVA("reservaAtiva"),
+    PEDIDO_VINCULADO("pedidoVinculado"),
     ACAO_INVALIDA("acaoInvalida");
     private final String codigo;
     ResultadoOperacao(String codigo) { this.codigo = codigo; }

@@ -21,7 +21,8 @@ class ProducaoLoteVendidoTest {
     private final CalculoHistoricoRepository historicos = mock(CalculoHistoricoRepository.class);
     private final VendaCalculoRepository vendas = mock(VendaCalculoRepository.class);
     private final FilamentoService filamentos = mock(FilamentoService.class);
-    private final ProducaoService service = new ProducaoService(historicos, vendas, filamentos);
+    private final br.com.criare3d.repository.ItemPedidoRepository reservas=mock(br.com.criare3d.repository.ItemPedidoRepository.class);
+    private final ProducaoService service = new ProducaoService(historicos, vendas, filamentos, java.time.Clock.systemUTC(),reservas);
     private final UUID id = UUID.randomUUID();
     private final UUID filamentoId = UUID.randomUUID();
 
@@ -46,6 +47,11 @@ class ProducaoLoteVendidoTest {
         assertThat(calculo.getUnidadesVendidas()).isEqualTo(2);
         verify(historicos, never()).atualizarStatus(any(), anyBoolean(), anyBoolean());
         verifyNoInteractions(filamentos, vendas);
+    }
+    @Test void naoDesfazProducaoDePecasReservadasMesmoSemVendas() {
+        var c=preparar(0);when(reservas.reservadas(id)).thenReturn(2L);
+        assertThat(service.atualizarProduzido(id,false)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
+        assertThat(c.getProduzido()).isTrue();verifyNoInteractions(filamentos,vendas);
     }
 
     @Test
