@@ -106,7 +106,7 @@ jobs:
       - name: Mostrar diagnóstico do navegador em caso de falha
         if: failure()
         run: |
-          if [ -f target/e2e-app.log ]; then tail -n 150 target/e2e-app.log; fi
+          if [ -f target/e2e-app.log ]; then tail -n 400 target/e2e-app.log; fi
           find test-results -name error-context.md -type f -print -exec cat {} \; 2>/dev/null || true
       - name: Guardar evidências
         if: always()

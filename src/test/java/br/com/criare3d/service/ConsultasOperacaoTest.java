@@ -36,6 +36,7 @@ class ConsultasOperacaoTest {
                         Query query = metodo.getAnnotation(Query.class);
                         if (query == null || query.nativeQuery() || query.value().isBlank()) continue;
                         factory.getQueryEngine().getHqlTranslator().translate(query.value(),null);
+                        if(!query.countQuery().isBlank())factory.getQueryEngine().getHqlTranslator().translate(query.countQuery(),null);
                         consultas++;
                     }
                 }

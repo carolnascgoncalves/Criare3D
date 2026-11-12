@@ -563,7 +563,12 @@ class Criare3dApplicationTests {
         assertThat(loteA.getVendido()).isTrue();assertThat(loteA.getUnidadesVendidas()).isEqualTo(1);
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
         // Um planejamento avulso continua visível até a venda, sem ocupar a impressora após produzir.
-        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
+        var paginaPlanejamentos=planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20));
+        assertThat(paginaPlanejamentos).hasSize(1);
+        // O template lê produzido depois que a transação da consulta terminou.
+        var calculoDaListagem=paginaPlanejamentos.getContent().getFirst().getCalculo();
+        assertThat(org.hibernate.Hibernate.isInitialized(calculoDaListagem)).isTrue();
+        assertThat(calculoDaListagem.getProduzido()).isTrue();
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
         assertThat(vendaService.registrarVenda(loteA.getId(),2)).isEqualTo(ResultadoOperacao.OK);
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();

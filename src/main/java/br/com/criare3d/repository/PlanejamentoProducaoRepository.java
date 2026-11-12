@@ -4,12 +4,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.*;
 import java.util.*;
 public interface PlanejamentoProducaoRepository extends JpaRepository<PlanejamentoProducao,UUID> {
- @org.springframework.data.jpa.repository.Query("""
-  SELECT p FROM PlanejamentoProducao p
+ @org.springframework.data.jpa.repository.Query(value="""
+  SELECT p FROM PlanejamentoProducao p JOIN FETCH p.calculo
   WHERE p.cancelado=false AND p.concluido=false
    AND COALESCE(p.calculo.unidadesVendidas,0)<p.calculo.unidades
    AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
   ORDER BY p.inicio ASC
+ """,countQuery="""
+  SELECT COUNT(p) FROM PlanejamentoProducao p
+  WHERE p.cancelado=false AND p.concluido=false
+   AND COALESCE(p.calculo.unidadesVendidas,0)<p.calculo.unidades
+   AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
  """)
  Page<PlanejamentoProducao> findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(Pageable pagina);
  @org.springframework.data.jpa.repository.Query("""
@@ -22,12 +27,16 @@ public interface PlanejamentoProducaoRepository extends JpaRepository<Planejamen
  """)
  List<PlanejamentoProducao> buscarPendentesDaImpressora(@org.springframework.data.repository.query.Param("id") UUID id,Pageable pagina);
  default Optional<PlanejamentoProducao> findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(UUID id){return buscarPendentesDaImpressora(id,PageRequest.of(0,1)).stream().findFirst();}
- @org.springframework.data.jpa.repository.Query("""
-  SELECT p FROM PlanejamentoProducao p WHERE p.cancelado=false
+ @org.springframework.data.jpa.repository.Query(value="""
+  SELECT p FROM PlanejamentoProducao p JOIN FETCH p.calculo WHERE p.cancelado=false
    AND (p.concluido=true
         OR COALESCE(p.calculo.unidadesVendidas,0)>=p.calculo.unidades)
    AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
   ORDER BY p.inicio DESC
+ """,countQuery="""
+  SELECT COUNT(p) FROM PlanejamentoProducao p WHERE p.cancelado=false
+   AND (p.concluido=true OR COALESCE(p.calculo.unidadesVendidas,0)>=p.calculo.unidades)
+   AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
  """)
  Page<PlanejamentoProducao> findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(Pageable pagina);
  @org.springframework.data.jpa.repository.Modifying
