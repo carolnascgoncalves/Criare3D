@@ -166,3 +166,9 @@ Até 20 itens por orçamento e 500 unidades por item. Entrega e registro de paga
 - [ ] Escolha sábado com expediente segunda a sexta: a observação deve explicar o ajuste ao expediente, sem atribuir a outra impressão.
 - [ ] Lotes já produzidos deixam de atrasar novos orçamentos. Nos planejamentos avulsos, continuam visíveis como aguardando venda até vender todo o lote; nos pedidos, a confirmação de produção conclui o planejamento.
 - [ ] Na lista de orçamentos, Abrir e Arquivar/Restaurar devem ocupar a mesma largura.
+
+
+### Planejamento após venda parcial
+- [ ] Produza 3 unidades, venda 2 e cancele 1: ficam 1 vendida e 2 disponíveis.
+- [ ] Salve a simulação desse lote: ele deve aparecer como Produzido · aguardando venda e não ocupar a impressora.
+- [ ] Venda as 2 unidades restantes: o planejamento sai dos pendentes e aparece em Concluídos.

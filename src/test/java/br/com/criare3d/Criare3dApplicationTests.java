@@ -552,12 +552,20 @@ class Criare3dApplicationTests {
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(loteB.getImpressora().getId())).isEmpty();
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
-        autenticarComo(a);loteA.setProduzido(true);calculoHistoricoRepository.saveAndFlush(loteA);
+        // Reproduz o navegador: lote produzido com venda parcial ainda ativa.
+        // vendido=true não significa que todas as unidades foram vendidas.
+        autenticarComo(a);
+        assertThat(producaoService.atualizarProduzido(loteA.getId(),true)).isEqualTo(ResultadoOperacao.OK);
+        assertThat(vendaService.registrarVenda(loteA.getId(),2)).isEqualTo(ResultadoOperacao.OK);
+        var vendaParcial=vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(loteA.getId()).getFirst();
+        assertThat(vendaService.cancelarVenda(loteA.getId(),vendaParcial.getId(),1)).isEqualTo(ResultadoOperacao.OK);
+        loteA=calculoHistoricoRepository.findById(loteA.getId()).orElseThrow();
+        assertThat(loteA.getVendido()).isTrue();assertThat(loteA.getUnidadesVendidas()).isEqualTo(1);
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
         // Um planejamento avulso continua visível até a venda, sem ocupar a impressora após produzir.
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
-        loteA.setVendido(true);loteA.setUnidadesVendidas(loteA.getUnidades());calculoHistoricoRepository.saveAndFlush(loteA);
+        assertThat(vendaService.registrarVenda(loteA.getId(),2)).isEqualTo(ResultadoOperacao.OK);
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
     }
