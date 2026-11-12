@@ -37,7 +37,21 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await page.locator('#custoDescricao').fill('Acabamento');await page.locator('#custoValor').fill('12.50');await page.getByRole('button',{name:'Adicionar custo'}).click();await expect(page.locator('main')).toContainText('Acabamento');
  await page.goto('/simulacao');await page.locator('[data-sim="abrir-seletor"]').click();await page.locator('[data-sim="lista-calculos"] button').first().click();
  await expect(page.locator('#simUnidades')).toHaveValue('3');
- await page.getByRole('button',{name:'Salvar na fila da impressora'}).click();await expect(page).toHaveURL(/simulacao\/planejamentos/);
+ const envioPlanejamento=page.waitForResponse(r=>new URL(r.url()).pathname==='/simulacao/planejamentos'&&r.request().method()==='POST',{timeout:5000});
+ await page.getByRole('button',{name:'Salvar na fila da impressora'}).click();
+ const retornoPlanejamento=await envioPlanejamento.catch(async()=>{
+  const avisos=await page.locator('.alerta-erro:visible,[data-sim="erro"]:visible').allTextContents();
+  throw new Error('O botão não enviou o POST do planejamento. Avisos: '+avisos.join(' | '));
+ });
+ const destinoPlanejamento=retornoPlanejamento.headers().location||'';
+ if(!/\/simulacao\/planejamentos(?:[?#]|$)/.test(destinoPlanejamento)){
+  await page.locator('.alerta-erro:visible').first().waitFor({state:'visible',timeout:2000}).catch(()=>{});
+  const avisos=await page.locator('.alerta-erro:visible,[data-sim="erro"]:visible').allTextContents();
+  const parametros=new URLSearchParams(retornoPlanejamento.request().postData()||'');
+  const enviados=Object.fromEntries(['calculoId','unidades','capacidade','inicio','intervalo','folga'].map(k=>[k,parametros.get(k)]));
+  throw new Error('Planejamento recusado: HTTP '+retornoPlanejamento.status()+', destino '+destinoPlanejamento+', avisos '+avisos.join(' | ')+', campos '+JSON.stringify(enviados));
+ }
+ await expect(page).toHaveURL(/simulacao\/planejamentos/);
  await expect(page.locator('main')).toContainText('Peça navegador');await expect(page.locator('.planejamento-card')).toContainText('Produzido · aguardando venda');await semOverflow(page);
  await page.goto(`/vendas-estoque/lote/${lote}`);await page.locator('#vendaUnidades').fill('2');await confirmar(page.getByRole('button',{name:'Registrar venda',exact:true}));
  await page.goto('/simulacao/planejamentos');await expect(page.locator('.planejamento-card')).toHaveCount(0);
