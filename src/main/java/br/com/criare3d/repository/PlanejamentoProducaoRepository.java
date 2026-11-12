@@ -7,7 +7,7 @@ public interface PlanejamentoProducaoRepository extends JpaRepository<Planejamen
  @org.springframework.data.jpa.repository.Query("""
   SELECT p FROM PlanejamentoProducao p
   WHERE p.cancelado=false AND p.concluido=false
-   AND COALESCE(p.calculo.produzido,false)=false AND COALESCE(p.calculo.vendido,false)=false
+   AND COALESCE(p.calculo.vendido,false)=false
    AND COALESCE(p.calculo.unidadesVendidas,0)<p.calculo.unidades
    AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
   ORDER BY p.inicio ASC
@@ -25,7 +25,7 @@ public interface PlanejamentoProducaoRepository extends JpaRepository<Planejamen
  default Optional<PlanejamentoProducao> findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(UUID id){return buscarPendentesDaImpressora(id,PageRequest.of(0,1)).stream().findFirst();}
  @org.springframework.data.jpa.repository.Query("""
   SELECT p FROM PlanejamentoProducao p WHERE p.cancelado=false
-   AND (p.concluido=true OR p.calculo.produzido=true OR p.calculo.vendido=true
+   AND (p.concluido=true OR p.calculo.vendido=true
         OR COALESCE(p.calculo.unidadesVendidas,0)>=p.calculo.unidades)
    AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
   ORDER BY p.inicio DESC

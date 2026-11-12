@@ -38,7 +38,7 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await page.goto('/simulacao');await page.locator('[data-sim="abrir-seletor"]').click();await page.locator('[data-sim="lista-calculos"] button').first().click();
  await expect(page.locator('#simUnidades')).toHaveValue('3');
  await page.getByRole('button',{name:'Salvar na fila da impressora'}).click();await expect(page).toHaveURL(/simulacao\/planejamentos/);
- await expect(page.locator('main')).toContainText('Peça navegador');await semOverflow(page);
+ await expect(page.locator('main')).toContainText('Peça navegador');await expect(page.locator('.planejamento-card')).toContainText('Produzido · aguardando venda');await semOverflow(page);
  await page.goto(`/vendas-estoque/lote/${lote}`);await page.locator('#vendaUnidades').fill('2');await confirmar(page.getByRole('button',{name:'Registrar venda',exact:true}));
  await page.goto('/simulacao/planejamentos');await expect(page.locator('.planejamento-card')).toHaveCount(0);
  await page.getByRole('link',{name:'Concluídos',exact:true}).click();await expect(page.locator('.planejamento-card')).toContainText('Peça navegador');

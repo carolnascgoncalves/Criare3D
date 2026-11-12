@@ -554,6 +554,10 @@ class Criare3dApplicationTests {
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
         autenticarComo(a);loteA.setProduzido(true);calculoHistoricoRepository.saveAndFlush(loteA);
         assertThat(planejamentoProducaoRepository.findFirstByImpressora_IdAndCanceladoFalseAndConcluidoFalseOrderByFimDesc(impressoraA)).isEmpty();
+        // Um planejamento avulso continua visível até a venda, sem ocupar a impressora após produzir.
+        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
+        assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+        loteA.setVendido(true);loteA.setUnidadesVendidas(loteA.getUnidades());calculoHistoricoRepository.saveAndFlush(loteA);
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
         assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoTrueOrderByInicioDesc(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
     }

@@ -10,7 +10,7 @@
                 <div>
                     <span class="texto-apoio">ORGANIZE SUA PRODUÇÃO</span>
                     <h1>Planejamentos salvos</h1>
-                    <p>O horário é uma previsão. Nos pedidos, confirme a produção para concluir o planejamento. Nas simulações avulsas, ele é concluído após a venda do lote.</p>
+                    <p>O horário é uma previsão. Nos pedidos, confirme a produção para concluir o planejamento. Nas simulações avulsas, ele é concluído após a venda do lote; peças já produzidas não ocupam a impressora.</p>
                 </div>
                 <a class="botao botao-principal" th:href="@{/simulacao}">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -37,7 +37,7 @@
                             <span class="texto-apoio" th:text="${p.nomeImpressora}"></span>
                             <h2 th:text="${p.nomePeca}"></h2>
                         </div>
-                        <span class="operacao-etiqueta" th:text="${p.concluido ? 'Concluído' : 'Na fila'}"></span>
+                        <span class="operacao-etiqueta" th:text="${concluidos == true or p.concluido ? 'Concluído' : (p.calculo.produzido ? 'Produzido · aguardando venda' : 'Na fila')}"></span>
                     </header>
                     <p class="texto-apoio" th:text="|${p.unidades} unidades · ${p.pecasPorImpressao} por impressão|"></p>
                     <dl class="planejamento-horarios">

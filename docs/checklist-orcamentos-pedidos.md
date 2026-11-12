@@ -164,5 +164,5 @@ Até 20 itens por orçamento e 500 unidades por item. Entrega e registro de paga
 - [ ] Em um cliente A, salve um planejamento futuro. Em outro cliente B sem fila, faça orçamento com impressora própria: a previsão deve respeitar apenas o início e expediente de B.
 - [ ] Com fila vazia e uma segunda-feira às 08h como início, confira que não há aviso de outro planejamento pendente.
 - [ ] Escolha sábado com expediente segunda a sexta: a observação deve explicar o ajuste ao expediente, sem atribuir a outra impressão.
-- [ ] Planejamentos de lotes já produzidos/vendidos devem aparecer entre concluídos e deixar de atrasar novos orçamentos.
+- [ ] Lotes já produzidos deixam de atrasar novos orçamentos. Nos planejamentos avulsos, continuam visíveis como aguardando venda até vender todo o lote; nos pedidos, a confirmação de produção conclui o planejamento.
 - [ ] Na lista de orçamentos, Abrir e Arquivar/Restaurar devem ocupar a mesma largura.

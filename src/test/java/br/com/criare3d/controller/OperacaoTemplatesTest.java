@@ -58,6 +58,11 @@ class OperacaoTemplatesTest {
         var p=new PlanejamentoProducao();p.setId(UUID.randomUUID());p.setCalculo(lote(false));p.setNomePeca("Peça exemplo");p.setNomeImpressora("Impressora exemplo");p.setUnidades(3);p.setInicio(LocalDateTime.now());p.setFim(LocalDateTime.now().plusHours(3));
         assertThat(renderizar("simulacao/planejamentos",Map.of("pagina",new PageImpl<>(List.of(p)))))
                 .contains("Peça exemplo","Retirar da fila","Operação");
+        p.getCalculo().setProduzido(true);
+        assertThat(renderizar("simulacao/planejamentos",Map.of("pagina",new PageImpl<>(List.of(p)),"concluidos",false)))
+                .contains("Peça exemplo","Produzido · aguardando venda");
+        assertThat(renderizar("simulacao/planejamentos",Map.of("pagina",new PageImpl<>(List.of(p)),"concluidos",true)))
+                .doesNotContain("Produzido · aguardando venda");
     }
     @Test void arquivoRenderizaBotaoDeRestaurar() {
         assertThat(renderizar("catalogo/arquivados",Map.of("itens",List.of(new ArquivoCatalogoController.Item(UUID.randomUUID(),"Peça arquivada","peca")),"page",0,"mais",false)))
