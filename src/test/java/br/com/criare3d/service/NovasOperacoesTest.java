@@ -25,11 +25,11 @@ class NovasOperacoesTest {
     }
     @Test void vendaParcialMantemPlanejamentoEFinalConclui() {
         var historicos=mock(CalculoHistoricoRepository.class);var vendas=mock(VendaCalculoRepository.class);var planos=mock(PlanejamentoProducaoRepository.class);
-        var service=new CalculoHistoricoServiceImp(historicos,null,null,vendas,null,null,null,null,null,null,null,null);
+        var service=new VendaService(historicos,vendas);
         ReflectionTestUtils.setField(service,"planejamentoProducaoRepository",planos);
         var c=new CalculoHistorico();var id=UUID.randomUUID();c.setId(id);c.setProduzido(true);c.setUnidades(3);c.setUnidadesVendidas(0);c.setCustoTotal(BigDecimal.ONE);c.setPrecoSugerido(BigDecimal.TEN);
         when(historicos.bloquearPorId(id)).thenReturn(Optional.of(c));when(historicos.findById(id)).thenReturn(Optional.of(c));
-        assertThat(service.registrarVenda(id,2)).isEqualTo("ok");verifyNoInteractions(planos);
-        assertThat(service.registrarVenda(id,1)).isEqualTo("ok");verify(planos).concluirPorCalculo(id);
+        assertThat(service.registrarVenda(id,2)).isEqualTo(ResultadoOperacao.OK);verifyNoInteractions(planos);
+        assertThat(service.registrarVenda(id,1)).isEqualTo(ResultadoOperacao.OK);verify(planos).concluirPorCalculo(id);
     }
 }

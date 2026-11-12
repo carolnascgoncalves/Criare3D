@@ -1,0 +1,55 @@
+name: Backup e ensaio de restauração
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: backup-postgres
+  cancel-in-progress: false
+jobs:
+  backup:
+    if: vars.BACKUP_HABILITADO == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      restore:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: restore-only-ci
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preparar pasta privada
+        run: mkdir -m 700 backups
+      - name: Gerar backup completo
+        env:
+          PGHOST: ${{ secrets.BACKUP_PGHOST }}
+          PGPORT: ${{ secrets.BACKUP_PGPORT }}
+          PGDATABASE: ${{ secrets.BACKUP_PGDATABASE }}
+          PGUSER: ${{ secrets.BACKUP_PGUSER }}
+          PGPASSWORD: ${{ secrets.BACKUP_PGPASSWORD }}
+          PGSSLMODE: require
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -e PGHOST -e PGPORT -e PGDATABASE -e PGUSER -e PGPASSWORD -e PGSSLMODE \
+            -v "$PWD/backups:/backup" -v "$PWD/scripts:/scripts:ro" \
+            postgres:17-alpine sh /scripts/backup-postgres.sh
+      - name: Ensaiar restauração isolada
+        run: |
+          docker run --rm --network host -e PGHOST=127.0.0.1 -e PGPORT=5432 \
+            -e PGDATABASE=postgres -e PGUSER=postgres -e PGPASSWORD=restore-only-ci \
+            -v "$PWD/backups:/backup:ro" -v "$PWD/scripts:/scripts:ro" \
+            postgres:17-alpine sh -c 'for arquivo in /backup/*.dump; do sh /scripts/testar-restauracao.sh "$arquivo"; done'
+      - name: Enviar cópia criptografada ao armazenamento externo
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.BACKUP_AWS_REGION }}
+          DESTINO: ${{ secrets.BACKUP_S3_URI }}
+        run: |
+          case "$DESTINO" in s3://?*) ;; *) echo 'Configure BACKUP_S3_URI'; exit 1;; esac
+          aws s3 cp backups/ "$DESTINO" --recursive --sse AES256 --only-show-errors
+      # Dumps nunca são publicados como artifacts do GitHub.

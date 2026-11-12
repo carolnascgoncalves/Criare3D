@@ -20,6 +20,8 @@ O fluxo separa estimativa, produção e venda. A produção registra sua própri
 
 Cadastros podem ser arquivados e restaurados. A simulação permite salvar planejamentos em uma fila por impressora, sem movimentar estoque. Perdas de tentativas extras podem ser registradas e corrigidas separadamente da estimativa de falha do cálculo.
 
+Consulte também [segurança, backup, recuperação de acesso e arquitetura](docs/seguranca-operacao.md) para configurar os novos recursos de operação.
+
 Consulte [a revisão e o roteiro de conferência](docs/revisao-operacao.md) para regras, migrations e cobertura de testes. Além dos testes Java, o CI executa os testes JavaScript e possui um job de navegador em 320 px e desktop.
 
 ## Tecnologias
@@ -107,7 +109,7 @@ Para construir a imagem:
 docker build -t criare3d .
 ```
 
-O schema do banco é controlado pelo Flyway. A migração `V1` cria a estrutura para bancos novos. Nos bancos existentes, o Flyway registra a versão 1 como baseline e aplica a migração `V2`, que alinha a nulabilidade de `filamento`, cria índices por usuário ausentes e remove uma chave estrangeira duplicada conhecida. A migração `V3` adiciona as opções dos custos adicionais; a `V4` registra o tempo de trabalho nas peças e os dados de compra e vida útil das impressoras; a `V5` adiciona a opção de usar um tempo de mão de obra fixo nas configurações; a `V6` registra gastos de manutenção por impressora; a `V7` adiciona estoque e status de produção/venda; a `V8` separa no histórico o custo de manutenção do custo de depreciação; a `V9` registra a data de cadastro do filamento; a `V10` adiciona a versão usada para impedir perda de atualizações concorrentes no estoque; a `V11` registra quando uma conta precisa trocar a senha temporária definida pelo administrador; a `V12` registra a data real em que um cálculo foi marcado como vendido; a `V13` registra unidades por cálculo; a `V14` separa as fotos do histórico; a `V15` registra as impressões por cálculo; a `V16` adiciona parâmetros de impressão e índices; a `V26` grava a taxa de depreciação por hora e sua origem na impressora e no histórico, além da previsão editável de horas mensais. A consulta de preços do Mercado Livre guarda apenas medianas e contagens em cache por sete dias; os anúncios originais não são salvos.
+O schema é controlado pelo Flyway. Consulte [as migrations](src/main/resources/db/migration) para a estrutura e sua evolução; arquivos já aplicados são imutáveis. Bancos novos são criados pelas migrations, e o Hibernate confere o resultado com `ddl-auto=validate`. O baseline automático fica desligado; bancos legados sem histórico exigem incorporação explícita conforme a documentação operacional.
 
 Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com essa versão. O Flyway roda automaticamente na inicialização; confirme que `DB_URL` aponta para o banco esperado. Depois das migrações, o Hibernate usa `ddl-auto=validate` e apenas confere a estrutura. Os testes exercitam as migrations em um PostgreSQL descartável, sem substituir o backup do banco real.
 

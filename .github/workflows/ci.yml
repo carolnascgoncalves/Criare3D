@@ -78,6 +78,11 @@ jobs:
           exit 1
       - name: Criar dados descartáveis
         run: docker exec -i ${{ job.services.postgres.id }} psql -v ON_ERROR_STOP=1 -U postgres -d criare3d_e2e < src/test/e2e/seed.sql
+      - name: Conferir backup e restauração do schema completo
+        run: |
+          docker exec ${{ job.services.postgres.id }} pg_dump -U postgres -d criare3d_e2e -Fc -f /tmp/criare3d-ci.dump
+          docker exec -i -e PGHOST=localhost -e PGDATABASE=criare3d_e2e -e PGUSER=postgres -e PGPASSWORD=postgres \
+            ${{ job.services.postgres.id }} sh -s -- /tmp/criare3d-ci.dump < scripts/testar-restauracao.sh
       - run: npm run test:e2e
       - name: Guardar evidências
         if: always()

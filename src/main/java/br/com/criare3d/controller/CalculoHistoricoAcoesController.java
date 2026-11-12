@@ -1,6 +1,11 @@
 package br.com.criare3d.controller;
+import br.com.criare3d.service.ResultadoOperacao;
 
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+import br.com.criare3d.service.HistoricoCalculoService;
+import br.com.criare3d.service.ProducaoService;
+import br.com.criare3d.service.VendaService;
+
+
 import br.com.criare3d.util.HistoricoFiltros;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,18 +26,22 @@ public class CalculoHistoricoAcoesController {
         return "redirect:/historico/listar?erro=operacaoRegistrada";
     }
 
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
+    private final ProducaoService producaoService;
+    private final VendaService vendaService;
 
-    public CalculoHistoricoAcoesController(CalculoHistoricoService calculoHistoricoService) {
-        this.calculoHistoricoService = calculoHistoricoService;
+    public CalculoHistoricoAcoesController(HistoricoCalculoService historicoCalculoService, ProducaoService producaoService, VendaService vendaService) {
+        this.historicoCalculoService = historicoCalculoService;
+        this.producaoService = producaoService;
+        this.vendaService = vendaService;
     }
 
     @PostMapping("/historico/remover/{id}")
     public ModelAndView remover(@PathVariable UUID id) {
-        if (!calculoHistoricoService.existsById(id)) {
+        if (!historicoCalculoService.existsById(id)) {
             return new ModelAndView("redirect:/historico/listar?erro=naoEncontrado");
         }
-        calculoHistoricoService.delete(id);
+        historicoCalculoService.delete(id);
         return new ModelAndView("redirect:/historico/listar?sucesso=historicoRemovido");
     }
 
@@ -53,7 +62,7 @@ public class CalculoHistoricoAcoesController {
             return HistoricoFiltros.redirecionarComFiltros(
                     "erro", "nenhumSelecionado", busca, data, plataforma, produzido, vendido, ordem, page);
         }
-        calculoHistoricoService.deleteAll(ids);
+        historicoCalculoService.deleteAll(ids);
         page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
                 page, totalRegistros, ids.size(), tamanhoPagina);
         return HistoricoFiltros.redirecionarComFiltros(
@@ -72,10 +81,10 @@ public class CalculoHistoricoAcoesController {
             @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
             @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        String resultado = calculoHistoricoService.atualizarProduzido(id, valor);
-        if (!"ok".equals(resultado)) {
+        ResultadoOperacao resultado = producaoService.atualizarProduzido(id, valor);
+        if (!ResultadoOperacao.OK.equals(resultado)) {
             return HistoricoFiltros.redirecionarComFiltros(
-                    "erro", resultado, busca, data, plataforma, produzido, vendido, ordem, page);
+                    "erro", resultado.codigo(), busca, data, plataforma, produzido, vendido, ordem, page);
         }
         return HistoricoFiltros.redirecionarComFiltros(
                 "sucesso", "producaoAtualizada", busca, data, plataforma, produzido, vendido, ordem, page);
@@ -93,10 +102,10 @@ public class CalculoHistoricoAcoesController {
             @RequestParam(name = "vendido", defaultValue = "TODOS") String vendido,
             @RequestParam(name = "ordem", defaultValue = "dataDesc") String ordem,
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        String resultado = calculoHistoricoService.atualizarVendido(id, valor);
-        if (!"ok".equals(resultado)) {
+        ResultadoOperacao resultado = vendaService.atualizarVendido(id, valor);
+        if (!ResultadoOperacao.OK.equals(resultado)) {
             return HistoricoFiltros.redirecionarComFiltros(
-                    "erro", resultado, busca, data, plataforma, produzido, vendido, ordem, page);
+                    "erro", resultado.codigo(), busca, data, plataforma, produzido, vendido, ordem, page);
         }
         return HistoricoFiltros.redirecionarComFiltros(
                 "sucesso", "vendaAtualizada", busca, data, plataforma, produzido, vendido, ordem, page);

@@ -17,7 +17,8 @@ public class UsuarioRequest {
     private String email;
 
     @NotBlank(message = "Informe a senha.")
-    @Size(min = 12, message = "A senha deve possuir pelo menos 12 caracteres.")
+    @br.com.criare3d.security.SenhaBcrypt
+    @Size(min = 12, max = 72, message = "Use uma senha de 12 a 72 caracteres.")
     private String password;
 
     @NotBlank(message = "Confirme a senha.")

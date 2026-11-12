@@ -1,7 +1,10 @@
 
 package br.com.criare3d.controller;
 
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+import br.com.criare3d.service.HistoricoCalculoService;
+import br.com.criare3d.service.IndicadoresService;
+
+
 import br.com.criare3d.service.interfaces.PecaService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
@@ -20,20 +23,22 @@ public class HomeController {
     private final PecaService pecaService;
     private final FilamentoService filamentoService;
     private final ImpressoraService impressoraService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
+    private final IndicadoresService indicadoresService;
     private final ConfiguracaoService configuracaoService;
     private final EmbalagemService embalagemService;
 
     public HomeController(PecaService pecaService,
                           FilamentoService filamentoService,
                           ImpressoraService impressoraService,
-                          CalculoHistoricoService calculoHistoricoService,
+                          HistoricoCalculoService historicoCalculoService, IndicadoresService indicadoresService,
                           ConfiguracaoService configuracaoService,
                           EmbalagemService embalagemService) {
         this.pecaService = pecaService;
         this.filamentoService = filamentoService;
         this.impressoraService = impressoraService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.historicoCalculoService = historicoCalculoService;
+        this.indicadoresService = indicadoresService;
         this.configuracaoService = configuracaoService;
         this.embalagemService = embalagemService;
     }
@@ -46,9 +51,9 @@ public class HomeController {
 
     @GetMapping({"/", "/home"})
     public String home(Model model) {
-        var historicosRecentes = calculoHistoricoService.fetchRecentes(3);
-        long totalProduzidos = calculoHistoricoService.contarProduzidos();
-        long totalVendidos = calculoHistoricoService.contarVendidos();
+        var historicosRecentes = historicoCalculoService.fetchRecentes(3);
+        long totalProduzidos = indicadoresService.contarProduzidos();
+        long totalVendidos = indicadoresService.contarVendidos();
 
         long totalPecas = pecaService.contar();
         long totalFilamentos = filamentoService.contar();

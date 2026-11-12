@@ -1,12 +1,14 @@
 
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.FilamentoResponse;
 import br.com.criare3d.dto.FilamentoDadosRequest;
 import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.models.Filamento;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
@@ -40,12 +42,12 @@ public class FilamentoController {
     );
 
     private final FilamentoService filamentoService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
 
     public FilamentoController(FilamentoService filamentoService,
-                               CalculoHistoricoService calculoHistoricoService) {
+                               HistoricoCalculoService historicoCalculoService) {
         this.filamentoService = filamentoService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.historicoCalculoService = historicoCalculoService;
     }
 
     @GetMapping("/filamento/listar")
@@ -64,7 +66,7 @@ public class FilamentoController {
         Map<UUID, Boolean> filamentosComHistoricoProduzido = new HashMap<>();
         Map<UUID, Integer> percentualEstoque = new HashMap<>();
         List<UUID> idsPagina = pagina.getContent().stream().map(Filamento::getId).toList();
-        var idsComHistoricoProduzido = calculoHistoricoService.buscarFilamentosComHistoricoProduzido(idsPagina);
+        var idsComHistoricoProduzido = historicoCalculoService.buscarFilamentosComHistoricoProduzido(idsPagina);
 
         for (Filamento filamento : pagina.getContent()) {
             filamentosComHistoricoProduzido.put(
@@ -140,7 +142,7 @@ public class FilamentoController {
                 .map(filamento -> {
                     ModelAndView mv = new ModelAndView("filamento/historico");
                     mv.addObject("filamento", filamento);
-                    mv.addObject("usos", calculoHistoricoService.listarUsosPorFilamento(id));
+                    mv.addObject("usos", historicoCalculoService.listarUsosPorFilamento(id));
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
@@ -257,7 +259,7 @@ public class FilamentoController {
             return new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado");
         }
 
-        long quantidade = calculoHistoricoService.contarPorFilamento(id);
+        long quantidade = historicoCalculoService.contarPorFilamento(id);
 
         if (quantidade > 0) {
             return new ModelAndView(

@@ -65,6 +65,10 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
 
     private boolean rotaPermitidaSemTenant(String caminho) {
         return caminho.equals("/login")
+                || caminho.equals("/actuator/health")
+                || caminho.startsWith("/actuator/")
+                || caminho.equals("/recuperar-senha")
+                || caminho.startsWith("/recuperar-senha/")
                 || caminho.equals("/logout")
                 || caminho.equals("/favicon.ico")
                 || caminho.equals("/conta")
@@ -73,6 +77,7 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
                 || caminho.startsWith("/usuarios/")
                 || caminho.equals("/clientes")
                 || caminho.startsWith("/clientes/")
+                || caminho.startsWith("/vendor/")
                 || caminho.startsWith("/css/")
                 || caminho.startsWith("/js/")
                 || caminho.startsWith("/images/");

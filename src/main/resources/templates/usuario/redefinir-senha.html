@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><meta name="turbo-cache-control" content="no-cache">
+<title>Recuperar acesso — Criare3D</title><link rel="stylesheet" th:href="@{/css/login.css}">
+</head><body class="login-pagina"><main class="login-cartao">
+<header class="login-cabecalho"><h1>Criar nova senha</h1><p>Use pelo menos 12 caracteres. Este link vale por 15 minutos.</p></header>
+<p th:if="${erro}" class="login-aviso login-aviso-erro" role="alert" th:text="${erro}"></p>
+<form th:action="@{/recuperar-senha/redefinir}" th:object="${recuperacao}" method="post" class="login-formulario">
+<input type="hidden" th:field="*{token}">
+<div class="login-campo"><label for="senha">Nova senha</label><input type="password" id="senha" name="senha" minlength="12" maxlength="72" autocomplete="new-password" required></div>
+<div class="login-campo"><label for="confirmarSenha">Confirme a nova senha</label><input type="password" id="confirmarSenha" name="confirmarSenha" minlength="12" maxlength="72" autocomplete="new-password" required></div>
+<button class="login-botao" type="submit">Salvar nova senha</button></form>
+<p class="login-ajuda"><a th:href="@{/recuperar-senha}">Solicitar outro link</a></p></main></body></html>

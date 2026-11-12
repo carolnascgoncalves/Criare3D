@@ -7,11 +7,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 /** Persistência e miniaturas executadas na transação da fachada do histórico. */
-final class FotosCalculoService {
+@org.springframework.stereotype.Service
+@org.springframework.transaction.annotation.Transactional
+public class FotoCalculoService {
     private final CalculoFotoRepository calculoFotoRepository;
     private final CalculoHistoricoRepository historicos;
 
-    FotosCalculoService(CalculoFotoRepository fotos, CalculoHistoricoRepository historicos) {
+    public FotoCalculoService(CalculoFotoRepository fotos, CalculoHistoricoRepository historicos) {
         this.calculoFotoRepository = fotos;
         this.historicos = historicos;
     }

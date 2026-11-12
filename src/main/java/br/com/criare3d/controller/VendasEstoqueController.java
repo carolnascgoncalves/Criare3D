@@ -1,8 +1,13 @@
 package br.com.criare3d.controller;
+import br.com.criare3d.service.ResultadoOperacao;
+
+import br.com.criare3d.service.AcaoEmLoteService;
+import br.com.criare3d.service.IndicadoresService;
+import br.com.criare3d.service.VendaService;
 
 import br.com.criare3d.dto.HistoricoListaResponse;
 import br.com.criare3d.service.CatalogoBuscaService;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import br.com.criare3d.util.HistoricoFiltros;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import org.springframework.data.domain.Page;
@@ -27,12 +32,16 @@ import java.time.ZoneId;
 @Controller
 public class VendasEstoqueController {
     private final CatalogoBuscaService catalogoBuscaService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final AcaoEmLoteService acaoEmLoteService;
+    private final IndicadoresService indicadoresService;
+    private final VendaService vendaService;
 
     public VendasEstoqueController(CatalogoBuscaService catalogoBuscaService,
-                                   CalculoHistoricoService calculoHistoricoService) {
+                                   AcaoEmLoteService acaoEmLoteService, IndicadoresService indicadoresService, VendaService vendaService) {
         this.catalogoBuscaService = catalogoBuscaService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.acaoEmLoteService = acaoEmLoteService;
+        this.indicadoresService = indicadoresService;
+        this.vendaService = vendaService;
     }
 
     @GetMapping("/vendas-estoque")
@@ -57,11 +66,11 @@ public class VendasEstoqueController {
                 .atDay(1).atStartOfDay();
         LocalDateTime fimMes = YearMonth.from(inicioMes)
                 .plusMonths(1).atDay(1).atStartOfDay();
-        long unidadesProduzidas = calculoHistoricoService.contarProduzidos();
-        long unidadesVendidas = calculoHistoricoService.contarVendidos();
-        long unidadesVendidasMes = calculoHistoricoService.contarUnidadesVendidasEntre(inicioMes, fimMes);
-        long lotesVendidosMes = calculoHistoricoService.contarLotesVendidosEntre(inicioMes, fimMes);
-        BigDecimal lucroVendidoMes = calculoHistoricoService.somarLucroVendidoEntre(inicioMes, fimMes);
+        long unidadesProduzidas = indicadoresService.contarProduzidos();
+        long unidadesVendidas = indicadoresService.contarVendidos();
+        long unidadesVendidasMes = indicadoresService.contarUnidadesVendidasEntre(inicioMes, fimMes);
+        long lotesVendidosMes = indicadoresService.contarLotesVendidosEntre(inicioMes, fimMes);
+        BigDecimal lucroVendidoMes = indicadoresService.somarLucroVendidoEntre(inicioMes, fimMes);
 
         ModelAndView mv = new ModelAndView("vendas-estoque/listar");
         mv.addObject("modoDetalhe", !aba.isBlank());
@@ -77,11 +86,11 @@ public class VendasEstoqueController {
         mv.addObject("lotesParaProduzir", paraProduzir.getTotalElements());
         mv.addObject("lotesEmEstoque", emEstoque.getTotalElements());
         mv.addObject("lotesVendidos", vendidos.getTotalElements());
-        mv.addObject("unidadesParaProduzir", calculoHistoricoService.contarUnidadesParaProduzir());
+        mv.addObject("unidadesParaProduzir", indicadoresService.contarUnidadesParaProduzir());
         mv.addObject("unidadesProduzidas", unidadesProduzidas);
         mv.addObject("unidadesVendidas", unidadesVendidas);
         mv.addObject("unidadesEmEstoque", Math.max(0, unidadesProduzidas - unidadesVendidas));
-        mv.addObject("valorEmEstoque", calculoHistoricoService.somarCustoUnidadesEmEstoque());
+        mv.addObject("valorEmEstoque", indicadoresService.somarCustoUnidadesEmEstoque());
         mv.addObject("unidadesVendidasMes", unidadesVendidasMes);
         mv.addObject("lotesVendidosMes", lotesVendidosMes);
         mv.addObject("lucroVendidoMes", lucroVendidoMes == null ? BigDecimal.ZERO : lucroVendidoMes);
@@ -98,22 +107,22 @@ public class VendasEstoqueController {
                                   @RequestParam(defaultValue = "1") Integer quantidade,
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "20") int size) {
-        String resultado = "VENDER".equals(acao)
+        ResultadoOperacao resultado = "VENDER".equals(acao)
                 ? (ids != null && ids.size() == 1
-                    ? calculoHistoricoService.registrarVenda(ids.get(0), quantidade)
-                    : calculoHistoricoService.registrarVendasEmLote(ids, quantidade))
-                : calculoHistoricoService.atualizarStatusEmLote(ids, acao);
+                    ? vendaService.registrarVenda(ids.get(0), quantidade)
+                    : acaoEmLoteService.registrarVendasEmLote(ids, quantidade))
+                : acaoEmLoteService.atualizarStatusEmLote(ids, acao);
         String mensagemSucesso = switch (acao) {
             case "VENDER" -> "vendasRegistradas";
             case "DESFAZER_PRODUCAO" -> "producoesDesfeitas";
             case "CANCELAR_VENDA" -> "vendasCanceladas";
             default -> "producoesRegistradas";
         };
-        String status = "ok".equals(resultado)
+        String status = ResultadoOperacao.OK.equals(resultado)
                 ? "sucesso=" + mensagemSucesso
-                : "erro=" + resultado;
+                : "erro=" + resultado.codigo();
         String destino;
-        if ("ok".equals(resultado)) {
+        if (ResultadoOperacao.OK.equals(resultado)) {
             destino = "/vendas-estoque?" + status;
         } else {
             destino = "/vendas-estoque?busca=" + java.net.URLEncoder.encode(

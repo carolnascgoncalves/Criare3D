@@ -145,26 +145,8 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
             throw new IllegalStateException("Configurações estão disponíveis somente para contas de cliente.");
         }
         return buscarConfiguracao().orElseGet(() -> {
-            Configuracao configuracao = new Configuracao();
-
+            Configuracao configuracao = ConfiguracaoPadrao.criar();
             configuracao.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
-            configuracao.setMarkupPercentual(BigDecimal.ZERO);
-            configuracao.setMarkupFixo(false);
-            configuracao.setMarkupOpcao1(new BigDecimal("30.00"));
-            configuracao.setMarkupOpcao2(new BigDecimal("40.00"));
-            configuracao.setMarkupOpcao3(new BigDecimal("50.00"));
-            configuracao.setTarifaEnergiaKwh(BigDecimal.ZERO);
-            configuracao.setEmbalagemFixa(false);
-            configuracao.setCustoEmbalagemFixa(BigDecimal.ZERO);
-            configuracao.setFormularioAvancado(false);
-            configuracao.setMaoObraAtivada(false);
-            configuracao.setMaoObraTempoFixo(false);
-            configuracao.setTempoMaoObraFixoMinutos(0L);
-            configuracao.setDepreciacaoAtivada(false);
-            configuracao.setTaxaFalhaAtivada(false);
-            configuracao.setPercentualFalha(new BigDecimal("5.00"));
-            configuracao.setPurgaGramasPorImpressao(BigDecimal.ZERO);
-
             Configuracao salva = configuracaoRepository.save(configuracao);
             UUID tenantId = usuarioLogadoService.buscarTenantIdAtual();
             invalidarCacheDepoisDoCommit(tenantId);

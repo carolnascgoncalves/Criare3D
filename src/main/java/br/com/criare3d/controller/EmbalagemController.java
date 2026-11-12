@@ -1,12 +1,14 @@
 
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.EmbalagemRequest;
 import br.com.criare3d.dto.EmbalagemResponse;
 import br.com.criare3d.dto.EmbalagemDadosRequest;
 import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.service.CatalogoBuscaService;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
@@ -37,14 +39,14 @@ public class EmbalagemController {
     );
 
     private final EmbalagemService embalagemService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
     private final CatalogoBuscaService catalogoBuscaService;
 
     public EmbalagemController(EmbalagemService embalagemService,
-                               CalculoHistoricoService calculoHistoricoService,
+                               HistoricoCalculoService historicoCalculoService,
                                CatalogoBuscaService catalogoBuscaService) {
         this.embalagemService = embalagemService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.historicoCalculoService = historicoCalculoService;
         this.catalogoBuscaService = catalogoBuscaService;
     }
 
@@ -148,7 +150,7 @@ public class EmbalagemController {
             return new ModelAndView("redirect:/embalagem/listar?erro=embalagemNaoEncontrada");
         }
 
-        long quantidade = calculoHistoricoService.contarPorEmbalagem(id);
+        long quantidade = historicoCalculoService.contarPorEmbalagem(id);
 
         if (quantidade > 0) {
             return new ModelAndView(

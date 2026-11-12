@@ -15,6 +15,9 @@ public class SecurityConfig {
 
     private final SenhaObrigatoriaLoginSuccessHandler senhaObrigatoriaLoginSuccessHandler;
     private final TenantTemaCache tenantTemaCache;
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.security.LimiteLogin limiteLogin;
+    private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(SecurityConfig.class);
 
     public SecurityConfig(SenhaObrigatoriaLoginSuccessHandler senhaObrigatoriaLoginSuccessHandler,
                           TenantTemaCache tenantTemaCache) {
@@ -23,8 +26,31 @@ public class SecurityConfig {
     }
 
     @Bean
+    public org.springframework.security.core.session.SessionRegistry sessionRegistry() {
+        return new org.springframework.security.core.session.SessionRegistryImpl();
+    }
+
+    @Bean
+    public org.springframework.security.web.session.HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new org.springframework.security.web.session.HttpSessionEventPublisher();
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
+        return new PasswordEncoder() {
+            private boolean cabe(CharSequence senha) {
+                return senha != null && senha.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= 72;
+            }
+            @Override public String encode(CharSequence senha) {
+                if (!cabe(senha)) throw new IllegalArgumentException("A senha deve ocupar no máximo 72 bytes.");
+                return bcrypt.encode(senha);
+            }
+            @Override public boolean matches(CharSequence senha, String hash) {
+                return cabe(senha) && bcrypt.matches(senha, hash);
+            }
+            @Override public boolean upgradeEncoding(String hash) { return bcrypt.upgradeEncoding(hash); }
+        };
     }
 
     @Bean
@@ -33,11 +59,17 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/login",
+                                "/recuperar-senha",
+                                "/recuperar-senha/**",
+                                "/actuator/health",
+                                "/actuator/health/**",
+                                "/vendor/**",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
                                 "/favicon.ico"
                         ).permitAll()
+                        .requestMatchers("/actuator/**").denyAll()
                         .requestMatchers("/usuarios/**").hasRole("ADMIN")
                         .requestMatchers("/clientes", "/clientes/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
@@ -46,8 +78,18 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .usernameParameter("email")
                         .passwordParameter("password")
-                        .successHandler(senhaObrigatoriaLoginSuccessHandler)
-                        .failureUrl("/login?erro")
+                        .successHandler((request, response, authentication) -> {
+                            limiteLogin.autenticou(request.getParameter("email"));
+                            senhaObrigatoriaLoginSuccessHandler.onAuthenticationSuccess(request, response, authentication);
+                        })
+                        .failureHandler((request, response, exception) -> {
+                            limiteLogin.falhou(request.getParameter("email"), request.getRemoteAddr());
+                            LOG.warn("Falha de autenticação; conta={}, origem={}, espera={}s",
+                                    limiteLogin.identificadorConta(request.getParameter("email")),
+                                    limiteLogin.identificadorOrigem(request.getRemoteAddr()), limiteLogin.esperaSegundos(
+                                    request.getParameter("email"), request.getRemoteAddr()));
+                            response.sendRedirect(request.getContextPath() + "/login?erro");
+                        })
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -57,6 +99,9 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                 );
 
+        http.sessionManagement(sessions -> sessions.maximumSessions(-1).sessionRegistry(sessionRegistry()));
+        http.addFilterBefore(new br.com.criare3d.security.LimiteLoginFilter(limiteLogin),
+                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new PrimeiroAcessoSenhaObrigatoriaFilter(), AuthorizationFilter.class);
         http.addFilterBefore(new TenantObrigatorioFilter(tenantTemaCache), AuthorizationFilter.class);
 

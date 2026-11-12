@@ -50,3 +50,18 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await page.getByRole('button',{name:'Restaurar',exact:true}).click();await expect(page.locator('main')).not.toContainText('Peça navegador');
  expect(erros).toEqual([]);
 });
+
+
+test('login carrega os arquivos públicos sem redirecionar nem gravar destino protegido', async ({page}) => {
+ const arquivos = ['/vendor/bootstrap-icons/bootstrap-icons.min.css', '/vendor/turbo.es2017-umd.js'];
+ for (const caminho of arquivos) {
+  const resposta = await page.request.get(caminho, {maxRedirects: 0});
+  expect(resposta.status()).toBe(200);
+  expect(resposta.headers()['content-type']).not.toContain('text/html');
+ }
+ await page.goto('/login');
+ await expect(page.locator('.login-mostrar-senha .bi-eye')).toBeVisible();
+ await page.locator('#password').fill('exemplo');
+ await page.locator('.login-mostrar-senha').click();
+ await expect(page.locator('#password')).toHaveAttribute('type', 'text');
+});

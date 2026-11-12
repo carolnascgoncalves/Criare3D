@@ -21,6 +21,7 @@ public class CalculoRequest {
 
     @Valid
     @NotEmpty(message = "Adicione pelo menos um filamento")
+    @jakarta.validation.constraints.Size(max = 100, message = "Use até 100 filamentos por cálculo.")
     private List<ItemCalculoRequest> filamentos = new ArrayList<>();
 
     private BigDecimal quantidadeFilamentoGramas;

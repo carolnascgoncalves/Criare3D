@@ -1,7 +1,11 @@
 package br.com.criare3d.controller;
+import br.com.criare3d.service.ResultadoOperacao;
+
+import br.com.criare3d.service.ProducaoService;
+import br.com.criare3d.service.VendaService;
 import br.com.criare3d.repository.*;
 import br.com.criare3d.service.*;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +18,8 @@ import java.util.UUID;
 
 @Controller
 public class OperacaoLoteController {
- @Autowired private CalculoHistoricoService historicos;
+ @Autowired private ProducaoService producaoService;
+    @org.springframework.beans.factory.annotation.Autowired private VendaService vendaService;
  @Autowired private CalculoHistoricoRepository repository;
  @Autowired private VendaCalculoRepository vendas;
  @Autowired private FilamentoRepository filamentos;
@@ -51,16 +56,16 @@ public class OperacaoLoteController {
  public String vender(@PathVariable UUID id,@RequestParam Integer unidades,
   @RequestParam(required=false) BigDecimal preco,@RequestParam(required=false) BigDecimal desconto,
   @RequestParam(required=false) BigDecimal taxas,RedirectAttributes flash) {
-  String resultado = historicos.registrarVenda(id,unidades,preco,desconto,taxas);
+  ResultadoOperacao resultado = vendaService.registrarVenda(id,unidades,preco,desconto,taxas);
   return resposta(id,resultado,flash,"Venda registrada.");
  }
  @PostMapping("/vendas-estoque/lote/{id}/cancelar-venda")
  public String cancelar(@PathVariable UUID id,@RequestParam UUID vendaId,@RequestParam Integer unidades,RedirectAttributes flash) {
-  return resposta(id,historicos.cancelarVenda(id,vendaId,unidades),flash,"Cancelamento registrado; as unidades voltaram ao estoque de peças.");
+  return resposta(id,vendaService.cancelarVenda(id,vendaId,unidades),flash,"Cancelamento registrado; as unidades voltaram ao estoque de peças.");
  }
  @PostMapping("/vendas-estoque/lote/{id}/produzir")
  public String produzir(@PathVariable UUID id,@RequestParam(defaultValue="true") boolean produzir,RedirectAttributes flash) {
-  return resposta(id,historicos.atualizarProduzido(id,produzir),flash,produzir ? "Produção registrada; material descontado." : "Produção desfeita; material devolvido.");
+  return resposta(id,producaoService.atualizarProduzido(id,produzir),flash,produzir ? "Produção registrada; material descontado." : "Produção desfeita; material devolvido.");
  }
  @PostMapping("/vendas-estoque/lote/{id}/falha")
  public String falha(@PathVariable UUID id,@RequestParam UUID filamentoId,@RequestParam int unidades,
@@ -87,14 +92,14 @@ public class OperacaoLoteController {
   catch (IllegalArgumentException e) { flash.addFlashAttribute("mensagemErro",e.getMessage()); }
   return "redirect:/vendas-estoque/lote/"+id;
  }
- private String resposta(UUID id,String resultado,RedirectAttributes flash,String sucesso) {
-  if ("ok".equals(resultado)) flash.addFlashAttribute("mensagemSucesso",sucesso);
+ private String resposta(UUID id,ResultadoOperacao resultado,RedirectAttributes flash,String sucesso) {
+  if (ResultadoOperacao.OK.equals(resultado)) flash.addFlashAttribute("mensagemSucesso",sucesso);
   else flash.addFlashAttribute("mensagemErro",switch(resultado) {
-   case "producaoNecessaria" -> "Registre a produção antes de vender. A venda não produz o lote automaticamente.";
-   case "estoqueInsuficiente" -> "O estoque de filamento é insuficiente para produzir o lote.";
-   case "vendaAtiva" -> "Este lote tem vendas ativas. Cancele as vendas antes de desfazer a produção.";
-   case "quantidadeVendaAcimaDisponivel" -> "A quantidade excede as unidades disponíveis.";
-   case "valorVendaInvalido" -> "Informe valores positivos e um desconto que não ultrapasse o preço.";
+   case PRODUCAO_NECESSARIA -> "Registre a produção antes de vender. A venda não produz o lote automaticamente.";
+   case ESTOQUE_INSUFICIENTE -> "O estoque de filamento é insuficiente para produzir o lote.";
+   case VENDA_ATIVA -> "Este lote tem vendas ativas. Cancele as vendas antes de desfazer a produção.";
+   case QUANTIDADE_VENDA_ACIMA_DISPONIVEL -> "A quantidade excede as unidades disponíveis.";
+   case VALOR_VENDA_INVALIDO -> "Informe valores positivos e um desconto que não ultrapasse o preço.";
    default -> "Não foi possível concluir. Confira a quantidade e atualize a página.";
   });
   return "redirect:/vendas-estoque/lote/"+id;

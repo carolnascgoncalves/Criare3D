@@ -1,7 +1,9 @@
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.CalculoResponse;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,15 +14,15 @@ import java.util.UUID;
 
 @Controller
 public class OrcamentoController {
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
 
-    public OrcamentoController(CalculoHistoricoService calculoHistoricoService) {
-        this.calculoHistoricoService = calculoHistoricoService;
+    public OrcamentoController(HistoricoCalculoService historicoCalculoService) {
+        this.historicoCalculoService = historicoCalculoService;
     }
 
     @GetMapping("/historico/{id}/orcamento")
     public ModelAndView abrirOrcamento(@PathVariable UUID id) {
-        return calculoHistoricoService.fetchById(id)
+        return historicoCalculoService.fetchById(id)
                 .map(entidade -> {
                     CalculoResponse calculo = CalculoResponse.toDto(entidade);
                     int unidades = calculo.getUnidades() == null ? 1 : calculo.getUnidades();

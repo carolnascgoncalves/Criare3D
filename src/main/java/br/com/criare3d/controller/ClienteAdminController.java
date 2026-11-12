@@ -147,6 +147,17 @@ public class ClienteAdminController {
         return "redirect:/clientes/" + id + "/editar";
     }
 
+    @PostMapping("/{id}/restaurar")
+    public String restaurar(@PathVariable UUID id, RedirectAttributes atributos) {
+        try {
+            clienteAdminService.restaurar(id);
+            atributos.addFlashAttribute("statusCliente", "Cliente restaurado com todos os dados.");
+        } catch (IllegalArgumentException erro) {
+            atributos.addFlashAttribute("erroCliente", erro.getMessage());
+        }
+        return "redirect:/clientes/listar";
+    }
+
     @PostMapping("/{id}/excluir")
     public String excluir(@PathVariable UUID id,
                           @RequestParam("confirmacaoNome") String confirmacaoNome,

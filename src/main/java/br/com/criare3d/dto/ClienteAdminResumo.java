@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public interface ClienteAdminResumo {
     UUID getId();
+    java.time.Instant getExcluidoEm();
     String getNome();
     String getSlug();
     Boolean getAtivo();

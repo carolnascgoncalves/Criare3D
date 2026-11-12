@@ -12,12 +12,15 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {
+    java.util.List<Tenant> findByExcluidoEmBefore(java.time.Instant limite);
+
     Optional<Tenant> findBySlug(String slug);
 
     boolean existsBySlug(String slug);
 
     @Query(value = """
         SELECT t.id AS id,
+               t.excluido_em AS "excluidoEm",
                t.nome AS nome,
                t.slug AS slug,
                t.ativo AS ativo,

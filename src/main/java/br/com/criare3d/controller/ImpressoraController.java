@@ -1,10 +1,12 @@
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.*;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Impressora;
 import br.com.criare3d.service.CatalogoBuscaService;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import br.com.criare3d.service.interfaces.ManutencaoImpressoraService;
@@ -28,16 +30,16 @@ import org.springframework.http.HttpStatusCode;
 public class ImpressoraController {
 
     private final ImpressoraService impressoraService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
     private final CatalogoBuscaService catalogoBuscaService;
     private final ManutencaoImpressoraService manutencaoImpressoraService;
 
     public ImpressoraController(ImpressoraService impressoraService,
-                                CalculoHistoricoService calculoHistoricoService,
+                                HistoricoCalculoService historicoCalculoService,
                                 CatalogoBuscaService catalogoBuscaService,
                                 ManutencaoImpressoraService manutencaoImpressoraService) {
         this.impressoraService = impressoraService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.historicoCalculoService = historicoCalculoService;
         this.catalogoBuscaService = catalogoBuscaService;
         this.manutencaoImpressoraService = manutencaoImpressoraService;
     }
@@ -155,7 +157,7 @@ public class ImpressoraController {
             return new ModelAndView("redirect:/impressora/listar?erro=impressoraNaoEncontrada");
         }
 
-        long quantidade = calculoHistoricoService.contarPorImpressora(id);
+        long quantidade = historicoCalculoService.contarPorImpressora(id);
 
         if (quantidade > 0) {
             return new ModelAndView(

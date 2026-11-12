@@ -1,4 +1,10 @@
 package br.com.criare3d;
+import br.com.criare3d.service.ResultadoOperacao;
+
+import br.com.criare3d.service.CalculoService;
+import br.com.criare3d.service.IndicadoresService;
+import br.com.criare3d.service.ProducaoService;
+import br.com.criare3d.service.VendaService;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +50,7 @@ import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.service.FilamentoServiceImp;
 import br.com.criare3d.service.ClienteAdminService;
 import br.com.criare3d.service.interfaces.UsuarioService;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -90,8 +96,10 @@ class Criare3dApplicationTests {
 	private FilamentoServiceImp filamentoService;
 	@Autowired
 	private UsuarioService usuarioService;
-	@Autowired
-	private CalculoHistoricoService calculoHistoricoService;
+	@Autowired private CalculoService calculoService;
+    @org.springframework.beans.factory.annotation.Autowired private IndicadoresService indicadoresService;
+    @org.springframework.beans.factory.annotation.Autowired private ProducaoService producaoService;
+    @org.springframework.beans.factory.annotation.Autowired private VendaService vendaService;
 	@Autowired
 	private ClienteAdminService clienteAdminService;
 	@Autowired
@@ -104,7 +112,7 @@ class Criare3dApplicationTests {
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
 				.forEach(tenant -> {
 					UUID tenantId = tenant.getId();
-					for (String tabela : java.util.List.of("custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
+					for (String tabela : java.util.List.of("foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
 							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
 							"filamento", "impressora", "peca", "usuario")) {
 						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
@@ -293,7 +301,13 @@ class Criare3dApplicationTests {
 			autenticarComo(usuarioB);
 			assertThat(pecaRepository.findById(pecaB.getId())).isPresent();
 			assertThat(tenantRepository.findById(usuarioB.getTenant().getId())).isPresent();
-			assertThat(tenantRepository.findById(usuarioA.getTenant().getId())).isEmpty();
+			var excluido = tenantRepository.findById(usuarioA.getTenant().getId()).orElseThrow();
+            assertThat(excluido.isAtivo()).isFalse();
+            assertThat(excluido.getExcluidoEm()).isNotNull();
+            autenticarComo(admin);
+            clienteAdminService.restaurar(usuarioA.getTenant().getId());
+            autenticarComo(usuarioA);
+            assertThat(pecaRepository.findById(pecaA.getId())).isPresent();
 			assertThat(pecaA.getTenantId()).isNotEqualTo(pecaB.getTenantId());
 		} finally {
 			SecurityContextHolder.clearContext();
@@ -387,11 +401,11 @@ class Criare3dApplicationTests {
 
 		try {
 			autenticarComo(usuario);
-			assertThat(calculoHistoricoService.atualizarProduzido(calculo.getId(), true)).isEqualTo("ok");
+			assertThat(producaoService.atualizarProduzido(calculo.getId(), true)).isEqualTo(ResultadoOperacao.OK);
 			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
 					.isEqualByComparingTo("850.00");
 
-			assertThat(calculoHistoricoService.atualizarProduzido(calculo.getId(), false)).isEqualTo("ok");
+			assertThat(producaoService.atualizarProduzido(calculo.getId(), false)).isEqualTo(ResultadoOperacao.OK);
 			assertThat(filamentoService.fetchById(filamento.getId()).orElseThrow().getEstoqueGramas())
 					.isEqualByComparingTo("1000.00");
 		} finally {
@@ -444,7 +458,7 @@ class Criare3dApplicationTests {
 			itemB.setQuantidadeFilamentoGramas(new BigDecimal("70.00"));
 			request.setFilamentos(java.util.List.of(itemA, itemB));
 
-			CalculoHistorico resultado = calculoHistoricoService.calcular(request);
+			CalculoHistorico resultado = calculoService.calcular(request);
 
 			assertThat(resultado.getUnidades()).isEqualTo(10);
 			assertThat(resultado.getPecasPorImpressao()).isEqualTo(4);
@@ -488,7 +502,7 @@ class Criare3dApplicationTests {
     }
     private void limparOperacao(Usuario usuario) {
         UUID tenant=usuario.getTenant().getId();
-        for (String tabela : java.util.List.of("custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
+        for (String tabela : java.util.List.of("foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
             jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?",tenant);
         usuarioRepository.deleteById(usuario.getId());SecurityContextHolder.clearContext();tenantRepository.deleteById(tenant);
     }
@@ -496,7 +510,7 @@ class Criare3dApplicationTests {
     void producaoUsaDataRealENaoDataAntigaDoCalculo() {
         var u=criarUsuario("producao-data-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
         try {
-            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
+            assertThat(producaoService.atualizarProduzido(c.getId(),true)).isEqualTo(ResultadoOperacao.OK);
             var salvo=calculoHistoricoRepository.findById(c.getId()).orElseThrow();
             var agora=LocalDateTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
             assertThat(salvo.getDataProducao()).isAfter(agora.minusMinutes(1));
@@ -508,34 +522,34 @@ class Criare3dApplicationTests {
     void vendaParcialComPrecoRealECancelamentoPreservaAuditoria() {
         var u=criarUsuario("venda-parcial-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
         try {
-            assertThat(calculoHistoricoService.registrarVenda(c.getId(),1)).isEqualTo("producaoNecessaria");
-            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
-            assertThat(calculoHistoricoService.registrarVenda(c.getId(),2,new BigDecimal("18"),new BigDecimal("2"),new BigDecimal("3"))).isEqualTo("ok");
+            assertThat(vendaService.registrarVenda(c.getId(),1)).isEqualTo(ResultadoOperacao.PRODUCAO_NECESSARIA);
+            assertThat(producaoService.atualizarProduzido(c.getId(),true)).isEqualTo(ResultadoOperacao.OK);
+            assertThat(vendaService.registrarVenda(c.getId(),2,new BigDecimal("18"),new BigDecimal("2"),new BigDecimal("3"))).isEqualTo(ResultadoOperacao.OK);
             var venda=vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(c.getId()).getFirst();
-            assertThat(calculoHistoricoService.cancelarVenda(c.getId(),venda.getId(),1)).isEqualTo("ok");
+            assertThat(vendaService.cancelarVenda(c.getId(),venda.getId(),1)).isEqualTo(ResultadoOperacao.OK);
             var ativa=vendaCalculoRepository.findById(venda.getId()).orElseThrow();
             assertThat(ativa.getUnidadesAtivas()).isEqualTo(1);assertThat(ativa.getUnidadesCanceladas()).isEqualTo(1);
             assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(1);
-            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),false)).isEqualTo("vendaAtiva");
+            assertThat(producaoService.atualizarProduzido(c.getId(),false)).isEqualTo(ResultadoOperacao.VENDA_ATIVA);
             var agora=LocalDateTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
-            assertThat(calculoHistoricoService.somarLucroVendidoEntre(agora.minusDays(1),agora.plusDays(1))).isEqualByComparingTo("10.12");
+            assertThat(indicadoresService.somarLucroVendidoEntre(agora.minusDays(1),agora.plusDays(1))).isEqualByComparingTo("10.12");
         } finally {limparOperacao(u);}
     }
     @Test
     void duasVendasSimultaneasNaoExcedemSaldoDoLote() throws Exception {
         var u=criarUsuario("venda-concorrente-"+UUID.randomUUID()+"@teste.local");autenticarComo(u);var c=criarLoteOperacao(u);
         try {
-            calculoHistoricoService.atualizarProduzido(c.getId(),true);
+            producaoService.atualizarProduzido(c.getId(),true);
             var iniciar=new java.util.concurrent.CountDownLatch(1);
             try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
-                java.util.concurrent.Callable<String> vender=() -> {
+                java.util.concurrent.Callable<ResultadoOperacao> vender=() -> {
                     autenticarComo(u);
-                    try {iniciar.await();return calculoHistoricoService.registrarVenda(c.getId(),2);}
+                    try {iniciar.await();return vendaService.registrarVenda(c.getId(),2);}
                     finally {SecurityContextHolder.clearContext();}
                 };
                 var a=pool.submit(vender);var b=pool.submit(vender);iniciar.countDown();
                 assertThat(java.util.List.of(a.get(15,java.util.concurrent.TimeUnit.SECONDS),b.get(15,java.util.concurrent.TimeUnit.SECONDS)))
-                        .containsExactlyInAnyOrder("ok","quantidadeVendaAcimaDisponivel");
+                        .containsExactlyInAnyOrder(ResultadoOperacao.OK,ResultadoOperacao.QUANTIDADE_VENDA_ACIMA_DISPONIVEL);
             }
             assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(2);
             assertThat(vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(c.getId())).hasSize(1);
@@ -564,8 +578,8 @@ class Criare3dApplicationTests {
             assertThat(filamentoRepository.findById(c.getFilamento().getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo("1000");
             planejamentoProducaoService.cancelar(a.getId());
             assertThat(planejamentoProducaoRepository.findById(b.getId()).orElseThrow().getInicio()).isEqualTo(b.getInicio());
-            assertThat(calculoHistoricoService.atualizarProduzido(c.getId(),true)).isEqualTo("ok");
-            assertThat(calculoHistoricoService.registrarVenda(c.getId(),3)).isEqualTo("ok");
+            assertThat(producaoService.atualizarProduzido(c.getId(),true)).isEqualTo(ResultadoOperacao.OK);
+            assertThat(vendaService.registrarVenda(c.getId(),3)).isEqualTo(ResultadoOperacao.OK);
             assertThat(planejamentoProducaoRepository.findByCanceladoFalseAndConcluidoFalseOrderByInicioAsc(org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
             assertThat(planejamentoProducaoRepository.findById(b.getId()).orElseThrow().isConcluido()).isTrue();
         } finally {limparOperacao(u);}
@@ -579,6 +593,78 @@ class Criare3dApplicationTests {
             assertThat(pecaRepository.findByArquivadoTrue(org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
             assertThat(calculoHistoricoRepository.findById(c.getId())).isPresent();
         } finally {limparOperacao(u);}
+    }
+
+    @Autowired private br.com.criare3d.service.AcaoEmLoteService acoesEmLote;
+    @Autowired private br.com.criare3d.service.RetencaoClienteService retencao;
+    @Autowired private org.springframework.transaction.PlatformTransactionManager transactions;
+
+    @Test void falhaNaSegundaVendaRevertePrimeiraVendaDoLote() {
+        var u = criarUsuario("rollback-" + UUID.randomUUID() + "@teste.local");
+        autenticarComo(u);
+        var a = criarLoteOperacao(u); var b = criarLoteOperacao(u);
+        var ordem = java.util.stream.Stream.of(a,b).sorted(java.util.Comparator.comparing(CalculoHistorico::getId)).toList();
+        producaoService.atualizarProduzido(ordem.getFirst().getId(), true);
+        assertThat(acoesEmLote.registrarVendasEmLote(ordem.stream().map(CalculoHistorico::getId).toList(), 1))
+                .isEqualTo(ResultadoOperacao.PRODUCAO_NECESSARIA);
+        assertThat(vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(ordem.getFirst().getId())).isEmpty();
+        assertThat(calculoHistoricoRepository.findById(ordem.getFirst().getId()).orElseThrow().getUnidadesVendidas()).isZero();
+    }
+
+    @Test void expurgoDescobreTodasAsTabelasIncluindoTabelaFuturaSemAfetarOutroCliente() {
+        var a = criarUsuario("purga-a-" + UUID.randomUUID() + "@teste.local");
+        var b = criarUsuario("purga-b-" + UUID.randomUUID() + "@teste.local");
+        autenticarComo(a); criarLoteOperacao(a);
+        autenticarComo(b); criarLoteOperacao(b);
+        jdbcTemplate.execute("CREATE TABLE teste_retencao_extra (id UUID PRIMARY KEY, tenant_id UUID NOT NULL REFERENCES tenant(id))");
+        try {
+            jdbcTemplate.update("INSERT INTO teste_retencao_extra VALUES (?, ?), (?, ?)", UUID.randomUUID(), a.getTenant().getId(), UUID.randomUUID(), b.getTenant().getId());
+            var tabelas = jdbcTemplate.queryForList("SELECT table_name FROM information_schema.columns WHERE table_schema = current_schema() AND column_name = 'tenant_id'", String.class);
+            var contagens = new java.util.HashMap<String, Long>();
+            for (String tabela : tabelas) contagens.put(tabela, jdbcTemplate.queryForObject("SELECT count(*) FROM \"" + tabela + "\" WHERE tenant_id = ?", Long.class, b.getTenant().getId()));
+            var limite = java.time.Instant.now().minusSeconds(30 * 86400L);
+            jdbcTemplate.update("UPDATE tenant SET ativo = false, excluido_em = ? WHERE id = ?", java.sql.Timestamp.from(limite.minusSeconds(1)), a.getTenant().getId());
+            new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(status ->
+                    org.springframework.test.util.ReflectionTestUtils.invokeMethod(retencao, "excluirExpirado", a.getTenant().getId(), limite));
+            assertThat(tenantRepository.existsById(a.getTenant().getId())).isFalse();
+            for (String tabela : tabelas) {
+                assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM \"" + tabela + "\" WHERE tenant_id = ?", Long.class, a.getTenant().getId())).isZero();
+                assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM \"" + tabela + "\" WHERE tenant_id = ?", Long.class, b.getTenant().getId())).isEqualTo(contagens.get(tabela));
+            }
+        } finally { jdbcTemplate.execute("DROP TABLE teste_retencao_extra"); }
+    }
+
+    @Autowired private br.com.criare3d.service.RecuperacaoSenhaService recuperacao;
+    @Autowired private br.com.criare3d.service.FotoRascunhoService fotosRascunho;
+
+    @Test void recuperacaoExpiraESoPodeSerUsadaUmaVez() throws Exception {
+        var u = criarUsuario("recuperacao-" + UUID.randomUUID() + "@teste.local");
+        String token = "a".repeat(43);
+        String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+        jdbcTemplate.update("INSERT INTO recuperacao_senha VALUES (?, ?, ?)", hash, u.getId(), java.sql.Timestamp.from(java.time.Instant.now().plusSeconds(900)));
+        recuperacao.redefinir(token, "NovaSenhaSegura123!");
+        assertThat(passwordEncoder.matches("NovaSenhaSegura123!", usuarioRepository.findById(u.getId()).orElseThrow().getPassword())).isTrue();
+        org.assertj.core.api.Assertions.assertThatIllegalArgumentException().isThrownBy(() -> recuperacao.redefinir(token, "OutraSenhaSegura123!"));
+        jdbcTemplate.update("INSERT INTO recuperacao_senha VALUES (?, ?, ?)", hash, u.getId(), java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(1)));
+        org.assertj.core.api.Assertions.assertThatIllegalArgumentException().isThrownBy(() -> recuperacao.redefinir(token, "OutraSenhaSegura123!"));
+        assertThat(passwordEncoder.matches("NovaSenhaSegura123!", usuarioRepository.findById(u.getId()).orElseThrow().getPassword())).isTrue();
+    }
+
+    @Test void fotoTemporariaIsolaUsuarioExpiraESubstituiRascunhoAnterior() {
+        var a = criarUsuario("foto-rascunho-a-" + UUID.randomUUID() + "@teste.local");
+        var b = criarUsuario("foto-rascunho-b-" + UUID.randomUUID() + "@teste.local");
+        autenticarComo(a);
+        UUID primeira = fotosRascunho.salvar("image/png", new byte[]{1,2,3});
+        UUID atual = fotosRascunho.salvar("image/png", new byte[]{4,5,6});
+        assertThat(fotosRascunho.buscar(primeira)).isEmpty();
+        assertThat(fotosRascunho.buscar(atual)).isPresent();
+        autenticarComo(b);
+        assertThat(fotosRascunho.buscar(atual)).isEmpty();
+        fotosRascunho.excluir(atual);
+        autenticarComo(a);
+        assertThat(fotosRascunho.buscar(atual)).isPresent();
+        jdbcTemplate.update("UPDATE foto_rascunho SET atualizado_em = ? WHERE id = ?", java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(1801)), atual);
+        assertThat(fotosRascunho.buscar(atual)).isEmpty();
     }
 
 	private Usuario criarUsuario(String email) {

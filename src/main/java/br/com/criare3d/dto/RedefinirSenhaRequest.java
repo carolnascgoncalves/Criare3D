@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 public class RedefinirSenhaRequest {
     @NotBlank(message = "Informe uma senha temporária.")
-    @Size(min = 12, message = "A senha temporária deve possuir pelo menos 12 caracteres.")
+    @br.com.criare3d.security.SenhaBcrypt
+    @Size(min = 12, max = 72, message = "Use uma senha de 12 a 72 caracteres.")
     private String senhaTemporaria;
 
     @NotBlank(message = "Confirme a senha temporária.")

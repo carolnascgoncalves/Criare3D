@@ -1,6 +1,8 @@
 
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.PecaRequest;
 import br.com.criare3d.dto.PecaResponse;
 import br.com.criare3d.dto.PecaMaterialResumo;
@@ -8,7 +10,7 @@ import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.service.CatalogoBuscaService;
 import br.com.criare3d.service.PecaArquivoService;
-import br.com.criare3d.service.interfaces.CalculoHistoricoService;
+
 import br.com.criare3d.service.interfaces.PecaService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
@@ -34,16 +36,16 @@ import java.util.List;
 public class PecaController {
 
     private final PecaService pecaService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final HistoricoCalculoService historicoCalculoService;
     private final CatalogoBuscaService catalogoBuscaService;
     private final PecaArquivoService pecaArquivoService;
 
     public PecaController(PecaService pecaService,
-                          CalculoHistoricoService calculoHistoricoService,
+                          HistoricoCalculoService historicoCalculoService,
                           CatalogoBuscaService catalogoBuscaService,
                           PecaArquivoService pecaArquivoService) {
         this.pecaService = pecaService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.historicoCalculoService = historicoCalculoService;
         this.catalogoBuscaService = catalogoBuscaService;
         this.pecaArquivoService = pecaArquivoService;
     }
@@ -125,7 +127,7 @@ public class PecaController {
             return new ModelAndView("redirect:/peca/listar?erro=pecaNaoEncontrada");
         }
 
-        long quantidade = calculoHistoricoService.contarPorPeca(id);
+        long quantidade = historicoCalculoService.contarPorPeca(id);
 
         if (quantidade > 0) {
             return new ModelAndView(

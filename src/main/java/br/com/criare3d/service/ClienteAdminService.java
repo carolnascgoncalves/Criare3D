@@ -30,6 +30,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class ClienteAdminService {
+    @org.springframework.beans.factory.annotation.Autowired
+    private java.time.Clock clock = java.time.Clock.systemUTC();
     private static final int LOGO_MAX_BYTES = 1_000_000;
     private static final int LOGO_MAX_LADO = 1024;
     private static final SecureRandom GERADOR = new SecureRandom();
@@ -118,6 +120,7 @@ public class ClienteAdminService {
                 .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
         validarEmailParaEdicao(request.getEmail(), usuario);
 
+        exigirNaoExcluido(tenant);
         byte[] logoAnterior = tenant.getLogo();
         byte[] logoNovo = logoAnterior;
         if (removerLogo) logoNovo = null;
@@ -146,6 +149,7 @@ public class ClienteAdminService {
 
     public boolean alternarAtivo(UUID id) {
         Tenant tenant = buscarTenant(id);
+        exigirNaoExcluido(tenant);
         tenant.setAtivo(!tenant.isAtivo());
         tenantRepository.save(tenant);
         invalidarTemaDepoisDoCommit(id);
@@ -158,27 +162,28 @@ public class ClienteAdminService {
             throw new IllegalArgumentException("O nome digitado não corresponde ao cliente. Nenhum dado foi apagado.");
         }
 
-        Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
-                .orElseThrow(() -> new IllegalStateException("Não foi possível localizar a conta deste cliente."));
-
-        // Usa SQL explícito com tenant_id porque o ADMIN não possui tenant e o filtro
-        // Hibernate @TenantId não deve ser desativado para executar esta operação.
-        jdbcTemplate.update("DELETE FROM custo_personalizado WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM planejamento_producao WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM falha_producao WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM calculo_foto WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM item_calculo_historico WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM manutencao_impressora WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM calculo_historico WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM configuracao WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM embalagem WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM filamento WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM impressora WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM peca WHERE tenant_id = ?", id);
-        jdbcTemplate.update("DELETE FROM usuario WHERE id = ? AND tenant_id = ?", usuario.getId(), id);
-        jdbcTemplate.update("DELETE FROM tenant WHERE id = ?", id);
+        exigirNaoExcluido(tenant);
+        tenant.setAtivo(false);
+        tenant.setExcluidoEm(clock.instant());
+        tenantRepository.save(tenant);
         invalidarTemaDepoisDoCommit(id);
         return tenant.getNome();
+    }
+
+    public void restaurar(UUID id) {
+        Tenant tenant = buscarTenant(id);
+        if (tenant.getExcluidoEm() == null) throw new IllegalArgumentException("Este cliente não está excluído.");
+        if (!tenant.getExcluidoEm().plus(java.time.Duration.ofDays(30)).isAfter(clock.instant())) {
+            throw new IllegalArgumentException("O prazo de restauração de 30 dias terminou.");
+        }
+        tenant.setExcluidoEm(null);
+        tenant.setAtivo(true);
+        tenantRepository.save(tenant);
+        invalidarTemaDepoisDoCommit(id);
+    }
+
+    private void exigirNaoExcluido(Tenant tenant) {
+        if (tenant.getExcluidoEm() != null) throw new IllegalArgumentException("Restaure o cliente antes de alterar a conta.");
     }
 
     public String gerarNovaSenhaTemporaria(UUID id) {

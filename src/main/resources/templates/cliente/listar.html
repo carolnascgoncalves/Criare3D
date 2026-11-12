@@ -34,7 +34,7 @@
     </div>
     <div th:if="${clienteSalvo}" class="alert alert-success notificacao-flutuante" role="status">Cliente atualizado com sucesso.</div>
     <div th:if="${clienteExcluido}" class="alert alert-success notificacao-flutuante" role="status"
-         th:text="|Cliente ${clienteExcluido} e os dados vinculados foram apagados.|">Cliente excluído.</div>
+         th:text="|Cliente ${clienteExcluido} foi excluído. Os dados podem ser restaurados por 30 dias.|">Cliente excluído.</div>
     <div th:if="${statusCliente}" class="alert alert-success notificacao-flutuante" role="status" th:text="${statusCliente}"></div>
     <div th:if="${avisoTema}" class="alert alert-info" role="status" th:text="${avisoTema}"></div>
     <div th:if="${erroCliente}" class="alert alert-danger notificacao-flutuante" role="alert" th:text="${erroCliente}"></div>
@@ -77,14 +77,17 @@
                     <td class="text-end" th:text="${cliente.quantidadeCalculos != null ? cliente.quantidadeCalculos : 0}">0</td>
                     <td>
                         <span class="cliente-status" th:classappend="${cliente.ativo ? ' ativo' : ' inativo'}"
-                              th:text="${cliente.ativo ? 'Ativo' : 'Desativado'}">Ativo</span>
+                              th:text="${cliente.excluidoEm != null ? 'Excluído' : (cliente.ativo ? 'Ativo' : 'Desativado')}">Ativo</span>
                     </td>
                     <td class="text-end">
                         <div class="cliente-acoes">
-                            <a class="botao botao-secundario" th:href="@{/clientes/{id}/editar(id=${cliente.id})}">
+                            <form th:if="${cliente.excluidoEm != null}" th:action="@{/clientes/{id}/restaurar(id=${cliente.id})}" method="post">
+                                <button class="botao botao-secundario" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Restaurar</button>
+                            </form>
+                            <a th:if="${cliente.excluidoEm == null}" class="botao botao-secundario" th:href="@{/clientes/{id}/editar(id=${cliente.id})}">
                                 <i class="bi bi-pencil-square"></i> Editar
                             </a>
-                            <form th:action="@{/clientes/{id}/alternar-status(id=${cliente.id})}" method="post"
+                            <form th:if="${cliente.excluidoEm == null}" th:action="@{/clientes/{id}/alternar-status(id=${cliente.id})}" method="post"
                                   th:attr="data-turbo-confirm=${cliente.ativo ? 'Desativar ' + cliente.nome + '? A sessão atual será encerrada e o cliente não poderá acessar os dados até ser reativado.' : 'Ativar ' + cliente.nome + '? O cliente poderá entrar novamente.'}"
                                   th:data-confirm-label="${cliente.ativo ? 'Desativar' : 'Ativar'}">
                                 <button type="submit" class="botao"

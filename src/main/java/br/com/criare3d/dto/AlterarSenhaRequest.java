@@ -13,7 +13,8 @@ public class AlterarSenhaRequest {
     private String senhaAtual;
 
     @NotBlank(message = "Informe a nova senha.")
-    @Size(min = 12, message = "A nova senha deve possuir pelo menos 12 caracteres.")
+    @br.com.criare3d.security.SenhaBcrypt
+    @Size(min = 12, max = 72, message = "Use uma senha de 12 a 72 caracteres.")
     private String novaSenha;
 
     @NotBlank(message = "Confirme a nova senha.")

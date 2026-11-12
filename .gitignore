@@ -35,3 +35,8 @@ build/
 node_modules/
 playwright-report/
 test-results/
+
+.codex/
+NVIDIA Corporation/
+backups/
+*.dump

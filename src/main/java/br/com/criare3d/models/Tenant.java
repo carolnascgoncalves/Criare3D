@@ -44,6 +44,9 @@ public class Tenant {
     @Column(columnDefinition = "bytea")
     private byte[] logo;
 
+    @Column(name = "excluido_em")
+    private java.time.Instant excluidoEm;
+
     @Column(name = "tema_versao", nullable = false)
     private long temaVersao = 1;
 }

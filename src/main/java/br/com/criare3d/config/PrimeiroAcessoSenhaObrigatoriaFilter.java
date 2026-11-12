@@ -32,8 +32,13 @@ public class PrimeiroAcessoSenhaObrigatoriaFilter extends OncePerRequestFilter {
     private boolean permitidoDuranteTroca(HttpServletRequest request) {
         String caminho = request.getRequestURI().substring(request.getContextPath().length());
         return caminho.equals("/senha/primeiro-acesso")
+                || caminho.equals("/actuator/health")
+                || caminho.startsWith("/actuator/health/")
+                || caminho.equals("/recuperar-senha")
+                || caminho.startsWith("/recuperar-senha/")
                 || caminho.equals("/logout")
                 || caminho.equals("/favicon.ico")
+                || caminho.startsWith("/vendor/")
                 || caminho.startsWith("/css/")
                 || caminho.startsWith("/js/")
                 || caminho.startsWith("/images/");

@@ -13,6 +13,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class TratamentoErroGlobal {
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.service.AlertaOperacionalService alertas;
     private static final Logger log = LoggerFactory.getLogger(TratamentoErroGlobal.class);
 
     @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
@@ -36,6 +38,7 @@ public class TratamentoErroGlobal {
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public String estadoIndisponivel(IllegalStateException erro, Model model) {
         log.warn("Estado da aplicação impediu a solicitação", erro);
+        alertas.registrar(erro, 503);
         model.addAttribute("codigo", 503);
         model.addAttribute("mensagem", "Não foi possível carregar esta página agora. Atualize e tente novamente.");
         return "erro";
@@ -54,6 +57,7 @@ public class TratamentoErroGlobal {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public String erroInesperado(Exception erro, HttpServletRequest request, Model model) {
         log.error("Erro não tratado na rota {}", request.getRequestURI(), erro);
+        alertas.registrar(erro, 500);
         model.addAttribute("codigo", 500);
         model.addAttribute("mensagem", "Ocorreu um erro inesperado. Tente novamente em alguns instantes.");
         return "erro";

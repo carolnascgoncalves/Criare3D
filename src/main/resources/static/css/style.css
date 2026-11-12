@@ -73,23 +73,7 @@ a {
     color: var(--marrom);
 }
 
-/* MENU SUPERIOR */
-
-.menu-principal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    width: 100%;
-    min-height: 76px;
-    padding: 10px max(24px, calc((100% - 1480px) / 2));
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
-    background: var(--marrom);
-    box-shadow: 0 3px 12px rgba(73, 46, 30, 0.15);
-}
+/* MARCA E CONTROLES COMPARTILHADOS DO MENU */
 
 .marca {
     display: flex;
@@ -117,19 +101,6 @@ a {
     border-radius: 10px;
     flex-shrink: 0;
 }
-
-.menu-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    min-width: 0;
-    flex-wrap: nowrap;
-}
-
-.menu-links-dropdown { display: flex; align-items: center; min-width: 0; }
-.menu-links-resumo { display: none; }
-.menu-links-opcoes { display: flex; align-items: center; justify-content: center; gap: 2px; flex-wrap: inherit; }
 
 .menu-link {
     padding: 9px 9px;
@@ -186,18 +157,6 @@ a {
     opacity: 0.85;
     color: var(--texto-sobre-destaque);
 }
-
-.menu-acoes {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    min-width: max-content;
-}
-
-.menu-acoes form { margin: 0; }
-
-.botao-sair,
 .menu-usuario-botao,
 .menu-configuracoes {
     display: inline-flex;
@@ -212,14 +171,12 @@ a {
     text-decoration: none;
     cursor: pointer;
 }
-
-.botao-sair { padding: 0 12px; font: inherit; font-size: 14px; font-weight: 600; }
 .menu-usuario { position: relative; }
 .menu-usuario summary { list-style: none; }
 .menu-usuario summary::-webkit-details-marker { display: none; }
 .menu-usuario-botao { width: 42px; font-size: 19px; }
 .menu-configuracoes { width: 42px; font-size: 17px; }
-.botao-sair:hover, .menu-usuario-botao:hover, .menu-configuracoes:hover {
+.menu-usuario-botao:hover, .menu-configuracoes:hover {
     border-color: var(--destaque);
     background: color-mix(in srgb, var(--destaque) 16%, transparent);
     color: var(--destaque);
@@ -808,6 +765,7 @@ a {
 /* PÁGINAS INTERNAS */
 
 .pagina-intro {
+    min-height: 100px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -871,8 +829,6 @@ a {
     font-weight: 600;
     white-space: nowrap;
 }
-
-
 
 /* BOTÕES */
 
@@ -988,7 +944,6 @@ a {
 .lista-catalogo .controles-selecao-listagem [data-excluir-selecionados] {
     border-color: var(--borda-erro); background: var(--fundo-erro); color: var(--cor-erro);
 }
-
 
 /* A regra de layout acima não deve sobrescrever o atributo HTML hidden. */
 .lista-catalogo .controles-selecao-listagem [data-excluir-selecionados][hidden],
@@ -1464,21 +1419,6 @@ tr:nth-child(even) {
 /* RESPONSIVIDADE */
 
 @media (max-width: 1050px) {
-    .menu-principal {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 6px 12px;
-        padding-top: 9px;
-        padding-bottom: 9px;
-    }
-
-    .menu-links {
-        grid-column: 1 / -1;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .menu-links-dropdown { flex: 1 1 100%; }
-    .menu-links-opcoes { width: 100%; flex-wrap: wrap; }
 
     .pagina {
         padding-top: 160px;
@@ -1489,35 +1429,7 @@ tr:nth-child(even) {
     }
 }
 
-@media (max-width: 768px) {
-    .menu-links { align-items: stretch; gap: 8px; }
-    .menu-links-dropdown { display: block; flex: 1 1 35%; }
-    .menu-links-resumo {
-        display: flex; align-items: center; justify-content: center; gap: 8px;
-        min-height: 44px; padding: 8px 14px; border: 1px solid rgba(245,231,218,.45);
-        border-radius: 8px; color: var(--fundo); font-weight: 700; cursor: pointer; list-style: none;
-    }
-    .menu-links-resumo::-webkit-details-marker { display: none; }
-    .menu-links-opcoes { display: none; padding: 8px 0; }
-    .menu-links-dropdown[open] .menu-links-opcoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .menu-links-opcoes .menu-link { text-align: center; }
-
-}
-
 @media (min-width: 1051px) and (max-width: 1600px) {
-    .menu-principal {
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 6px 12px;
-    }
-
-    .menu-principal > .marca { grid-column: 1; grid-row: 1; }
-    .menu-principal > .menu-acoes { grid-column: 2; grid-row: 1; }
-    .menu-principal > .menu-links {
-        grid-column: 1 / -1;
-        grid-row: 2;
-        width: 100%;
-        flex-wrap: wrap;
-    }
 
     .pagina { padding-top: 160px; }
 }
@@ -1592,10 +1504,6 @@ tr:nth-child(even) {
     .resumo-grid-producao,
     .atalhos-grid {
         grid-template-columns: 1fr;
-    }
-
-    .menu-links {
-        gap: 2px;
     }
 
     .menu-link {
@@ -1965,7 +1873,6 @@ tr:nth-child(even) {
     color: #315d34;
 }
 
-
 /* Identificação do filamento na listagem */
 .nome-peca {
     display: flex;
@@ -1996,7 +1903,6 @@ tr:nth-child(even) {
     font-weight: normal;
 }
 
-
 .indicador-cor {
     display: inline-block;
     width: 12px;
@@ -2016,7 +1922,6 @@ tr:nth-child(even) {
 .cor-detalhes strong {
     font-weight: normal;
 }
-
 
 /* Seletor de cor do filamento */
 input[type="color"] {
@@ -2204,11 +2109,6 @@ input[type="color"]:focus {
 
 /* ALINHAMENTO DOS CABEÇALHOS DAS PÁGINAS */
 
-.pagina-intro {
-    min-height: 100px;
-}
-
-
 /* ========================================
    COMPARADOR DE PLATAFORMAS
 ======================================== */
@@ -2319,7 +2219,6 @@ input[type="color"]:focus {
     font-weight: 500;
 }
 
-
 .alerta-configuracao-flutuante {
     position: fixed;
     top: 100px;
@@ -2330,7 +2229,6 @@ input[type="color"]:focus {
     transform: translateX(-50%);
     box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
 }
-
 
 .main-alerta.alerta-sucesso.alerta-configuracao-flutuante {
     background: #e8f5e9 !important;
@@ -2967,7 +2865,6 @@ input[type="color"]:focus {
     .dashboard-etapas > .dashboard-etapa-percentual:nth-child(4) { grid-column: 4 / span 2; }
     .dashboard-etapas span { white-space: nowrap; overflow-wrap: normal; font-size: .68rem; }
     .dashboard-etapas strong { width: 40px; height: 40px; }
-
 
     .dashboard-indicadores { grid-template-columns: minmax(0, 1fr); gap: 8px; }
     .dashboard-indicador { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 8px; padding: 14px; }

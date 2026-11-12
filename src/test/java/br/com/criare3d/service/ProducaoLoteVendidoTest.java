@@ -21,8 +21,7 @@ class ProducaoLoteVendidoTest {
     private final CalculoHistoricoRepository historicos = mock(CalculoHistoricoRepository.class);
     private final VendaCalculoRepository vendas = mock(VendaCalculoRepository.class);
     private final FilamentoService filamentos = mock(FilamentoService.class);
-    private final CalculoHistoricoServiceImp service = new CalculoHistoricoServiceImp(
-            historicos, null, null, vendas, null, null, filamentos, null, null, null, null, null);
+    private final ProducaoService service = new ProducaoService(historicos, vendas, filamentos);
     private final UUID id = UUID.randomUUID();
     private final UUID filamentoId = UUID.randomUUID();
 
@@ -43,7 +42,7 @@ class ProducaoLoteVendidoTest {
     @Test
     void naoDesfazLoteDeTresComDuasUnidadesVendidas() {
         CalculoHistorico calculo = preparar(2);
-        assertThat(service.atualizarProduzido(id, false)).isEqualTo("vendaAtiva");
+        assertThat(service.atualizarProduzido(id, false)).isEqualTo(ResultadoOperacao.VENDA_ATIVA);
         assertThat(calculo.getUnidadesVendidas()).isEqualTo(2);
         verify(historicos, never()).atualizarStatus(any(), anyBoolean(), anyBoolean());
         verifyNoInteractions(filamentos, vendas);
@@ -53,7 +52,7 @@ class ProducaoLoteVendidoTest {
     void registroDeVendaTambemProtegeLoteComContadorInconsistente() {
         preparar(0);
         when(vendas.existeVendaAtiva(id)).thenReturn(true);
-        assertThat(service.atualizarProduzido(id, false)).isEqualTo("vendaAtiva");
+        assertThat(service.atualizarProduzido(id, false)).isEqualTo(ResultadoOperacao.VENDA_ATIVA);
         verify(historicos, never()).atualizarStatus(any(), anyBoolean(), anyBoolean());
         verifyNoInteractions(filamentos);
     }
@@ -65,10 +64,25 @@ class ProducaoLoteVendidoTest {
         filamento.setId(filamentoId);
         filamento.setEstoqueGramas(new BigDecimal("100"));
         when(filamentos.fetchByIds(any())).thenReturn(List.of(filamento));
-        assertThat(service.atualizarProduzido(id, false)).isEqualTo("ok");
+        assertThat(service.atualizarProduzido(id, false)).isEqualTo(ResultadoOperacao.OK);
         assertThat(filamento.getEstoqueGramas()).isEqualByComparingTo("130");
         assertThat(calculo.getProduzido()).isFalse();
         assertThat(calculo.getDataProducao()).isNull();
         verify(vendas, never()).deleteByCalculo_Id(any());
+    }
+    @Test
+    void estoqueInsuficienteNaoProduzNemConsomeSaldo() {
+        CalculoHistorico calculo = preparar(0);
+        calculo.setProduzido(false);
+        when(historicos.buscarDadosParaAtualizarStatus(id)).thenReturn(List.of(
+                new AjusteEstoqueCalculoResponse(id, false, false, filamentoId,
+                        new BigDecimal("30"), null, null)));
+        Filamento filamento = new Filamento();
+        filamento.setId(filamentoId);
+        filamento.setEstoqueGramas(new BigDecimal("10"));
+        when(filamentos.fetchByIds(any())).thenReturn(List.of(filamento));
+        assertThat(service.atualizarProduzido(id, true)).isEqualTo(ResultadoOperacao.ESTOQUE_INSUFICIENTE);
+        assertThat(calculo.getProduzido()).isFalse();
+        assertThat(filamento.getEstoqueGramas()).isEqualByComparingTo("10");
     }
 }

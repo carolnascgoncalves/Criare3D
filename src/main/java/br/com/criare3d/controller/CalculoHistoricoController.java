@@ -1,6 +1,10 @@
 
 package br.com.criare3d.controller;
 
+import br.com.criare3d.service.CalculoService;
+import br.com.criare3d.service.FotoCalculoService;
+import br.com.criare3d.service.HistoricoCalculoService;
+
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
 import br.com.criare3d.dto.HistoricoListaResponse;
@@ -46,15 +50,21 @@ import java.util.Map;
 
 @Controller
 public class CalculoHistoricoController {
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.service.ResultadoCalculoPresenter presenter;
 
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
     private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
-    private static final String FOTO_SESSAO = "fotoCalculoBytes";
+    private static final String FOTO_SESSAO = "fotoCalculoId";
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.service.FotoRascunhoService fotoRascunhoService;
     private static final String FOTO_TIPO_SESSAO = "fotoCalculoTipo";
 
     private final CatalogoBuscaService catalogoBuscaService;
-    private final CalculoHistoricoService calculoHistoricoService;
+    private final CalculoService calculoService;
+    private final FotoCalculoService fotoCalculoService;
+    private final HistoricoCalculoService historicoCalculoService;
     private final PecaService pecaService;
     private final PecaArquivoService pecaArquivoService;
     private final FilamentoService filamentoService;
@@ -65,7 +75,7 @@ public class CalculoHistoricoController {
 
     public CalculoHistoricoController(
             CatalogoBuscaService catalogoBuscaService,
-            CalculoHistoricoService calculoHistoricoService,
+            CalculoService calculoService, FotoCalculoService fotoCalculoService, HistoricoCalculoService historicoCalculoService,
             PecaService pecaService,
             FilamentoService filamentoService,
             ImpressoraService impressoraService,
@@ -75,7 +85,9 @@ public class CalculoHistoricoController {
             PecaArquivoService pecaArquivoService
     ) {
         this.catalogoBuscaService = catalogoBuscaService;
-        this.calculoHistoricoService = calculoHistoricoService;
+        this.calculoService = calculoService;
+        this.fotoCalculoService = fotoCalculoService;
+        this.historicoCalculoService = historicoCalculoService;
         this.pecaService = pecaService;
         this.pecaArquivoService = pecaArquivoService;
         this.filamentoService = filamentoService;
@@ -152,6 +164,7 @@ public class CalculoHistoricoController {
             session.removeAttribute(REQUEST_CALCULO);
             session.removeAttribute(RESULTADO_CALCULO);
             session.removeAttribute(CALCULO_PARA_EDITAR);
+            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
             session.removeAttribute(FOTO_SESSAO);
             session.removeAttribute(FOTO_TIPO_SESSAO);
         }
@@ -236,9 +249,9 @@ public class CalculoHistoricoController {
                 return mv;
             }
 
-            CalculoHistorico calculo = calculoHistoricoService.calcular(request);
+            CalculoHistorico calculo = calculoService.calcular(request);
 
-            session.setAttribute(FOTO_SESSAO, request.getFotoPecaBytes());
+            guardarFotoRascunho(session, request.getFotoPecaContentType(), request.getFotoPecaBytes());
             session.setAttribute(FOTO_TIPO_SESSAO, request.getFotoPecaContentType());
             CalculoResponse resposta = CalculoResponse.toDto(calculo);
             resposta.setTemFoto(request.getFotoPecaBytes() != null && request.getFotoPecaBytes().length > 0);
@@ -288,7 +301,7 @@ public class CalculoHistoricoController {
     public ResponseEntity<?> previaCustos(@ModelAttribute CalculoRequest request) {
         try {
             if (request.getMarkupPercentual() == null) request.setMarkupPercentual(BigDecimal.ZERO);
-            CalculoHistorico previa = calculoHistoricoService.calcular(request);
+            CalculoHistorico previa = calculoService.calcular(request);
             int unidades = request.getUnidades() == null ? 1 : request.getUnidades();
             int impressoes = previa.getFornadas() == null ? 1 : previa.getFornadas();
             int aquecimento = previa.getTempoAquecimentoMinutos() == null
@@ -328,301 +341,26 @@ public class CalculoHistoricoController {
             return new ModelAndView("redirect:/historico/novo?novo=true");
         }
 
-        if (!"PRECO_FIXO".equals(modoComparacao)) {
-            modoComparacao = "LUCRO_DESEJADO";
-        }
-
-        ModelAndView mv = new ModelAndView("historico/resultado");
-
-        mv.addObject("calculo", request);
-        mv.addObject("resultado", resultado);
+        ModelAndView mv = presenter.resultado(request, resultado, modoComparacao, precoVendaFixo, valoresAtualizados);
         if (request.getPecaId().equals(session.getAttribute("pecaReferencia"))) {
-            mv.addObject("custoReferencia",session.getAttribute("custoReferencia"));
+            mv.addObject("custoReferencia", session.getAttribute("custoReferencia"));
         }
-        adicionarResumoLote(mv, resultado);
-        mv.addObject("modoComparacao", modoComparacao);
-        mv.addObject("precoVendaFixo", precoVendaFixo);
-        mv.addObject("avisosEstoque", avisosEstoque(request));
-        mv.addObject("avisoValoresAtualizados", valoresAtualizados);
-        mv.addObject("dataConferenciaTarifas", verificacaoTarifas.dataExibicao());
-        mv.addObject("tarifasPrecisamConferencia", verificacaoTarifas.precisaConferir());
-
-        mv.addObject(
-                "comparacoes",
-                compararPlataformas(request, resultado, modoComparacao, precoVendaFixo)
-        );
 
         adicionarPreviewFoto(mv, request, session);
 
         return mv;
     }
 
-    /*
-     * Calcula a mesma peça nas três plataformas.
-     * Se alguma delas precisar de uma informação que não foi fornecida,
-     * o motivo aparece como aviso somente naquela linha.
-     */
-    private List<ComparacaoPlataforma> compararPlataformas(
-            CalculoRequest base,
-            CalculoResponse resultadoBase,
-            String modoComparacao,
-            BigDecimal precoVendaFixo
-    ) {
-        record Opcao(PlataformaVenda plataforma, String nome) {
-        }
-
-        List<Opcao> opcoes = List.of(
-                new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
-                new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
-                new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre"),
-                new Opcao(PlataformaVenda.AMAZON, "Amazon")
-        );
-
-        boolean precoFixo = "PRECO_FIXO".equals(modoComparacao);
-
-        List<ComparacaoPlataforma> linhas = new ArrayList<>();
-
-        for (Opcao opcao : opcoes) {
-
-            ComparacaoPlataforma linha = new ComparacaoPlataforma();
-
-            linha.setNome(opcao.nome());
-            linha.setCodigo(opcao.plataforma().name());
-
-            linha.setSelecionada(
-                    base.getPlataformaVenda() == opcao.plataforma()
-                            || (opcao.plataforma() == PlataformaVenda.TIKTOK
-                            && "TIKTOK_SHOP".equals(
-                            String.valueOf(base.getPlataformaVenda())
-                    ))
-            );
-
-            if (precoFixo && (precoVendaFixo == null
-                    || precoVendaFixo.compareTo(BigDecimal.ZERO) <= 0)) {
-
-                linha.setAviso("Informe um preço de venda maior que zero.");
-
-                linhas.add(linha);
-                continue;
-            }
-
-            // O cálculo originalmente enviado já contém os valores da plataforma
-            // selecionada. Reutilizá-los evita repetir toda a leitura e validação
-            // da peça, impressora, filamentos e configuração nessa linha.
-            if (!precoFixo && linha.isSelecionada()) {
-                preencherValoresComparacao(linha, resultadoBase.getPrecoVendaPlataforma(),
-                        resultadoBase.getTaxasPlataforma(), resultadoBase.getLucroLiquido());
-                linhas.add(linha);
-                continue;
-            }
-
-            try {
-                CalculoRequest copia = copiarParaComparacao(base);
-                copia.setPlataformaVenda(opcao.plataforma());
-
-                CalculoHistorico calculo;
-
-                if (precoFixo) {
-                    calculo = calculoHistoricoService.calcularComPrecoFixo(
-                            copia,
-                            precoVendaFixo
-                    );
-                } else {
-                    calculo = calculoHistoricoService.calcular(copia);
-                }
-
-                BigDecimal preco = calculo.getPrecoVendaPlataforma();
-                BigDecimal lucro = calculo.getLucroLiquido();
-
-                preencherValoresComparacao(linha, preco, calculo.getTaxasPlataforma(), lucro);
-
-            } catch (IllegalArgumentException e) {
-                linha.setAviso(e.getMessage());
-            }
-
-            linhas.add(linha);
-        }
-
-        if (precoFixo) {
-            linhas.stream()
-                    .filter(ComparacaoPlataforma::isCalculada)
-                    .filter(l -> l.getLucro() != null)
-                    .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
-                    .ifPresent(l -> {
-                        l.setMelhor(true);
-                        l.setEtiquetaMelhor("maior lucro");
-                    });
-
-        } else {
-            linhas.stream()
-                    .filter(ComparacaoPlataforma::isCalculada)
-                    .filter(l -> l.getPrecoVenda() != null)
-                    .min(Comparator.comparing(ComparacaoPlataforma::getPrecoVenda))
-                    .ifPresent(l -> {
-                        l.setMelhor(true);
-                        l.setEtiquetaMelhor("menor preço");
-                    });
-        }
-
-        return linhas;
-    }
-
-    private void preencherValoresComparacao(
-            ComparacaoPlataforma linha,
-            BigDecimal preco,
-            BigDecimal taxas,
-            BigDecimal lucro
-    ) {
-        linha.setPrecoVenda(preco);
-        linha.setTaxas(taxas);
-        linha.setLucro(lucro);
-
-        if (preco != null && preco.compareTo(BigDecimal.ZERO) > 0 && lucro != null) {
-            linha.setMargem(lucro.multiply(new BigDecimal("100"))
-                    .divide(preco, 1, RoundingMode.HALF_UP));
-        }
-    }
-
-
-    private CalculoRequest copiarParaComparacao(CalculoRequest original) {
-
-        CalculoRequest copia = new CalculoRequest();
-
-        copia.setPecaId(original.getPecaId());
-        copia.setImpressoraId(original.getImpressoraId());
-        copia.setEmbalagemId(original.getEmbalagemId());
-        copia.setTempoImpressaoMinutos(original.getTempoImpressaoMinutos());
-        copia.setUnidades(original.getUnidades());
-        copia.setPecasPorImpressao(original.getPecasPorImpressao());
-        copia.setTempoTrabalhoMinutos(original.getTempoTrabalhoMinutos());
-        copia.setMarkupPercentual(original.getMarkupPercentual());
-
-        List<ItemCalculoRequest> itens = new ArrayList<>();
-
-        if (original.getFilamentos() != null) {
-            for (ItemCalculoRequest item : original.getFilamentos()) {
-
-                ItemCalculoRequest novo = new ItemCalculoRequest();
-
-                novo.setFilamentoId(item.getFilamentoId());
-                novo.setQuantidadeFilamentoGramas(
-                        item.getQuantidadeFilamentoGramas()
-                );
-
-                itens.add(novo);
-            }
-        }
-
-        copia.setFilamentos(itens);
-
-        copia.setTipoAnuncio(original.getTipoAnuncio());
-        copia.setPercentualComissaoPlataforma(
-                original.getPercentualComissaoPlataforma()
-        );
-        copia.setCustoAdicionalPlataforma(
-                original.getCustoAdicionalPlataforma()
-        );
-        copia.setPercentualImposto(original.getPercentualImposto());
-        copia.setFreteVendedor(original.getFreteVendedor());
-
-        copia.setTaxaCpfShopee(original.isTaxaCpfShopee());
-        copia.setTipoPessoaShopee(original.getTipoPessoaShopee());
-        copia.setMais450PedidosShopee(original.isMais450PedidosShopee());
-
-        copia.setFreteGratisTikTok(original.isFreteGratisTikTok());
-        copia.setPercentualAfiliado(original.getPercentualAfiliado());
-        copia.setIsencaoComissaoTikTok(original.isIsencaoComissaoTikTok());
-
-        copia.setFreteMercadoLivreManual(original.getFreteMercadoLivreManual());
-        copia.setFreteMercadoLivreManualNecessario(original.isFreteMercadoLivreManualNecessario());
-
-        String faixaPeso = original.getFaixaPesoPacote();
-
-        if (faixaPeso == null || faixaPeso.isBlank()) {
-            faixaPeso = estimarFaixaPesoPacote(original);
-        }
-
-        copia.setFaixaPesoPacote(faixaPeso);
-
-        return copia;
-    }
-
-    private String estimarFaixaPesoPacote(CalculoRequest request) {
-
-        BigDecimal pesoImpressao = BigDecimal.ZERO;
-
-        if (request.getFilamentos() != null) {
-            for (ItemCalculoRequest item : request.getFilamentos()) {
-
-                if (item.getQuantidadeFilamentoGramas() != null) {
-                    pesoImpressao = pesoImpressao.add(
-                            item.getQuantidadeFilamentoGramas()
-                    );
-                }
-            }
-        }
-
-        if (pesoImpressao.compareTo(BigDecimal.ZERO) == 0
-                && request.getQuantidadeFilamentoGramas() != null) {
-
-            pesoImpressao = request.getQuantidadeFilamentoGramas();
-        }
-
-        // Margem estimada para a embalagem.
-        BigDecimal pesoEstimado = pesoImpressao.add(
-                new BigDecimal("100")
-        );
-
-        if (pesoEstimado.compareTo(new BigDecimal("300")) <= 0) {
-            return "ATE_300G";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("500")) <= 0) {
-            return "DE_300G_500G";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("1000")) <= 0) {
-            return "DE_500G_1KG";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("1500")) <= 0) {
-            return "DE_1KG_1_5KG";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("2000")) <= 0) {
-            return "DE_1_5KG_2KG";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("3000")) <= 0) {
-            return "DE_2KG_3KG";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("4000")) <= 0) {
-            return "DE_3KG_4KG";
-        }
-
-        if (pesoEstimado.compareTo(new BigDecimal("5000")) <= 0) {
-            return "DE_4KG_5KG";
-        }
-
-        throw new IllegalArgumentException(
-                "O peso estimado do pacote ultrapassa 5 kg. "
-                        + "Não foi possível calcular o frete do Mercado Livre."
-        );
-    }
-
-
     @PostMapping("/historico/editar")
     public ResponseEntity<Void> editar(
             @ModelAttribute("calculo") CalculoRequest request,
             HttpSession session) {
 
-        // A imagem não vai nos campos ocultos do resultado. Reanexa os bytes
-        // temporários ao request que atravessa o redirect para o formulário.
-        request.setFotoPecaBytes((byte[]) session.getAttribute(FOTO_SESSAO));
-        request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
+        // A foto permanece no armazenamento temporário; a sessão guarda somente seu identificador.
         request.setFotoRemovida(false);
 
+        request.setFotoPecaBytes(null);
+        request.setFotoPecaContentType(null);
         session.setAttribute(CALCULO_PARA_EDITAR, request);
 
         return ResponseEntity
@@ -649,9 +387,12 @@ public class CalculoHistoricoController {
 
         try {
             CalculoResponse resultadoAnterior = (CalculoResponse) session.getAttribute(RESULTADO_CALCULO);
-            request.setFotoPecaBytes((byte[]) session.getAttribute(FOTO_SESSAO));
+            request.setFotoPecaBytes(fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
             request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
-            CalculoHistorico calculo = calculoHistoricoService.calcular(request);
+            if (session.getAttribute(FOTO_SESSAO) instanceof UUID && request.getFotoPecaBytes() == null) {
+                throw new IllegalArgumentException("A foto temporária expirou ou foi substituída em outra aba. Anexe a foto novamente antes de salvar.");
+            }
+            CalculoHistorico calculo = calculoService.calcular(request);
 
             if (resultadoAnterior != null
                     && (resultadoAnterior.getCustoTotal().compareTo(calculo.getCustoTotal()) != 0
@@ -665,17 +406,18 @@ public class CalculoHistoricoController {
                 return new ModelAndView("redirect:/historico/resultado?valoresAtualizados=true");
             }
 
-            byte[] foto = (byte[]) session.getAttribute(FOTO_SESSAO);
+            byte[] foto = fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
             String tipoFoto = (String) session.getAttribute(FOTO_TIPO_SESSAO);
             calculo.setTemFoto(foto != null && foto.length > 0);
 
-            calculoHistoricoService.create(calculo, tipoFoto, foto);
+            historicoCalculoService.create(calculo, tipoFoto, foto);
 
             session.removeAttribute("custoReferencia");
             session.removeAttribute("pecaReferencia");
 
             session.removeAttribute(REQUEST_CALCULO);
             session.removeAttribute(RESULTADO_CALCULO);
+            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
             session.removeAttribute(FOTO_SESSAO);
             session.removeAttribute(FOTO_TIPO_SESSAO);
 
@@ -694,80 +436,15 @@ public class CalculoHistoricoController {
     @GetMapping("/historico/detalhes/{id}")
     public ModelAndView fetchById(@PathVariable UUID id) {
 
-        return calculoHistoricoService.fetchById(id)
+        return historicoCalculoService.fetchById(id)
                 .map(entidade -> {
                     ModelAndView mv = new ModelAndView("historico/detalhes");
                     CalculoResponse historico = CalculoResponse.toDto(entidade);
                     mv.addObject("historico", historico);
-                    adicionarResumoLote(mv, historico);
+                    presenter.adicionarResumoLote(mv, historico);
                     return mv;
                 })
                 .orElseGet(() -> new ModelAndView("redirect:/historico/listar"));
-    }
-
-    private void adicionarResumoLote(ModelAndView mv, CalculoResponse calculo) {
-        int unidades = calculo.getUnidades() == null ? 1 : calculo.getUnidades();
-        int fornadas = calculo.getFornadas() == null ? unidades : calculo.getFornadas();
-        BigDecimal precoUnitario = calculo.getPrecoVendaPlataforma() != null
-                ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
-        BigDecimal lucroUnitario = calculo.getLucroLiquido() != null
-                ? calculo.getLucroLiquido() : calculo.getLucroEstimado();
-        mv.addObject("unidades", unidades);
-        mv.addObject("fornadas", fornadas);
-        BigDecimal purgaGramasTotal = calculo.getPurgaGramasPorImpressao() == null
-                ? BigDecimal.ZERO
-                : calculo.getPurgaGramasPorImpressao().multiply(BigDecimal.valueOf((long) fornadas));
-        mv.addObject("purgaGramasTotal", purgaGramasTotal);
-        mv.addObject("custoTotalLote", calculo.getCustoTotal().multiply(BigDecimal.valueOf(unidades)));
-        mv.addObject("precoUnitario", precoUnitario);
-        mv.addObject("precoTotalLote", precoUnitario.multiply(BigDecimal.valueOf(unidades)));
-        mv.addObject("lucroTotalLote", lucroUnitario.multiply(BigDecimal.valueOf(unidades)));
-    }
-
-    private List<String> avisosEstoque(CalculoRequest request) {
-        Map<UUID, BigDecimal> consumo = new LinkedHashMap<>();
-        int unidades = request.getUnidades() == null ? 1 : request.getUnidades();
-        int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
-        int impressoes = Math.max(1, (unidades + pecasPorImpressao - 1) / pecasPorImpressao);
-        BigDecimal gramasBaseTotal = request.getFilamentos() == null ? BigDecimal.ZERO : request.getFilamentos().stream()
-                .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
-                .map(ItemCalculoRequest::getQuantidadeFilamentoGramas)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        if (request.getFilamentos() != null) {
-            request.getFilamentos().forEach(item -> {
-                if (item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null) {
-                    consumo.merge(item.getFilamentoId(), item.getQuantidadeFilamentoGramas()
-                            .multiply(BigDecimal.valueOf(unidades)),
-                            BigDecimal::add);
-                }
-            });
-            if (gramasBaseTotal.signum() > 0) {
-                BigDecimal purgaLote = configuracaoService.buscarOuCriarConfiguracao()
-                        .getPurgaGramasPorImpressao();
-                if (purgaLote != null && purgaLote.signum() > 0) {
-                    purgaLote = purgaLote.multiply(BigDecimal.valueOf(impressoes));
-                    BigDecimal purgaTotal = purgaLote;
-                    request.getFilamentos().stream()
-                            .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
-                            .forEach(item -> consumo.merge(item.getFilamentoId(), purgaTotal
-                                    .multiply(item.getQuantidadeFilamentoGramas())
-                                    .divide(gramasBaseTotal, 8, java.math.RoundingMode.HALF_UP), BigDecimal::add));
-                }
-            }
-        }
-        List<String> avisos = new ArrayList<>();
-        filamentoService.fetchByIds(consumo.keySet()).forEach(filamento -> {
-            BigDecimal disponivel = filamento.getEstoqueGramas() == null
-                    ? BigDecimal.ZERO : filamento.getEstoqueGramas();
-            BigDecimal necessario = consumo.get(filamento.getId());
-            if (necessario.compareTo(disponivel) > 0) {
-                avisos.add("Estoque de " + filamento.getNome() + ": este lote usa "
-                        + necessario.stripTrailingZeros().toPlainString().replace('.', ',')
-                        + " g e há " + disponivel.stripTrailingZeros().toPlainString().replace('.', ',')
-                        + " g disponíveis. O orçamento pode ser calculado; será preciso ajustar o estoque antes de marcar como produzido.");
-            }
-        });
-        return avisos;
     }
 
     @GetMapping("/historico/{id}/foto")
@@ -775,7 +452,7 @@ public class CalculoHistoricoController {
     public ResponseEntity<byte[]> buscarFoto(@PathVariable UUID id,
             @RequestParam(defaultValue = "false") boolean miniatura,
             @RequestHeader(value = "If-None-Match", required = false) String etagAtual) {
-        return calculoHistoricoService.buscarConteudoFoto(id, miniatura).map(foto -> {
+        return fotoCalculoService.buscarConteudoFoto(id, miniatura).map(foto -> {
             byte[] bytes = foto.bytes();
             String etag = etag(bytes);
             if (etag.equals(etagAtual)) return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
@@ -803,6 +480,7 @@ public class CalculoHistoricoController {
             @RequestParam(value = "remover", defaultValue = "false") boolean remover,
             HttpSession session) {
         if (remover) {
+            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
             session.removeAttribute(FOTO_SESSAO);
             session.removeAttribute(FOTO_TIPO_SESSAO);
             return ResponseEntity.noContent().build();
@@ -821,7 +499,7 @@ public class CalculoHistoricoController {
     @GetMapping("/historico/resultado/foto")
     @ResponseBody
     public ResponseEntity<byte[]> buscarFotoTemporaria(HttpSession session) {
-        byte[] bytes = (byte[]) session.getAttribute(FOTO_SESSAO);
+        byte[] bytes = fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
         String tipo = (String) session.getAttribute(FOTO_TIPO_SESSAO);
         if (bytes == null || tipo == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok().header("Cache-Control", "private, no-store")
@@ -835,12 +513,13 @@ public class CalculoHistoricoController {
             if (request.isFotoRemovida()) {
                 request.setFotoPecaBytes(null);
                 request.setFotoPecaContentType(null);
-                session.removeAttribute(FOTO_SESSAO);
+                fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
+            session.removeAttribute(FOTO_SESSAO);
                 session.removeAttribute(FOTO_TIPO_SESSAO);
                 return;
             }
             if (request.getFotoPecaBytes() == null) {
-                request.setFotoPecaBytes((byte[]) session.getAttribute(FOTO_SESSAO));
+                request.setFotoPecaBytes(fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
                 request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
             }
             return;
@@ -860,8 +539,17 @@ public class CalculoHistoricoController {
 
         request.setFotoPecaBytes(bytes);
         request.setFotoPecaContentType(contentType);
-        session.setAttribute(FOTO_SESSAO, bytes);
+        guardarFotoRascunho(session, contentType, bytes);
         session.setAttribute(FOTO_TIPO_SESSAO, contentType);
+    }
+
+    private void guardarFotoRascunho(HttpSession session, String tipo, byte[] bytes) {
+        if (bytes == null || bytes.length == 0) {
+            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
+            session.removeAttribute(FOTO_SESSAO);
+            return;
+        }
+        session.setAttribute(FOTO_SESSAO, fotoRascunhoService.salvar(tipo, bytes));
     }
 
     private String detectarTipoImagem(byte[] bytes) {
@@ -889,7 +577,7 @@ public class CalculoHistoricoController {
     private void adicionarPreviewFoto(ModelAndView mv, CalculoRequest request, HttpSession session) {
         boolean fotoNaRequest = request.getFotoPecaBytes() != null
                 && request.getFotoPecaContentType() != null;
-        boolean fotoNaSessao = session.getAttribute(FOTO_SESSAO) instanceof byte[] bytes && bytes.length > 0
+        boolean fotoNaSessao = session.getAttribute(FOTO_SESSAO) instanceof UUID
                 && session.getAttribute(FOTO_TIPO_SESSAO) instanceof String tipo && !tipo.isBlank();
         if (fotoNaRequest || fotoNaSessao)
             mv.addObject("fotoPecaPreview", "/historico/resultado/foto");
