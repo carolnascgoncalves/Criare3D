@@ -24,7 +24,19 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await page.goto(`/vendas-estoque/lote/${lote}`);
  const produzir=page.getByRole('button',{name:'Registrar produção do lote',exact:true});
  // O app usa diálogo próprio; confirmações são atendidas pelo botão do diálogo.
- async function confirmar(botao) { await botao.click(); const dialogo=page.locator('#confirmacaoGlobal[open]'); await expect(dialogo).toBeVisible(); await dialogo.locator('[data-confirmacao-aceitar]').click(); }
+ async function confirmar(botao) {
+  const envio=await botao.evaluate(b=>({url:b.hasAttribute('formaction')?b.formAction:b.form.action,metodo:(b.hasAttribute('formmethod')?b.formMethod:b.form.method).toUpperCase()}));
+  await botao.click();
+  const dialogo=page.locator('#confirmacaoGlobal[open]');
+  await expect(dialogo).toBeVisible();
+  // O clique no diálogo apenas autoriza o Turbo; aguarde o POST antes de navegar.
+  const [resposta]=await Promise.all([
+   page.waitForResponse(r=>r.url()===envio.url&&r.request().method()===envio.metodo),
+   dialogo.locator('[data-confirmacao-aceitar]').click()
+  ]);
+  expect(resposta.status(),`Falha ao salvar ${envio.url}`).toBeLessThan(400);
+  expect(await resposta.finished()).toBeNull();
+ }
  await confirmar(produzir);await expect(page.getByText('3 unidades prontas disponíveis')).toBeVisible();
  await page.locator('#vendaUnidades').fill('2');await confirmar(page.getByRole('button',{name:'Registrar venda',exact:true}));
  await expect(page.getByText('1 unidades prontas disponíveis')).toBeVisible();
@@ -54,6 +66,7 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await expect(page).toHaveURL(/simulacao\/planejamentos/);
  await expect(page.locator('main')).toContainText('Peça navegador');await expect(page.locator('.planejamento-card')).toContainText('Produzido · aguardando venda');await semOverflow(page);
  await page.goto(`/vendas-estoque/lote/${lote}`);await page.locator('#vendaUnidades').fill('2');await confirmar(page.getByRole('button',{name:'Registrar venda',exact:true}));
+ await expect(page.getByText('0 unidades prontas disponíveis',{exact:true})).toBeVisible();
  await page.goto('/simulacao/planejamentos');await expect(page.locator('.planejamento-card')).toHaveCount(0);
  await page.getByRole('link',{name:'Concluídos',exact:true}).click();await expect(page.locator('.planejamento-card')).toContainText('Peça navegador');
  // A navegação Turbo conserva o menu durante rolagem na simulação.
