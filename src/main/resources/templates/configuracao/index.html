@@ -6,7 +6,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina pagina-configuracao">
+<main class="pagina pagina-configuracao" data-configuracao-pagina>
     <div class="alerta-erro notificacao-flutuante" role="alert"
          th:if="${mensagemErro != null}" th:text="${mensagemErro}">
         Revise os campos destacados antes de salvar.
@@ -25,7 +25,7 @@
         </div>
     </section>
 
-<nav class="configuracao-indice" aria-label="Seções das configurações"><a href="#config-preco">Preço e lucro</a><a href="#config-energia">Energia</a><a href="#config-embalagem">Embalagem</a><a href="#valorMaoObraHora">Mão de obra</a><a href="#depreciacaoAtivada">Depreciação</a><a href="#percentualFalha">Falhas</a></nav>    <form th:action="@{/configuracao/salvar}"
+<nav class="configuracao-indice" aria-label="Seções das configurações"><a href="#config-preco">Preço e lucro</a><a href="#config-energia">Energia</a><a href="#config-embalagem">Embalagem</a><a href="#config-mao-obra">Mão de obra</a><a href="#config-depreciacao">Depreciação</a><a href="#config-falhas">Falhas</a></nav>    <form th:action="@{/configuracao/salvar}"
           th:object="${configuracao}"
           method="post"
           class="configuracao-formulario"
@@ -269,7 +269,7 @@
                     <span class="erro-campo" th:if="${#fields.hasErrors('purgaGramasPorImpressao')}" th:errors="*{purgaGramasPorImpressao}"></span>
                 </div>
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
-                <label class="configuracao-opcao" for="maoObraAtivada">
+                <label class="configuracao-opcao" for="maoObraAtivada" id="config-mao-obra">
                     <div>
                         <strong>Incluir mão de obra <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Considera seu tempo de trabalho manual e o valor da sua hora.</small>
@@ -308,7 +308,7 @@
 
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
 
-                <label class="configuracao-opcao" for="depreciacaoAtivada">
+                <label class="configuracao-opcao" for="depreciacaoAtivada" id="config-depreciacao">
                     <div>
                         <strong>Incluir depreciação da impressora <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Considera o desgaste da impressora durante a impressão.</small>
@@ -324,7 +324,7 @@
 
                 <div class="separador-custos-adicionais" aria-hidden="true"></div>
 
-                <label class="configuracao-opcao" for="taxaFalhaAtivada">
+                <label class="configuracao-opcao" for="taxaFalhaAtivada" id="config-falhas">
                     <div>
                         <strong>Incluir margem para falhas e desperdício <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Reserva para reimpressões sobre filamento e energia.</small>
@@ -350,8 +350,8 @@
             </div>
         </section>
 
-        <div class="configuracao-acoes">
-            <button type="submit" class="botao-menu">
+        <div class="configuracao-acoes configuracao-salvar-barra">
+            <span data-configuracao-estado role="status">Revise os valores e salve suas alterações.</span><button type="submit" class="botao botao-principal" data-turbo-submits-with="Salvando…">
                 <i class="bi bi-check-lg"></i>
                 Salvar configurações
             </button>

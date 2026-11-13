@@ -387,8 +387,8 @@
                         <th>Data do cálculo</th>
                         <th>Plataforma</th>
                         <th>Preço sugerido / un.</th>
-                        <th>Produzido</th>
-                        <th>Vendido</th>
+                        <th>Status</th>
+
                         <th class="coluna-acoes">Ações</th>
                     </tr>
                     </thead>
@@ -446,17 +446,7 @@
                             </span>
                         </td>
 
-                        <td>
-                            <span class="status-historico-leitura"
-                                  th:classappend="${historico.produzido == true} ? ' status-historico-produzido' : ''"
-                                  th:text="${historico.produzido == true} ? 'Produzido' : 'A produzir'">A produzir</span>
-                        </td>
-
-                        <td>
-                            <span class="status-historico-leitura"
-                                  th:classappend="${historico.vendido == true} ? ' status-historico-vendido' : ''"
-                                  th:text="${historico.vendido == true} ? 'Vendido' : 'A vender'">A vender</span>
-                        </td>
+                        <td class="coluna-status"><span class="status-historico-leitura" th:classappend="${historico.vendido == true ? ' status-historico-vendido' : (historico.produzido == true ? ' status-historico-produzido' : '')}" th:text="${historico.vendido == true ? 'Vendido' : (historico.produzido == true ? 'Produzido' : 'A produzir')}">A produzir</span></td>
 
                         <td class="coluna-acoes">
                             <div class="acoes">

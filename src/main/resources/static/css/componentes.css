@@ -341,3 +341,24 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
  .peca-lista-foto { width:72px; height:72px; }
  .peca-lista-item:has(.peca-lista-foto) { grid-template-columns:72px minmax(0,1fr) auto; }
 }
+/* Controles de importação, filtros e ações com espaço para seus rótulos. */
+.importacao-peca .importacao-peca-seletor.arquivo-soltar { display:flex; flex-direction:column; align-items:stretch; gap:16px; }
+.importacao-peca-seletor.arquivo-soltar > span { width:100%; line-height:1.5; }
+.importacao-peca-seletor.arquivo-soltar > input[type=file] { width:100%; min-width:0; }
+.importacao-peca-seletor .importacao-ler-arquivo { align-self:flex-start; min-height:44px; padding:11px 20px; font-weight:700; background:var(--cor-primaria); color:var(--branco,#fff); border:1px solid var(--cor-primaria); }
+.filamentos-filtros-rapidos { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:8px 24px 20px; padding:14px 0 0; border-top:1px solid var(--borda); }
+.filamentos-filtros-rapidos small { color:var(--marrom-claro); }
+.filamentos-filtros-rapidos button[aria-pressed=true] { background:var(--cor-primaria); color:var(--branco,#fff); border-color:var(--cor-primaria); box-shadow:inset 0 0 0 1px currentColor; }
+.agenda-planejamento { margin-top:18px; }
+.agenda-planejamento .agenda-trilho { margin-top:0; }
+.agenda-legenda { display:grid; gap:8px; padding:10px 0 4px; }
+.agenda-legenda > strong { font-size:.97rem; font-weight:700; line-height:1.4; color:var(--marrom); }
+.agenda-datas { display:flex; flex-wrap:wrap; gap:8px; }
+.agenda-datas time { font-size:.82rem; padding:5px 9px; border:1px solid var(--borda); border-radius:7px; background:var(--superficie-suave); color:var(--marrom); }
+.configuracao-indice a[aria-current=location] { background:var(--superficie-suave); color:var(--cor-primaria); font-weight:700; }
+.configuracao-destino { outline:2px solid var(--cor-primaria); outline-offset:6px; border-radius:12px; }
+.pagina-configuracao { padding-bottom:140px; }
+.configuracao-salvar-barra { position:fixed; bottom:16px; left:calc(var(--menu-lateral-largura,0px) + 20px); right:20px; z-index:40; margin:0; padding:14px 18px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; border:1px solid var(--borda); border-radius:14px; background:var(--superficie); box-shadow:0 6px 28px #0002; }
+.configuracao-salvar-barra > span { font-size:.87rem; color:var(--marrom-claro); }
+.configuracao-salvar-barra > button { width:auto; margin:0; flex-shrink:0; }
+@media(max-width:700px) { .filamentos-filtros-rapidos { margin-inline:18px; } .configuracao-salvar-barra { padding:12px; } }

@@ -452,8 +452,8 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico {
     width: 100%;
-    min-width: 980px;
-    table-layout: fixed;
+    min-width: 1000px;
+    table-layout: auto;
     border-collapse: collapse;
     text-align: left;
 }
@@ -477,15 +477,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     vertical-align: middle;
     white-space: nowrap;
 }
-
-.tabela-historico th:nth-child(1) { width: 4%; }
-.tabela-historico th:nth-child(2) { width: 27%; }
-.tabela-historico th:nth-child(3) { width: 14%; }
-.tabela-historico th:nth-child(4) { width: 10%; }
-.tabela-historico th:nth-child(5) { width: 15%; }
-.tabela-historico th:nth-child(6) { width: 10%; }
-.tabela-historico th:nth-child(7) { width: 8%; }
-.tabela-historico th:nth-child(8) { width: 12%; }
 
 .tabela-historico tbody tr:last-child td {
     border-bottom: none;
@@ -516,7 +507,9 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
 .tabela-historico .coluna-acoes {
     text-align: center;
-    white-space: nowrap;
+    width: 224px;
+    min-width: 224px;
+    white-space: normal;
 }
 
 .tabela-historico .acoes {
@@ -3780,11 +3773,15 @@ main.pagina:has(> .cartao form.busca-filamentos) .vendas-filtros > .botao {
 /* No histórico, o nome ocupa a linha inteira e o tamanho do lote vem abaixo. */
 .tabela-historico th.coluna-acoes,
 .tabela-historico td.coluna-acoes {
-    min-width: 0;
+    min-width: 224px;
     padding-right: 6px;
     padding-left: 6px;
 }
-.tabela-historico .acoes { gap: 6px; }
+.tabela-historico .acoes { gap: 6px; flex-wrap: nowrap; justify-content: center; width:100%; }
+.tabela-historico .acoes > a.botao { flex:1; min-width:0; max-width:145px; white-space:normal; line-height:1.3; padding:9px 10px; font-size:.82rem; text-align:center; }
+.tabela-historico .acoes > a.botao-acao, .tabela-historico .acoes > form { flex:0 0 32px; margin:0; }
+.tabela-historico .coluna-status { text-align:center; white-space:nowrap; }
+.historico-filtros + .operacao-abas { padding:0 24px; }
 .tabela-historico td.coluna-acoes .botao-acao-excluir {
     box-sizing: border-box;
     width: 32px;

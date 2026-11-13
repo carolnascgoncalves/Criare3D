@@ -82,7 +82,10 @@ public class OrcamentoPedidoService {
   i.setMateriais(h.getItensFilamento().stream().map(m->m.getNomeFilamento()+(m.getCorFilamento()==null?"":" · "+m.getCorFilamento())).distinct().reduce((a,b)->a+" / "+b).orElse(h.getNomeFilamento()));
   if(i.getMateriais().length()>300)i.setMateriais(i.getMateriais().substring(0,300));
   i.setQuantidade(quantidade);i.setUsarEstoque(estoque);i.setLoteEstoque(referencia);
-  i.setPrecoUnitario((h.getPrecoVendaPlataforma()==null?h.getPrecoSugerido():h.getPrecoVendaPlataforma()).setScale(2,RoundingMode.HALF_UP));
+  // O cálculo selecionado pode ter preço personalizado ou condições antigas.
+  // Seu preço já inclui o lucro e deve ser o ponto de partida da proposta.
+  var origemPreco=referencia==null?h:referencia;
+  i.setPrecoUnitario((origemPreco.getPrecoVendaPlataforma()==null?origemPreco.getPrecoSugerido():origemPreco.getPrecoVendaPlataforma()).setScale(2,RoundingMode.HALF_UP));
   if(i.getPrecoUnitario().signum()<=0)throw new IllegalArgumentException("Configure um preço maior que zero antes de adicionar a peça.");
   i.setTaxasUnitarias(h.getTaxasPlataforma()==null?BigDecimal.ZERO:h.getTaxasPlataforma());
   atualizarCusto(i);atualizarTaxas(i);p.getItens().add(i);

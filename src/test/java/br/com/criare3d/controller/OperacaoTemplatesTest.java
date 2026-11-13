@@ -125,4 +125,12 @@ class OperacaoTemplatesTest {
         var html=renderizar("configuracao/index",Map.of("configuracao",br.com.criare3d.dto.ConfiguracaoRequest.toDto(c)));
         assertThat(html).contains("configuracao-indice","role=\"switch\"","data-exemplo-markup");
     }
+
+    @Test void vendasComReservasLongRenderizamSemAmbiguidadeDeTipos() {
+        var id=UUID.randomUUID();var h=new br.com.criare3d.dto.HistoricoListaResponse(id,"Peça reservada",LocalDateTime.now(),"NENHUMA",null,BigDecimal.TEN,true,false,false,4,BigDecimal.ONE,BigDecimal.ONE,null,0);
+        var dados=new HashMap<String,Object>();dados.put("modoDetalhe",false);dados.put("aba","");dados.put("paraProduzir",List.of());dados.put("emEstoque",List.of(h));dados.put("vendidos",List.of());dados.put("reservadas",Map.of(id,4L));
+        for(var k:List.of("lotesParaProduzir","lotesEmEstoque","lotesVendidos","unidadesParaProduzir","unidadesEmEstoque","unidadesVendidas","unidadesVendidasMes","lotesVendidosMes"))dados.put(k,0L);
+        dados.put("valorEmEstoque",BigDecimal.ZERO);dados.put("lucroVendidoMes",BigDecimal.ZERO);
+        assertThat(renderizar("vendas-estoque/listar",dados)).contains("Tudo reservado","4 reservadas","width:100.0%");
+    }
 }

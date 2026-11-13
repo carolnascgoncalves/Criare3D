@@ -52,6 +52,10 @@ public class ConfiguracaoController {
             return mv;
         }
 
+        // O campo fica recolhido no modo variável; manter o valor anterior evita
+        // bloquear o salvamento de outras opções ou perder um percentual já definido.
+        if (request.getMarkupPercentual() == null) request.setMarkupPercentual(
+                atual.getMarkupPercentual() != null ? atual.getMarkupPercentual() : java.math.BigDecimal.ZERO);
         Configuracao dados = ConfiguracaoRequest.toEntity(request);
         configuracaoService.update(atual.getId(), dados);
 

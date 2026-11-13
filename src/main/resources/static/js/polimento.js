@@ -28,7 +28,7 @@
         if(filtro && !filtro.dataset.pronto){
             filtro.dataset.pronto='true';const linhas=[...document.querySelectorAll('[data-estoque-baixo]')];
             filtro.querySelector('[data-total-acabando]').textContent=`(${linhas.filter(l=>l.dataset.estoqueBaixo==='true').length})`;
-            filtro.addEventListener('click',()=>{const ativo=filtro.getAttribute('aria-pressed')!=='true';filtro.setAttribute('aria-pressed',String(ativo));linhas.forEach(l=>l.hidden=ativo&&l.dataset.estoqueBaixo!=='true');});
+            filtro.addEventListener('click',()=>{const ativo=filtro.getAttribute('aria-pressed')!=='true';filtro.setAttribute('aria-pressed',String(ativo));linhas.forEach(l=>l.hidden=ativo&&l.dataset.estoqueBaixo!=='true');const legenda=document.querySelector('[data-estado-filtro-acabando]');if(legenda)legenda.textContent=ativo?'Filtro ativo: somente filamentos acabando nesta página.':'Mostrando todos os filamentos desta página.';});
         }
         const markup=document.getElementById('markupPercentual'),exemplo=document.querySelector('[data-exemplo-markup]');
         if(markup&&exemplo&&!markup.dataset.exemploPronto){markup.dataset.exemploPronto='true';const atualizar=()=>{exemplo.textContent=`R$ 10,00 de custo vira ${(10*(1+Number(markup.value||0)/100)).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})} antes das taxas.`;};markup.addEventListener('input',atualizar);atualizar();}
@@ -63,14 +63,34 @@
                 link.style.marginLeft=`${100*(inicio-min)/duracao}%`;link.style.width=`${Math.max(3,100*(fim-inicio)/duracao)}%`;
                 link.style.maxWidth=`${100-100*(inicio-min)/duracao}%`;
                 const nome=card.querySelector('h2').textContent;link.title=`${nome} · ${data(inicio)} até ${data(fim)}`;link.setAttribute('aria-label',link.title);link.textContent=nome;
-                faixa.append(link);linha.append(faixa);
-                const legenda=document.createElement('small');legenda.textContent=link.title;linha.append(legenda);
+                const item=document.createElement('article');item.className='agenda-planejamento';item.title=link.title;
+                faixa.title=link.title;faixa.append(link);item.append(faixa);
+                const legenda=document.createElement('div');legenda.className='agenda-legenda';
+                const titulo=document.createElement('strong');titulo.textContent=nome;
+                const datas=document.createElement('span');datas.className='agenda-datas';
+                const de=document.createElement('time'),ate=document.createElement('time');
+                de.dateTime=card.dataset.agendaInicio;de.textContent='Início: '+data(inicio);
+                ate.dateTime=card.dataset.agendaFim;ate.textContent='Previsão: '+data(fim);
+                datas.append(de,ate);legenda.append(titulo,datas);item.append(legenda);linha.append(item);
             }
             agenda.append(linha);
         }
         lista.hidden=true;
     }
     document.addEventListener('click',e=>{
+        const indice=e.target.closest('.configuracao-indice a[href^="#"]');
+        if(indice){
+            const destino=document.getElementById(indice.getAttribute('href').slice(1));
+            if(destino){
+                e.preventDefault();e.stopPropagation();
+                document.querySelectorAll('.configuracao-indice a').forEach(a=>a.removeAttribute('aria-current'));
+                indice.setAttribute('aria-current','location');
+                destino.setAttribute('tabindex','-1');destino.focus({preventScroll:true});
+                destino.scrollIntoView({behavior:'instant',block:'start'});
+                destino.classList.add('configuracao-destino');
+                setTimeout(()=>destino.classList.remove('configuracao-destino'),1800);
+            }
+        }
         const abrir=e.target.closest('[data-dialogo-abrir]');
         if(abrir){const d=document.getElementById(abrir.dataset.dialogoAbrir);if(!d)return;
             if(abrir.dataset.produtoVender){const s=d.querySelector('[name=produtoId]');if(s){s.value=abrir.dataset.produtoVender;s.dispatchEvent(new Event('change',{bubbles:true}));}}

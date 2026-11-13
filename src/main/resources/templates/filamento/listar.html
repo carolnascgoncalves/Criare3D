@@ -197,7 +197,7 @@
             </form>
         </div>
 
-        <div class="operacao-acoes"><button type="button" class="botao botao-secundario" data-filtrar-acabando aria-pressed="false">Acabando <span data-total-acabando></span></button><small>Filtro dos filamentos desta página.</small></div><div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(filamentos)}">
+        <div class="filamentos-filtros-rapidos"><button type="button" class="botao botao-secundario" data-filtrar-acabando aria-pressed="false"><i class="bi bi-filter" aria-hidden="true"></i> Acabando <span data-total-acabando></span></button><small data-estado-filtro-acabando role="status">Mostrando todos os filamentos desta página.</small></div><div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(filamentos)}">
             <article class="peca-lista-item filamento-lista-item" th:attr="data-estoque-baixo=${percentualEstoque[filamento.id] &lt;= 34}"
                      th:each="filamento : ${filamentos}"
                      th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(filamento.id)} ? ' item-exclusao-falhou' : ''">

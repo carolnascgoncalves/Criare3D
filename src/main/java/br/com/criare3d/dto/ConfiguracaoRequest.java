@@ -13,11 +13,15 @@ import java.math.BigDecimal;
 @Setter
 public class ConfiguracaoRequest {
 
-    @NotNull(message = "O markup é obrigatório")
     @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
     private BigDecimal markupPercentual;
 
     private Boolean markupFixo = false;
+    @AssertTrue(message = "Informe o lucro sobre o custo quando o percentual fixo estiver ativado.")
+    public boolean isMarkupFixoValido() {
+        return !Boolean.TRUE.equals(markupFixo) || markupPercentual != null && markupPercentual.signum() >= 0;
+    }
+
 
     @NotNull(message = "Informe o primeiro atalho de markup")
     @DecimalMin(value = "0.0", message = "O atalho não pode ser negativo.")

@@ -24,8 +24,51 @@
 <p th:if="${erroPrevisao}" class="aviso-info" th:text="${erroPrevisao}"></p><noscript><button class="botao botao-secundario">Recalcular prazo</button></noscript></section>
 <section th:if="${etapa==3}"><h2>Desconto e frete</h2><div class="pedido-grade"><label class="campo">Desconto (R$ ou %)<input type="text" th:field="*{descontoInformado}" placeholder="15 ou 15%" maxlength="30" required><small>15 = R$ 15,00 · 15% = porcentagem.</small></label><label class="campo">Frete cobrado do cliente (R$)<input type="number" min="0" max="99999999" step="0.01" th:field="*{frete}" required></label></div>
 <details class="pedido-ajuda"><summary>Meu custo de envio e cotação</summary><p>Seu custo é o que você paga pelo transporte. O frete acima é o que o cliente paga. Não repita custos já incluídos pela plataforma.</p><label class="campo">Seu custo de envio (R$)<input type="number" min="0" max="99999999" step="0.01" th:field="*{custoFrete}" required></label><button type="submit" class="botao botao-secundario" name="cotarFrete" value="true"><i class="bi bi-truck"></i> Calcular com frete</button></details></section>
-<section th:if="${etapa==4}"><div class="pedido-secao-cabecalho"><h2>Confira a proposta</h2><a th:href="@{/orcamentos/{id}(id=${pedido.id},etapa=1)}">Editar cliente e peças</a></div><div data-pedido-proposta><h3 th:text="${#strings.isEmpty(pedido.cliente)?'Cliente não informado':pedido.cliente}"></h3><p th:text="${pedido.contato}"></p><article class="pedido-revisao-item" th:each="i:${pedido.itens}"><span><strong th:text="${i.nome}"></strong><small th:text="|${i.quantidade} un. × R$ ${#numbers.formatDecimal(i.precoUnitario,1,'POINT',2,'COMMA')}|"></small></span><strong th:text="|R$ ${#numbers.formatDecimal(i.total,1,'POINT',2,'COMMA')}|"></strong></article><p><strong>Prazo previsto: </strong><span th:text="${previsaoAtual==null?'Atendido pelo estoque':#temporals.format(previsaoAtual,'EEEE, dd/MM · HH:mm')}"></span></p><p><strong th:text="|Total: R$ ${#numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}|"></strong></p></div>
-<label class="campo">Observações para o cliente<textarea th:field="*{observacoes}" maxlength="1000" rows="3"></textarea></label><th:block th:replace="~{orcamentos/fragmentos :: contatos}"></th:block><div class="pedido-acoes"><button class="botao botao-secundario" type="submit">Salvar rascunho</button><button class="botao botao-secundario" name="enviar" value="true">Salvar e marcar como enviada</button><a class="botao botao-secundario" target="_blank" rel="noopener" th:href="@{/orcamentos/{id}/proposta(id=${pedido.id})}">Prévia / salvar PDF</a></div><small>Abrir o WhatsApp não marca a proposta como enviada automaticamente.</small></section>
+<section th:if="${etapa==4}" class="pedido-revisao">
+    <header class="pedido-secao-cabecalho">
+        <div><span class="texto-apoio">ÚLTIMA CONFERÊNCIA</span><h2>Confira a proposta</h2><p>Revise os dados antes de compartilhar com o cliente.</p></div>
+        <a th:href="@{/orcamentos/{id}(id=${pedido.id},etapa=1)}">Editar cliente e peças</a>
+    </header>
+    <div data-pedido-proposta class="pedido-revisao-proposta">
+        <div class="pedido-revisao-dados">
+            <section class="pedido-revisao-bloco pedido-revisao-cliente" aria-label="Cliente">
+                <span class="pedido-revisao-legenda"><i class="bi bi-person" aria-hidden="true"></i> Cliente</span>
+                <h3 th:text="${#strings.isEmpty(pedido.cliente)?'Cliente não informado':pedido.cliente}"></h3>
+                <p th:if="${!#strings.isEmpty(pedido.contato)}" th:text="${pedido.contato}"></p>
+            </section>
+            <section class="pedido-revisao-bloco pedido-revisao-prazo" aria-label="Prazo previsto">
+                <span class="pedido-revisao-legenda"><i class="bi bi-calendar3" aria-hidden="true"></i> Prazo previsto</span>
+                <strong th:text="${previsaoAtual==null?'Atendido pelo estoque':#temporals.format(previsaoAtual,'EEEE, dd/MM · HH:mm')}"></strong>
+                <small>Confira a disponibilidade antes de combinar a entrega.</small>
+            </section>
+        </div>
+        <section class="pedido-revisao-bloco pedido-revisao-pecas" aria-labelledby="revisaoPecasTitulo">
+            <header><h3 id="revisaoPecasTitulo">Peças da proposta</h3><span class="texto-apoio">Quantidade · preço por unidade</span></header>
+            <article class="pedido-revisao-item" th:each="i:${pedido.itens}">
+                <span><strong th:text="${i.nome}"></strong><small th:text="|${i.quantidade} un. × R$ ${#numbers.formatDecimal(i.precoUnitario,1,'POINT',2,'COMMA')}|"></small></span>
+                <strong th:text="|R$ ${#numbers.formatDecimal(i.total,1,'POINT',2,'COMMA')}|"></strong>
+            </article>
+        </section>
+        <div class="pedido-revisao-total"><span>Total da proposta</span><strong th:text="|R$ ${#numbers.formatDecimal(pedido.total,1,'POINT',2,'COMMA')}|"></strong></div>
+    </div>
+    <section class="pedido-revisao-observacoes" aria-labelledby="revisaoObservacoesTitulo">
+        <h3 id="revisaoObservacoesTitulo">Observações para o cliente</h3>
+        <p>Inclua detalhes sobre acabamento, retirada ou entrega, se precisar.</p>
+        <label class="campo"><span class="visually-hidden">Observações para o cliente</span><textarea th:field="*{observacoes}" maxlength="1000" rows="3" placeholder="Ex.: retirada na loja após a confirmação de que as peças estão prontas."></textarea></label>
+    </section>
+    <section class="pedido-revisao-envio" aria-labelledby="revisaoEnvioTitulo">
+        <h3 id="revisaoEnvioTitulo"><i class="bi bi-send" aria-hidden="true"></i> Compartilhar com o cliente</h3>
+        <th:block th:replace="~{orcamentos/fragmentos :: contatos}"></th:block>
+    </section>
+    <footer class="pedido-revisao-finalizar">
+        <div><h3>Salvar a proposta</h3><p>Abrir o WhatsApp não marca a proposta como enviada automaticamente.</p></div>
+        <div class="pedido-acoes">
+            <button class="botao botao-secundario" type="submit">Salvar rascunho</button>
+            <a class="botao botao-secundario" target="_blank" rel="noopener" th:href="@{/orcamentos/{id}/proposta(id=${pedido.id})}"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> Prévia / salvar PDF</a>
+            <button class="botao botao-principal" name="enviar" value="true">Salvar e marcar como enviada</button>
+        </div>
+    </footer>
+</section>
 <noscript th:if="${pedido.id!=null and etapa<4}"><button class="botao botao-secundario">Salvar alterações</button></noscript></form>
 <turbo-frame id="pedidoPrazo"><th:block th:if="${etapa==2 and pedido.quantidadeProduzir>0 and previsaoAtual!=null}"><th:block th:replace="~{orcamentos/fragmentos :: simulacao}"></th:block></th:block></turbo-frame>
 <section th:if="${etapa==1}" class="cartao"><th:block th:replace="~{orcamentos/fragmentos :: adicionar(${pedido.id==null?'/orcamentos/iniciar-varios':'/orcamentos/'+pedido.id+'/itens-varios'},${referenciaSelecionada})}"></th:block></section>

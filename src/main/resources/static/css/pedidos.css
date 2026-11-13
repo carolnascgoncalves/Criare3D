@@ -172,7 +172,7 @@
 .pedido-cliente-linha{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:20px 0;padding:12px 0;border-bottom:1px solid var(--borda);overflow-wrap:anywhere}
 .pedido-cliente-linha details{flex-basis:100%}
 .pedido-cliente-linha summary{cursor:pointer;font-size:.85rem}
-.pedido-revisao-item{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--borda)}
+.pedido-revisao-item{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid var(--borda)}
 .pedido-revisao-item small{display:block;margin-top:4px;color:var(--marrom-claro)}
 .pedido-save-erro{color:#a52b2b}
 @media(max-width:600px){.pedido-barra{padding:14px;gap:12px;align-items:stretch;flex-direction:column}.pedido-barra .botao{width:100%}.pedido-wizard{padding-bottom:160px}.pedido-revisao-item{flex-wrap:wrap}}
@@ -185,3 +185,44 @@
 .pedido-rentabilidade small{display:block}
 .pedido-pdf-compartilhar{margin:16px 0;padding:18px;border:1px solid var(--borda);border-radius:14px}
 .pedido-pdf-compartilhar label{display:block;margin:12px 0}
+
+/* A revisão separa a proposta, a mensagem e a confirmação de envio. */
+.pedido-dados:has(.pedido-revisao) > .pedido-titulo-editor { margin-bottom:28px; }
+.pedido-revisao { display:grid; gap:28px; }
+.pedido-revisao .pedido-secao-cabecalho { margin-bottom:0; align-items:flex-start; }
+.pedido-revisao .pedido-secao-cabecalho p { margin:8px 0 0; color:var(--marrom-claro); line-height:1.5; }
+.pedido-revisao-proposta { display:grid; gap:18px; }
+.pedido-revisao-dados { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; }
+.pedido-revisao-bloco { padding:20px; border:1px solid var(--borda); border-radius:14px; background:var(--superficie); min-width:0; }
+.pedido-revisao-legenda { display:flex; align-items:center; gap:8px; margin-bottom:12px; color:var(--marrom-claro); font-size:.84rem; font-weight:650; }
+.pedido-revisao-cliente h3 { margin:0; font-size:1.1rem; }
+.pedido-revisao-cliente p { margin:8px 0 0; overflow-wrap:anywhere; }
+.pedido-revisao-prazo > strong { display:block; line-height:1.5; }
+.pedido-revisao-prazo > small { display:block; margin-top:8px; color:var(--marrom-claro); line-height:1.5; }
+.pedido-revisao-pecas > header { display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:4px; padding-bottom:14px; border-bottom:1px solid var(--borda); }
+.pedido-revisao-pecas h3 { margin:0; font-size:1rem; }
+.pedido-revisao-pecas .pedido-revisao-item:last-child { border-bottom:0; padding-bottom:0; }
+.pedido-revisao-item > span { min-width:0; overflow-wrap:anywhere; }
+.pedido-revisao-item > strong { flex-shrink:0; font-size:1.03rem; }
+.pedido-revisao-total { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:20px 24px; border:1px solid var(--borda); border-radius:14px; background:var(--superficie-suave); }
+.pedido-revisao-total > span { font-weight:650; }
+.pedido-revisao-total > strong { font-size:1.5rem; color:var(--cor-primaria); }
+.pedido-revisao-observacoes, .pedido-revisao-envio, .pedido-revisao-finalizar { padding-top:26px; border-top:1px solid var(--borda); }
+.pedido-revisao-observacoes h3, .pedido-revisao-envio h3, .pedido-revisao-finalizar h3 { margin:0 0 10px; font-size:1.05rem; }
+.pedido-revisao-observacoes > p, .pedido-revisao-finalizar p { margin:0 0 16px; color:var(--marrom-claro); line-height:1.6; font-size:.9rem; }
+.pedido-revisao-observacoes .campo { margin:0; }
+.pedido-revisao-envio h3 { display:flex; gap:9px; align-items:center; }
+.pedido-revisao-envio .pedido-contatos { display:grid; gap:16px; }
+.pedido-revisao-envio .pedido-acoes { margin:0; }
+.pedido-revisao-envio .pedido-outros-canais { padding:14px 16px; border:1px solid var(--borda); border-radius:10px; }
+.pedido-revisao-envio .pedido-outros-canais summary { cursor:pointer; font-weight:600; }
+.pedido-revisao-envio .pedido-outros-canais[open] .pedido-acoes { margin-top:16px; }
+.pedido-revisao-envio .pedido-contatos > small { display:block; color:var(--marrom-claro); line-height:1.6; }
+.pedido-revisao-finalizar .pedido-acoes { margin:0; justify-content:flex-end; gap:12px; }
+@media(max-width:700px) {
+ .pedido-revisao { gap:24px; }
+ .pedido-revisao-dados { grid-template-columns:minmax(0,1fr); }
+ .pedido-revisao-bloco { padding:16px; }
+ .pedido-revisao-total { padding:18px; }
+ .pedido-revisao-finalizar .pedido-acoes > * { width:100%; justify-content:center; }
+}
