@@ -48,3 +48,12 @@ test('o envio prioriza o token do formulário atual e usa o último token do cab
     assert.equal(contexto.tokenConsultaRapida({querySelector:()=>({value:'formulario-atual'})},doc),'formulario-atual');
     assert.equal(contexto.tokenConsultaRapida({querySelector:()=>null},doc),'atual');
 });
+
+
+test('preço automático confere campos pendentes sem disparar validação interativa', () => {
+    const campo={willValidate:true,validity:{valid:false}};
+    const formulario={elements:[campo,{willValidate:false}],checkValidity(){throw new Error('Não deve disparar invalid');},reportValidity(){throw new Error('Não deve mostrar avisos');}};
+    assert.equal(contexto.consultaRapidaPronta(formulario),false);
+    campo.validity.valid=true;
+    assert.equal(contexto.consultaRapidaPronta(formulario),true);
+});

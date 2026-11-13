@@ -32,6 +32,11 @@ function escalarConsumoConsultaRapida(base, unidades) {
     return Number((Number(base) * Number(unidades)).toFixed(3));
 }
 
+// Ler validity não dispara eventos invalid nem avisos enquanto a consulta é preenchida.
+function consultaRapidaPronta(formulario) {
+    return [...formulario.elements].every(campo => !campo.willValidate || campo.validity.valid);
+}
+
 function tokenConsultaRapida(formulario, doc=document) {
     return formulario.querySelector('input[name="_csrf"]')?.value || [...doc.querySelectorAll('meta[name="csrf-token"]')].at(-1)?.content || '';
 }
@@ -64,7 +69,7 @@ function iniciarCalculoRapido() {
     function agendarPreco() {
         clearTimeout(precoTimer);
         precoTimer=setTimeout(()=>{
-            if(leitura || !form.checkValidity() || !lista.children.length) return;
+            if(leitura || !consultaRapidaPronta(form) || !lista.children.length) return;
             form.requestSubmit();
         },650);
     }
