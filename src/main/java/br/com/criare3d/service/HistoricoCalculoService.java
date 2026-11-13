@@ -135,7 +135,9 @@ public class HistoricoCalculoService {
     }
 
     public Optional<CalculoHistorico> fetchById(UUID id) {
-        return calculoHistoricoRepository.buscarPorIdComItens(id);
+        var calculo = calculoHistoricoRepository.buscarPorIdComItens(id);
+        calculo.ifPresent(c -> c.getRateiosCustos().size());
+        return calculo;
     }
 
     public boolean existsById(UUID id) {

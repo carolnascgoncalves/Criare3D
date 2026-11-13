@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 @Service
 @Transactional
 public class PecaArquivoService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PecaArquivoService.class);
     private static final int MAX_JSON_CHARS = 2_000_000;
     private static final int MAX_PREVIEW_BYTES = 180 * 1024;
     private static final int MAX_TOTAL_PREVIEW_BYTES = 900 * 1024;
@@ -89,8 +90,9 @@ public class PecaArquivoService {
             return Optional.of(new Preparacao(jsonMapper.writeValueAsString(guardado), List.copyOf(imagens)));
         } catch (IllegalArgumentException e) {
             throw e;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Não foi possível guardar os dados lidos do arquivo 3MF. Leia o arquivo novamente.");
+        } catch (tools.jackson.core.JacksonException e) {
+            log.warn("Falha ao preparar metadados 3MF: {}", e.getClass().getSimpleName());
+            throw new IllegalArgumentException("Não foi possível guardar os dados lidos do arquivo 3MF. Leia o arquivo novamente.", e);
         }
     }
 
@@ -133,7 +135,8 @@ public class PecaArquivoService {
             if (dados == null || !dados.estatisticasCompletas()) return List.of();
             List<PecaMaterialResumo> materiais = resumirFilamentos(dados.filamentosUsados());
             return materiais.stream().filter(item -> item.pesoGramas() > 0).toList();
-        } catch (Exception e) {
+        } catch (tools.jackson.core.JacksonException e) {
+            log.warn("Metadados 3MF inválidos na peça {}: {}", peca.getId(), e.getClass().getSimpleName());
             return List.of();
         }
     }
@@ -170,7 +173,8 @@ public class PecaArquivoService {
             if (materiais.isEmpty()) materiais = materiaisConfigurados(dados.material(), dados.corMaterial());
             return Optional.of(new PecaArquivoResumo(peca.getId(), pedido.nomeArquivo(), dados.modeloImpressora(),
                     dados.fatiador(), dados.numeroPlacas(), materiais, List.copyOf(placas)));
-        } catch (Exception e) {
+        } catch (tools.jackson.core.JacksonException e) {
+            log.warn("Metadados 3MF inválidos na peça {}: {}", peca.getId(), e.getClass().getSimpleName());
             return Optional.empty();
         }
     }

@@ -11,7 +11,8 @@ test('bloqueio fica no aviso e libera o botão quando a espera termina', () => {
     const segundos = {textContent: ''};
     const aviso = {dataset: {loginEspera: '5'}, querySelector: () => segundos};
     const document = {
-        addEventListener: (nome, callback) => { eventos[nome] = callback; },
+        addEventListener: (nome, callback) => { (eventos[nome] ??= []).push(callback); },
+        querySelectorAll: () => [],
         querySelector: seletor => seletor === '[data-login-espera]' ? aviso : botao
     };
     vm.runInNewContext(fs.readFileSync('src/main/resources/static/js/login.js', 'utf8'), {
@@ -19,7 +20,7 @@ test('bloqueio fica no aviso e libera o botão quando a espera termina', () => {
         setInterval: callback => { atualizar = callback; return 1; },
         clearInterval: () => {}
     });
-    eventos.DOMContentLoaded();
+    eventos.DOMContentLoaded.forEach(callback => callback());
     assert.equal(botao.disabled, true);
     assert.equal(segundos.textContent, '5');
     agora += 6000;

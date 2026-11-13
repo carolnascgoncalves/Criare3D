@@ -1,15 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragmentos :: cabecalho('Não foi possível concluir')}" ></head>
-<body>
-<nav th:replace="~{fragmentos :: menu}"></nav>
-<main class="pagina pagina-erro">
-    <section class="cartao erro-centralizado" role="alert">
-        <span class="texto-apoio" th:text="|ERRO ${codigo}|">ERRO</span>
-        <h1>Não foi possível concluir</h1>
-        <p th:text="${mensagem}">Tente novamente.</p>
-        <a class="botao botao-principal" th:href="@{/}">Voltar ao início</a>
-    </section>
-</main>
-</body>
-</html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#86202D">
+<title>cost3d | Não foi possível concluir</title><link rel="stylesheet" th:href="@{/css/login.css}">
+</head><body class="login-pagina"><main class="login-cartao" role="alert">
+<header class="login-cabecalho"><span class="login-etiqueta">cost3d</span><p th:text="|ERRO ${codigo}|"></p><h1>Não foi possível concluir</h1><p th:text="${mensagem}">Tente novamente.</p></header>
+<a class="login-botao" th:href="@{/}">Voltar ao início</a>
+</main></body></html>

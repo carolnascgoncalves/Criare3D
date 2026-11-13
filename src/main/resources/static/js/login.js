@@ -35,3 +35,22 @@ document.addEventListener("click", evento => {
     document.addEventListener('turbo:load', prepararEspera);
     document.addEventListener('turbo:before-cache', () => clearInterval(intervalo));
 })();
+
+// A tipografia de apoio continua legível enquanto a imagem original carrega.
+(() => {
+    function carregarMarca() {
+        document.querySelectorAll('[data-marca-imagem]').forEach(bloco => {
+            const imagem = bloco.querySelector('img');
+            const fallback = bloco.querySelector('[data-marca-fallback]');
+            function mostrar() {
+                if (!imagem.naturalWidth) return;
+                imagem.hidden = false;
+                if (fallback) fallback.hidden = true;
+            }
+            imagem.addEventListener('load', mostrar, {once: true});
+            if (imagem.complete) mostrar();
+        });
+    }
+    document.addEventListener('DOMContentLoaded', carregarMarca);
+    document.addEventListener('turbo:load', carregarMarca);
+})();

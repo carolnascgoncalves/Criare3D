@@ -40,19 +40,23 @@
             </div>
             <div class="operacao-grade">
                 <section class="cartao formulario-conteudo">
-                    <h2>
-                        <i class="bi bi-printer" aria-hidden="true"></i>
-                        Produção
-                    </h2>
+                    <div class="operacao-secao-titulo">
+                        <h2><i class="bi bi-printer" aria-hidden="true"></i> Produção</h2>
+                        <div class="operacao-custo-producao">
+                            <strong th:text="|R$ ${#numbers.formatDecimal(lote.custoTotal * lote.unidades,1,'POINT',2,'COMMA')} no lote|"></strong>
+                            <small th:text="|R$ ${#numbers.formatDecimal(lote.custoTotal,1,'POINT',2,'COMMA')} por unidade|"></small>
+                            <small>Custo previsto no cálculo</small>
+                        </div>
+                    </div>
                     <p class="texto-apoio" th:if="${lote.produzido}" th:text="${lote.dataProducao == null ? 'Data não registrada no lote antigo.' : 'Produzido em ' + #temporals.format(lote.dataProducao,'dd/MM/yyyy HH:mm')}"></p>
                     <p class="texto-apoio" th:unless="${lote.produzido}">Confira o material antes de produzir.</p>
                     <div class="operacao-material" th:each="m : ${materiais}" th:classappend="${!lote.produzido and m.insuficiente ? ' operacao-material-insuficiente' : ''}">
                         <div>
-                            <strong th:text="${m.nome}"></strong>
+                            <strong class="operacao-filamento-nome"><span class="filamento-amostra" th:style="|background-color: ${m.corSegura}|" aria-hidden="true"></span><span th:text="${m.nome}"></span><span th:text="${m.cor != null ? ' · ' + m.cor : ' · Cor não registrada'}"></span></strong>
                             <span class="operacao-material-falta" th:if="${!lote.produzido and m.insuficiente}" th:text="|Estoque insuficiente · faltam ${#numbers.formatDecimal(m.falta,1,'POINT',2,'COMMA')} g|"></span>
                             <span th:if="${m.saldo != null}" th:text="|Saldo atual: ${#numbers.formatDecimal(m.saldo,1,'POINT',2,'COMMA')} g|"></span>
                         </div>
-                        <strong th:text="|${#numbers.formatDecimal(m.gramas,1,'POINT',2,'COMMA')} g no lote|"></strong>
+                        <div class="operacao-custo-producao"><strong th:text="|${#numbers.formatDecimal(m.gramas,1,'POINT',2,'COMMA')} g no lote|"></strong><small th:if="${m.custo != null}" th:text="|R$ ${#numbers.formatDecimal(m.custo,1,'POINT',2,'COMMA')} de filamento|"></small></div>
                     </div>
                     <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${!lote.produzido}" th:attr="data-turbo-confirm=|Produzir ${lote.unidades} unidades e descontar o material deste lote?|">
                         <button class="botao botao-principal">Registrar produção do lote</button>
@@ -96,6 +100,11 @@
                     </form>
                 </section>
             </div>
+            <section class="cartao formulario-conteudo" th:if="${!#lists.isEmpty(lote.rateiosCustos)}">
+                <h2>Custos da loja incluídos</h2>
+                <p>Valores por unidade, já incluídos no custo do cálculo. As unidades vendidas contribuem para estas metas.</p>
+                <div class="operacao-registro" th:each="r : ${lote.rateiosCustos}"><a th:href="@{/custos-loja/{id}(id=${r.custoLoja.id})}" th:text="${r.descricao}"></a><strong th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario,1,'POINT',2,'COMMA')} / un.|"></strong></div>
+            </section>
             <section class="cartao formulario-conteudo">
                 <h2>Vendas do lote</h2>
                 <div class="operacao-indicadores">

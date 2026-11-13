@@ -217,3 +217,16 @@ test('cadastro de impressora valida modelo antes de acessar potência oculta',as
  eventos.submit({target:form,preventDefault(){}});await Promise.resolve();
  assert.equal(potencia.classes.has('campo-erro-temporario'),true);
 });
+
+test('limpar formulário remove o painel de campos pendentes e os erros dos campos', () => {
+    let removeu=false;
+    const classes=new Set(['campo-erro-temporario']);
+    const campo={dataset:{erroServidor:'Obrigatório'},classList:{contains:()=>false,remove:n=>classes.delete(n)},removeAttribute(){},closest:()=>null};
+    const painel={remove(){removeu=true;}};
+    const form={querySelector:s=>s==='[data-campos-pendentes]'?painel:null,querySelectorAll:()=>[campo]};
+    const document={readyState:'loading',addEventListener(){},querySelectorAll:()=>[]};
+    const window={};
+    vm.runInNewContext(script('validacaoInline.js'),{document,window,WeakMap,Set,queueMicrotask,clearTimeout(){},setTimeout(){}});
+    window.validacaoInline.limparFormulario(form);
+    assert.equal(removeu,true);assert.equal(classes.size,0);assert.equal(campo.dataset.erroServidor,undefined);
+});

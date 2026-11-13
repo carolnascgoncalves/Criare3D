@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Custos da loja')}"></head>
+<body><nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina">
+<section class="pagina-intro"><div><span class="texto-apoio">GESTÃO</span><h1>Custos da loja</h1><p>Distribua despesas pelas peças e acompanhe a recuperação nas vendas.</p></div></section>
+<p th:if="${param.criado}" class="alerta-sucesso" role="status">Meta criada. O rateio será incluído nos novos cálculos a partir da data inicial.</p>
+<p th:if="${mensagemSucesso}" class="alerta-sucesso" role="status" th:text="${mensagemSucesso}"></p>
+<section class="cartao formulario-conteudo">
+<h2>Nova meta de custos</h2><p>Crie uma meta para cada período, como “Despesas de novembro”. Para alterar uma regra, pause a anterior e crie outra meta.</p>
+<form method="post" th:action="@{/custos-loja}" class="formulario">
+<div th:if="${erros != null}" class="alerta-erro" role="alert"><p th:each="e : ${erros}" th:text="${e}"></p></div>
+<div class="operacao-grade">
+<div class="campo"><label for="descricao">Descrição / período</label><input id="descricao" name="descricao" th:value="${custo.descricao}" required minlength="2" maxlength="150" placeholder="Despesas de novembro"></div>
+<div class="campo"><label for="inicio">Aplicar a novos cálculos a partir de</label><input type="date" id="inicio" name="inicio" th:value="${custo.inicio}" required></div>
+<div class="campo"><label for="meta">Meta a cobrir (R$)</label><input type="number" id="meta" name="meta" th:value="${custo.meta}" min="0.01" max="9999999999.99" step="0.01" required placeholder="1500,00"></div>
+<div class="campo"><label for="tipo">Como distribuir</label><select id="tipo" name="tipo" data-custo-tipo><option value="VALOR_UNIDADE" th:selected="${custo.tipo != null and custo.tipo.name() == 'VALOR_UNIDADE'}">Valor por unidade (R$)</option><option value="PERCENTUAL" th:selected="${custo.tipo != null and custo.tipo.name() == 'PERCENTUAL'}">Percentual sobre o custo (%)</option><option value="RATEIO_MENSAL" th:selected="${custo.tipo != null and custo.tipo.name() == 'RATEIO_MENSAL'}">Meta dividida pelas unidades previstas</option></select></div>
+<div class="campo" data-custo-valor><label for="valor">Valor por unidade (R$) / percentual (%)</label><input type="number" id="valor" name="valor" th:value="${custo.valor}" min="0.01" max="9999999999.99" step="0.01"><small>Percentual sobre o custo antes dos rateios e do lucro. As regras não incidem umas sobre as outras.</small></div>
+<div class="campo" data-custo-unidades><label for="unidadesPrevistas">Unidades previstas no período (para rateio)</label><input type="number" id="unidadesPrevistas" name="unidadesPrevistas" th:value="${custo.unidadesPrevistas}" min="1" max="10000000"><small>R$ 1.500 ÷ 300 unidades = R$ 5 por unidade.</small></div>
+</div><button class="botao botao-principal">Criar meta e ativar</button>
+</form>
+</section>
+<section class="cartao formulario-conteudo"><h2>Metas e recuperação</h2>
+<p>O recuperado corresponde ao rateio das unidades vendidas, descontando cancelamentos. É uma parcela prevista no preço, não uma confirmação de recebimento do pagamento.</p>
+<p>Ao atingir a meta, pause a aplicação se desejar encerrar o período. Não há reinício mensal nem pausa automáticos; peças já calculadas mantêm seu rateio.</p>
+<p th:if="${#lists.isEmpty(resumos)}">Nenhuma meta cadastrada.</p>
+<article class="custo-loja-meta" th:each="r : ${resumos}">
+<div class="operacao-secao-titulo"><div><h3><a th:href="@{/custos-loja/{id}(id=${r.custo.id})}" th:text="${r.custo.descricao}"></a></h3><p th:text="${r.custo.ativo ? 'Ativa para novos cálculos a partir de ' + #temporals.format(r.custo.inicio,'dd/MM/yyyy') : 'Pausada para novos cálculos'}"></p>
+<p th:text="${r.custo.tipo.name() == 'VALOR_UNIDADE' ? 'R$ ' + #numbers.formatDecimal(r.custo.valor,1,'POINT',2,'COMMA') + ' por unidade' : (r.custo.tipo.name() == 'PERCENTUAL' ? #numbers.formatDecimal(r.custo.valor,1,'POINT',2,'COMMA') + '% sobre o custo' : 'Meta dividida por ' + r.custo.unidadesPrevistas + ' unidades previstas')}"></p></div>
+<form method="post" th:action="@{/custos-loja/{id}/estado(id=${r.custo.id})}"><input type="hidden" name="ativo" th:value="${!r.custo.ativo}"><button class="botao botao-secundario" th:text="${r.custo.ativo ? 'Pausar aplicação' : 'Reativar aplicação'}"></button></form></div>
+<div class="operacao-indicadores"><div><span>Meta</span><strong th:text="|R$ ${#numbers.formatDecimal(r.custo.meta,1,'POINT',2,'COMMA')}|"></strong></div><div><span>Recuperado nas vendas</span><strong th:text="|R$ ${#numbers.formatDecimal(r.recuperado,1,'POINT',2,'COMMA')}|"></strong></div><div><span>Falta cobrir</span><strong th:text="|R$ ${#numbers.formatDecimal(r.restante,1,'POINT',2,'COMMA')}|"></strong></div></div>
+<progress class="custo-loja-progresso" th:value="${r.recuperado.min(r.custo.meta)}" th:max="${r.custo.meta}" aria-label="Progresso da meta"></progress>
+<p th:if="${r.excedente > 0}" th:text="|Meta superada em R$ ${#numbers.formatDecimal(r.excedente,1,'POINT',2,'COMMA')}.|"></p>
+<a th:href="@{/custos-loja/{id}(id=${r.custo.id})}">Ver peças e valores aplicados</a>
+</article></section>
+</main></body></html>

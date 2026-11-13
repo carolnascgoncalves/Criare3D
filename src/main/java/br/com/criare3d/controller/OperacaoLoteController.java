@@ -28,7 +28,9 @@ public class OperacaoLoteController {
  @Autowired private CustoPersonalizadoRepository custos;
  @Autowired private CustoPersonalizadoService custoService;
  @Autowired private ItemPedidoRepository reservas;
- public record Material(String nome,BigDecimal gramas,BigDecimal saldo) {
+ public record Material(String nome,BigDecimal gramas,BigDecimal saldo,String cor,String codigoCor,BigDecimal custo) {
+  public Material(String nome,BigDecimal gramas,BigDecimal saldo) { this(nome,gramas,saldo,null,null,null); }
+  public String getCorSegura(){return codigoCor != null && codigoCor.matches("#[0-9a-fA-F]{6}") ? codigoCor : "#cccccc";}
   public boolean isInsuficiente(){return saldo!=null && saldo.compareTo(gramas)<0;}
   public BigDecimal getFalta(){return saldo==null?BigDecimal.ZERO:gramas.subtract(saldo).max(BigDecimal.ZERO);}
  }
@@ -38,10 +40,14 @@ public class OperacaoLoteController {
   if (c == null) return new ModelAndView("redirect:/vendas-estoque?erro=naoEncontrado");
   var materiais = new java.util.ArrayList<>(c.getItensFilamento().stream().map(i -> new Material(i.getNomeFilamento(),
    i.getQuantidadeFilamentoGramas().add(i.getPurgaGramas() == null ? BigDecimal.ZERO : i.getPurgaGramas()).multiply(BigDecimal.valueOf(c.getUnidades())),
-   i.getFilamento() == null ? null : i.getFilamento().getEstoqueGramas())).toList());
+   i.getFilamento() == null ? null : i.getFilamento().getEstoqueGramas(),
+   i.getCorFilamento(),i.getCodigoCor(),i.getCustoFilamento().multiply(BigDecimal.valueOf(c.getUnidades())))).toList());
   if (materiais.isEmpty()) materiais.add(new Material(c.getNomeFilamento(),
       c.getQuantidadeFilamentoGramas().multiply(BigDecimal.valueOf(c.getUnidades())),
-      c.getFilamento() == null ? null : c.getFilamento().getEstoqueGramas()));
+      c.getFilamento() == null ? null : c.getFilamento().getEstoqueGramas(),
+      c.getFilamento() == null ? null : c.getFilamento().getCor(),
+      c.getFilamento() == null ? null : c.getFilamento().getCodigoCor(),c.getCustoFilamento().multiply(BigDecimal.valueOf(c.getUnidades()))));
+  c.getRateiosCustos().size();
   var perdas = falhas.findByCalculo_IdOrderByDataRegistroDesc(id);
   var custosExtras = custos.findByCalculo_IdOrderByDataRegistroDesc(id);
   var totalExtras = custosExtras.stream().filter(custo -> !custo.isCancelado()).map(custo -> custo.getValor()).reduce(BigDecimal.ZERO,BigDecimal::add)

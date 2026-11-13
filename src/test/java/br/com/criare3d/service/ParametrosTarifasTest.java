@@ -27,4 +27,9 @@ class ParametrosTarifasTest {
             assertThatIllegalArgumentException().isThrownBy(() -> new ParametrosTarifas(defaults, overrides));
         }
     }
+    @Test void freteForaDaTabelaPossuiErroEspecifico() {
+        assertThatThrownBy(() -> TabelaTarifasPlataforma.freteMercadoLivre(
+                "ATE_300G", new java.math.BigDecimal("99999999")))
+                .isInstanceOf(FreteManualNecessarioException.class);
+    }
 }

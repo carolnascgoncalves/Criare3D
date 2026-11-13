@@ -26,6 +26,15 @@ public class TratamentoErroGlobal {
         return "erro";
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public Object arquivoGrande(HttpServletRequest request, Model model) {
+        String mensagem = "O arquivo ultrapassa o limite de envio de 100 MB.";
+        if (request.getServletPath().equals("/calculo-rapido/analisar-arquivo"))
+            return ResponseEntity.status(413).body(java.util.Map.of("erro", mensagem));
+        model.addAttribute("codigo", 413); model.addAttribute("mensagem", mensagem);
+        return new org.springframework.web.servlet.ModelAndView("erro", model.asMap(), HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String requisicaoInvalida(IllegalArgumentException erro, Model model) {

@@ -23,17 +23,40 @@ public final class MotorCalculo {
             Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
             Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo) {
 
+        return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
+                embalagemSelecionada, manutencaoPorHora, dataCalculo, List.of());
+    }
+    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
+            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+            List<CustoLoja> custosLoja) {
+        return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
+                embalagemSelecionada, manutencaoPorHora, dataCalculo, custosLoja, false);
+    }
+    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
+            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+            List<CustoLoja> custosLoja, boolean tempoPorPlaca) {
+        return calcular(request,peca,impressora,configuracao,filamentosCadastrados,embalagemSelecionada,
+                manutencaoPorHora,dataCalculo,custosLoja,tempoPorPlaca,0);
+    }
+    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
+            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+            List<CustoLoja> custosLoja, boolean tempoPorPlaca, int placasConsulta) {
         CalculoValidador.validar(request, peca, impressora, configuracao);
         int unidades = request.getUnidades();
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
-        int fornadas = ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
+        int fornadas = placasConsulta > 0 ? placasConsulta : ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null
                 ? 0 : impressora.getTempoAquecimentoMinutos();
         long minutosMaquinaLote;
         try {
-            minutosMaquinaLote = ModeloImpressao.minutosTotais(
-                    request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos,
-                    unidades, pecasPorImpressao);
+            minutosMaquinaLote = placasConsulta > 0
+                    ? Math.addExact(request.getTempoImpressaoMinutos(), Math.multiplyExact((long)tempoAquecimentoMinutos, fornadas))
+                    : tempoPorPlaca
+                    ? ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas)
+                    : ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, unidades, pecasPorImpressao);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException("O tempo total de impressão ultrapassa o limite permitido.");
         }
@@ -219,7 +242,9 @@ public final class MotorCalculo {
                 new MontadorHistorico.DadosLote(quantidadeFilamentoTotal, purgaGramasLote, minutosMaquinaLote,
                         manutencaoPorHora, tempoTrabalhoMinutos, nomeEmbalagem, custoEmbalagem, dataCalculo));
 
-        calculoPlataformaService.calcularVendaPlataforma(request, historico, precoSugerido, configuracao);
+        if (placasConsulta > 0) historico.setFornadas(placasConsulta);
+        if (!custosLoja.isEmpty()) RateioCustos.aplicar(historico, custosLoja);
+        calculoPlataformaService.calcularVendaPlataforma(request, historico, historico.getPrecoSugerido(), configuracao);
 
         return historico;
         }

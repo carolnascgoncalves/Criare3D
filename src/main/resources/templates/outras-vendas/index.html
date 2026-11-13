@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Outras vendas')}"></head><body>
+<nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina pagina-outras-vendas">
+<section class="pagina-intro"><div><span class="texto-apoio">COMERCIAL</span><h1>Outras vendas</h1><p>Produtos da loja que não são impressões 3D, como luzes de LED e acessórios.</p></div><a class="botao botao-secundario" th:href="@{/dashboard}">Ver dashboard</a></section>
+<div th:if="${mensagemErro}" class="alerta-erro" role="alert" th:text="${mensagemErro}"></div>
+<div th:if="${mensagemSucesso}" class="alerta-sucesso" role="status" th:text="${mensagemSucesso}"></div>
+<div th:if="${param.produtoSalvo}" class="alerta-sucesso" role="status">Produto salvo. Os valores das vendas anteriores foram preservados.</div>
+<div class="outras-vendas-formularios">
+<section class="cartao formulario-conteudo"><h2 th:text="${produtoFormulario.id == null ? 'Cadastrar produto' : 'Editar produto'}"></h2>
+<p>O preço e o custo cadastrados serão usados nas próximas vendas.</p>
+<form method="post" th:action="@{/outras-vendas/produto}">
+<input type="hidden" name="id" th:value="${produtoFormulario.id}">
+<div th:if="${erros != null}" class="alerta-erro" role="alert"><p th:each="e : ${erros}" th:text="${e}"></p></div>
+<div class="campo"><label for="produtoNome">Nome do produto</label><input id="produtoNome" name="nome" minlength="2" maxlength="150" required placeholder="Ex.: Luz de LED" th:value="${produtoFormulario.nome}"></div>
+<div class="campo"><label for="produtoPreco">Preço de venda por unidade (R$)</label><input id="produtoPreco" name="preco" type="number" min="0" max="99999999.99" step="0.01" required th:value="${produtoFormulario.preco}"></div>
+<div class="campo"><label for="produtoCusto">Custo gasto por produto (R$, opcional)</label><input id="produtoCusto" name="custo" type="number" min="0" max="99999999.99" step="0.01" th:value="${produtoFormulario.custo}"><small>Sem custo informado, não será possível calcular o lucro. Lucro = preço de venda − custo do produto − embalagem.</small></div>
+<div class="operacao-acoes"><button class="botao botao-principal">Salvar produto</button><a th:if="${produtoFormulario.id != null}" class="botao botao-secundario" th:href="@{/outras-vendas}">Cancelar edição</a></div>
+</form></section>
+<section class="cartao formulario-conteudo"><h2>Registrar venda</h2><p>Estas vendas não consomem filamento nem alteram a produção 3D.</p>
+<p th:if="${#lists.isEmpty(opcoes)}">Cadastre ou reative um produto para começar.</p>
+<form data-venda-produto-form th:unless="${#lists.isEmpty(opcoes)}" method="post" th:action="@{/outras-vendas/vender}">
+<div class="campo"><label for="vendaProduto">Produto</label><select id="vendaProduto" name="produtoId" required><option value="">Selecione</option><option th:each="p : ${opcoes}" th:value="${p.id}" th:text="|${p.nome} · R$ ${#numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}|"></option></select></div>
+<div class="campo"><label for="vendaQuantidade">Unidades vendidas</label><input id="vendaQuantidade" name="quantidade" type="number" min="1" max="10000" value="1" required></div>
+<div class="campo"><label for="vendaData">Data da venda</label><input id="vendaData" name="data" type="date" th:value="${hoje}" th:max="${hoje}" required></div>
+<fieldset class="outra-venda-embalagem"><legend>Embalagem da venda</legend>
+<div class="campo"><label for="vendaTipoEmbalagem">Como deseja informar?</label><select id="vendaTipoEmbalagem" name="tipoEmbalagem" data-venda-embalagem-tipo><option value="SEM">Sem embalagem</option><option value="CADASTRADA">Usar embalagem cadastrada</option><option value="PERSONALIZADA">Informar valor personalizado</option></select></div>
+<div class="campo" data-venda-embalagem-cadastro><label for="vendaEmbalagem">Embalagem cadastrada</label><select id="vendaEmbalagem" name="embalagemId"><option value="">Selecione</option><option th:each="e : ${embalagens}" th:value="${e.id}" th:text="|${e.nome} · R$ ${#numbers.formatDecimal(e.custoUnitario,1,'POINT',2,'COMMA')} por unidade|"></option></select></div>
+<div class="campo" data-venda-embalagem-valor><label for="vendaValorEmbalagem">Custo da embalagem por unidade vendida (R$)</label><input id="vendaValorEmbalagem" name="valorEmbalagem" type="number" min="0" max="99999999.99" step="0.01"></div>
+<small>O custo da embalagem é multiplicado pelas unidades vendidas e descontado do lucro. O preço cobrado do cliente continua sendo o preço de venda informado.</small>
+</fieldset>
+<details><summary>Usar preço ou custo diferente nesta venda</summary><p>Deixe em branco para usar os valores cadastrados no produto.</p><div class="campo"><label for="vendaPreco">Preço por unidade (R$)</label><input id="vendaPreco" name="preco" type="number" min="0" max="99999999.99" step="0.01"></div><div class="campo"><label for="vendaCusto">Custo gasto por produto (R$, opcional)</label><input id="vendaCusto" name="custo" type="number" min="0" max="99999999.99" step="0.01"></div></details>
+<button class="botao botao-principal">Registrar venda</button>
+</form></section>
+</div>
+<section class="cartao formulario-conteudo"><h2>Produtos da loja</h2><p th:if="${produtos.empty}">Nenhum produto cadastrado.</p>
+<div class="custo-loja-tabela" th:unless="${produtos.empty}"><table><thead><tr><th>Produto</th><th>Preço</th><th>Custo</th><th>Estado</th><th>Ações</th></tr></thead><tbody><tr th:each="p : ${produtos.content}"><td th:text="${p.nome}"></td><td th:text="|R$ ${#numbers.formatDecimal(p.preco,1,'POINT',2,'COMMA')}|"></td><td th:text="${p.custo == null ? 'Não informado' : 'R$ ' + #numbers.formatDecimal(p.custo,1,'POINT',2,'COMMA')}"></td><td th:text="${p.arquivado ? 'Arquivado' : 'Ativo'}"></td><td><div class="operacao-acoes"><a class="botao botao-secundario" th:href="@{/outras-vendas(editar=${p.id},paginaProdutos=${produtos.number},paginaVendas=${vendas.number})}">Editar</a><form method="post" th:action="@{/outras-vendas/produto/{id}/estado(id=${p.id})}"><input name="arquivado" type="hidden" th:value="${!p.arquivado}"><button class="botao botao-secundario" th:text="${p.arquivado ? 'Reativar' : 'Arquivar'}"></button></form></div></td></tr></tbody></table></div>
+<div class="operacao-acoes"><a th:if="${produtos.hasPrevious()}" th:href="@{/outras-vendas(paginaProdutos=${produtos.number - 1},paginaVendas=${vendas.number})}">Produtos anteriores</a><a th:if="${produtos.hasNext()}" th:href="@{/outras-vendas(paginaProdutos=${produtos.number + 1},paginaVendas=${vendas.number})}">Próximos produtos</a></div>
+</section>
+<section class="cartao formulario-conteudo"><h2>Vendas registradas</h2><p>Valores das unidades ativas, já descontando cancelamentos. Categoria: Outros produtos (não 3D).</p><p th:if="${vendas.empty}">Nenhuma venda registrada.</p>
+<article class="outra-venda-registro" th:each="v : ${vendas.content}">
+<header class="outra-venda-cabecalho">
+    <span class="outra-venda-icone"><i class="bi bi-bag-check" aria-hidden="true"></i></span>
+    <div class="outra-venda-identificacao"><h3 th:text="${v.nomeProduto}"></h3><span><i class="bi bi-calendar3" aria-hidden="true"></i> <time th:text="${#temporals.format(v.dataVenda,'dd/MM/yyyy')}"></time></span></div>
+    <div class="outra-venda-estado"><span class="outra-venda-etiqueta" th:classappend="${v.ativas == 0 ? ' cancelada' : ''}" th:text="${v.ativas == 0 ? 'Cancelada' : v.ativas + (v.ativas == 1 ? ' unidade ativa' : ' unidades ativas')}"></span><small th:if="${v.canceladas > 0}" th:text="|${v.canceladas} cancelada(s)|"></small></div>
+</header>
+<div class="outra-venda-valores">
+    <div><span>Preço unitário</span><strong th:text="|R$ ${#numbers.formatDecimal(v.precoUnitario,1,'POINT',2,'COMMA')}|"></strong></div>
+    <div><span>Receita da venda</span><strong th:text="|R$ ${#numbers.formatDecimal(v.receita,1,'POINT',2,'COMMA')}|"></strong></div>
+    <div><span>Lucro da venda</span><strong th:text="${v.lucro == null ? 'Não calculado' : 'R$ ' + #numbers.formatDecimal(v.lucro,1,'POINT',2,'COMMA')}"></strong></div>
+</div>
+<small class="outra-venda-aviso-custo" th:if="${v.lucro == null}"><i class="bi bi-info-circle" aria-hidden="true"></i> Custo não informado: lucro não calculado.</small>
+<footer class="outra-venda-rodape">
+    <details class="outra-venda-custos"><summary><i class="bi bi-receipt" aria-hidden="true"></i> Detalhes dos custos</summary>
+        <dl><div><dt>Custo gasto por produto</dt><dd th:text="${v.custoUnitario == null ? 'Não informado' : 'R$ ' + #numbers.formatDecimal(v.custoUnitario,1,'POINT',2,'COMMA') + ' por unidade'}"></dd></div>
+        <div><dt>Embalagem</dt><dd th:text="${v.tipoEmbalagem.name() == 'SEM' ? 'Sem embalagem' : v.nomeEmbalagem}"></dd></div>
+        <div th:if="${v.tipoEmbalagem.name() != 'SEM'}"><dt>Custo da embalagem</dt><dd th:text="|R$ ${#numbers.formatDecimal(v.custoEmbalagem,1,'POINT',2,'COMMA')} por unidade|"></dd></div>
+        <div th:if="${v.tipoEmbalagem.name() != 'SEM'}"><dt>Embalagem nas unidades ativas</dt><dd th:text="|R$ ${#numbers.formatDecimal(v.custoEmbalagem * v.ativas,1,'POINT',2,'COMMA')}|"></dd></div></dl>
+    </details>
+    <details class="outra-venda-cancelamento" th:if="${v.ativas > 0}"><summary><i class="bi bi-x-circle" aria-hidden="true"></i> Cancelar unidades</summary><form method="post" th:action="@{/outras-vendas/venda/{id}/cancelar(id=${v.id})}" data-turbo-confirm="Cancelar estas unidades e atualizar a dashboard?"><div class="campo"><label th:for="|cancelar-outra-${v.id}|">Quantidade a cancelar</label><input th:id="|cancelar-outra-${v.id}|" name="quantidade" type="number" min="1" th:max="${v.ativas}" value="1" required></div><button class="botao botao-secundario">Confirmar cancelamento</button></form></details>
+</footer>
+</article>
+<div class="operacao-acoes"><a th:if="${vendas.hasPrevious()}" th:href="@{/outras-vendas(paginaProdutos=${produtos.number},paginaVendas=${vendas.number - 1})}">Vendas anteriores</a><a th:if="${vendas.hasNext()}" th:href="@{/outras-vendas(paginaProdutos=${produtos.number},paginaVendas=${vendas.number + 1})}">Próximas vendas</a></div>
+</section></main></body></html>

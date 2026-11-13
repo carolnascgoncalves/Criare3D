@@ -20,7 +20,7 @@
     <link th:if="${paginaAtiva == 'simulacao' or paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
-    <meta name="turbo-cache-control" content="no-preview">
+    <meta name="turbo-cache-control" th:content="${paginaAtiva == 'calculo-rapido' ? 'no-cache' : 'no-preview'}" content="no-preview">
 
     <!-- Token CSRF também no cabeçalho das requisições do Turbo -->
     <meta name="csrf-token" th:content="${_csrf.token}">
@@ -58,6 +58,9 @@
     <script th:src="@{/js/ordenacaoListagem.js}" defer></script>
     <script th:src="@{/js/clientes.js}" defer></script>
     <script th:src="@{/js/planejamentoProducao.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo-rapido'}" th:src="@{/js/calculoRapido.js}" defer></script>
+    <script th:if="${paginaAtiva == 'outras-vendas'}" th:src="@{/js/outrasVendas.js}" defer></script>
+    <script th:if="${paginaAtiva == 'custos-loja'}" th:src="@{/js/custosLoja.js}" defer></script>
 </head>
 
 <body>
@@ -92,13 +95,29 @@
             <a th:href="@{/embalagem/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'embalagens' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'embalagens' ? 'page' : null}" title="Embalagens"><i class="bi bi-box-seam" aria-hidden="true"></i><span>Embalagens</span></a>
         </section>
 
-        <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Operação">
-            <span class="menu-lateral-titulo">Operação</span>
+        <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Cálculos">
+            <span class="menu-lateral-titulo">Cálculos</span>
+            <a th:href="@{/calculo-rapido}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'calculo-rapido' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'calculo-rapido' ? 'page' : null}" title="Cálculo rápido"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span>Cálculo rápido</span></a>
+            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Cálculos salvos</span></a>
+        </section>
+
+        <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Comercial">
+            <span class="menu-lateral-titulo">Comercial</span>
             <a th:href="@{/orcamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'orcamentos' ? ' menu-link-ativo' : ''}" title="Orçamentos e pedidos"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>Orçamentos e pedidos</span></a>
+            <a th:href="@{/vendas-estoque}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}" title="Vendas e estoque"><i class="bi bi-boxes" aria-hidden="true"></i><span>Vendas e estoque</span></a>
+            <a th:href="@{/outras-vendas}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'outras-vendas' ? ' menu-link-ativo' : ''}" title="Outras vendas"><i class="bi bi-shop" aria-hidden="true"></i><span>Outras vendas</span></a>
+        </section>
+
+        <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Produção">
+            <span class="menu-lateral-titulo">Produção</span>
             <a th:href="@{/simulacao}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'simulacao' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'simulacao' ? 'page' : null}" title="Simulação"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Simulação</span></a>
             <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Fila de produção</span></a>
-            <a th:href="@{/vendas-estoque}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}" title="Vendas e estoque"><i class="bi bi-boxes" aria-hidden="true"></i><span>Vendas e estoque</span></a>
-            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Cálculos salvos</span></a>
+        </section>
+
+        <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Gestão">
+            <span class="menu-lateral-titulo">Gestão</span>
+            <a th:href="@{/custos-loja}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'custos-loja' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'custos-loja' ? 'page' : null}" title="Custos da loja"><i class="bi bi-receipt" aria-hidden="true"></i><span>Custos da loja</span></a>
+            <a th:href="@{/configuracao}" class="menu-link menu-lateral-link menu-configuracoes" th:classappend="${paginaAtiva == 'configuracao' ? ' menu-link-ativo' : ''}" title="Configurações"><i class="bi bi-gear" aria-hidden="true"></i><span>Configurações</span></a>
         </section>
 
         <section class="menu-lateral-grupo" sec:authorize="hasRole('ADMIN')" aria-label="Administração">
@@ -108,7 +127,6 @@
     </div>
 
     <div class="menu-lateral-rodape">
-        <a th:href="@{/configuracao}" class="menu-link menu-lateral-link menu-configuracoes" th:classappend="${paginaAtiva == 'configuracao' ? ' menu-link-ativo' : ''}" title="Configurações"><i class="bi bi-gear" aria-hidden="true"></i><span>Configurações</span></a>
         <details class="menu-usuario">
             <summary class="menu-usuario-botao" aria-label="Abrir opções da conta" title="Minha conta"><i class="bi bi-person-circle" aria-hidden="true"></i><span>Minha conta</span></summary>
             <div class="menu-usuario-painel">

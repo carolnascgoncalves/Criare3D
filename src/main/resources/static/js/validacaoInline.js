@@ -140,6 +140,10 @@
     document.addEventListener('turbo:before-cache', () => pendencias.clear());
     document.addEventListener('DOMContentLoaded', inicializar);
     document.addEventListener('turbo:load', inicializar);
-    window.validacaoInline = { validar, limpar, destacar, focar: campo => visual(campo).focus() };
+    window.validacaoInline = { validar, limpar, destacar, limparFormulario: form => {
+        [...pendencias.keys()].filter(campo => campo.form === form).forEach(campo => limpar(campo));
+        form.querySelectorAll('input,select,textarea').forEach(campo => { limpar(campo); delete campo.dataset.erroServidor; });
+        form.querySelector('[data-campos-pendentes]')?.remove();
+    }, focar: campo => visual(campo).focus() };
     if (document.readyState !== 'loading') inicializar();
 })();

@@ -9,7 +9,7 @@
         <div>
             <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
             <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
-            <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
+            <p>Acompanhe impressões 3D e outras vendas da loja em um só lugar. Os indicadores podem levar até 30 segundos para refletir alterações.</p>
             <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> O resultado usa preço e taxas registrados em cada venda; campos não informados e custos de produção continuam estimados. Produções antigas sem data não entram nos totais de produção por período.</small>
         </div>
         <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período da dashboard">
@@ -23,12 +23,12 @@
         <article class="dashboard-indicador dashboard-indicador-destaque">
             <span>Lucro líquido estimado</span>
             <strong th:text="|R$ ${#numbers.formatDecimal(lucroVendido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
-            <small>Das peças marcadas como vendidas</small>
+            <small>Impressões 3D e outras vendas com custo informado</small>
         </article>
         <article class="dashboard-indicador">
             <span>Lucro estimado por hora</span>
             <strong th:text="|R$ ${#numbers.formatDecimal(lucroPorHora, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
-            <small>Lucro das vendas ÷ horas dessas peças</small>
+            <small>Somente vendas de impressões 3D ÷ horas dessas peças</small>
         </article>
         <article class="dashboard-indicador">
             <span>Horas imprimindo</span>
@@ -42,6 +42,12 @@
         </article>
     </section>
 
+    <section class="dashboard-indicadores" aria-label="Outras vendas no período">
+        <article class="dashboard-indicador"><span>Vendas da loja</span><strong th:text="${totalVendasLoja}"></strong><small>Unidades vendidas: impressões 3D e outros produtos</small></article>
+        <article class="dashboard-indicador"><span>Outros produtos · receita</span><strong th:text="|R$ ${#numbers.formatDecimal(receitaOutrosProdutos,1,'POINT',2,'COMMA')}|"></strong><small th:text="|${unidadesOutrosProdutos} unidades vendidas no período|"></small></article>
+        <article class="dashboard-indicador"><span>Outros produtos · lucro</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroOutrosProdutos,1,'POINT',2,'COMMA')}|"></strong><small>Vendas com custo informado, descontando cancelamentos</small></article>
+        <article class="dashboard-indicador"><span>Outras vendas</span><a class="botao botao-secundario" th:href="@{/outras-vendas}">Gerenciar produtos e vendas</a><small th:if="${unidadesOutrosSemCusto > 0}" th:text="|${unidadesOutrosSemCusto} unidades sem custo informado: lucro não calculado.|"></small></article>
+    </section>
     <section class="dashboard-cadastros-resumo" aria-label="Resumo dos cadastros">
         <a th:href="@{/peca/listar}"><i class="bi bi-box" aria-hidden="true"></i><span><small>Peças</small><strong th:text="${totalPecas}">0</strong></span></a>
         <a th:href="@{/filamento/listar}"><i class="bi bi-circle-half" aria-hidden="true"></i><span><small>Filamentos</small><strong th:text="${totalFilamentos}">0</strong></span></a>
@@ -57,13 +63,13 @@
                         th:text="${textoVariacaoLucro}">0% vs período anterior</strong>
             </div>
             <div class="dashboard-grafico-linha">
-                <canvas id="graficoLucroMensal" role="img" aria-label="Lucro líquido estimado das peças vendidas no período selecionado">Gráfico de lucro líquido estimado no período.</canvas>
+                <canvas id="graficoLucroMensal" role="img" aria-label="Lucro das impressões 3D e outras vendas no período">Gráfico de lucro líquido estimado no período.</canvas>
             </div>
         </article>
 
         <article class="dashboard-bloco dashboard-vendas-plataforma">
             <div class="dashboard-bloco-titulo">
-                <div><h2>Vendas por plataforma</h2><p>Lucro estimado por canal, incluindo vendas sem plataforma</p></div>
+                <div><h2>Vendas 3D por plataforma</h2><p>Lucro das impressões 3D por canal, incluindo vendas sem plataforma</p></div>
             </div>
             <div class="dashboard-grafico-rosca-wrap" th:if="${vendasPlataformas > 0}">
                 <canvas id="graficoPlataformas" role="img" aria-label="Lucro líquido por plataforma de venda"></canvas>
@@ -84,17 +90,17 @@
 
     <section class="dashboard-grade dashboard-grade-producao">
         <article class="dashboard-bloco dashboard-fluxo-bloco">
-            <div class="dashboard-bloco-titulo"><div><h2>Fluxo de produção</h2><p>Do cálculo até a venda</p></div></div>
+            <div class="dashboard-bloco-titulo"><div><h2>Fluxo de produção</h2><p>Somente impressões 3D · situação atual dos cálculos criados no período</p></div></div>
             <div class="dashboard-etapas">
-                <div class="dashboard-etapa-calculado"><strong th:text="${totalCalculos}">0</strong><span>Calculados</span></div>
-                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${percentualProduzido}%|">0%</span></div>
-                <div class="dashboard-etapa-produzido"><strong th:text="${totalProduzidos}">0</strong><span>Produzidos</span></div>
-                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${percentualVendidoProduzido}%|">0%</span></div>
-                <div class="dashboard-etapa-vendido"><strong th:text="${totalVendidos}">0</strong><span>Vendidos</span></div>
+                <div class="dashboard-etapa-calculado"><strong th:text="${fluxoCalculados}">0</strong><span>Calculados</span></div>
+                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${fluxoPercentualProduzido}%|">0%</span></div>
+                <div class="dashboard-etapa-produzido"><strong th:text="${fluxoProduzidos}">0</strong><span>Produzidos</span></div>
+                <div class="dashboard-etapa-percentual"><i class="bi bi-arrow-right" aria-hidden="true"></i><span th:text="|${fluxoPercentualVendido}%|">0%</span></div>
+                <div class="dashboard-etapa-vendido"><strong th:text="${fluxoVendidos}">0</strong><span>Vendidos</span></div>
             </div>
-            <div class="dashboard-fluxo-legenda" th:if="${aguardandoVenda > 0}">
+            <div class="dashboard-fluxo-legenda" th:if="${fluxoAguardandoVenda > 0}">
                 <i class="bi bi-info-circle" aria-hidden="true"></i>
-                <span th:text="|${aguardandoVenda} produzidas ainda sem venda|">0 produzidas ainda sem venda</span>
+                <span th:text="|${fluxoAguardandoVenda} produzidas ainda sem venda|">0 produzidas ainda sem venda</span>
             </div>
         </article>
 

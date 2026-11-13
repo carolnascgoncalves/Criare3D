@@ -166,6 +166,14 @@ public class CalculoHistorico {
     @Column(name = "custoEmb_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoEmbalagem;
 
+    @Column(name = "custo_loja_hist", nullable=false, precision=16, scale=8)
+    @Builder.Default
+    private @Getter @Setter BigDecimal custoLoja = BigDecimal.ZERO;
+
+    @OneToMany(mappedBy="calculo", cascade=CascadeType.ALL, orphanRemoval=true)
+    @Builder.Default
+    private @Getter @Setter List<RateioCustoHistorico> rateiosCustos = new ArrayList<>();
+
     @NotNull(message = "O custo total é obrigatório")
     @Column(name = "custoTotal_hist", nullable = false, precision = 16, scale = 8)
     private @Getter @Setter BigDecimal custoTotal;

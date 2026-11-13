@@ -68,4 +68,42 @@ class OperacaoTemplatesTest {
         assertThat(renderizar("catalogo/arquivados",Map.of("itens",List.of(new ArquivoCatalogoController.Item(UUID.randomUUID(),"Peça arquivada","peca")),"page",0,"mais",false)))
                 .contains("Peça arquivada","Restaurar");
     }
+
+    @Test void novasTelasRenderizamRateioEConsulta() {
+        var c=new CustoLoja();c.setId(UUID.randomUUID());c.setDescricao("Despesas novembro");c.setInicio(java.time.LocalDate.of(2026,11,1));c.setMeta(new BigDecimal("1500"));c.setTipo(CustoLoja.Tipo.VALOR_UNIDADE);c.setValor(new BigDecimal("5"));
+        var form=new CustoLojaController.Formulario();form.setInicio(c.getInicio());
+        var r=new CustoLojaController.Resumo(c,new BigDecimal("50"),new BigDecimal("1450"),BigDecimal.ZERO);
+        assertThat(renderizar("custos-loja/index",Map.of("custo",form,"resumos",List.of(r)))).contains("1.450,00","50,00","Pausar aplicação");
+        var rateio=new RateioCustoHistorico();rateio.setCustoLoja(c);rateio.setCalculo(lote(true));rateio.setValorUnitario(new BigDecimal("5"));
+        assertThat(renderizar("custos-loja/detalhes",Map.of("custo",c,"recuperado",new BigDecimal("50"),"restante",new BigDecimal("1450"),"itens",List.of(rateio),"page",0,"mais",false))).contains("Peça exemplo","5,00");
+        var config=br.com.criare3d.service.ConfiguracaoPadrao.criar();
+        assertThat(renderizar("calculo-rapido/index",Map.of("configuracao",config,"filamentos",List.of(),"impressoras",List.of(),"embalagens",List.of()))).contains("Cálculo rápido","data-rapido-form","sem cadastrar a peça");
+    }
+    @Test void loteIdentificaCorEExibeCustoDoLoteEUnidade() {
+        var dados=new HashMap<String,Object>();dados.put("lote",lote(false));dados.put("materiais",List.of(new OperacaoLoteController.Material("PLA",BigDecimal.TEN,BigDecimal.TEN,"Vermelho","#ff0000",new BigDecimal("3"))));
+        dados.put("vendas",List.of());dados.put("falhas",List.of());dados.put("filamentos",List.of());dados.put("perdaMaterial",BigDecimal.ZERO);dados.put("estimadoVendas",BigDecimal.ZERO);dados.put("resultadoVendas",BigDecimal.ZERO);
+        assertThat(renderizar("vendas-estoque/lote",dados)).contains("Vermelho","#ff0000","R$ 15,00 no lote","R$ 5,00 por unidade");
+    }
+
+    @Test void outrasVendasMostramProdutoPrecoECancelamento() {
+        var p=new ProdutoLoja();p.setId(UUID.randomUUID());p.setNome("Luz de LED");p.setPreco(new BigDecimal("2.50"));
+        var v=new VendaProdutoLoja();v.setId(UUID.randomUUID());v.setNomeProduto(p.getNome());v.setProduto(p);v.setQuantidade(2);v.setPrecoUnitario(p.getPreco());v.setDataVenda(LocalDateTime.now());
+        var paginaProdutos=new PageImpl<>(List.of(p));var paginaVendas=new PageImpl<>(List.of(v));
+        var html=renderizar("outras-vendas/index",Map.of("produtoFormulario",new OutrasVendasController.ProdutoFormulario(),"produtos",paginaProdutos,"vendas",paginaVendas,"opcoes",List.of(p),"hoje",java.time.LocalDate.now()));
+        assertThat(html).contains("Luz de LED","2,50","5,00","lucro não calculado","Cancelar unidades");
+    }
+
+    @Test void dashboardRenderizaIndicadoresDeOutrasVendas() {
+        var historicos=org.mockito.Mockito.mock(br.com.criare3d.repository.CalculoHistoricoRepository.class);
+        var base=org.mockito.Mockito.mock(br.com.criare3d.service.DashboardService.class);
+        var usuario=org.mockito.Mockito.mock(br.com.criare3d.service.UsuarioLogadoService.class);
+        org.mockito.Mockito.when(usuario.buscarTenantIdAtual()).thenReturn(UUID.randomUUID());
+        org.mockito.Mockito.when(base.resumir(org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any(),org.mockito.ArgumentMatchers.any())).thenReturn(new br.com.criare3d.dto.DashboardResumo(0,0,0,BigDecimal.ZERO,0,0,BigDecimal.ZERO));
+        var dados=new br.com.criare3d.service.DashboardDadosService(historicos,base,usuario,
+            org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.PecaService.class),
+            org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.FilamentoService.class),
+            org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.ImpressoraService.class),
+            org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.EmbalagemService.class));
+        assertThat(renderizar("dashboard/index",dados.buscar("30"))).contains("Outros produtos","Gerenciar produtos e vendas","Vendas 3D por plataforma");
+    }
 }

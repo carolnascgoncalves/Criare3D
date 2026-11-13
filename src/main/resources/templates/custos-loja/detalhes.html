@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos :: cabecalho('Acompanhamento dos custos')}"></head><body>
+<nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina">
+<section class="pagina-intro"><div><span class="texto-apoio">CUSTOS DA LOJA</span><h1 th:text="${custo.descricao}"></h1><p>Peças que receberam este rateio, com os valores preservados de cada cálculo.</p></div><a class="botao botao-secundario" th:href="@{/custos-loja}">Voltar</a></section>
+<div class="operacao-indicadores"><div><span>Meta</span><strong th:text="|R$ ${#numbers.formatDecimal(custo.meta,1,'POINT',2,'COMMA')}|"></strong></div><div><span>Recuperado nas vendas</span><strong th:text="|R$ ${#numbers.formatDecimal(recuperado,1,'POINT',2,'COMMA')}|"></strong></div><div><span>Falta cobrir</span><strong th:text="|R$ ${#numbers.formatDecimal(restante,1,'POINT',2,'COMMA')}|"></strong></div></div>
+<section class="cartao formulario-conteudo"><h2>Peças e lotes</h2><p>Apenas unidades vendidas contam como recuperadas. Cálculos rápidos não entram neste acompanhamento.</p>
+<p th:if="${#lists.isEmpty(itens)}">Nenhuma peça nesta página.</p>
+<div class="custo-loja-tabela"><table class="tabela"><thead><tr><th>Peça / cálculo</th><th>Rateio por unidade</th><th>Unidades no lote</th><th>Vendidas</th><th>Recuperado</th></tr></thead><tbody>
+<tr th:each="r : ${itens}"><td><a th:href="@{/vendas-estoque/lote/{id}(id=${r.calculo.id})}" th:text="${r.calculo.nomePeca}"></a><br><small th:text="${#temporals.format(r.calculo.dataCalculo,'dd/MM/yyyy HH:mm')}"></small></td><td th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario,1,'POINT',2,'COMMA')}|"></td><td th:text="${r.calculo.unidades}"></td><td th:text="${r.calculo.unidadesVendidas}"></td><td th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario * r.calculo.unidadesVendidas,1,'POINT',2,'COMMA')}|"></td></tr>
+</tbody></table></div>
+<div class="operacao-acoes"><a th:if="${page > 0}" th:href="@{/custos-loja/{id}(id=${custo.id},page=${page - 1})}">Anterior</a><a th:if="${mais}" th:href="@{/custos-loja/{id}(id=${custo.id},page=${page + 1})}">Próxima</a></div>
+</section></main></body></html>

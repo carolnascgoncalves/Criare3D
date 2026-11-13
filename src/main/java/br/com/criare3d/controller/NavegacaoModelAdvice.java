@@ -23,6 +23,9 @@ public class NavegacaoModelAdvice {
         String caminho = request.getServletPath();
         String pagina = "";
         if (caminho.equals("/") || caminho.equals("/home")) pagina = "inicio";
+        else if (caminho.startsWith("/calculo-rapido")) pagina = "calculo-rapido";
+        else if (caminho.startsWith("/outras-vendas")) pagina = "outras-vendas";
+        else if (caminho.startsWith("/custos-loja")) pagina = "custos-loja";
         else if (caminho.startsWith("/dashboard")) pagina = "dashboard";
         else if (caminho.startsWith("/orcamentos")) pagina = "orcamentos";
         else if (caminho.startsWith("/configuracao")) pagina = "configuracao";

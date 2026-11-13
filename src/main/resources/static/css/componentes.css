@@ -62,7 +62,8 @@
 @media print { .campos-pendentes, [data-reutilizar-peca] {display:none;} }
 
 /* Apresentação compartilhada de operações, planejamentos e arquivo. */
-.pagina-operacao h2, .planejamento-card h2, .arquivo-card form { margin-left:auto; }
+.pagina-operacao h2, .arquivo-card form { margin-left:auto; }
+.planejamento-card h2 { font-size:1.15rem; line-height:1.35; margin:4px 0 0; overflow-wrap:anywhere; }
 .arquivo-card h2 { font-size:1.15rem; line-height:1.35; margin:0 0 12px; overflow-wrap:anywhere; }
 .pagina-operacao .texto-apoio, .planejamento-card .texto-apoio { letter-spacing:normal; text-transform:none; font-size:.84rem; line-height:1.5; }
 .pagina-operacao .formulario-conteudo > form { margin-top:16px; }
@@ -73,7 +74,7 @@
 .operacao-indicadores strong { color:var(--marrom); font-size:1.3rem; overflow-wrap:anywhere; }
 .operacao-material { display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:12px 0; border-bottom:1px solid var(--borda); }
 .operacao-material > div { display:grid; gap:4px; min-width:0; }
-.operacao-material span { font-size:.8rem; color:var(--marrom-claro); }
+.operacao-material > div > span { font-size:.8rem; color:var(--marrom-claro); }
 .operacao-secao-titulo { display:flex; align-items:start; flex-wrap:wrap; justify-content:space-between; gap:16px; }
 .operacao-secao-titulo > strong { font-size:1.35rem; color:var(--marrom); }
 .operacao-custo-form { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr)); align-items:end; gap:12px; margin-bottom:20px; }
@@ -123,3 +124,128 @@
 .operacao-material-insuficiente{background:#fff0f0;border:1px solid #dfaaaa;border-left:4px solid #b73b3b;border-radius:10px;padding:12px;margin:8px 0;color:#862424}
 .operacao-material-insuficiente span{color:#862424}
 .operacao-material-falta{font-weight:600}
+
+/* Consulta provisória e acompanhamento dos custos da loja. */
+.filamento-amostra { display: inline-block; flex: 0 0 1rem; width: 1rem; height: 1rem; border: 1px solid var(--borda); border-radius: 50%; vertical-align: middle; }
+.operacao-filamento-nome { display: flex; align-items: center; flex-wrap: wrap; gap: .35rem; }
+.operacao-custo-producao { display: grid; gap: .25rem; text-align: right; }
+.operacao-custo-producao small { color: var(--marrom-claro); }
+.custo-loja-meta { padding: 1.5rem 0; border-top: 1px solid var(--borda); }
+.custo-loja-tabela { overflow-x: auto; }
+.custo-loja-tabela table { width: 100%; border-collapse: collapse; }
+.custo-loja-tabela th, .custo-loja-tabela td { padding: .85rem; text-align: left; border-bottom: 1px solid var(--borda); }
+.custo-loja-progresso { width: 100%; height: .8rem; accent-color: var(--marrom); margin-bottom: 1rem; }
+/* Cálculo rápido: cada etapa tem seu próprio espaço, sem alterar os formulários do catálogo. */
+.pagina-calculo-rapido > [data-rapido-form] { display: grid; gap: 24px; }
+.pagina-calculo-rapido .rapido-secao { padding: clamp(20px, 3vw, 32px); margin: 0 0 24px; }
+.pagina-calculo-rapido [data-rapido-form] .rapido-secao { margin: 0; }
+.rapido-secao-titulo { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 14px; margin-bottom: 26px; }
+.rapido-secao-titulo > div { flex: 1; min-width: min(220px, 100%); }
+.pagina-calculo-rapido .rapido-secao-titulo h2 { margin: 0 0 6px; font-size: 1.35rem; line-height: 1.35; }
+.rapido-secao-titulo p { margin: 0; color: var(--marrom-claro); line-height: 1.6; }
+.rapido-etapa { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 11px; background: var(--fundo-suave); color: var(--marrom); font-weight: 700; font-size: .8rem; }
+.rapido-form-grade { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 28px; row-gap: 24px; }
+.pagina-calculo-rapido .campo { margin: 0; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.pagina-calculo-rapido .campo input, .pagina-calculo-rapido .campo select { min-width: 0; width: 100%; margin: 0; min-height: 46px; }
+.pagina-calculo-rapido .campo small { color: var(--marrom-claro); line-height: 1.5; }
+.rapido-campo-largo { grid-column: 1 / -1; }
+.rapido-campo-lupa { display: flex; align-items: stretch; gap: 8px; }
+.rapido-campo-lupa input { flex: 1; }
+.rapido-campo-lupa .botao { min-width: 46px; padding: 0 12px; }
+.rapido-material { display: grid; grid-template-columns: minmax(0,2fr) minmax(140px,1fr) auto; align-items: end; gap: 18px; padding: 22px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie-suave); margin-bottom: 18px; }
+.pagina-calculo-rapido .rapido-material label { min-height: 22px; margin: 0; font-size: .9rem; line-height: 1.5; }
+.rapido-material-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rapido-material .botao { min-height: 46px; }
+.rapido-filamentos-rodape { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-top: 22px; }
+.rapido-filamentos-rodape > span { font-weight: 600; color: var(--marrom-claro); }
+.rapido-opcoes { margin: 28px 0; padding-top: 22px; border-top: 1px solid var(--borda); }
+.rapido-opcoes[open] > summary { margin-bottom: 20px; }
+.rapido-importacao-layout { display: grid; grid-template-columns: minmax(220px, .9fr) minmax(0,1.3fr); gap: 32px; margin-top: 24px; align-items: stretch; }
+.rapido-preview { align-self: start; margin: 0; padding: 16px; display: grid; gap: 14px; border: 1px solid var(--borda); border-radius: 14px; text-align: center; }
+.rapido-preview > img { width: 100%; height: 240px; object-fit: contain; }
+.rapido-preview figcaption { color: var(--marrom-claro); font-size: .85rem; line-height: 1.6; }
+.rapido-miniaturas { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.rapido-miniaturas button { position: relative; display: grid; place-items: center; width: 62px; height: 62px; padding: 5px; border: 1px solid var(--borda); border-radius: 10px; background: var(--superficie); color: var(--marrom); cursor: pointer; }
+.rapido-miniaturas button[aria-pressed="true"] { border-color: var(--marrom); outline: 2px solid var(--destaque); outline-offset: 2px; }
+.rapido-miniaturas img { width: 100%; height: 100%; object-fit: contain; }
+.rapido-miniaturas span { position: absolute; bottom: 2px; right: 3px; border-radius: 8px; padding: 0 4px; background: var(--marrom); color: var(--texto-sobre-primaria); font-size: .7rem; }
+.rapido-metadados { display: flex; flex-direction: column; min-width: 0; }
+.rapido-metadados h3 { margin: 0 0 20px; font-size: 1.05rem; }
+.rapido-metadados dl { display: grid; grid-template-columns: minmax(110px,.7fr) minmax(0,1fr); gap: 12px 20px; margin: 0 0 22px; }
+.rapido-metadados dt { font-weight: 500; color: var(--marrom-claro); font-size: .85rem; }
+.rapido-metadados dd { margin: 0; overflow-wrap: anywhere; font-size: .9rem; }
+.rapido-status { margin: 14px 0 0; line-height: 1.6; }
+.rapido-erro-importacao { margin-top: 18px; }
+.rapido-dialogo { width: min(760px, calc(100% - 32px)); max-height: 85dvh; overflow: auto; padding: 26px; border: 1px solid var(--borda); border-radius: 18px; background: var(--superficie); color: var(--marrom); }
+.rapido-dialogo::backdrop { background: rgb(0 0 0 / .35); }
+.rapido-dialogo > header { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+.rapido-dialogo h2 { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; margin: 0; }
+.rapido-placa-detalhe { border-top: 1px solid var(--borda); padding: 18px 0; }
+.rapido-placa-detalhe h3 { font-size: 1rem; margin: 0 0 8px; }
+.rapido-placa-detalhe p { margin: 6px 0; line-height: 1.5; }
+[data-calculo-rapido] [hidden], [data-custo-valor][hidden], [data-custo-unidades][hidden] { display: none; }
+@media (max-width: 760px) { .rapido-form-grade, .rapido-importacao-layout { grid-template-columns: minmax(0,1fr); } .rapido-material { grid-template-columns: minmax(0,1fr); padding: 18px; } .rapido-material .botao { justify-self: start; } .rapido-metadados dl { grid-template-columns: minmax(100px,.7fr) minmax(0,1fr); } }
+@media (max-width: 640px) { .operacao-custo-producao { text-align: left; } }
+
+.rapido-resumo-arquivo { margin: auto 0 0; padding-top: 22px; color: var(--marrom-claro); font-size: .85rem; line-height: 1.6; }
+.rapido-materiais-arquivo { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: start; gap: 14px 10px; padding-bottom: 18px; }
+.rapido-materiais-arquivo h4 { grid-column: 1 / -1; margin: 0 0 2px; font-size: .9rem; font-weight: 600; }
+.rapido-material-resumo { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: .9rem; }
+.rapido-placa-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rapido-material-consumo { grid-column: 1 / -1; color: var(--marrom-claro); font-size: .82rem; margin-top: -6px; }
+.rapido-resultado-indicadores { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; margin-bottom: 28px; }
+.rapido-resultado-indicadores > div { padding: 22px; border: 1px solid var(--borda); background: var(--fundo-suave); border-radius: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.rapido-resultado-indicadores span { font-size: .85rem; color: var(--marrom-claro); line-height: 1.5; }
+.rapido-resultado-indicadores strong { font-size: 1.5rem; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.rapido-resultado-indicadores small { font-size: .82rem; line-height: 1.6; color: var(--marrom-claro); }
+.rapido-composicao-titulo { font-size: 1rem; margin: 0 0 14px; }
+.rapido-custos-tabela { font-size: .9rem; }
+.rapido-custos-tabela th:not(:first-child), .rapido-custos-tabela td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+.rapido-custos-tabela th { color: var(--marrom-claro); font-size: .8rem; font-weight: 600; }
+@media (max-width: 760px) { .rapido-resultado-indicadores { grid-template-columns: minmax(0,1fr); } }
+
+@media (max-width: 1000px) { .rapido-materiais-arquivo { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 480px) { .rapido-materiais-arquivo { grid-template-columns: minmax(0,1fr); } }
+
+.outras-vendas-formularios { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin-bottom: 24px; }
+.pagina-outras-vendas .cartao { padding: 26px; }
+.pagina-outras-vendas h2 { font-size: 1.3rem; margin: 0 0 14px; }
+.pagina-outras-vendas .campo { margin: 20px 0; }
+.pagina-outras-vendas .campo small { display: block; margin-top: 8px; color: var(--marrom-claro); line-height: 1.6; }
+.pagina-outras-vendas details[open] > summary { margin-bottom: 16px; }
+.pagina-outras-vendas details { margin: 18px 0; }
+.outra-venda-registro { padding: 22px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie); margin-top: 18px; min-width: 0; }
+.outra-venda-registro h3 { font-size: 1.05rem; margin: 0 0 6px; overflow-wrap: anywhere; }
+
+@media (max-width:760px) { .outras-vendas-formularios { grid-template-columns: minmax(0,1fr); } }
+
+.outra-venda-embalagem { border: 1px solid var(--borda); border-radius: 12px; padding: 18px; margin: 24px 0; min-width: 0; }
+.outra-venda-embalagem legend { float: none; width: auto; padding: 0 6px; font-size: .95rem; font-weight: 600; }
+.outra-venda-embalagem small { color: var(--marrom-claro); line-height: 1.6; }
+.outra-venda-embalagem [hidden] { display: none; }
+
+.pagina-outras-vendas > .cartao + .cartao { margin-top: 28px; }
+.outra-venda-cabecalho { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.outra-venda-icone { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px; background: var(--fundo-suave); color: var(--marrom); font-size: 1.2rem; }
+.outra-venda-identificacao { min-width: 0; flex: 1; }
+.outra-venda-identificacao > span { color: var(--marrom-claro); font-size: .8rem; }
+.outra-venda-estado { display: grid; gap: 6px; justify-items: end; font-size: .8rem; }
+.outra-venda-estado small { color: var(--marrom-claro); }
+.outra-venda-etiqueta { padding: 6px 10px; border-radius: 8px; background: var(--fundo-sucesso); color: var(--cor-sucesso); font-weight: 600; }
+.outra-venda-etiqueta.cancelada { background: var(--fundo-suave); color: var(--marrom-claro); }
+.outra-venda-valores { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; background: var(--fundo-suave); padding: 18px; border-radius: 10px; }
+.outra-venda-valores > div { display: grid; gap: 8px; min-width: 0; }
+.outra-venda-valores span { font-size: .8rem; color: var(--marrom-claro); }
+.outra-venda-valores strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.outra-venda-aviso-custo { display: block; color: var(--marrom-claro); font-size: .8rem; line-height: 1.6; margin-top: 12px; }
+.outra-venda-rodape { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: 12px 28px; padding-top: 16px; }
+.pagina-outras-vendas .outra-venda-rodape details { margin: 0; font-size: .85rem; }
+.outra-venda-rodape summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; color: var(--marrom-claro); }
+.outra-venda-rodape summary::after { content: '+'; margin-left: 4px; }
+.outra-venda-rodape details[open] > summary::after { content: '−'; }
+.outra-venda-custos { flex: 1; min-width: min(240px,100%); }
+.outra-venda-custos dl { margin: 0; display: grid; gap: 12px; }
+.outra-venda-custos dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; }
+.outra-venda-custos dt { color: var(--marrom-claro); font-weight: 400; }
+.outra-venda-custos dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width:600px) { .outra-venda-cabecalho { flex-wrap: wrap; } .outra-venda-estado { justify-items: start; margin-left: 56px; } .outra-venda-valores { grid-template-columns: minmax(0,1fr); gap: 18px; } .outra-venda-registro { padding: 18px; } }

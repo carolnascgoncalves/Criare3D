@@ -1,13 +1,13 @@
 :root {
-    /* Paleta neutra provisória; concentre aqui a futura identidade da plataforma. */
-    --login-fundo: #f3f4f6;
+    /* Identidade cost3d, compartilhada pelas telas de acesso. */
+    --login-fundo: #F4EEE4;
     --login-superficie: #ffffff;
-    --login-texto: #202631;
-    --login-texto-suave: #687180;
-    --login-borda: #d9dee5;
-    --login-acao: #344256;
-    --login-acao-hover: #263345;
-    --login-foco: #7b8798;
+    --login-texto: #422329;
+    --login-texto-suave: #785E61;
+    --login-borda: #DFCFCC;
+    --login-acao: #86202D;
+    --login-acao-hover: #6D1824;
+    --login-foco: #86202D;
 }
 
 * {
@@ -27,13 +27,35 @@ body.login-pagina {
     font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.login-layout {
+    width: min(100%, 1040px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 6vw, 88px);
+}
+
+.login-marca { color: var(--login-acao); padding: 24px 0; }
+.login-identidade { margin-bottom: 40px; }
+.login-logo { display: block; width: min(100%, 390px); height: auto; }
+.login-logo[hidden], .login-icone-marca img[hidden] { display: none; }
+.login-logotipo { font-size: clamp(3rem, 7vw, 5rem); font-weight: 850; letter-spacing: -.065em; line-height: 1.2; }
+.login-logotipo > span { display: inline-block; margin-left: 5px; padding: 0 10px 5px; border-radius: 18px; color: var(--login-fundo); background: var(--login-acao); }
+.login-marca h2 { margin: 0 0 20px; font-size: clamp(1.8rem, 3.5vw, 2.7rem); line-height: 1.18; font-weight: 650; letter-spacing: -.04em; }
+.login-marca p { max-width: 380px; margin: 0; color: var(--login-texto-suave); font-size: 1.05rem; line-height: 1.7; }
+.login-marca-assinatura { display: block; margin-top: 48px; font-size: .8rem; font-weight: 600; letter-spacing: .04em; }
+.login-icone-marca { display: grid; place-items: center; width: 68px; height: 68px; margin-bottom: 24px; border-radius: 20px; background: var(--login-fundo); color: var(--login-acao); font-weight: 800; }
+.login-icone-marca img { display: block; width: 68px; height: 68px; object-fit: contain; }
+.login-ajuda a { color: var(--login-acao); text-underline-offset: 3px; }
+.login-ajuda a:focus-visible { outline: 2px solid var(--login-foco); outline-offset: 4px; }
+
 .login-cartao {
     width: min(100%, 420px);
     padding: 40px;
     background: var(--login-superficie);
     border: 1px solid var(--login-borda);
     border-radius: 16px;
-    box-shadow: 0 16px 48px rgb(32 38 49 / 8%);
+    box-shadow: 0 16px 48px rgb(134 32 45 / 8%);
 }
 
 .login-cabecalho {
@@ -105,10 +127,15 @@ body.login-pagina {
 .login-campo input:focus-visible {
     border-color: var(--login-foco);
     outline: 0;
-    box-shadow: 0 0 0 3px rgb(123 135 152 / 18%);
+    box-shadow: 0 0 0 3px rgb(134 32 45 / 15%);
 }
 
 .login-botao {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 18px;
+    text-decoration: none;
     min-height: 48px;
     margin-top: 4px;
     border: 0;
@@ -169,6 +196,16 @@ body.login-pagina {
 }
 
 .login-ajuda { margin: 16px 0 0; color: var(--login-texto-suave); font-size: .82rem; line-height: 1.5; text-align: center; }
+
+@media (max-width: 760px) {
+    .login-layout { max-width: 440px; grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .login-marca { padding: 8px 12px 0; text-align: center; }
+    .login-identidade { margin-bottom: 0; }
+    .login-logo { width: 220px; margin: 0 auto; }
+    .login-logotipo { font-size: 3rem; }
+    .login-marca h2, .login-marca p, .login-marca-assinatura { display: none; }
+    .login-layout .login-cartao { width: 100%; }
+}
 
 @media (max-width: 480px) {
     body.login-pagina {

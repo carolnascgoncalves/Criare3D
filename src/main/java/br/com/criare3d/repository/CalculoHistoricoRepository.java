@@ -23,6 +23,17 @@ import java.util.List;
 import java.math.BigDecimal;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
+    interface FluxoProducao {
+        Long getCalculadas(); Long getProduzidas(); Long getVendidas();
+    }
+    @Query("""
+        select coalesce(sum(h.unidades),0) as calculadas,
+          coalesce(sum(case when h.produzido=true then h.unidades else 0 end),0) as produzidas,
+          coalesce(sum(case when h.produzido=true then h.unidadesVendidas else 0 end),0) as vendidas
+        from CalculoHistorico h where h.dataCalculo>=:inicio and h.dataCalculo<:fim
+        """)
+    FluxoProducao resumirFluxoProducao(@Param("inicio") LocalDateTime inicio,@Param("fim") LocalDateTime fim);
+
     Optional<CalculoHistorico> findFirstByPeca_IdOrderByDataCalculoDesc(UUID pecaId);
 
     @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
@@ -60,9 +71,13 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_producao_hist >= :inicio AND h.data_producao_hist < :fim), 0) AS "gramasFilamento"
         FROM calculo_historico h
         WHERE h.tenant_id = :tenantId
-          AND (h.data_hist >= :inicio OR h.data_producao_hist >= :inicio OR EXISTS (SELECT 1 FROM venda_calculo v
-               WHERE v.tenant_id = h.tenant_id AND v.calculo_id = h.id
-                 AND v.data_venda >= :inicio AND v.data_venda < :fim))
+          AND h.id IN (
+              SELECT c.id FROM calculo_historico c WHERE c.tenant_id = :tenantId
+                  AND c.data_hist >= :inicio AND c.data_hist < :fim
+              UNION
+              SELECT c.id FROM calculo_historico c WHERE c.tenant_id = :tenantId
+                  AND c.produzido_hist = TRUE AND c.data_producao_hist >= :inicio AND c.data_producao_hist < :fim
+          )
         """, nativeQuery = true)
     DashboardResumoProjection resumirDashboard(@Param("tenantId") UUID tenantId,
                                                 @Param("inicio") LocalDateTime inicio,

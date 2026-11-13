@@ -73,6 +73,11 @@
                     </div>
 
                     <div class="resultado-grade">
+                        <div class="resultado-item" th:each="r : ${resultado.rateiosCustos}">
+                            <span th:text="|Custos da loja · ${r.descricao}|"></span>
+                            <strong th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario,1,'POINT',2,'COMMA')}|"></strong>
+                        </div>
+
 
                         <div class="resultado-item">
                             <span>Custo do filamento</span>

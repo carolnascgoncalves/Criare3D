@@ -112,7 +112,7 @@ class Criare3dApplicationTests {
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
 				.forEach(tenant -> {
 					UUID tenantId = tenant.getId();
-					for (String tabela : java.util.List.of("melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
+					for (String tabela : java.util.List.of("venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
 							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
 							"filamento", "impressora", "peca", "usuario")) {
 						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
@@ -601,7 +601,7 @@ class Criare3dApplicationTests {
     }
     private void limparOperacao(Usuario usuario) {
         UUID tenant=usuario.getTenant().getId();
-        for (String tabela : java.util.List.of("melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
+        for (String tabela : java.util.List.of("venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
             jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?",tenant);
         usuarioRepository.deleteById(usuario.getId());SecurityContextHolder.clearContext();tenantRepository.deleteById(tenant);
     }
@@ -764,6 +764,65 @@ class Criare3dApplicationTests {
         assertThat(fotosRascunho.buscar(atual)).isPresent();
         jdbcTemplate.update("UPDATE foto_rascunho SET atualizado_em = ? WHERE id = ?", java.sql.Timestamp.from(java.time.Instant.now().minusSeconds(1801)), atual);
         assertThat(fotosRascunho.buscar(atual)).isEmpty();
+    }
+
+
+    @Autowired private br.com.criare3d.repository.CustoLojaRepository custosLoja;
+    @Autowired private br.com.criare3d.repository.RateioCustoHistoricoRepository rateiosLoja;
+
+    @Test void rateioPersisteAcompanhaVendasCancelamentosEIsolaOrganizacoes() {
+        var a=criarUsuario("rateio-a-"+UUID.randomUUID()+"@teste.local");
+        var b=criarUsuario("rateio-b-"+UUID.randomUUID()+"@teste.local");
+        autenticarComo(a);
+        try {
+            var meta=new br.com.criare3d.models.CustoLoja();meta.setDescricao("Loja novembro");meta.setInicio(LocalDate.now());
+            meta.setMeta(new BigDecimal("1500"));meta.setTipo(br.com.criare3d.models.CustoLoja.Tipo.VALOR_UNIDADE);meta.setValor(new BigDecimal("5"));
+            meta=custosLoja.saveAndFlush(meta);
+            var lote=criarLoteOperacao(a);lote.setUnidades(10);
+            br.com.criare3d.service.RateioCustos.aplicar(lote,java.util.List.of(meta));
+            lote=calculoHistoricoRepository.saveAndFlush(lote);
+            assertThat(rateiosLoja.recuperado(meta.getId())).isZero();
+            assertThat(producaoService.atualizarProduzido(lote.getId(),true)).isEqualTo(ResultadoOperacao.OK);
+            assertThat(vendaService.registrarVenda(lote.getId(),10)).isEqualTo(ResultadoOperacao.OK);
+            assertThat(rateiosLoja.recuperado(meta.getId())).isEqualByComparingTo("50");
+            assertThat(br.com.criare3d.service.RateioCustos.falta(meta.getMeta(),rateiosLoja.recuperado(meta.getId()))).isEqualByComparingTo("1450");
+            meta.setAtivo(false);custosLoja.saveAndFlush(meta);
+            assertThat(custosLoja.findByAtivoTrueAndInicioLessThanEqualOrderByInicioAsc(LocalDate.now())).isEmpty();
+            var venda=vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(lote.getId()).getFirst();
+            assertThat(vendaService.cancelarVenda(lote.getId(),venda.getId(),2)).isEqualTo(ResultadoOperacao.OK);
+            assertThat(rateiosLoja.recuperado(meta.getId())).isEqualByComparingTo("40");
+            assertThat(rateiosLoja.listarPecas(meta.getId(),org.springframework.data.domain.PageRequest.of(0,20))).hasSize(1);
+            autenticarComo(b);
+            assertThat(custosLoja.findById(meta.getId())).isEmpty();
+            assertThat(rateiosLoja.recuperado(meta.getId())).isZero();
+            assertThat(rateiosLoja.listarPecas(meta.getId(),org.springframework.data.domain.PageRequest.of(0,20))).isEmpty();
+        } finally { autenticarComo(a);limparOperacao(a);autenticarComo(b);limparOperacao(b); }
+    }
+
+
+    @Autowired private br.com.criare3d.repository.ProdutoLojaRepository produtosLoja;
+    @Autowired private br.com.criare3d.repository.VendaProdutoLojaRepository vendasLoja;
+    @Autowired private br.com.criare3d.service.OutrasVendasService outrasVendasService;
+
+    @Test void outrasVendasPersistemSomamECancelamComIsolamentoDeOrganizacao() {
+        var a=criarUsuario("produto-a-"+UUID.randomUUID()+"@teste.local");
+        var b=criarUsuario("produto-b-"+UUID.randomUUID()+"@teste.local");
+        autenticarComo(a);
+        try {
+            var p=outrasVendasService.salvar(null,"Luz de LED",new BigDecimal("2.50"),new BigDecimal("1"));
+            var hoje=LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
+            var v=outrasVendasService.vender(p.getId(),2,null,null,hoje,br.com.criare3d.models.VendaProdutoLoja.TipoEmbalagem.PERSONALIZADA,null,new BigDecimal("0.50"));
+            var resumo=vendasLoja.resumir(hoje.atStartOfDay(),hoje.plusDays(1).atStartOfDay());
+            assertThat(resumo.getUnidades()).isEqualTo(2);assertThat(resumo.getReceita()).isEqualByComparingTo("5");assertThat(resumo.getLucro()).isEqualByComparingTo("2");
+            outrasVendasService.salvar(p.getId(),"LED atualizado",new BigDecimal("10"),BigDecimal.ZERO);
+            assertThat(vendasLoja.findById(v.getId()).orElseThrow().getNomeProduto()).isEqualTo("Luz de LED");
+            outrasVendasService.cancelar(v.getId(),1);
+            assertThat(vendasLoja.resumir(hoje.atStartOfDay(),hoje.plusDays(1).atStartOfDay()).getReceita()).isEqualByComparingTo("2.50");
+            autenticarComo(b);
+            assertThat(produtosLoja.findById(p.getId())).isEmpty();assertThat(vendasLoja.findById(v.getId())).isEmpty();
+            assertThat(vendasLoja.resumir(hoje.atStartOfDay(),hoje.plusDays(1).atStartOfDay()).getUnidades()).isZero();
+            org.assertj.core.api.Assertions.assertThatIllegalArgumentException().isThrownBy(()->outrasVendasService.cancelar(v.getId(),1));
+        } finally {autenticarComo(a);limparOperacao(a);autenticarComo(b);limparOperacao(b);}
     }
 
 	private Usuario criarUsuario(String email) {

@@ -275,10 +275,7 @@ public class CalculoHistoricoController {
                     .build();
 
         } catch (IllegalArgumentException | IOException e) {
-            boolean precisaFreteManual = e instanceof IllegalArgumentException
-                    && e.getMessage() != null
-                    && e.getMessage().toLowerCase(java.util.Locale.ROOT)
-                    .contains("informe o frete manualmente");
+            boolean precisaFreteManual = e instanceof br.com.criare3d.service.FreteManualNecessarioException;
 
             if (precisaFreteManual) {
                 request.setFreteMercadoLivreManualNecessario(true);

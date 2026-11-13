@@ -1,0 +1,441 @@
+package br.com.criare3d.service;
+
+import br.com.criare3d.models.Filamento;
+import br.com.criare3d.service.DashboardService;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.service.UsuarioLogadoService;
+import br.com.criare3d.service.interfaces.EmbalagemService;
+import br.com.criare3d.service.interfaces.FilamentoService;
+import br.com.criare3d.service.interfaces.ImpressoraService;
+import br.com.criare3d.service.interfaces.PecaService;
+import org.springframework.ui.Model;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
+@org.springframework.stereotype.Service
+public class DashboardDadosService {
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.repository.VendaProdutoLojaRepository outrasVendas;
+    public void invalidar(UUID tenant) { cache.asMap().keySet().removeIf(chave -> chave.tenant().equals(tenant)); }
+    private record Outros(long unidades,BigDecimal receita,BigDecimal lucro,long semCusto) {}
+    private Outros outros(LocalDateTime inicio,LocalDateTime fim) {
+        var r=outrasVendas==null ? null : outrasVendas.resumir(inicio,fim);
+        return r==null ? new Outros(0,ZERO,ZERO,0) : new Outros(numero(r.getUnidades()),valor(r.getReceita()),valor(r.getLucro()),numero(r.getSemCusto()));
+    }
+    private BigDecimal lucroEntre(LocalDateTime inicio,LocalDateTime fim) {
+        return valor(historicoRepository.somarLucroVendidoEntre(inicio,fim)).add(outros(inicio,fim).lucro());
+    }
+    private List<Object[]> dias(LocalDateTime inicio,LocalDateTime fim) {
+        var linhas=new ArrayList<Object[]>(historicoRepository.somarLucroVendidoPorDia(inicio,fim));
+        if(outrasVendas!=null) linhas.addAll(outrasVendas.lucroPorDia(inicio,fim));return linhas;
+    }
+    private List<Object[]> meses(LocalDateTime inicio,LocalDateTime fim) {
+        var linhas=new ArrayList<Object[]>(historicoRepository.somarLucroVendidoPorMes(inicio,fim));
+        if(outrasVendas!=null) linhas.addAll(outrasVendas.lucroPorMes(inicio,fim));return linhas;
+    }
+
+    private static final BigDecimal ZERO = BigDecimal.ZERO;
+    private final CalculoHistoricoRepository historicoRepository;
+    private final DashboardService dashboardService;
+    private final UsuarioLogadoService usuarioLogadoService;
+    private final PecaService pecaService;
+    private final FilamentoService filamentoService;
+    private final ImpressoraService impressoraService;
+    private final EmbalagemService embalagemService;
+
+    public DashboardDadosService(
+            CalculoHistoricoRepository historicoRepository,
+            DashboardService dashboardService,
+            UsuarioLogadoService usuarioLogadoService,
+            PecaService pecaService,
+            FilamentoService filamentoService,
+            ImpressoraService impressoraService,
+            EmbalagemService embalagemService) {
+        this.historicoRepository = historicoRepository;
+        this.dashboardService = dashboardService;
+        this.usuarioLogadoService = usuarioLogadoService;
+        this.pecaService = pecaService;
+        this.filamentoService = filamentoService;
+        this.impressoraService = impressoraService;
+        this.embalagemService = embalagemService;
+    }
+
+    private final com.github.benmanes.caffeine.cache.Cache<Chave, Map<String, Object>> cache =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder()
+                    .expireAfterWrite(java.time.Duration.ofSeconds(30)).maximumSize(500).build();
+
+    public Map<String, Object> buscar(String periodo) {
+        String selecionado = List.of("30", "90", "tudo").contains(periodo) ? periodo : "30";
+        UUID tenant = usuarioLogadoService.buscarTenantIdAtual();
+        if (tenant == null) throw new IllegalStateException("Conta sem organização.");
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        return cache.get(new Chave(tenant, selecionado, hoje), chave -> carregar(chave.periodo(), chave.hoje()));
+    }
+
+    private record Chave(UUID tenant, String periodo, LocalDate hoje) { }
+
+    private Map<String, Object> carregar(String periodo, LocalDate hoje) {
+        Model model = new org.springframework.ui.ExtendedModelMap();
+        if (!List.of("30", "90", "tudo").contains(periodo)) {
+            periodo = "30";
+        }
+
+        LocalDateTime inicio = switch (periodo) {
+            case "90" -> hoje.minusDays(89).atStartOfDay();
+            case "tudo" -> LocalDateTime.of(1900, 1, 1, 0, 0);
+            default -> hoje.minusDays(29).atStartOfDay();
+        };
+        LocalDateTime fim = hoje.plusDays(1).atStartOfDay();
+
+        var resumo = dashboardService.resumir(usuarioLogadoService.buscarTenantIdAtual(), inicio, fim);
+        long calculos = resumo.calculadas();
+        long produzidos = resumo.produzidas();
+        long vendidos = resumo.vendidas();
+        BigDecimal lucroVendido = resumo.lucroVendido();
+        long minutosVendidos = resumo.minutosVendidos();
+        long minutosProduzidos = resumo.minutosProduzidos();
+        BigDecimal gramasUsadas = resumo.gramasFilamento();
+        BigDecimal lucroPorHora = minutosVendidos <= 0
+                ? ZERO
+                : lucroVendido.multiply(BigDecimal.valueOf(60))
+                .divide(BigDecimal.valueOf(minutosVendidos), 2, RoundingMode.HALF_UP);
+
+        var outros=outros(inicio,fim);
+        model.addAttribute("lucroImpressao3d",lucroVendido);
+        model.addAttribute("unidadesOutrosProdutos",outros.unidades());
+        model.addAttribute("receitaOutrosProdutos",outros.receita());
+        model.addAttribute("lucroOutrosProdutos",outros.lucro());
+        model.addAttribute("unidadesOutrosSemCusto",outros.semCusto());
+        model.addAttribute("totalVendasLoja",vendidos+outros.unidades());
+        lucroVendido=lucroVendido.add(outros.lucro());
+        // O fluxo acompanha um único grupo de cálculos, sem misturar datas de produção e venda.
+        var fluxo=historicoRepository.resumirFluxoProducao(inicio,fim);
+        long fluxoCalculados=fluxo==null ? 0 : numero(fluxo.getCalculadas());
+        long fluxoProduzidos=fluxo==null ? 0 : numero(fluxo.getProduzidas());
+        long fluxoVendidos=fluxo==null ? 0 : numero(fluxo.getVendidas());
+        model.addAttribute("fluxoCalculados",fluxoCalculados);
+        model.addAttribute("fluxoProduzidos",fluxoProduzidos);
+        model.addAttribute("fluxoVendidos",fluxoVendidos);
+        model.addAttribute("fluxoPercentualProduzido",percentual(fluxoProduzidos,fluxoCalculados));
+        model.addAttribute("fluxoPercentualVendido",percentual(fluxoVendidos,fluxoProduzidos));
+        model.addAttribute("fluxoAguardandoVenda",Math.max(0,fluxoProduzidos-fluxoVendidos));
+        model.addAttribute("periodo", periodo);
+        model.addAttribute("totalCalculos", calculos);
+        model.addAttribute("totalProduzidos", produzidos);
+        model.addAttribute("totalVendidos", vendidos);
+        model.addAttribute("aguardandoVenda", Math.max(0, produzidos - vendidos));
+        model.addAttribute("percentualProduzido", percentual(produzidos, calculos));
+        model.addAttribute("percentualVendido", percentual(vendidos, calculos));
+        model.addAttribute("percentualVendidoProduzido", percentual(vendidos, produzidos));
+        model.addAttribute("lucroVendido", lucroVendido);
+        model.addAttribute("lucroPorHora", lucroPorHora);
+        model.addAttribute("horasProduzidas", BigDecimal.valueOf(minutosProduzidos)
+                .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP));
+        model.addAttribute("filamentoUsadoKg", gramasUsadas
+                .divide(BigDecimal.valueOf(1000), 2, RoundingMode.HALF_UP));
+
+        List<Map<String, Object>> plataformas = montarPlataformas(
+                historicoRepository.somarLucroPorPlataformaDesde(inicio));
+        model.addAttribute("lucrosPorPlataforma", plataformas);
+        BigDecimal lucroPlataformas = plataformas.stream()
+                .map(item -> (BigDecimal) item.get("lucro"))
+                .reduce(ZERO, BigDecimal::add);
+        long vendasPlataformas = plataformas.stream()
+                .mapToLong(item -> (long) item.get("vendas")).sum();
+        model.addAttribute("lucroPlataformas", lucroPlataformas);
+        model.addAttribute("vendasPlataformas", vendasPlataformas);
+        model.addAttribute("lucroPlataformaNomes", plataformas.stream().map(item -> item.get("nome")).toList());
+        model.addAttribute("lucroPlataformaValores", plataformas.stream().map(item -> item.get("lucro")).toList());
+        model.addAttribute("lucroPlataformaCores", plataformas.stream().map(item -> item.get("cor")).toList());
+        List<Object[]> linhasCategorias = historicoRepository.somarVendasPorCategoria(
+                usuarioLogadoService.buscarTenantIdAtual(), inicio, fim);
+        List<Map<String, Object>> vendasCategorias = montarVendasPorCategoria(linhasCategorias);
+        if(outros.unidades()>0) {
+            var categoria=new LinkedHashMap<String,Object>();categoria.put("nome","Outros produtos (não 3D)");
+            categoria.put("unidades",outros.unidades());categoria.put("lucro",outros.lucro());vendasCategorias.add(categoria);
+        }
+        model.addAttribute("vendasCategorias", vendasCategorias);
+        model.addAttribute("vendasCategoriaNomes", vendasCategorias.stream().map(item -> item.get("nome")).toList());
+        model.addAttribute("vendasCategoriaUnidades", vendasCategorias.stream().map(item -> item.get("unidades")).toList());
+        model.addAttribute("vendasCategoriaLucros", vendasCategorias.stream().map(item -> item.get("lucro")).toList());
+        adicionarSerieLucro(model, periodo, hoje, inicio, fim, lucroVendido);
+        List<Map<String, Object>> composicao = montarComposicao(
+                historicoRepository.somarComposicaoCustosProduzidosDesde(inicio));
+        model.addAttribute("composicaoCustos", composicao);
+        model.addAttribute("totalCustos", composicao.stream()
+                .map(item -> (BigDecimal) item.get("valor"))
+                .reduce(ZERO, BigDecimal::add));
+        List<Object[]> totaisPorImpressora = historicoRepository.somarHorasPorImpressoraDesde(inicio);
+        model.addAttribute("horasPorImpressora", montarImpressoras(totaisPorImpressora));
+
+        model.addAttribute("estoqueFilamentos", montarEstoque());
+        model.addAttribute("totalPecas", pecaService.contar());
+        model.addAttribute("totalFilamentos", filamentoService.contar());
+        long totalImpressoras = impressoraService.contar();
+        model.addAttribute("totalImpressoras", totalImpressoras);
+        model.addAttribute("totalEmbalagens", embalagemService.contar());
+        model.addAttribute("impressorasSemProducao", Math.max(0, totalImpressoras - totaisPorImpressora.size()));
+        model.addAttribute("calculosRecentes", historicoRepository.buscarCalculosRecentes(
+                org.springframework.data.domain.PageRequest.of(0, 5)));
+
+        return java.util.Collections.unmodifiableMap(new LinkedHashMap<>(model.asMap()));
+    }
+
+    private List<Map<String, Object>> montarPlataformas(List<Object[]> linhas) {
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Object[] linha : linhas) {
+            BigDecimal lucro = valor(linha[1]);
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", nomePlataforma((String) linha[0]));
+            item.put("lucro", lucro);
+            item.put("vendas", numero(linha[2]));
+            item.put("cor", corPlataforma((String) linha[0]));
+            resultado.add(item);
+        }
+        resultado.sort(Comparator.comparingInt(item -> ordemPlataforma((String) item.get("nome"))));
+        BigDecimal maior = resultado.stream().map(item -> (BigDecimal) item.get("lucro"))
+                .max(BigDecimal::compareTo).orElse(ZERO);
+        resultado.forEach(item -> item.put("largura", percentual((BigDecimal) item.get("lucro"), maior)));
+        return resultado;
+    }
+
+    private List<Map<String, Object>> montarVendasPorCategoria(List<Object[]> linhas) {
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Object[] linha : linhas) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", linha[0]);
+            item.put("unidades", numero(linha[1]));
+            item.put("lucro", valor(linha[2]));
+            resultado.add(item);
+        }
+        return resultado;
+    }
+
+    private void adicionarSerieLucro(Model model, String periodo, LocalDate hoje,
+                                     LocalDateTime inicio, LocalDateTime fim, BigDecimal lucroPeriodoAtual) {
+        List<String> rotulos = new ArrayList<>();
+        List<BigDecimal> valores = new ArrayList<>();
+        BigDecimal lucroAtual;
+        BigDecimal lucroAnterior;
+        String comparacao;
+
+        if (!"tudo".equals(periodo)) {
+            int dias = "90".equals(periodo) ? 90 : 30;
+            Map<LocalDate, BigDecimal> lucroPorDia = new LinkedHashMap<>();
+            for (Object[] linha : dias(inicio, fim)) {
+                LocalDate data = LocalDate.of((int) numero(linha[0]), (int) numero(linha[1]), (int) numero(linha[2]));
+                lucroPorDia.merge(data, valor(linha[3]), BigDecimal::add);
+            }
+            DateTimeFormatter formatoDia = DateTimeFormatter.ofPattern("dd/MM");
+            LocalDate primeiroDia = inicio.toLocalDate();
+            for (int i = 0; i < dias; i++) {
+                LocalDate dia = primeiroDia.plusDays(i);
+                rotulos.add(dia.format(formatoDia));
+                valores.add(lucroPorDia.getOrDefault(dia, ZERO));
+            }
+            lucroAtual = lucroPeriodoAtual;
+            lucroAnterior = lucroEntre(inicio.minusDays(dias), inicio);
+            comparacao = "vs período anterior";
+        } else {
+            YearMonth mesAtual = YearMonth.from(hoje);
+            LocalDateTime primeiraVenda = historicoRepository.primeiraVendaComLucro();
+            var primeiraOutra=outrasVendas==null ? null : outrasVendas.primeiraVendaComLucro();
+            if(primeiraOutra!=null && (primeiraVenda==null || primeiraOutra.isBefore(primeiraVenda))) primeiraVenda=primeiraOutra;
+            YearMonth primeiroMes = primeiraVenda == null
+                    ? mesAtual.minusMonths(5)
+                    : YearMonth.from(primeiraVenda);
+            Map<Integer, BigDecimal> lucroPorMes = new LinkedHashMap<>();
+            var linhas = meses(
+                    primeiroMes.atDay(1).atStartOfDay(), mesAtual.plusMonths(1).atDay(1).atStartOfDay());
+            for (Object[] linha : linhas) {
+                int chave = Math.toIntExact(numero(linha[0]) * 100 + numero(linha[1]));
+                lucroPorMes.merge(chave, valor(linha[2]), BigDecimal::add);
+            }
+
+            DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMM/yy", Locale.forLanguageTag("pt-BR"));
+            for (YearMonth mes = primeiroMes; !mes.isAfter(mesAtual); mes = mes.plusMonths(1)) {
+                String rotulo = mes.format(formatoMes).replace(".", "");
+                rotulos.add(rotulo.substring(0, 1).toUpperCase(Locale.ROOT) + rotulo.substring(1));
+                valores.add(lucroPorMes.getOrDefault(mes.getYear() * 100 + mes.getMonthValue(), ZERO));
+            }
+            LocalDateTime inicioMesAtual = mesAtual.atDay(1).atStartOfDay();
+            LocalDateTime inicioMesAnterior = mesAtual.minusMonths(1).atDay(1).atStartOfDay();
+            lucroAtual = lucroEntre(inicioMesAtual, fim);
+            lucroAnterior = lucroEntre(inicioMesAnterior, inicioMesAtual);
+            comparacao = "vs mês anterior";
+        }
+
+        int variacao = lucroAnterior.signum() == 0 ? 0 : lucroAtual.subtract(lucroAnterior)
+                .multiply(BigDecimal.valueOf(100)).divide(lucroAnterior, 0, RoundingMode.HALF_UP).intValue();
+        String textoVariacao = lucroAnterior.signum() == 0
+                ? (lucroAtual.signum() > 0 ? "Novas vendas no período" : "Sem vendas no período anterior")
+                : (variacao >= 0 ? "+" : "") + variacao + "% " + comparacao;
+        model.addAttribute("rotulosLucro", rotulos);
+        model.addAttribute("valoresLucro", valores);
+        model.addAttribute("variacaoLucro", variacao);
+        model.addAttribute("textoVariacaoLucro", textoVariacao);
+        model.addAttribute("descricaoPeriodoGrafico", "tudo".equals(periodo)
+                ? "Lucro estimado por mês em todo o histórico"
+                : "Lucro estimado por dia no período selecionado");
+    }
+
+    private String corPlataforma(String codigo) {
+        if (codigo == null) return "--dashboard-mercado-livre";
+        return switch (codigo) {
+            case "TIKTOK", "TIKTOK_SHOP" -> "--dashboard-tiktok";
+            case "SHOPEE" -> "--dashboard-shopee";
+            case "MERCADO_LIVRE" -> "--dashboard-mercado-livre";
+            case "AMAZON" -> "--dashboard-outro";
+            case "NENHUMA" -> "--dashboard-sem-plataforma";
+            default -> "--dashboard-outro";
+        };
+    }
+
+    private int ordemPlataforma(String nome) {
+        return switch (nome) {
+            case "TikTok Shop" -> 0;
+            case "Shopee" -> 1;
+            case "Mercado Livre" -> 2;
+            case "Amazon" -> 3;
+            case "Sem plataforma" -> 4;
+            default -> 3;
+        };
+    }
+
+    private List<Map<String, Object>> montarComposicao(List<Object[]> consultas) {
+        String[] nomes = {"Filamento", "Falhas", "Energia", "Depreciação", "Embalagem", "Mão de obra", "Manutenção"};
+        String[] cores = {"--dashboard-custo-filamento", "--dashboard-custo-falhas", "--dashboard-custo-energia", "--dashboard-custo-depreciacao", "--dashboard-custo-embalagem", "--dashboard-custo-mao-obra", "--dashboard-custo-manutencao"};
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        Object[] totais = consultas.isEmpty() ? new Object[0] : consultas.getFirst();
+        BigDecimal total = ZERO;
+        for (int i = 0; i < nomes.length; i++) {
+            total = total.add(valor(i < totais.length ? totais[i] : null));
+        }
+        for (int i = 0; i < nomes.length; i++) {
+            BigDecimal custo = valor(i < totais.length ? totais[i] : null);
+            int percentual = total.signum() == 0 ? 0 : custo.multiply(BigDecimal.valueOf(100))
+                    .divide(total, 0, RoundingMode.HALF_UP).intValue();
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", nomes[i]);
+            item.put("cor", cores[i]);
+            item.put("valor", custo);
+            item.put("percentual", percentual);
+            resultado.add(item);
+        }
+        return resultado;
+    }
+
+    private List<Map<String, Object>> montarImpressoras(List<Object[]> linhas) {
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Object[] linha : linhas) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", linha[0] == null ? "Impressora sem nome" : linha[0]);
+            item.put("horas", BigDecimal.valueOf(numero(linha[1]))
+                    .divide(BigDecimal.valueOf(60), 1, RoundingMode.HALF_UP));
+            item.put("pecas", numero(linha[2]));
+            resultado.add(item);
+        }
+        return resultado;
+    }
+
+    private List<Map<String, Object>> montarEstoque() {
+        Map<UUID, Long> usosPorFilamento = new HashMap<>();
+        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosEmItens());
+        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosSimples());
+
+        List<Filamento> maisUsados = new ArrayList<>(filamentoService.fetchByIds(usosPorFilamento.keySet()));
+        maisUsados.sort(Comparator
+                .comparingLong((Filamento filamento) -> usosPorFilamento.getOrDefault(filamento.getId(), 0L)).reversed()
+                .thenComparing(Filamento::getDataCadastro, Comparator.reverseOrder())
+                .thenComparing(Filamento::getNome, String.CASE_INSENSITIVE_ORDER));
+
+        List<Filamento> selecionados = new ArrayList<>(maisUsados.stream().limit(8).toList());
+        Set<UUID> idsSelecionados = new HashSet<>();
+        selecionados.forEach(filamento -> idsSelecionados.add(filamento.getId()));
+
+        if (selecionados.size() < 8) {
+            for (Filamento filamento : filamentoService.fetchRecentes(8)) {
+                if (idsSelecionados.add(filamento.getId())) {
+                    selecionados.add(filamento);
+                    if (selecionados.size() == 8) break;
+                }
+            }
+        }
+
+        List<Map<String, Object>> resultado = new ArrayList<>();
+        for (Filamento filamento : selecionados) {
+            BigDecimal estoque = valor(filamento.getEstoqueGramas());
+            BigDecimal pesoRolo = valor(filamento.getPesoRoloGramas());
+            int restante = pesoRolo.signum() <= 0 ? 0 : estoque.multiply(BigDecimal.valueOf(100))
+                    .divide(pesoRolo, 0, RoundingMode.HALF_UP).intValue();
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("nome", filamento.getCor());
+            String codigoCor = filamento.getCodigoCor();
+            item.put("cor", codigoCor != null && codigoCor.matches("#[0-9A-Fa-f]{6}")
+                    ? codigoCor : "#b18e7b");
+            item.put("anelCor", restante <= 34 ? "var(--dashboard-estoque-baixo)" : (restante <= 64 ? "var(--dashboard-estoque-medio)" : "var(--dashboard-estoque-ok)"));
+            item.put("gramas", estoque);
+            item.put("restante", Math.max(0, Math.min(100, restante)));
+            resultado.add(item);
+        }
+        return resultado;
+    }
+
+    private void acumularUsos(Map<UUID, Long> usos, List<Object[]> linhas) {
+        for (Object[] linha : linhas) {
+            if (linha[0] instanceof UUID id) {
+                usos.merge(id, numero(linha[1]), Long::sum);
+            }
+        }
+    }
+
+    private String nomePlataforma(String codigo) {
+        if (codigo == null || codigo.isBlank()) return "Sem plataforma";
+        return switch (codigo) {
+            case "NENHUMA" -> "Sem plataforma";
+            case "SHOPEE" -> "Shopee";
+            case "TIKTOK", "TIKTOK_SHOP" -> "TikTok Shop";
+            case "MERCADO_LIVRE" -> "Mercado Livre";
+            case "AMAZON" -> "Amazon";
+            default -> codigo;
+        };
+    }
+
+    private static BigDecimal valor(Object valor) {
+        return valor instanceof BigDecimal decimal ? decimal
+                : valor instanceof Number numero ? new BigDecimal(numero.toString())
+                : ZERO;
+    }
+
+    private static long numero(Object valor) {
+        return valor instanceof Number number ? number.longValue() : 0;
+    }
+
+    private static int percentual(long quantidade, long total) {
+        return total <= 0 ? 0 : (int) Math.round((double) quantidade * 100 / total);
+    }
+
+    private static int percentual(BigDecimal quantidade, BigDecimal total) {
+        if (total.signum() <= 0) return 0;
+        int percentual = quantidade.multiply(BigDecimal.valueOf(100))
+                .divide(total, 0, RoundingMode.HALF_UP).intValue();
+        return Math.max(0, Math.min(100, percentual));
+    }
+}

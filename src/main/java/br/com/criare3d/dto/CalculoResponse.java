@@ -58,6 +58,9 @@ public class CalculoResponse {
     private String nomeEmbalagem;
     private BigDecimal custoEmbalagem;
     private BigDecimal custoTotal;
+    private BigDecimal custoLoja;
+    private List<RateioResumo> rateiosCustos;
+    public record RateioResumo(String descricao, BigDecimal valorUnitario) {}
 
     private BigDecimal markupPercentual;
     private BigDecimal precoSugerido;
@@ -144,6 +147,8 @@ public class CalculoResponse {
                 .nomeEmbalagem(calculo.getNomeEmbalagem())
                 .custoEmbalagem(calculo.getCustoEmbalagem())
                 .custoTotal(calculo.getCustoTotal())
+                .custoLoja(calculo.getCustoLoja())
+                .rateiosCustos(calculo.getRateiosCustos().stream().map(r -> new RateioResumo(r.getDescricao(), r.getValorUnitario())).toList())
                 .markupPercentual(calculo.getMarkupPercentual())
                 .precoSugerido(calculo.getPrecoSugerido())
                 .dataCalculo(calculo.getDataCalculo())

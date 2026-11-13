@@ -61,7 +61,7 @@ final class TabelaTarifasPlataforma {
             coluna++;
         }
         if (coluna == LIMITES_PRECO_ML.length) {
-            throw new IllegalArgumentException(
+            throw new FreteManualNecessarioException(
                     "O preço calculado passou de R$ " + LIMITES_PRECO_ML[LIMITES_PRECO_ML.length - 1].toPlainString().replace('.', ',') + ". Informe o frete manualmente.");
         }
 

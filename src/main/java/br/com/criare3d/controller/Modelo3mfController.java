@@ -19,11 +19,20 @@ public class Modelo3mfController {
         this.parser = parser;
     }
 
+    @PostMapping(value = "/calculo-rapido/analisar-arquivo", consumes = "multipart/form-data")
+    public ResponseEntity<?> analisarConsulta(@RequestParam("arquivo3mf") MultipartFile arquivo) {
+        return analisarArquivo(arquivo, true);
+    }
+
     @PostMapping(value = "/peca/arquivo-3mf/analisar", consumes = "multipart/form-data")
     public ResponseEntity<?> analisar(@RequestParam("arquivo3mf") MultipartFile arquivo) {
+        return analisarArquivo(arquivo, false);
+    }
+
+    private ResponseEntity<?> analisarArquivo(MultipartFile arquivo, boolean consulta) {
         try {
-            Modelo3mfResponse resposta = parser.analisar(arquivo);
-            return ResponseEntity.ok(resposta);
+            Modelo3mfResponse resposta = consulta ? parser.analisarConsulta(arquivo) : parser.analisar(arquivo);
+            return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore()).body(resposta);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(422))
                     .body(Map.of("erro", e.getMessage() == null ? "Arquivo 3MF inválido." : e.getMessage()));

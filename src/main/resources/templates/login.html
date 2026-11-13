@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f3f4f6">
+    <meta name="theme-color" content="#86202D">
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/cost3d/icone-robo-offwhite.svg}">
+    <link rel="apple-touch-icon" th:href="@{/images/cost3d/icone-robo-offwhite.png}">
     <meta name="turbo-cache-control" content="no-cache">
-    <title>Acessar conta</title>
+    <title>cost3d | Acessar conta</title>
     <link rel="stylesheet" th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}">
     <link rel="stylesheet" th:href="@{/css/login.css}">
     <script th:src="@{/js/login.js}" defer></script>
@@ -14,11 +16,25 @@
 </head>
 
 <body class="login-pagina">
-<main class="login-cartao">
+<main class="login-layout">
+    <section class="login-marca" aria-label="cost3d">
+        <div class="login-identidade" data-marca-imagem>
+            <img class="login-logo" th:src="@{/images/cost3d/logo-espacada.svg}" alt="cost3d" width="560" height="230" hidden>
+            <span class="login-logotipo" data-marca-fallback aria-hidden="true">cost<span>3d</span></span>
+        </div>
+        <h2>Da primeira camada<br>ao próximo pedido.</h2>
+        <p>Calcule seus preços, organize a produção e acompanhe suas vendas em um só lugar.</p>
+        <span class="login-marca-assinatura">Cada camada conta.</span>
+    </section>
+    <section class="login-cartao" aria-labelledby="login-titulo">
     <header class="login-cabecalho">
-        <span class="login-etiqueta">ÁREA DE ACESSO</span>
-        <h1>Acessar sua conta</h1>
-        <p>Entre com os dados de acesso da sua conta para continuar.</p>
+        <div class="login-icone-marca" data-marca-imagem>
+            <img th:src="@{/images/cost3d/icone-robo-offwhite.svg}" alt="" width="64" height="64" hidden>
+            <span data-marca-fallback aria-hidden="true">c3d</span>
+        </div>
+        <span class="login-etiqueta">BEM-VINDA À COST3D</span>
+        <h1 id="login-titulo">Bom ter você por aqui.</h1>
+        <p>Entre na sua conta para continuar.</p>
     </header>
 
     <div th:if="${param.erro != null and esperaLogin == 0}" class="login-aviso login-aviso-erro" role="alert">
@@ -74,12 +90,13 @@
             </div>
         </div>
 
-        <button type="submit" class="login-botao" th:disabled="${esperaLogin > 0}">Entrar</button>
+        <button type="submit" data-turbo-submits-with="Entrando…" class="login-botao" th:disabled="${esperaLogin > 0}">Entrar</button>
     </form>
 
     <p class="login-ajuda"><a th:href="@{/recuperar-senha}">Esqueci minha senha</a></p>
 
-    <footer class="login-rodape">Acesso seguro à plataforma</footer>
+    <footer class="login-rodape">cost3d · Seu próximo passo começa aqui.</footer>
+    </section>
 </main>
 </body>
 </html>
