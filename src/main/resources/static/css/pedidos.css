@@ -226,3 +226,20 @@
  .pedido-revisao-total { padding:18px; }
  .pedido-revisao-finalizar .pedido-acoes > * { width:100%; justify-content:center; }
 }
+.pedido-revisao-envio [data-pedido-destino=whatsapp] { font-size:.95rem; padding:10px 16px; min-height:42px; }
+.pedido-calendario { grid-column:1 / -1; }
+.pedido-calendario { padding:20px; border:1px solid var(--borda); border-radius:12px; }
+.pedido-calendario h3 { margin:0 0 10px; }
+[data-calendario-conteudo] { width:100%; max-width:360px; min-width:0; }
+.calendario-layout { display:grid; grid-template-columns:minmax(0,360px) minmax(0,1fr); gap:32px; margin-top:20px; }
+.calendario-lateral { display:flex; flex-direction:column; align-items:flex-start; gap:16px; }
+.calendario-lateral > .botao { margin-top:auto; }
+.calendario-impressora { display:flex; align-items:center; gap:10px; margin:12px 0; }
+.calendario-amostra { width:18px; height:18px; border:1px solid #0002; border-radius:5px; flex-shrink:0; }
+@media(max-width:650px) { .calendario-layout { grid-template-columns:minmax(0,1fr); gap:24px; } }
+.calendario-navegacao { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; gap:12px; }
+.calendario-navegacao button,.calendario-dias button { border:1px solid var(--borda); background:var(--superficie,#fff); color:inherit; border-radius:8px; padding:8px; cursor:pointer; }
+.calendario-dias { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; text-align:center; }
+.calendario-dias > span { padding:6px 0; font-size:.8rem; }
+.calendario-dias button.ocupado { border-color:#0002; color:var(--marrom); }
+.calendario-dias button[aria-pressed=true] { outline:2px solid var(--cor-primaria,#483365); outline-offset:1px; font-weight:700; }

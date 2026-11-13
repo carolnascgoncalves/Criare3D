@@ -40,6 +40,45 @@
             valor?.scrollIntoView({block:'center'});valor?.focus({preventScroll:true});
         });
         criarAgenda();
+        criarCalendarioOcupacao();
+    }
+    function criarCalendarioOcupacao(){
+        document.querySelectorAll('[data-calendario-ocupacao]').forEach(cal=>{
+            if(cal.dataset.pronto)return;cal.dataset.pronto='true';
+            const input=document.querySelector('[name=inicioPretendido]'),area=cal.querySelector('[data-calendario-conteudo]');
+            if(!input||!area)return;
+            let mes=new Date(input.value||Date.now());mes.setDate(1);
+            const ocupacoes=[...cal.querySelectorAll('[data-ocupacao]')].map(e=>({inicio:new Date(e.dataset.inicio),fim:new Date(e.dataset.fim),nome:e.dataset.nome,id:e.dataset.impressoraId||e.dataset.nome,impressora:e.dataset.impressora||e.dataset.nome}));
+            const legenda=cal.querySelector('[data-calendario-legenda]'),hora=cal.querySelector('[data-calendario-hora]'),selecao=cal.querySelector('[data-calendario-selecao]');
+            const ids=[...new Set(ocupacoes.map(o=>o.id))];
+            const cor=id=>{const indice=ids.indexOf(id),matiz=(indice*67)%360;return `hsl(from var(--cor-primaria, #8274bb) calc(h + ${matiz}) 45% 88%)`;};
+            if(legenda){legenda.replaceChildren();ids.forEach(id=>{const linha=document.createElement('div'),amostra=document.createElement('span'),nome=document.createElement('span');linha.className='calendario-impressora';amostra.className='calendario-amostra';amostra.style.background=cor(id);nome.textContent=ocupacoes.find(o=>o.id===id).impressora;linha.append(amostra,nome);legenda.append(linha);});if(!ids.length)legenda.textContent='Nenhuma produção agendada nestas impressoras.';}
+            if(hora){hora.value=input.value.split('T')[1]?.slice(0,5)||'08:00';hora.addEventListener('change',event=>{event.stopPropagation();if(input.value&&hora.value){input.value=input.value.slice(0,10)+'T'+hora.value;input.dispatchEvent(new Event('change',{bubbles:true}));render();}});}
+            const chave=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            function render(){
+                if(selecao)selecao.textContent=input.value?'Dia escolhido: '+new Date(input.value).toLocaleDateString('pt-BR'):'Selecione um dia no calendário.';
+                area.replaceChildren();const nav=document.createElement('div');nav.className='calendario-navegacao';
+                const titulo=document.createElement('strong');titulo.textContent=mes.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+                const botao=(texto,acao)=>{const b=document.createElement('button');b.type='button';b.textContent=texto;b.addEventListener('click',acao);return b;};
+                nav.append(botao('‹',()=>{mes.setMonth(mes.getMonth()-1);render();}),titulo,botao('›',()=>{mes.setMonth(mes.getMonth()+1);render();}));area.append(nav);
+                const grade=document.createElement('div');grade.className='calendario-dias';
+                ['D','S','T','Q','Q','S','S'].forEach(d=>{const e=document.createElement('span');e.textContent=d;grade.append(e);});
+                for(let n=0;n<mes.getDay();n++)grade.append(document.createElement('span'));
+                const ultimo=new Date(mes.getFullYear(),mes.getMonth()+1,0).getDate();
+                for(let n=1;n<=ultimo;n++){
+                    const dia=new Date(mes.getFullYear(),mes.getMonth(),n),fim=new Date(mes.getFullYear(),mes.getMonth(),n+1);
+                    const conflitos=ocupacoes.filter(o=>o.inicio<fim&&o.fim>dia);
+                    const b=botao(n,()=>{input.value=chave(dia)+'T'+(hora?.value||input.value.split('T')[1]||'08:00');input.dispatchEvent(new Event('change',{bubbles:true}));render();});
+                    const cores=[...new Set(conflitos.map(o=>o.id))].map(cor);
+                    if(cores.length===1)b.style.background=cores[0];
+                    if(cores.length>1)b.style.background=`linear-gradient(135deg, ${cores.flatMap((c,i)=>[`${c} ${100*i/cores.length}%`,`${c} ${100*(i+1)/cores.length}%`]).join(', ')})`;
+                    b.classList.toggle('ocupado',conflitos.length>0);b.setAttribute('aria-pressed',String(input.value.slice(0,10)===chave(dia)));
+                    b.title=dia.toLocaleDateString('pt-BR')+(conflitos.length?' · Ocupado: '+conflitos.map(o=>o.nome+' ('+o.inicio.toLocaleString('pt-BR')+' até '+o.fim.toLocaleString('pt-BR')+')').join('; '):' · Sem produção agendada');
+                    b.setAttribute('aria-label',b.title);grade.append(b);
+                }area.append(grade);
+            }
+            input.addEventListener('input',()=>{if(input.value){mes=new Date(input.value);mes.setDate(1);}render();});render();
+        });
     }
     function criarAgenda(){
         const agenda=document.querySelector('[data-agenda]'),lista=document.querySelector('[data-agenda-lista]');
@@ -60,11 +99,23 @@
                 if(!Number.isFinite(inicio)||!Number.isFinite(fim))continue;
                 const faixa=document.createElement('div');faixa.className='agenda-trilho';
                 const link=document.createElement('a');link.className='agenda-evento';link.href=card.querySelector('.planejamento-acoes a').href;
-                link.style.marginLeft=`${100*(inicio-min)/duracao}%`;link.style.width=`${Math.max(3,100*(fim-inicio)/duracao)}%`;
+                link.style.marginLeft=`${100*(inicio-min)/duracao}%`;link.style.width=`${Math.max(.3,100*(fim-inicio)/duracao)}%`;
                 link.style.maxWidth=`${100-100*(inicio-min)/duracao}%`;
                 const nome=card.querySelector('h2').textContent;link.title=`${nome} · ${data(inicio)} até ${data(fim)}`;link.setAttribute('aria-label',link.title);link.textContent=nome;
                 const item=document.createElement('article');item.className='agenda-planejamento';item.title=link.title;
-                faixa.title=link.title;faixa.append(link);item.append(faixa);
+                faixa.title=link.title;faixa.append(link);
+                const marcos=document.createElement('div');marcos.className='agenda-marcos';
+                const curto=v=>new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+                const esquerda=100*(inicio-min)/duracao,direita=100*(fim-min)/duracao;
+                const deMarco=document.createElement('span'),ateMarco=document.createElement('span');
+                deMarco.textContent=curto(inicio);ateMarco.textContent=curto(fim);
+                deMarco.className='agenda-marco inicio';ateMarco.className='agenda-marco fim';
+                deMarco.style.left=esquerda+'%';ateMarco.style.left=direita+'%';
+                deMarco.style.setProperty('--marco-deslocamento',esquerda<14?'0%':'-100%');
+                ateMarco.style.setProperty('--marco-deslocamento',direita>86?'-100%':'0%');
+                deMarco.title='Início: '+data(inicio);ateMarco.title='Previsão: '+data(fim);
+                if(direita-esquerda<14){marcos.classList.add('agenda-marcos-proximos');}
+                marcos.append(deMarco,ateMarco);item.append(marcos,faixa);
                 const legenda=document.createElement('div');legenda.className='agenda-legenda';
                 const titulo=document.createElement('strong');titulo.textContent=nome;
                 const datas=document.createElement('span');datas.className='agenda-datas';
@@ -110,6 +161,7 @@
         document.querySelectorAll('[data-busca-viva]').forEach(e=>delete e.dataset.buscaViva);
         document.querySelectorAll('[data-exemplo-pronto]').forEach(e=>delete e.dataset.exemploPronto);
         document.querySelectorAll('[data-filtrar-acabando]').forEach(e=>delete e.dataset.pronto);
+        document.querySelectorAll('[data-calendario-ocupacao]').forEach(e=>{delete e.dataset.pronto;e.querySelector('[data-calendario-conteudo]').replaceChildren();});
         document.querySelectorAll('[data-agenda]').forEach(e=>{delete e.dataset.pronto;e.replaceChildren();});
         document.querySelectorAll('[data-agenda-lista]').forEach(e=>e.hidden=false);
     });

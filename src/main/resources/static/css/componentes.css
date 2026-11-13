@@ -308,8 +308,8 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .agenda-impressoras { overflow-x:auto; margin:20px 0; }
 .agenda-linha { min-width:650px; padding:20px; margin-bottom:16px; border:1px solid var(--borda,#ddd); border-radius:14px; background:var(--superficie,#fff); }
 .agenda-linha h2 { font-size:1rem; margin-bottom:15px; }
-.agenda-trilho { margin-top:12px; background:var(--fundo,#f4f0fa); border-radius:8px; }
-.agenda-evento { display:block; padding:10px 8px; border-radius:8px; background:var(--cor-primaria,#6c5590); color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration:none; }
+.agenda-trilho { overflow:hidden; margin-top:12px; background:var(--fundo,#f4f0fa); border-radius:8px; }
+.agenda-evento { box-sizing:border-box; display:block; padding:10px 8px; border-radius:8px; background:var(--cor-primaria,#6c5590); color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration:none; }
 .agenda-evento:hover { color:white; filter:brightness(1.12); }
 .agenda-linha small { display:block; margin-top:5px; }
 .formulario-dialogo { width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--borda,#ddd); border-radius:18px; background:var(--superficie,#fff); color:inherit; }
@@ -362,3 +362,24 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .configuracao-salvar-barra > span { font-size:.87rem; color:var(--marrom-claro); }
 .configuracao-salvar-barra > button { width:auto; margin:0; flex-shrink:0; }
 @media(max-width:700px) { .filamentos-filtros-rapidos { margin-inline:18px; } .configuracao-salvar-barra { padding:12px; } }
+.operacao-painel > h2,.operacao-producao-cabecalho h2 { display:flex; align-items:center; justify-content:flex-start; gap:10px; margin:0; font-size:1.45rem; text-align:left; }
+.operacao-producao-cabecalho { display:grid; gap:18px; margin-bottom:16px; }
+.operacao-producao-cabecalho > .operacao-custo-producao { text-align:left; padding:14px 16px; background:var(--superficie-suave); border-radius:10px; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 16px; }
+.operacao-producao-cabecalho > .operacao-custo-producao small:last-child { flex-basis:100%; }
+.operacao-painel > h2 { margin-bottom:18px; }
+.operacao-painel > form { display:grid; gap:18px; margin-top:20px; }
+.operacao-painel > form details { border:1px solid var(--borda); padding:16px; border-radius:12px; }
+.operacao-painel > form details summary { font-weight:600; cursor:pointer; }
+.operacao-painel > form details .campo { margin-top:14px; }
+.operacao-painel > form > button { justify-self:start; }
+.agenda-marcos { position:relative; height:30px; margin:0 0 0; }
+.agenda-marco { position:absolute; top:0; font-size:.76rem; font-weight:700; white-space:nowrap; color:var(--marrom); }
+.agenda-marco.inicio { transform:translateX(var(--marco-deslocamento,0%)); }
+.agenda-marco.fim { transform:translateX(var(--marco-deslocamento,-100%)); }
+.agenda-marco::after { content:''; position:absolute; height:12px; top:19px; border-left:1px dashed var(--cor-primaria); }
+.agenda-marco.inicio::after { left:calc(-1 * var(--marco-deslocamento,0%)); }
+.agenda-marco.fim::after { left:calc(-1 * var(--marco-deslocamento,-100%)); }
+.agenda-marcos-proximos { height:48px; }
+.agenda-marcos-proximos .inicio { top:0; }
+.agenda-marcos-proximos .inicio::after { height:30px; }
+.agenda-marcos-proximos .fim { top:18px; }

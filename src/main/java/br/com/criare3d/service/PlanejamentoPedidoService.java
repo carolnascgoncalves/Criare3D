@@ -11,6 +11,13 @@ public class PlanejamentoPedidoService {
  private final EntradaPedidoService entradas;
  private final Clock clock;
  public PlanejamentoPedidoService(PlanejamentoProducaoRepository planos,EntradaPedidoService entradas,Clock clock) {this.planos=planos;this.entradas=entradas;this.clock=clock;}
+ public record Ocupacao(LocalDateTime inicio,LocalDateTime fim,String nome,UUID impressoraId,String impressora) {}
+ public List<Ocupacao> ocupacoes(PedidoOrcamento pedido) {
+  return pedido.getItens().stream().filter(i->i.getProduzir()>0).map(ItemPedido::getImpressoraId).filter(Objects::nonNull).distinct()
+   .flatMap(id->planos.buscarPendentesDaImpressora(id,org.springframework.data.domain.Pageable.unpaged()).stream())
+   .filter(p->p.getInicio()!=null && p.getFim()!=null)
+   .map(p->new Ocupacao(p.getInicio(),p.getFim(),p.getNomeImpressora()+" · "+p.getNomePeca(),p.getImpressora().getId(),p.getNomeImpressora())).toList();
+ }
  public List<Linha> prever(PedidoOrcamento p) {
   Map<UUID,LocalDateTime> fila=new HashMap<>();List<Linha> linhas=new ArrayList<>();
   for(var i:p.getItens()) {

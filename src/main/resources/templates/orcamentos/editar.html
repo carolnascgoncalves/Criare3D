@@ -15,7 +15,12 @@
 <div th:if="${etapa!=3}"><input type="hidden" th:field="*{desconto}"><input type="hidden" th:field="*{descontoInformado}"><input type="hidden" th:field="*{frete}"><input type="hidden" th:field="*{custoFrete}"></div>
 <section th:if="${etapa==2}"><h2>Quando fica pronto?</h2><p th:if="${pedido.quantidadeProduzir==0}">Todas as peças vêm do estoque. Não é necessário imprimir.</p>
 <details class="pedido-ajuda" th:if="${pedido.quantidadeProduzir>0}"><summary>Expediente e início da produção</summary><div class="pedido-grade">
-<label class="campo">Início pretendido<input type="datetime-local" step="any" th:field="*{inicioPretendido}"><small class="erro-campo" th:if="${#fields.hasErrors('inicioPretendido')}" th:errors="*{inicioPretendido}"></small></label>
+<div class="pedido-calendario campo" data-calendario-ocupacao>
+<input type="hidden" th:field="*{inicioPretendido}">
+<h3>Início pretendido</h3><p class="texto-apoio">Escolha o dia e o horário. As cores indicam produção agendada; o dia pode estar parcialmente livre.</p>
+<span hidden th:each="o : ${ocupacoesAgenda}" data-ocupacao th:attr="data-inicio=${o.inicio},data-fim=${o.fim},data-nome=${o.nome},data-impressora-id=${o.impressoraId},data-impressora=${o.impressora}"></span>
+<div class="calendario-layout"><div data-calendario-conteudo></div><aside class="calendario-lateral"><strong>Impressoras com agendamento</strong><div data-calendario-legenda></div><p data-calendario-selecao role="status"></p><label class="campo">Horário de início<input type="time" data-calendario-hora required></label><a class="botao botao-secundario" th:href="@{/simulacao/planejamentos}"><i class="bi bi-calendar3" aria-hidden="true"></i> Planejar produção</a></aside></div>
+<small class="erro-campo" th:if="${#fields.hasErrors('inicioPretendido')}" th:errors="*{inicioPretendido}"></small></div>
 <label class="campo">Início do expediente<input type="time" th:field="*{turnoInicio}" required><small class="erro-campo" th:if="${#fields.hasErrors('turnoInicio')}" th:errors="*{turnoInicio}"></small></label>
 <label class="campo">Fim do expediente<input type="time" th:field="*{turnoFim}" required><small class="erro-campo" th:if="${#fields.hasErrors('turnoFim')}" th:errors="*{turnoFim}"></small></label>
 <label class="campo">Dias de trabalho<select th:field="*{dias}"><option value="1,2,3,4,5">Segunda a sexta</option><option value="1,2,3,4,5,6">Segunda a sábado</option><option value="1,2,3,4,5,6,7">Todos os dias</option><option value="6,7">Sábados e domingos</option></select></label>

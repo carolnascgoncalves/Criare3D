@@ -39,9 +39,9 @@
                 </div>
             </div>
             <div class="operacao-grade">
-                <section class="cartao formulario-conteudo">
-                    <div class="operacao-secao-titulo">
-                        <h2><i class="bi bi-printer" aria-hidden="true"></i> Produção</h2>
+                <section class="cartao formulario-conteudo operacao-painel">
+                    <div class="operacao-producao-cabecalho">
+                        <h2><i class="bi bi-calculator" aria-hidden="true"></i> Produção</h2>
                         <div class="operacao-custo-producao">
                             <strong th:text="|R$ ${#numbers.formatDecimal(lote.custoTotal * lote.unidades,1,'POINT',2,'COMMA')} no lote|"></strong>
                             <small th:text="|R$ ${#numbers.formatDecimal(lote.custoTotal,1,'POINT',2,'COMMA')} por unidade|"></small>
@@ -66,7 +66,7 @@
                         <button class="botao botao-secundario">Desfazer produção</button>
                     </form>
                 </section>
-                <section class="cartao formulario-conteudo">
+                <section class="cartao formulario-conteudo operacao-painel">
                     <h2>
                         <i class="bi bi-bag-check" aria-hidden="true"></i>
                         Registrar venda
