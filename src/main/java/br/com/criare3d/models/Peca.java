@@ -71,4 +71,8 @@ public class Peca {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private @Getter @Setter Usuario usuario;
+    public String getNome() {
+        if (nome == null) return null;
+        return org.springframework.web.util.HtmlUtils.htmlUnescape(org.springframework.web.util.HtmlUtils.htmlUnescape(nome));
+    }
 }

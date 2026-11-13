@@ -29,6 +29,7 @@
     <script th:src="@{/js/confirmacaoGlobal.js}" defer></script>
     <script th:src="@{/js/dashboardCharts.js}" defer></script>
     <script th:src="@{/js/menuLateral.js}" defer></script>
+    <script th:src="@{/js/polimento.js}" defer></script>
     <script th:src="@{/js/menuConta.js}" defer></script>
 
     <script th:src="@{/js/placeholders.js}" defer></script>
@@ -76,8 +77,8 @@
         </button>
     </div>
 
-    <a th:if="${tenantDisponivel}" th:href="@{/historico/novo}" class="botao-menu menu-calcular" aria-label="Calcular peça" title="Calcular peça">
-        <i class="bi bi-calculator" aria-hidden="true"></i><span>Calcular peça</span>
+    <a th:if="${tenantDisponivel}" th:href="@{/calculo-rapido}" class="botao-menu menu-calcular" aria-label="Calcular preço" title="Calcular preço">
+        <i class="bi bi-calculator" aria-hidden="true"></i><span>Calcular preço</span>
     </a>
 
     <div class="menu-lateral-conteudo">
@@ -97,8 +98,7 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Cálculos">
             <span class="menu-lateral-titulo">Cálculos</span>
-            <a th:href="@{/calculo-rapido}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'calculo-rapido' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'calculo-rapido' ? 'page' : null}" title="Cálculo rápido"><i class="bi bi-lightning-charge" aria-hidden="true"></i><span>Cálculo rápido</span></a>
-            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Cálculos salvos</span></a>
+            <a th:href="@{/historico/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'historico' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'historico' ? 'page' : null}" title="Histórico"><i class="bi bi-clock-history" aria-hidden="true"></i><span>Meus cálculos</span></a>
         </section>
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Comercial">
@@ -110,8 +110,7 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Produção">
             <span class="menu-lateral-titulo">Produção</span>
-            <a th:href="@{/simulacao}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'simulacao' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'simulacao' ? 'page' : null}" title="Simulação"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span>Simulação</span></a>
-            <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Fila de produção</span></a>
+            <a th:href="@{/simulacao/planejamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'planejamentos' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'planejamentos' ? 'page' : null}" title="Planejamentos"><i class="bi bi-calendar3" aria-hidden="true"></i><span>Planejar produção</span></a>
         </section>
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Gestão">

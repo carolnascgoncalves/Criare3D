@@ -8,9 +8,8 @@
     <header class="dashboard-cabecalho">
         <div>
             <span class="etiqueta-dashboard">PAINEL PRINCIPAL</span>
-            <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
-            <p>Acompanhe impressões 3D e outras vendas da loja em um só lugar. Os indicadores podem levar até 30 segundos para refletir alterações.</p>
-            <small class="dashboard-aviso-estimativa"><i class="bi bi-info-circle" aria-hidden="true"></i> O resultado usa preço e taxas registrados em cada venda; campos não informados e custos de produção continuam estimados. Produções antigas sem data não entram nos totais de produção por período.</small>
+            <h1>Resultados de <span th:text="${tenantNome}">Criare 3D</span>!</h1>
+            <p>Lucro, vendas e produção no período. <span class="ajuda-dica" tabindex="0" title="Valores estimados conforme custos e taxas informados. Atualização em até 30 segundos; produções antigas sem data não entram no período." aria-label="Sobre os indicadores">ⓘ</span></p>
         </div>
         <form method="get" th:action="@{/dashboard}" class="dashboard-periodo" aria-label="Período da dashboard">
             <button type="submit" name="periodo" value="30" th:classappend="${periodo == '30' ? ' selecionado' : ''}">30 dias</button>
@@ -25,11 +24,7 @@
             <strong th:text="|R$ ${#numbers.formatDecimal(lucroVendido, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
             <small>Impressões 3D e outras vendas com custo informado</small>
         </article>
-        <article class="dashboard-indicador">
-            <span>Lucro estimado por hora</span>
-            <strong th:text="|R$ ${#numbers.formatDecimal(lucroPorHora, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
-            <small>Somente vendas de impressões 3D ÷ horas dessas peças</small>
-        </article>
+        <article class="dashboard-indicador"><span>Vendas da loja</span><strong th:text="${totalVendasLoja}"></strong><small>Unidades vendidas, incluindo outros produtos</small></article>
         <article class="dashboard-indicador">
             <span>Horas imprimindo</span>
             <strong th:text="|${#numbers.formatDecimal(horasProduzidas, 1, 'POINT', 1, 'COMMA')} h|">0 h</strong>
@@ -42,11 +37,15 @@
         </article>
     </section>
 
-    <section class="dashboard-indicadores" aria-label="Outras vendas no período">
+<details class="dashboard-mais"><summary>Ver mais indicadores e cadastros</summary>        <article class="dashboard-indicador">
+            <span>Lucro estimado por hora</span>
+            <strong th:text="|R$ ${#numbers.formatDecimal(lucroPorHora, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</strong>
+            <small>Lucro das vendas 3D dividido pelas horas necessárias para imprimir essas peças.</small>
+        </article>    <section class="dashboard-indicadores" aria-label="Outras vendas no período">
         <article class="dashboard-indicador"><span>Vendas da loja</span><strong th:text="${totalVendasLoja}"></strong><small>Unidades vendidas: impressões 3D e outros produtos</small></article>
         <article class="dashboard-indicador"><span>Outros produtos · receita</span><strong th:text="|R$ ${#numbers.formatDecimal(receitaOutrosProdutos,1,'POINT',2,'COMMA')}|"></strong><small th:text="|${unidadesOutrosProdutos} unidades vendidas no período|"></small></article>
         <article class="dashboard-indicador"><span>Outros produtos · lucro</span><strong th:text="|R$ ${#numbers.formatDecimal(lucroOutrosProdutos,1,'POINT',2,'COMMA')}|"></strong><small>Vendas com custo informado, descontando cancelamentos</small></article>
-        <article class="dashboard-indicador"><span>Outras vendas</span><a class="botao botao-secundario" th:href="@{/outras-vendas}">Gerenciar produtos e vendas</a><small th:if="${unidadesOutrosSemCusto > 0}" th:text="|${unidadesOutrosSemCusto} unidades sem custo informado: lucro não calculado.|"></small></article>
+        <article class="dashboard-indicador dashboard-atalho"><span>Produtos e vendas</span><a class="botao botao-secundario" th:href="@{/outras-vendas}">Gerenciar produtos e vendas</a><small th:if="${unidadesOutrosSemCusto > 0}" th:text="|${unidadesOutrosSemCusto} unidades sem custo informado: lucro não calculado.|"></small></article>
     </section>
     <section class="dashboard-cadastros-resumo" aria-label="Resumo dos cadastros">
         <a th:href="@{/peca/listar}"><i class="bi bi-box" aria-hidden="true"></i><span><small>Peças</small><strong th:text="${totalPecas}">0</strong></span></a>
@@ -55,6 +54,7 @@
         <a th:href="@{/historico/listar}"><i class="bi bi-calculator" aria-hidden="true"></i><span><small>Cálculos</small><strong th:text="${totalCalculos}">0</strong></span></a>
     </section>
 
+</details>
     <section class="dashboard-grade dashboard-grade-graficos">
         <article class="dashboard-bloco dashboard-lucro-mensal">
             <div class="dashboard-bloco-titulo">

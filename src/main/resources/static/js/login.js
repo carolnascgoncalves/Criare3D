@@ -54,3 +54,37 @@ document.addEventListener("click", evento => {
     document.addEventListener('DOMContentLoaded', carregarMarca);
     document.addEventListener('turbo:load', carregarMarca);
 })();
+
+// Somente a confirmação de logout desaparece; erros e bloqueios continuam visíveis.
+(() => {
+    const temporizadores = new Map();
+    function limpar() {
+        temporizadores.forEach(clearTimeout);
+        temporizadores.clear();
+    }
+    function prepararAvisos() {
+        limpar();
+        document.querySelectorAll('[data-aviso-temporario]').forEach(aviso => {
+            if (aviso.hidden) return;
+            temporizadores.set(aviso, setTimeout(() => {
+                aviso.hidden = true;
+                temporizadores.delete(aviso);
+            }, 7000));
+        });
+    }
+    document.addEventListener('click', evento => {
+        const botao = evento.target.closest('[data-fechar-aviso]');
+        if (!botao) return;
+        const aviso = botao.closest('[data-aviso-temporario]');
+        if (!aviso) return;
+        clearTimeout(temporizadores.get(aviso));
+        temporizadores.delete(aviso);
+        aviso.hidden = true;
+    });
+    document.addEventListener('DOMContentLoaded', prepararAvisos);
+    document.addEventListener('turbo:load', prepararAvisos);
+    document.addEventListener('turbo:before-cache', () => {
+        limpar();
+        document.querySelectorAll('[data-aviso-temporario]').forEach(aviso => { aviso.hidden = true; });
+    });
+})();

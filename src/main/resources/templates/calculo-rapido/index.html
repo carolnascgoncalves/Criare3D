@@ -3,9 +3,9 @@
 <head th:replace="~{fragmentos :: cabecalho('Cálculo rápido')}"></head><body>
 <nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina pagina-calculo-rapido" data-calculo-rapido>
 <section class="pagina-intro"><div><span class="texto-apoio">CONSULTA PROVISÓRIA</span><h1>Cálculo rápido</h1><p>Consulte um preço sem cadastrar a peça. Nada desta consulta é salvo e nenhum material é descontado do estoque.</p></div></section>
-<section class="cartao rapido-secao">
+<nav class="operacao-abas" aria-label="Como calcular"><a class="ativo" th:href="@{/calculo-rapido}">Consulta sem salvar</a><a th:href="@{/historico/novo}">Calcular e salvar</a></nav><section class="cartao rapido-secao">
 <header class="rapido-secao-titulo"><span class="rapido-etapa">01</span><div><h2>Arquivo e prévia</h2><p>Importe todas as placas de uma vez. Trocar a imagem abaixo não altera os totais.</p></div></header>
-<div class="campo"><label for="rapidoArquivo">Arquivo de impressão (3MF, opcional)</label><input id="rapidoArquivo" type="file" accept=".3mf" data-rapido-arquivo th:attr="data-url=@{/calculo-rapido/analisar-arquivo}"><small>Até 100 MB. Para preencher gramas e tempo automaticamente, use um arquivo fatiado.</small></div>
+<div class="campo arquivo-soltar"><span><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Arraste o .3mf aqui ou escolha um arquivo</span><label for="rapidoArquivo">Arquivo de impressão (3MF, opcional)</label><input id="rapidoArquivo" type="file" accept=".3mf" data-rapido-arquivo th:attr="data-url=@{/calculo-rapido/analisar-arquivo}"><small>Até 100 MB. Para preencher gramas e tempo automaticamente, use um arquivo fatiado.</small></div>
 <p data-rapido-importacao class="rapido-status" role="status" aria-live="polite"></p>
 <div data-rapido-erro-importacao class="alerta-erro rapido-erro-importacao" role="alert" hidden></div>
 <div class="rapido-importacao-layout" data-rapido-importado hidden>
@@ -15,39 +15,39 @@
 </section>
 <form method="post" th:action="@{/calculo-rapido}" data-rapido-form autocomplete="off" data-turbo="false">
 <section class="cartao rapido-secao">
-<header class="rapido-secao-titulo"><span class="rapido-etapa">02</span><div><h2>Dados do conjunto</h2><p>Os campos consideram todas as placas. Use a lupa para conferir os dados de cada uma.</p></div></header>
+<header class="rapido-secao-titulo"><span class="rapido-etapa">02</span><div><h2>Dados do arquivo completo</h2><p>Os campos consideram todas as placas. Use a lupa para conferir os dados de cada uma.</p></div></header>
 <div class="rapido-form-grade">
 <div class="campo rapido-campo-largo"><label for="rapidoNome">Nome para esta consulta</label><input id="rapidoNome" name="nome" maxlength="150" placeholder="Consulta rápida"></div>
 <div class="campo"><label for="rapidoImpressora">Impressora</label><select id="rapidoImpressora" name="impressoraId" required><option value="">Selecione</option><option th:each="i : ${impressoras}" th:value="${i.id}" th:text="${i.nome}" th:attr="data-modelo=${i.modelo}"></option></select></div>
 <div class="campo"><label for="rapidoUnidades">Quantidade total de peças do arquivo</label><div class="rapido-campo-lupa"><input id="rapidoUnidades" type="number" min="1" max="10000" placeholder="Não informada"><button type="button" class="botao botao-secundario" data-rapido-detalhe="quantidade" aria-label="Ver peças por placa" title="Ver peças por placa"><i class="bi bi-search" aria-hidden="true"></i></button></div></div>
-<div class="campo"><label for="rapidoProduzir">Unidades de peças impressas</label><input id="rapidoProduzir" name="unidades" type="number" value="1" min="1" max="10000" required><small>Uma unidade completa corresponde a todo o arquivo. A quantidade de partes do arquivo não divide o preço.</small></div>
+<div class="campo"><label for="rapidoProduzir">Quantos arquivos completos imprimir?</label><input id="rapidoProduzir" name="unidades" type="number" value="1" min="1" max="10000" required><small>1 imprime todas as mesas do arquivo uma vez. As partes internas não são produtos separados para o preço.</small></div>
 <div class="campo"><label for="rapidoTempo">Tempo total de impressão (min)</label><div class="rapido-campo-lupa"><input id="rapidoTempo" name="tempoImpressaoMinutos" type="number" min="1" required><button type="button" class="botao botao-secundario" data-rapido-detalhe="tempo" aria-label="Ver tempo por placa" title="Ver tempo por placa"><i class="bi bi-search" aria-hidden="true"></i></button></div><small data-rapido-tempo-unidade></small></div>
-<div class="campo"><label for="rapidoPlacas">Quantidade de placas / impressões</label><input id="rapidoPlacas" name="numeroPlacas" type="number" value="1" min="1" max="100" required><small>Placas por unidade completa. Aquecimento e purga se repetem conforme as unidades impressas.</small></div>
+<div class="campo"><label for="rapidoPlacas">Mesas de impressão por arquivo</label><input id="rapidoPlacas" name="numeroPlacas" type="number" value="1" min="1" max="100" required><small>Placas por arquivo completo. Aquecimento e purga se repetem conforme as unidades impressas.</small></div>
 </div></section>
 <section class="cartao rapido-secao">
-<header class="rapido-secao-titulo"><span class="rapido-etapa">03</span><div><h2>Filamentos do conjunto</h2><p>Todos os materiais do arquivo, somados entre as placas. Basta escolher os rolos correspondentes.</p></div><button type="button" class="botao botao-secundario" data-rapido-detalhe="filamentos"><i class="bi bi-search" aria-hidden="true"></i> Por placa</button></header>
+<header class="rapido-secao-titulo"><span class="rapido-etapa">03</span><div><h2>Filamentos do arquivo completo</h2><p>Todos os materiais do arquivo, somados entre as placas. Basta escolher os rolos correspondentes.</p></div><button type="button" class="botao botao-secundario" data-rapido-detalhe="filamentos"><i class="bi bi-search" aria-hidden="true"></i> Por placa</button></header>
 <div data-rapido-materiais></div>
 <div class="rapido-filamentos-rodape"><button type="button" class="botao botao-secundario" data-rapido-adicionar><i class="bi bi-plus-lg" aria-hidden="true"></i> Adicionar filamento</button><span data-rapido-peso-total></span></div>
 </section>
 <section class="cartao rapido-secao">
-<header class="rapido-secao-titulo"><span class="rapido-etapa">04</span><div><h2>Embalagem e preço</h2><p>O preço por unidade considera o arquivo completo. O custo do lote acompanha as unidades de peças impressas.</p></div></header>
+<header class="rapido-secao-titulo"><span class="rapido-etapa">04</span><div><h2>Embalagem e preço</h2><p>O preço por unidade considera o arquivo completo. O custo total acompanha a quantidade de arquivos completos que você vai imprimir.</p></div></header>
 <div class="rapido-form-grade">
-<div class="campo" th:if="${!configuracao.embalagemFixa}"><label for="rapidoEmbalagem">Embalagem por unidade completa</label><select id="rapidoEmbalagem" name="embalagemId" required><option value="">Selecione</option><option th:each="e : ${embalagens}" th:value="${e.id}" th:text="|${e.nome} · R$ ${#numbers.formatDecimal(e.custoUnitario,1,'POINT',2,'COMMA')}|"></option></select></div>
-<div class="campo"><label for="rapidoMarkup">Lucro sobre o custo (%)</label><input id="rapidoMarkup" name="markupPercentual" type="number" min="0" step="0.01" max="99999999" required th:value="${configuracao.markupPercentual}" th:readonly="${configuracao.markupFixo}"><small th:if="${configuracao.markupFixo}">Percentual fixo das configurações.</small></div>
+<div class="campo" th:if="${!configuracao.embalagemFixa}"><label for="rapidoEmbalagem">Embalagem por arquivo completo</label><select id="rapidoEmbalagem" name="embalagemId" required><option value="">Selecione</option><option th:each="e : ${embalagens}" th:value="${e.id}" th:text="|${e.nome} · R$ ${#numbers.formatDecimal(e.custoUnitario,1,'POINT',2,'COMMA')}|"></option></select></div>
+<div class="campo"><div class="markup-atalhos" th:if="${!configuracao.markupFixo}"><button type="button" class="botao botao-secundario" th:each="valor : ${ {configuracao.markupOpcao1,configuracao.markupOpcao2,configuracao.markupOpcao3} }" th:attr="data-markup-atalho=${valor}" th:text="|${valor}%|"></button></div><label for="rapidoMarkup">Lucro sobre o custo (%)</label><input id="rapidoMarkup" name="markupPercentual" type="number" min="0" step="0.01" max="99999999" required th:value="${configuracao.markupPercentual}" th:readonly="${configuracao.markupFixo}"><small th:if="${configuracao.markupFixo}">Percentual fixo das configurações.</small></div>
 </div>
-<details class="rapido-opcoes"><summary>Mais opções</summary><div class="campo"><label for="rapidoTrabalho">Trabalho manual no conjunto (min)</label><input id="rapidoTrabalho" type="number" name="tempoTrabalhoMinutos" value="0" min="0"><small>Usado quando a mão de obra está ativada sem tempo fixo.</small></div><p>Energia, manutenção, depreciação, embalagem fixa e custos da loja seguem as configurações atuais. Venda direta, sem taxas de plataforma.</p></details>
+<details class="rapido-opcoes"><summary>Mais opções</summary><div class="campo"><label for="rapidoTrabalho">Trabalho manual por arquivo (min)</label><input id="rapidoTrabalho" type="number" name="tempoTrabalhoMinutos" value="0" min="0"><small>Usado quando a mão de obra está ativada sem tempo fixo.</small></div><p>Energia, manutenção, depreciação, embalagem fixa e custos da loja seguem as configurações atuais. Venda direta, sem taxas de plataforma.</p></details>
 <p data-rapido-erro class="alerta-erro" role="alert" hidden></p>
 <div class="operacao-acoes"><button class="botao botao-principal" data-rapido-calcular>Calcular preço</button><button type="button" class="botao botao-secundario" data-rapido-limpar>Limpar consulta</button></div>
-</section></form>
+</section><aside class="preco-ao-vivo" aria-label="Preço da consulta"><div><small>Preço sugerido por arquivo completo</small><strong data-rapido-preco-vivo>Preencha os campos</strong><span data-rapido-estado-vivo role="status">A consulta não é salva.</span></div><button type="submit" class="botao botao-principal">Conferir preço</button></aside></form>
 <dialog class="rapido-dialogo" data-rapido-dialogo aria-labelledby="rapidoDialogoTitulo"><header><h2 id="rapidoDialogoTitulo"><i class="bi bi-box" aria-hidden="true" data-rapido-dialogo-icone></i><span data-rapido-dialogo-titulo>Detalhes por placa</span></h2><button type="button" class="botao botao-secundario" data-rapido-fechar-dialogo aria-label="Fechar detalhes"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header><div data-rapido-dialogo-conteudo></div></dialog>
 <section class="cartao rapido-secao rapido-resultado" data-rapido-resultado hidden aria-live="polite">
 <header class="rapido-secao-titulo"><div><h2>Resultado da consulta</h2><p data-rapido-resultado-contexto></p></div></header>
 <div class="rapido-resultado-indicadores">
-<div><span>Custo do lote</span><strong data-rapido-custo-lote></strong><small data-rapido-custo-unidade></small></div>
-<div><span>Preço sugerido por unidade completa</span><strong data-rapido-preco></strong><small>Arquivo completo · venda direta, sem taxas de plataforma</small></div>
-<div><span>Custos da loja por unidade completa</span><strong data-rapido-rateio></strong><small>A consulta não conta como valor recuperado.</small></div>
+<div><span>Custo de todas as impressões</span><strong data-rapido-custo-lote></strong><small data-rapido-custo-unidade></small></div>
+<div><span>Preço sugerido por arquivo completo</span><strong data-rapido-preco></strong><small>Arquivo completo · venda direta, sem taxas de plataforma</small></div>
+<div><span>Custos da loja por arquivo completo</span><strong data-rapido-rateio></strong><small>A consulta não conta como valor recuperado.</small></div>
 </div>
-<h3 class="rapido-composicao-titulo">Composição dos custos</h3><div class="custo-loja-tabela"><table class="rapido-custos-tabela"><thead><tr><th>Descrição</th><th>Uma unidade completa</th><th>Total do lote</th></tr></thead><tbody data-rapido-detalhamento></tbody></table></div>
+<h3 class="rapido-composicao-titulo">Composição dos custos</h3><div class="custo-loja-tabela"><table class="rapido-custos-tabela"><thead><tr><th>Descrição</th><th>Um arquivo completo</th><th>Total das impressões</th></tr></thead><tbody data-rapido-detalhamento></tbody></table></div>
 </section>
 <template data-rapido-opcoes><select><option value="">Selecione o filamento</option><option th:each="f : ${filamentos}" th:value="${f.id}" th:text="|${f.nome} · ${f.cor} · R$ ${#numbers.formatDecimal(f.precoRolo,1,'POINT',2,'COMMA')} / ${#numbers.formatDecimal(f.pesoRoloGramas,1,'POINT',0,'COMMA')} g|" th:attr="data-cor=${f.codigoCor}"></option></select></template>
 </main></body></html>

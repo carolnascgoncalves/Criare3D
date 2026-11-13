@@ -81,7 +81,7 @@ public class HomeController {
         model.addAttribute("markupFixoConfigurado", markupFixoConfigurado);
         model.addAttribute("primeiroAcessoConcluido", tarifaConfigurada
                 && totalPecas > 0 && totalFilamentos > 0
-                && totalImpressoras > 0 && totalEmbalagens > 0
+                && totalImpressoras > 0
                 && !historicosRecentes.isEmpty());
 
         boolean valorHoraConfigurado = Boolean.TRUE.equals(configuracao.getMaoObraAtivada())

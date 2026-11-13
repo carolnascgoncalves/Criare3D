@@ -78,8 +78,9 @@ public class FilamentoController {
             BigDecimal estoque = filamento.getEstoqueGramas();
             int percentual = 0;
             if (pesoRolo != null && pesoRolo.signum() > 0 && estoque != null) {
+                BigDecimal rolos = estoque.divide(pesoRolo, 0, RoundingMode.CEILING).max(BigDecimal.ONE);
                 percentual = estoque.multiply(BigDecimal.valueOf(100))
-                        .divide(pesoRolo, 0, RoundingMode.HALF_UP).intValue();
+                        .divide(pesoRolo.multiply(rolos), 0, RoundingMode.HALF_UP).intValue();
                 percentual = Math.max(0, Math.min(100, percentual));
             }
             percentualEstoque.put(filamento.getId(), percentual);

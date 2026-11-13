@@ -26,10 +26,10 @@
     --cor-sucesso: #27613a;
     --fundo-sucesso: color-mix(in srgb, var(--cor-sucesso) 8%, var(--cor-fundo));
     --borda-sucesso: color-mix(in srgb, var(--cor-sucesso) 28%, var(--cor-fundo));
-    --dashboard-tiktok: var(--cor-primaria);
-    --dashboard-shopee: var(--cor-destaque);
-    --dashboard-mercado-livre: color-mix(in srgb, var(--cor-primaria) 48%, var(--cor-destaque));
-    --dashboard-sem-plataforma: color-mix(in srgb, var(--cor-primaria) 25%, var(--cor-fundo));
+    --dashboard-tiktok: #007f83;
+    --dashboard-shopee: #d35425;
+    --dashboard-mercado-livre: #a87300;
+    --dashboard-sem-plataforma: #6852a3;
     --dashboard-outro: color-mix(in srgb, var(--cor-primaria) 60%, var(--cor-fundo));
     --dashboard-custo-filamento: var(--cor-primaria);
     --dashboard-custo-falhas: color-mix(in srgb, var(--cor-destaque) 22%, white);

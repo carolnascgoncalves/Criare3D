@@ -24,15 +24,11 @@
         </div>
         <h2>Da primeira camada<br>ao próximo pedido.</h2>
         <p>Calcule seus preços, organize a produção e acompanhe suas vendas em um só lugar.</p>
-        <span class="login-marca-assinatura">Cada camada conta.</span>
+        <span class="login-marca-assinatura"><i class="bi bi-layers" aria-hidden="true"></i> Cada camada conta.</span>
     </section>
     <section class="login-cartao" aria-labelledby="login-titulo">
     <header class="login-cabecalho">
-        <div class="login-icone-marca" data-marca-imagem>
-            <img th:src="@{/images/cost3d/icone-robo-offwhite.svg}" alt="" width="64" height="64" hidden>
-            <span data-marca-fallback aria-hidden="true">c3d</span>
-        </div>
-        <span class="login-etiqueta">BEM-VINDA À COST3D</span>
+<span class="login-etiqueta">BOAS-VINDAS À COST3D</span>
         <h1 id="login-titulo">Bom ter você por aqui.</h1>
         <p>Entre na sua conta para continuar.</p>
     </header>
@@ -54,8 +50,10 @@
         O acesso a esta conta está suspenso. Fale com a pessoa que administra sua conta para reativá-la.
     </div>
 
-    <div th:if="${param.logout}" class="login-aviso login-aviso-sucesso" role="status">
-        Você saiu da sua conta com sucesso.
+    <div th:if="${param.logout}" class="login-aviso login-aviso-sucesso login-aviso-flutuante" role="status" data-aviso-temporario>
+        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+        Você saiu da sua conta.
+        <button type="button" class="login-fechar-aviso" data-fechar-aviso aria-label="Fechar aviso"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
     </div>
 
     <div th:if="${param.senhaAlterada}" class="login-aviso login-aviso-sucesso" role="status">
@@ -75,7 +73,10 @@
         </div>
 
         <div class="login-campo">
-            <label for="password">Senha</label>
+            <div class="login-campo-cabecalho">
+                <label for="password">Senha</label>
+                <a th:href="@{/recuperar-senha}">Esqueci minha senha</a>
+            </div>
             <div class="login-senha-controle">
                 <input type="password"
                        id="password"
@@ -93,9 +94,12 @@
         <button type="submit" data-turbo-submits-with="Entrando…" class="login-botao" th:disabled="${esperaLogin > 0}">Entrar</button>
     </form>
 
-    <p class="login-ajuda"><a th:href="@{/recuperar-senha}">Esqueci minha senha</a></p>
+    <details class="login-cadastro">
+        <summary>Ainda não tem conta? <span>Criar conta</span></summary>
+        <p>O cadastro é feito pela administração da sua loja. Peça à pessoa responsável para criar seu acesso com seu e-mail.</p>
+    </details>
 
-    <footer class="login-rodape">cost3d · Seu próximo passo começa aqui.</footer>
+
     </section>
 </main>
 </body>

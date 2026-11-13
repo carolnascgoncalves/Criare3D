@@ -116,7 +116,7 @@
                 <span class="peca-lista-icone" aria-hidden="true"><i class="bi bi-printer"></i></span>
                 <div class="peca-lista-identidade">
                     <span class="texto-apoio">IMPRESSORA</span>
-                    <h3 th:text="${impressora.nome}">Nome da impressora</h3>
+                    <small th:if="${#strings.equalsIgnoreCase(impressora.nome,'nome impressora')}"><a th:href="@{/impressora/editar/{id}(id=${impressora.id})}">Dê um nome à sua impressora</a></small><h3 th:text="${impressora.nome}">Nome da impressora</h3>
                     <p th:text="${impressora.modelo}">Modelo</p>
                 </div>
                 <dl class="peca-lista-metricas">

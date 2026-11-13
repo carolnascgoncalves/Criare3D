@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-    <head th:replace="~{fragmentos :: cabecalho('Planejamentos salvos')}"></head>
+    <head th:replace="~{fragmentos :: cabecalho('Planejar produção')}"></head>
     <body>
         <nav th:replace="~{fragmentos :: menu}"></nav>
         <main class="pagina pagina-planejamentos">
@@ -9,8 +9,8 @@
             <section class="pagina-intro">
                 <div>
                     <span class="texto-apoio">ORGANIZE SUA PRODUÇÃO</span>
-                    <h1>Planejamentos salvos</h1>
-                    <p>O horário é uma previsão. Nos pedidos, confirme a produção para concluir o planejamento. Nas simulações avulsas, ele é concluído após a venda do lote; peças já produzidas não ocupam a impressora.</p>
+                    <h1>Planejar produção</h1>
+                    <p>Organize os próximos trabalhos por impressora e acompanhe a fila.</p>
                 </div>
                 <a class="botao botao-principal" th:href="@{/simulacao}">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i>
@@ -27,8 +27,8 @@
                 <h2 th:text="${concluidos == true ? 'Nenhum planejamento concluído' : 'Sua fila está livre'}"></h2>
                 <p th:unless="${concluidos == true}">Salve uma simulação para organizar os próximos trabalhos.</p>
             </section>
-            <div class="planejamentos-grade">
-                <article class="cartao planejamento-card" th:each="p : ${pagina.content}">
+            <div class="operacao-acoes" data-agenda-controles><button type="button" class="botao botao-principal" data-agenda-modo="agenda" aria-pressed="true">Linha do tempo</button><button type="button" class="botao botao-secundario" data-agenda-modo="lista" aria-pressed="false">Lista</button><small>Trabalhos desta página · horários previstos</small></div><section class="agenda-impressoras" data-agenda aria-label="Agenda por impressora"></section><div class="planejamentos-grade" data-agenda-lista>
+                <article class="cartao planejamento-card" th:each="p : ${pagina.content}" th:attr="data-agenda-inicio=${p.inicio},data-agenda-fim=${p.fim},data-agenda-impressora=${p.calculo.impressora != null ? p.calculo.impressora.id : p.nomeImpressora},data-agenda-nome=${p.nomeImpressora}">
                     <header>
                         <span class="planejamento-icone">
                             <i class="bi bi-printer" aria-hidden="true"></i>
@@ -39,14 +39,14 @@
                         </div>
                         <span class="operacao-etiqueta" th:text="${concluidos == true or p.concluido ? 'Concluído' : (p.calculo.produzido ? 'Produzido · aguardando venda' : 'Na fila')}"></span>
                     </header>
-                    <p class="texto-apoio" th:text="|${p.unidades} unidades · ${p.pecasPorImpressao} por impressão|"></p>
+                    <p class="texto-apoio" th:text="${p.unidades + (p.unidades == 1 ? ' unidade' : ' unidades') + ' · ' + p.pecasPorImpressao + ' por impressão'}"></p>
                     <dl class="planejamento-horarios">
                         <div>
                             <dt>Início</dt>
-                            <dd th:text="${#temporals.format(p.inicio,'dd/MM · HH:mm')}"></dd>
+                            <dd th:text="${(p.inicio.toLocalDate().equals(T(java.time.LocalDate).now(T(java.time.ZoneId).of('America/Sao_Paulo'))) ? 'Hoje · ' : (p.inicio.toLocalDate().equals(T(java.time.LocalDate).now(T(java.time.ZoneId).of('America/Sao_Paulo')).plusDays(1)) ? 'Amanhã · ' : #temporals.format(p.inicio,'dd/MM · '))) + #temporals.format(p.inicio,'HH:mm')}"></dd>
                         </div>
                         <div>
-                            <dt>Previsão com folga</dt>
+                            <dt>Previsão (com margem de segurança)</dt>
                             <dd th:text="${#temporals.format(p.fim,'dd/MM · HH:mm')}"></dd>
                         </div>
                     </dl>

@@ -57,7 +57,7 @@
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">SEU CATÁLOGO</span>
-            <h1>Histórico de cálculos</h1>
+            <h1>Meus cálculos</h1>
             <p>Acompanhe os custos e preços sugeridos das suas impressões 3D.</p>
         </div>
 
@@ -282,7 +282,7 @@
             </a>
         </form>
 
-        <div class="historico-conteudo">
+<nav class="operacao-abas" aria-label="Filtrar meus cálculos por situação"><a th:href="@{/historico/listar}">Todos</a><a th:href="@{/historico/listar(produzido='NAO',vendido='NAO')}">Só calculados</a><a th:href="@{/historico/listar(produzido='SIM',vendido='NAO')}">Em estoque</a><a th:href="@{/historico/listar(vendido='SIM')}">Vendidos</a></nav>        <div class="historico-conteudo">
             <div class="controles-selecao-listagem"
                  th:if="${!#lists.isEmpty(historicos)}">
 
@@ -460,12 +460,7 @@
 
                         <td class="coluna-acoes">
                             <div class="acoes">
-                                <a th:href="@{/historico/{id}/orcamento(id=${historico.id})}"
-                                   class="botao-acao"
-                                   title="Gerar orçamento"
-                                   th:aria-label="|Gerar orçamento para ${historico.nomePeca}|">
-                                    <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
-                                </a>
+<a class="botao botao-secundario" th:href="${historico.vendido == true ? '/historico/'+historico.id+'/reutilizar' : (historico.produzido == true ? '/vendas-estoque/lote/'+historico.id : '/orcamentos/novo?calculo='+historico.id)}" th:text="${historico.vendido == true ? 'Calcular de novo' : (historico.produzido == true ? 'Ver produção e vendas' : 'Criar orçamento')}">Criar orçamento</a>
 
                                 <a th:href="@{/historico/detalhes/{id}(id=${historico.id})}"
                                    class="botao-acao"

@@ -22,8 +22,13 @@ class OperacaoTemplatesTest {
         var servlet = new MockServletContext();
         var request = new MockHttpServletRequest(servlet);request.setRequestURI("/teste");
         var response = new MockHttpServletResponse();
+        var application=new org.springframework.web.context.support.StaticWebApplicationContext();
+        application.setServletContext(servlet);application.refresh();
+        servlet.setAttribute(org.springframework.web.context.WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,application);
         var contexto = new WebContext(JakartaServletWebApplication.buildApplication(servlet).buildExchange(request,response),Locale.forLanguageTag("pt-BR"));
         contexto.setVariables(dados);
+        var springContext=new org.springframework.web.servlet.support.RequestContext(request,response,servlet,dados);
+        contexto.setVariable("thymeleafRequestContext",new org.thymeleaf.spring6.context.webmvc.SpringWebMvcThymeleafRequestContext(springContext,request));
         contexto.setVariable("tenantNome","Empresa teste");contexto.setVariable("tenantDisponivel",true);
         contexto.setVariable("tenantLogoUrl","/logo.png");contexto.setVariable("paginaAtiva","vendas-estoque");
         contexto.setVariable("_csrf",new DefaultCsrfToken("X-CSRF-TOKEN","_csrf","teste"));
@@ -105,5 +110,19 @@ class OperacaoTemplatesTest {
             org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.ImpressoraService.class),
             org.mockito.Mockito.mock(br.com.criare3d.service.interfaces.EmbalagemService.class));
         assertThat(renderizar("dashboard/index",dados.buscar("30"))).contains("Outros produtos","Gerenciar produtos e vendas","Vendas 3D por plataforma");
+    }
+
+    @Test void listasMostramPrecoEMenuSeguroSemInventarDados() {
+        var p=new Peca();p.setId(UUID.randomUUID());p.setNome("T-Rex &amp; suporte");p.setQuantidadeFilamentoGramas(BigDecimal.TEN);p.setTempoImpressaoMinutos(30L);
+        var dados=new HashMap<String,Object>();dados.put("pecas",List.of(p));dados.put("pagina",new PageImpl<>(List.of(p)));dados.put("busca","");dados.put("arquivosPeca",Map.of());dados.put("precosPeca",Map.of(p.getId(),new BigDecimal("12.50")));
+        assertThat(renderizar("peca/listar",dados)).contains("12,50","Calcular","acoes-menu","/catalogo/peca/"+p.getId()+"/arquivar").doesNotContain("&amp;amp;");
+        var f=new Filamento();f.setId(UUID.randomUUID());f.setNome("PLA");f.setCor("Amarelo");f.setPesoRoloGramas(new BigDecimal("1000"));f.setEstoqueGramas(new BigDecimal("1811"));f.setPrecoRolo(new BigDecimal("80"));
+        dados.clear();dados.put("filamentos",List.of(f));dados.put("pagina",new PageImpl<>(List.of(f)));dados.put("busca","");dados.put("ordem","nomeAsc");dados.put("percentualEstoque",Map.of(f.getId(),100));dados.put("filamentosComHistoricoProduzido",Map.of(f.getId(),false));
+        assertThat(renderizar("filamento/listar",dados)).contains("2 rolo(s) equivalentes","Acabando","acoes-menu").doesNotContain("1811 g de");
+    }
+    @Test void configuracaoRenderizaIndiceEInterruptores() {
+        var c=new Configuracao();c.setMarkupFixo(false);c.setMarkupPercentual(new BigDecimal("30"));c.setMarkupOpcao1(new BigDecimal("30"));c.setMarkupOpcao2(new BigDecimal("40"));c.setMarkupOpcao3(new BigDecimal("50"));
+        var html=renderizar("configuracao/index",Map.of("configuracao",br.com.criare3d.dto.ConfiguracaoRequest.toDto(c)));
+        assertThat(html).contains("configuracao-indice","role=\"switch\"","data-exemplo-markup");
     }
 }

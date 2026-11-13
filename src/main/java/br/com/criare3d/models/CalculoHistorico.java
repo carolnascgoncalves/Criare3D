@@ -299,4 +299,8 @@ public class CalculoHistorico {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     private @Getter @Setter Usuario usuario;
+    public String getNomePeca() {
+        if (nomePeca == null) return null;
+        return org.springframework.web.util.HtmlUtils.htmlUnescape(org.springframework.web.util.HtmlUtils.htmlUnescape(nomePeca));
+    }
 }

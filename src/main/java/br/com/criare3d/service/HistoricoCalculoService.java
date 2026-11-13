@@ -22,6 +22,18 @@ import java.util.UUID;
 @Service
 @Transactional
 public class HistoricoCalculoService {
+    public java.util.Map<UUID, Long> usosEmbalagens(java.util.Collection<UUID> ids) {
+        var usos = new java.util.HashMap<UUID, Long>();
+        if (!ids.isEmpty()) calculoHistoricoRepository.contarUsosEmbalagens(ids).forEach(e -> usos.put(e.getEmbalagemId(), e.getUsos()));
+        return usos;
+    }
+    public java.util.Map<UUID, java.math.BigDecimal> ultimosPrecosPecas(java.util.Collection<UUID> ids) {
+        var precos = new java.util.HashMap<UUID, java.math.BigDecimal>();
+        if (!ids.isEmpty()) calculoHistoricoRepository.ultimosPrecosPecas(ids).forEach(p -> {
+            if (p.getPreco() != null) precos.putIfAbsent(p.getPecaId(), p.getPreco());
+        });
+        return precos;
+    }
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;

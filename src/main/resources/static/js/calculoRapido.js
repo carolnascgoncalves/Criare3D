@@ -53,7 +53,21 @@ function iniciarCalculoRapido() {
     const numero=valor=>Number(valor || 0).toLocaleString('pt-BR',{maximumFractionDigits:3});
     const imagemValida=valor=>/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(valor || '');
     const headers=()=>({'X-CSRF-TOKEN':tokenConsultaRapida(form)});
-    function invalidar() {versao++;resultado.hidden=true;erro.hidden=true;calculo?.abort();}
+    let precoTimer;
+    const vivo=buscar('[data-rapido-preco-vivo]'), estadoVivo=buscar('[data-rapido-estado-vivo]');
+    function invalidar() {
+        versao++;resultado.hidden=true;erro.hidden=true;calculo?.abort();
+        clearTimeout(precoTimer);
+        if(vivo) vivo.textContent='Preencha os campos';
+        if(estadoVivo) estadoVivo.textContent='Complete os campos para ver o preço.';
+    }
+    function agendarPreco() {
+        clearTimeout(precoTimer);
+        precoTimer=setTimeout(()=>{
+            if(leitura || !form.checkValidity() || !lista.children.length) return;
+            form.requestSubmit();
+        },650);
+    }
     function informar(texto) {erro.textContent=texto;erro.hidden=!texto;}
     function informarImportacao(texto) {
         erroImportacao.textContent=texto;erroImportacao.hidden=!texto;
@@ -72,10 +86,10 @@ function iniciarCalculoRapido() {
     function consumoLinha(linha) {
         const campo=linha.querySelector('input');
         const base=Number(linha.dataset.gramasUnidade || 0);
-        linha.querySelector('[data-rapido-gramas-unidade]').textContent=`${numero(base)} g por unidade completa`;
+        linha.querySelector('[data-rapido-gramas-unidade]').textContent=`${numero(base)} g por arquivo completo`;
     }
     function atualizarTempoUnidade() {
-        buscar('[data-rapido-tempo-unidade]').textContent=minutosUnidade!=null ? `${numero(minutosUnidade)} min por unidade completa` : '';
+        buscar('[data-rapido-tempo-unidade]').textContent=minutosUnidade!=null ? `${numero(minutosUnidade)} min por arquivo completo` : '';
     }
     form.elements.unidades.addEventListener('input',()=>{
         const n=Number(form.elements.unidades.value);if(!Number.isInteger(n) || n<1 || n>10000) return;
@@ -92,7 +106,7 @@ function iniciarCalculoRapido() {
     });
     function pesoTotal() {
         const total=[...lista.querySelectorAll('input')].reduce((s,i)=>s+Number(i.value || 0),0);
-        buscar('[data-rapido-peso-total]').textContent=`${numero(total)} g no lote · ${numero(total/unidades())} g por unidade completa`;
+        buscar('[data-rapido-peso-total]').textContent=`${numero(total)} g no lote · ${numero(total/unidades())} g por arquivo completo`;
     }
     function renumerar() {
         [...lista.children].forEach((linha,i)=>{
@@ -130,7 +144,7 @@ function iniciarCalculoRapido() {
         gramas.addEventListener('input',()=>{linha.dataset.gramasUnidade=Number(gramas.value || 0)/unidades();consumoLinha(linha);pesoTotal();});
         campoGramas.append(labelGramas,gramas);
         const remover=document.createElement('button');remover.type='button';remover.className='botao botao-secundario';remover.textContent='Remover';
-        remover.addEventListener('click',()=>{linha.remove();renumerar();invalidar();});
+        remover.addEventListener('click',()=>{linha.remove();renumerar();invalidar();agendarPreco();});
         linha.append(campo,campoGramas,remover,porUnidade);lista.append(linha);consumoLinha(linha);renumerar();
     }
     function limparPreview() {importado.hidden=true;imagem.removeAttribute('src');miniaturas.replaceChildren();}
@@ -162,7 +176,7 @@ function iniciarCalculoRapido() {
         const extras=[['Impressora do perfil',modelo.modeloImpressora],['Altura de camada',modelo.alturaCamada ? modelo.alturaCamada+' mm' : ''],['Diâmetro do bico',modelo.diametroBico ? modelo.diametroBico+' mm' : ''],['Perfil de impressão',modelo.perfil],['Aplicativo',modelo.fatiador]];
         for(const [nome,valor] of extras) if(valor) {const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=nome;dd.textContent=valor;metadados.append(dt,dd);}
         const materiaisArquivo=buscar('[data-rapido-materiais-arquivo]');materiaisArquivo.replaceChildren();
-        const tituloMateriais=document.createElement('h4');tituloMateriais.textContent='Materiais de uma unidade completa';materiaisArquivo.append(tituloMateriais);
+        const tituloMateriais=document.createElement('h4');tituloMateriais.textContent='Materiais de um arquivo completo';materiaisArquivo.append(tituloMateriais);
         for(const material of resumo.filamentos) materiaisArquivo.append(materialResumo(material));
         buscar('[data-rapido-resumo]').textContent=`${resumo.numeroPlacas} placa(s) · ${resumo.quantidadePecas ?? 'Quantidade de peças não informada'}${resumo.quantidadePecas!=null ? ' peça(s)' : ''} · ${resumo.filamentos.length} material(is)`;
         miniaturas.replaceChildren(...placas.map((p,i)=>{
@@ -181,7 +195,7 @@ function iniciarCalculoRapido() {
         const conteudo=buscar('[data-rapido-dialogo-conteudo]');conteudo.replaceChildren();
         buscar('[data-rapido-dialogo-titulo]').textContent=tipo==='filamentos' ? 'Filamentos por placa' : tipo==='tempo' ? 'Tempo por placa' : 'Peças por placa';
         buscar('[data-rapido-dialogo-icone]').className=`bi ${tipo==='tempo' ? 'bi-stopwatch' : tipo==='filamentos' ? 'bi-palette' : 'bi-box'}`;
-        if(placas.length) {const nota=document.createElement('p');nota.textContent='Dados do arquivo para uma unidade completa.';conteudo.append(nota);}
+        if(placas.length) {const nota=document.createElement('p');nota.textContent='Dados do arquivo para um arquivo completo.';conteudo.append(nota);}
         if(!placas.length) {const p=document.createElement('p');p.textContent='Importe um arquivo para consultar as placas.';conteudo.append(p);}
         for(const placa of placas) {
             const bloco=document.createElement('section');bloco.className='rapido-placa-detalhe';
@@ -202,7 +216,7 @@ function iniciarCalculoRapido() {
     buscar('[data-rapido-fechar-dialogo]').addEventListener('click',()=>dialogo.close());
     dialogo.addEventListener('click',e=>{if(e.target===dialogo) {const r=dialogo.getBoundingClientRect();if(e.clientX<r.left || e.clientX>r.right || e.clientY<r.top || e.clientY>r.bottom) dialogo.close();}});
     buscar('[data-rapido-adicionar]').addEventListener('click',()=>{adicionar();invalidar();});
-    form.addEventListener('input',invalidar);form.addEventListener('change',invalidar);
+    form.addEventListener('input',()=>{invalidar();agendarPreco();});form.addEventListener('change',()=>{invalidar();agendarPreco();});
     arquivo.addEventListener('change',async()=>{
         invalidar();leitura?.abort();leitura=null;limparPreview();informarImportacao('');placas=[];
         if(!arquivo.files[0]) {botao.disabled=false;status.textContent='';return;}
@@ -221,21 +235,21 @@ function iniciarCalculoRapido() {
             if(leitura!==controle) return;
             preencherImportacao(modelo,nomeArquivo);
         } catch(e) {if(e.name!=='AbortError' && leitura===controle) {status.textContent='Importação não concluída.';informarImportacao(e.message);}}
-        finally {if(leitura===controle) {leitura=null;botao.disabled=false;}}
+        finally {if(leitura===controle) {leitura=null;botao.disabled=false;agendarPreco();}}
     });
     form.addEventListener('submit',async evento=>{
         if(evento.defaultPrevented) return;
         evento.preventDefault();if(leitura) return;
         if(!lista.children.length) {informar('Adicione pelo menos um filamento.');return;}
-        invalidar();const atual=versao;const controle=new AbortController();calculo=controle;botao.disabled=true;
+        invalidar();const atual=versao;const controle=new AbortController();calculo=controle;botao.disabled=true;if(estadoVivo) estadoVivo.textContent='Atualizando preço…';
         try {
             const resposta=await fetch(form.action,{method:'POST',headers:headers(),body:new FormData(form),signal:controle.signal});
             const dados=await resposta.json();if(!resposta.ok) throw new Error(dados.erro || 'Não foi possível calcular.');
             if(atual!==versao) return;
             pagina.querySelector('[data-rapido-custo-lote]').textContent=moeda(Number(dados.custoTotal)*dados.unidades);
-            pagina.querySelector('[data-rapido-custo-unidade]').textContent=`${moeda(dados.custoTotal)} por unidade completa`;
+            pagina.querySelector('[data-rapido-custo-unidade]').textContent=`${moeda(dados.custoTotal)} por arquivo completo`;
             const partes=buscar('#rapidoUnidades').value;
-            buscar('[data-rapido-resultado-contexto]').textContent=`${dados.unidades} unidade(s) completa(s) do arquivo${partes ? ' · '+partes+' peças/partes por arquivo' : ''}.`;
+            buscar('[data-rapido-resultado-contexto]').textContent=`${dados.unidades} arquivo(s) completo(s)${partes ? ' · '+partes+' peças/partes por arquivo' : ''}.`;
             pagina.querySelector('[data-rapido-preco]').textContent=moeda(dados.precoSugerido);
             pagina.querySelector('[data-rapido-rateio]').textContent=moeda(dados.custoLoja);
             const detalhe=pagina.querySelector('[data-rapido-detalhamento]');detalhe.replaceChildren();
@@ -246,6 +260,8 @@ function iniciarCalculoRapido() {
                 detalhe.append(linha);
             }
             resultado.hidden=false;
+            if(vivo) vivo.textContent=moeda(dados.precoSugerido);
+            if(estadoVivo) estadoVivo.textContent=`${dados.unidades} ${dados.unidades===1 ? 'arquivo completo' : 'arquivos completos'} · total sugerido ${moeda(Number(dados.precoSugerido)*dados.unidades)}`;
         } catch(e) {if(e.name!=='AbortError') informar(e instanceof SyntaxError ? 'A sessão pode ter expirado. Recarregue a página e tente novamente.' : e.message);}
         finally {if(calculo===controle) {calculo=null;botao.disabled=false;}}
     });

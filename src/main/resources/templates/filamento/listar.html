@@ -197,8 +197,8 @@
             </form>
         </div>
 
-        <div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(filamentos)}">
-            <article class="peca-lista-item filamento-lista-item"
+        <div class="operacao-acoes"><button type="button" class="botao botao-secundario" data-filtrar-acabando aria-pressed="false">Acabando <span data-total-acabando></span></button><small>Filtro dos filamentos desta página.</small></div><div class="peca-lista-cartoes" th:if="${!#lists.isEmpty(filamentos)}">
+            <article class="peca-lista-item filamento-lista-item" th:attr="data-estoque-baixo=${percentualEstoque[filamento.id] &lt;= 34}"
                      th:each="filamento : ${filamentos}"
                      th:classappend="${idsNaoExcluidos != null and idsNaoExcluidos.contains(filamento.id)} ? ' item-exclusao-falhou' : ''">
                 <input class="checkbox-selecao-listagem" type="checkbox" name="ids"
@@ -209,24 +209,23 @@
                       th:style="|background-color: ${filamento.codigoCor}|" aria-hidden="true"></span>
                 <span class="peca-lista-icone" th:unless="${filamento.codigoCor != null and !#strings.isEmpty(filamento.codigoCor)}" aria-hidden="true"><i class="bi bi-palette"></i></span>
                 <div class="peca-lista-identidade">
-                    <span class="texto-apoio">FILAMENTO</span>
                     <h3 th:text="${filamento.nome}">Nome do filamento</h3>
                     <p><span th:text="${filamento.marca}">Marca</span><span th:if="${filamento.cor != null and !#strings.isEmpty(filamento.cor)}" th:text="| · ${filamento.cor}|"></span></p>
                 </div>
                 <dl class="peca-lista-metricas filamento-lista-metricas">
                     <div class="filamento-lista-estoque">
                         <dt>Estoque disponível</dt>
-                        <dd><strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g|">0 g</strong><span th:text="| de ${#numbers.formatDecimal(filamento.pesoRoloGramas, 1, 'POINT', 0, 'COMMA')} g|"> de 1.000 g</span></dd>
+                        <dd><strong th:text="|${#numbers.formatDecimal(filamento.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g|">0 g</strong><small th:text="| · ${(filamento.pesoRoloGramas != null and filamento.pesoRoloGramas.signum() > 0 ? T(java.lang.Math).max(0,T(java.lang.Math).ceil(filamento.estoqueGramas.doubleValue() / filamento.pesoRoloGramas.doubleValue()).intValue()) : 0)} rolo(s) equivalentes|"></small></dd>
                         <div class="estoque-filamento-indicador" th:classappend="${percentualEstoque[filamento.id] <= 34 ? ' critico' : (percentualEstoque[filamento.id] <= 64 ? ' atencao' : ' adequado')}">
                             <div class="estoque-filamento-trilho" role="progressbar" th:attr="aria-valuenow=${percentualEstoque[filamento.id]}, aria-valuemin=0, aria-valuemax=100, aria-label=|${percentualEstoque[filamento.id]}% de estoque disponível|"><span th:style="|width: ${percentualEstoque[filamento.id]}%|"></span></div>
-                            <strong th:text="|${percentualEstoque[filamento.id]}%|">0%</strong>
+                            <strong th:if="${filamento.estoqueGramas.compareTo(filamento.pesoRoloGramas) &lt;= 0}" th:text="|${percentualEstoque[filamento.id]}%|">0%</strong>
                         </div>
                         <small class="estoque-filamento-repor" th:if="${percentualEstoque[filamento.id] <= 34}"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Repor estoque</small>
                     </div>
                     <div><dt>Preço do rolo</dt><dd th:text="|R$ ${#numbers.formatDecimal(filamento.precoRolo, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</dd></div>
                 </dl>
                 <div class="acoes peca-lista-acoes" aria-label="Ações do filamento">
-                    <button type="button" class="estoque-ajuste-botao" data-bs-toggle="modal" th:attr="data-bs-target=|#modalAjusteEstoque-${filamento.id}|" title="Corrigir saldo"><i class="bi bi-sliders" aria-hidden="true"></i><span>Corrigir saldo</span></button>
+
                             <a th:if="${filamentosComHistoricoProduzido[filamento.id]}"
                                th:href="@{/filamento/{id}/historico(id=${filamento.id})}"
                                class="botao-acao"
@@ -249,7 +248,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
 
-                            <form th:action="@{/filamento/remover/{id}(id=${filamento.id})}"
+                            <details class="acoes-menu"><summary aria-label="Mais ações" title="Mais ações"><i class="bi bi-three-dots" aria-hidden="true"></i></summary><div class="acoes-menu-painel"><button type="button" class="estoque-ajuste-botao" data-bs-toggle="modal" th:attr="data-bs-target=|#modalAjusteEstoque-${filamento.id}|" title="Corrigir saldo"><i class="bi bi-sliders" aria-hidden="true"></i><span>Corrigir saldo</span></button><form method="post" th:action="@{/catalogo/filamento/{id}/arquivar(id=${filamento.id})}" data-turbo-confirm="Arquivar este cadastro? Os cálculos anteriores serão mantidos."><button class="botao botao-secundario"><i class="bi bi-archive" aria-hidden="true"></i> Arquivar</button></form><form th:action="@{/filamento/remover/{id}(id=${filamento.id})}"
                                   method="post"
                                   class="formulario-excluir"
                                   data-turbo-confirm="Tem certeza que deseja excluir este filamento? Se estiver vinculado a cálculos, ele será mantido."
@@ -261,7 +260,7 @@
                                         aria-label="Remover filamento">
                                     <i class="bi bi-trash3"></i>
                                 </button>
-                            </form>
+                            </form></div></details>
                 </div>
             </article>
         </div>

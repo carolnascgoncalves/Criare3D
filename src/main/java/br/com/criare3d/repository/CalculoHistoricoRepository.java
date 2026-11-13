@@ -23,6 +23,17 @@ import java.util.List;
 import java.math.BigDecimal;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
+    interface UsoEmbalagem { UUID getEmbalagemId(); Long getUsos(); }
+    @Query("select h.embalagem.id as embalagemId, count(h) as usos from CalculoHistorico h where h.embalagem.id in :ids group by h.embalagem.id")
+    List<UsoEmbalagem> contarUsosEmbalagens(@Param("ids") Collection<UUID> ids);
+    interface PrecoPeca { UUID getPecaId(); BigDecimal getPreco(); }
+    @Query("""
+      select h.peca.id as pecaId, h.precoSugerido as preco from CalculoHistorico h
+      where h.peca.id in :ids and h.dataCalculo =
+        (select max(c.dataCalculo) from CalculoHistorico c where c.peca=h.peca)
+      order by h.id
+      """)
+    List<PrecoPeca> ultimosPrecosPecas(@Param("ids") Collection<UUID> ids);
     interface FluxoProducao {
         Long getCalculadas(); Long getProduzidas(); Long getVendidas();
     }

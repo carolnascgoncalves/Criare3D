@@ -20,4 +20,8 @@ public record HistoricoListaResponse(
         BigDecimal lucroLiquido,
         LocalDateTime dataVenda,
         Integer unidadesVendidas
-) {}
+) {
+    public HistoricoListaResponse {
+        if (nomePeca != null) nomePeca = org.springframework.web.util.HtmlUtils.htmlUnescape(org.springframework.web.util.HtmlUtils.htmlUnescape(nomePeca));
+    }
+}

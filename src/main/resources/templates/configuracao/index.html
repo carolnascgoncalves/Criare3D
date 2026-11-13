@@ -6,7 +6,7 @@
 <body>
 <div th:replace="~{fragmentos :: menu}"></div>
 
-<main class="pagina">
+<main class="pagina pagina-configuracao">
     <div class="alerta-erro notificacao-flutuante" role="alert"
          th:if="${mensagemErro != null}" th:text="${mensagemErro}">
         Revise os campos destacados antes de salvar.
@@ -25,14 +25,14 @@
         </div>
     </section>
 
-    <form th:action="@{/configuracao/salvar}"
+<nav class="configuracao-indice" aria-label="Seções das configurações"><a href="#config-preco">Preço e lucro</a><a href="#config-energia">Energia</a><a href="#config-embalagem">Embalagem</a><a href="#valorMaoObraHora">Mão de obra</a><a href="#depreciacaoAtivada">Depreciação</a><a href="#percentualFalha">Falhas</a></nav>    <form th:action="@{/configuracao/salvar}"
           th:object="${configuracao}"
           method="post"
           class="configuracao-formulario"
           novalidate>
 
         <!-- MARKUP -->
-        <section class="cartao configuracao-cartao">
+        <section class="cartao configuracao-cartao" id="config-preco">
             <div class="cartao-cabecalho">
                 <div class="configuracao-titulo">
                     <div class="configuracao-icone">
@@ -48,10 +48,10 @@
             <div class="configuracao-conteudo">
                 <label class="configuracao-opcao" for="markupFixo">
                     <div>
-                        <strong>Utilizar markup fixo</strong>
+                        <strong>Usar o mesmo lucro em todos os cálculos</strong>
                         <small>Aplicar o mesmo aumento em todos os cálculos.</small>
                     </div>
-                    <input type="checkbox"
+                    <input role="switch" type="checkbox"
                            id="markupFixo"
                            th:field="*{markupFixo}">
                 </label>
@@ -66,7 +66,7 @@
                            min="0"
                            step="0.01"
                            placeholder="Ex.: 30">
-                    <small>Exemplo: 30% transforma R$ 10,00 de custo em R$ 13,00 antes das taxas.</small>
+                    <small><span data-exemplo-markup>R$ 10,00 de custo vira R$ 13,00 antes das taxas.</span></small>
                     <span class="mensagem-erro"
                           th:if="${#fields.hasErrors('markupPercentual')}"
                           th:errors="*{markupPercentual}"></span>
@@ -104,7 +104,7 @@
         </section>
 
         <!-- ENERGIA -->
-        <section class="cartao configuracao-cartao">
+        <section class="cartao configuracao-cartao" id="config-energia">
             <div class="cartao-cabecalho">
                 <div class="configuracao-titulo">
                     <div class="configuracao-icone">
@@ -170,7 +170,7 @@
         </section>
 
         <!-- EMBALAGEM -->
-        <section class="cartao configuracao-cartao">
+        <section class="cartao configuracao-cartao" id="config-embalagem">
             <div class="cartao-cabecalho">
                 <div class="configuracao-titulo">
                     <div class="configuracao-icone">
@@ -189,7 +189,7 @@
                         <strong>Utilizar custo fixo de embalagem</strong>
                         <small>Usar o mesmo custo nos cálculos.</small>
                     </div>
-                    <input type="checkbox"
+                    <input role="switch" type="checkbox"
                            id="embalagemFixa"
                            th:field="*{embalagemFixa}">
                 </label>
@@ -234,7 +234,7 @@
                             Mostra campos extras para informar as condições da sua conta.
                         </small>
                     </div>
-                    <input type="checkbox"
+                    <input role="switch" type="checkbox"
                            id="formularioAvancado"
                            th:field="*{formularioAvancado}">
                 </label>
@@ -274,7 +274,7 @@
                         <strong>Incluir mão de obra <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Considera seu tempo de trabalho manual e o valor da sua hora.</small>
                     </div>
-                    <input type="checkbox" id="maoObraAtivada" th:field="*{maoObraAtivada}">
+                    <input role="switch" type="checkbox" id="maoObraAtivada" th:field="*{maoObraAtivada}">
                 </label>
 
                 <div class="campo"
@@ -290,7 +290,7 @@
 
                 <label class="configuracao-tempo-fixo" id="opcaoMaoObraTempoFixo" for="maoObraTempoFixo"
                        th:hidden="${!configuracao.maoObraAtivada}">
-                    <input type="checkbox" id="maoObraTempoFixo" th:field="*{maoObraTempoFixo}">
+                    <input role="switch" type="checkbox" id="maoObraTempoFixo" th:field="*{maoObraTempoFixo}">
                     <span><strong>Usar um tempo fixo</strong><small>Repetir os mesmos minutos em cada cálculo.</small></span>
                 </label>
                 <div class="campo campo-oculto" id="campoTempoMaoObraFixo"
@@ -313,7 +313,7 @@
                         <strong>Incluir depreciação da impressora <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Considera o desgaste da impressora durante a impressão.</small>
                     </div>
-                    <input type="checkbox" id="depreciacaoAtivada" th:field="*{depreciacaoAtivada}">
+                    <input role="switch" type="checkbox" id="depreciacaoAtivada" th:field="*{depreciacaoAtivada}">
                 </label>
 
                 <div class="aviso-info" id="avisoDepreciacao"
@@ -329,7 +329,7 @@
                         <strong>Incluir margem para falhas e desperdício <span class="etiqueta-opcional">Opcional</span></strong>
                         <small>Reserva para reimpressões sobre filamento e energia.</small>
                     </div>
-                    <input type="checkbox" id="taxaFalhaAtivada" th:field="*{taxaFalhaAtivada}">
+                    <input role="switch" type="checkbox" id="taxaFalhaAtivada" th:field="*{taxaFalhaAtivada}">
                 </label>
 
                 <div class="campo"

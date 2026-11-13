@@ -10,7 +10,7 @@
                 <div>
                     <span class="texto-apoio">OPERAÇÃO DO LOTE</span>
                     <h1 th:text="${lote.nomePeca}"></h1>
-                    <p th:text="|${lote.unidades} unidades · ${lote.nomeImpressora != null ? lote.nomeImpressora : 'Impressão 3D'}|"></p>
+                    <p th:text="|${lote.unidades} ${lote.unidades == 1 ? 'unidade' : 'unidades'} · ${lote.nomeImpressora != null ? lote.nomeImpressora : 'Impressão 3D'}|"></p>
                 </div>
                 <a class="botao botao-secundario botao-voltar" th:href="@{/vendas-estoque}">Voltar</a>
             </section>
@@ -58,7 +58,7 @@
                         </div>
                         <div class="operacao-custo-producao"><strong th:text="|${#numbers.formatDecimal(m.gramas,1,'POINT',2,'COMMA')} g no lote|"></strong><small th:if="${m.custo != null}" th:text="|R$ ${#numbers.formatDecimal(m.custo,1,'POINT',2,'COMMA')} de filamento|"></small></div>
                     </div>
-                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${!lote.produzido}" th:attr="data-turbo-confirm=|Produzir ${lote.unidades} unidades e descontar o material deste lote?|">
+                    <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${!lote.produzido}" th:attr="data-turbo-confirm=|Produzir ${lote.unidades} ${lote.unidades == 1 ? 'unidade' : 'unidades'} e descontar o material deste lote?|">
                         <button class="botao botao-principal">Registrar produção do lote</button>
                     </form>
                     <form method="post" th:action="@{/vendas-estoque/lote/{id}/produzir(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas == 0 and (reservadas == null or reservadas == 0)}" data-turbo-confirm="Desfazer a produção e devolver o filamento? Custos extras serão mantidos.">

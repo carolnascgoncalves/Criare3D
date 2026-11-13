@@ -115,7 +115,6 @@
                     <i th:unless="${arquivosPeca[peca.id] != null and arquivosPeca[peca.id].temMiniatura()}" class="bi bi-box-seam"></i>
                 </span>
                 <div class="peca-lista-identidade">
-                    <span class="texto-apoio">PEÇA</span>
                     <h3 th:text="${peca.nome}">Nome da peça</h3>
                     <span class="peca-categoria-chip" th:if="${peca.categoria != null and !peca.categoria.isBlank()}" th:text="${peca.categoria}">Categoria</span>
                     <p th:if="${arquivosPeca[peca.id] == null}">Parâmetros cadastrados para os cálculos</p>
@@ -130,11 +129,11 @@
                                th:text="${arquivosPeca[peca.id].modeloImpressora}">Impressora</small>
                     </p>
                 </div>
-                <dl class="peca-lista-metricas">
+                <dl class="peca-lista-metricas"><div><dt>Último preço sugerido</dt><dd th:text="${precosPeca[peca.id] == null ? 'Ainda não calculado' : 'R$ ' + #numbers.formatDecimal(precosPeca[peca.id],1,'POINT',2,'COMMA')}"></dd></div>
                     <div><dt>Filamento</dt><dd th:text="|${#numbers.formatDecimal(peca.quantidadeFilamentoGramas, 1, 'COMMA', 2, 'POINT')} g|">0 g</dd></div>
                     <div><dt>Impressão</dt><dd th:text="|${peca.tempoImpressaoMinutos} min|">0 min</dd></div>
                 </dl>
-                <div class="acoes peca-lista-acoes" aria-label="Ações da peça">
+                <div class="acoes peca-lista-acoes" aria-label="Ações da peça"><a class="botao botao-principal" th:href="@{/historico/novo(pecaCriada=${peca.id})}">Calcular</a>
                     <a th:href="@{/peca/detalhes/{id}(id=${peca.id})}"
                        class="botao-acao" title="Ver detalhes" aria-label="Ver detalhes">
                         <i class="bi bi-eye"></i>
@@ -143,13 +142,13 @@
                        class="botao-acao" title="Editar peça" aria-label="Editar peça">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <form th:action="@{/peca/remover/{id}(id=${peca.id})}" method="post" class="formulario-excluir"
+                    <details class="acoes-menu"><summary aria-label="Mais ações" title="Mais ações"><i class="bi bi-three-dots" aria-hidden="true"></i></summary><div class="acoes-menu-painel"><form method="post" th:action="@{/catalogo/peca/{id}/arquivar(id=${peca.id})}" data-turbo-confirm="Arquivar este cadastro? Os cálculos anteriores serão mantidos."><button class="botao botao-secundario"><i class="bi bi-archive" aria-hidden="true"></i> Arquivar</button></form><form th:action="@{/peca/remover/{id}(id=${peca.id})}" method="post" class="formulario-excluir"
                           data-turbo-confirm="Tem certeza que deseja excluir esta peça? Esta ação não poderá ser desfeita."
                           data-confirm-label="Excluir">
                         <button type="submit" class="botao-acao-excluir" title="Remover peça" aria-label="Remover peça">
                             <i class="bi bi-trash3"></i>
                         </button>
-                    </form>
+                    </form></div></details>
                 </div>
             </article>
         </div>

@@ -13,16 +13,11 @@
     <section class="boas-vindas inicio-hero">
         <div>
             <span class="etiqueta">PAINEL PRINCIPAL</span>
-            <h1>Bem-vinda ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
+            <h1>Boas-vindas ao <span th:text="${tenantNome}">Criare 3D</span>!</h1>
             <p>Gerencie suas peças, impressoras e filamentos em um só lugar.</p>
-            <div class="inicio-hero-acoes">
-                <a th:href="@{/historico/novo}" class="botao-principal">Começar um cálculo</a>
-                <a th:href="@{/dashboard}" class="botao-dashboard-inicio">
-                    <i class="bi bi-pie-chart" aria-hidden="true"></i>Ver dashboard
-                </a>
-            </div>
+
         </div>
-        <i class="bi bi-printer inicio-hero-icone" aria-hidden="true"></i>
+
     </section>
 
     <section class="inicio-primeiros-passos cartao" th:if="${!primeiroAcessoConcluido}">
@@ -49,12 +44,11 @@
                 <span>Cadastre um filamento</span>
                 <a th:if="${totalFilamentos == 0}" th:href="@{/filamento/novo}">Cadastrar</a>
             </li>
-            <li th:classappend="${totalPecas > 0 and totalEmbalagens > 0} ? ' passo-concluido' : ''">
-                <i th:class="${totalPecas > 0 and totalEmbalagens > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
-                <span>Cadastre uma peça e uma embalagem</span>
+            <li th:classappend="${totalPecas > 0} ? ' passo-concluido' : ''">
+                <i th:class="${totalPecas > 0} ? 'bi bi-check-circle-fill' : 'bi bi-circle'"></i>
+                <span>Cadastre uma peça</span>
                 <div class="inicio-passo-acoes">
                     <a th:if="${totalPecas == 0}" th:href="@{/peca/novo}">Cadastrar peça</a>
-                    <a th:if="${totalEmbalagens == 0}" th:href="@{/embalagem/novo}">Cadastrar embalagem</a>
                 </div>
             </li>
             <li th:classappend="${!#lists.isEmpty(ultimosCalculos)} ? ' passo-concluido' : ''">
@@ -64,81 +58,6 @@
             </li>
         </ol>
     </section>
-
-    <section class="secao">
-        <div class="titulo-secao">
-            <div>
-                <h2>Precisa de atenção</h2>
-                <p>O que vale resolver agora</p>
-            </div>
-        </div>
-
-        <div class="inicio-atencao-grade">
-            <a th:if="${filamentoAcabando != null}" th:href="@{/filamento/listar}" class="atalho-card inicio-aviso-estoque">
-                <span class="atalho-icone"><i class="bi bi-circle-half"></i></span>
-                <span>
-                    <strong th:text="|Filamento ${filamentoAcabando.cor} acabando|">Filamento acabando</strong>
-                    <small th:text="|${#numbers.formatDecimal(filamentoAcabando.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g restantes|">0 g restantes</small>
-                </span>
-            </a>
-            <a th:href="@{/historico/listar(produzido='SIM', vendido='NAO')}" class="atalho-card" th:if="${aguardandoVenda > 0}">
-                <span class="atalho-icone"><i class="bi bi-box-seam"></i></span>
-                <span>
-                    <strong th:text="|${aguardandoVenda} ${aguardandoVenda == 1 ? 'peça sem venda' : 'peças sem venda'}|">Peças sem venda</strong>
-                    <small>Produzidas e paradas</small>
-                </span>
-            </a>
-            <a th:href="@{/configuracao#custosAdicionais}" class="atalho-card">
-                <span class="atalho-icone"><i class="bi bi-clock-history"></i></span>
-                <span>
-                    <strong>Defina o valor da sua hora</strong>
-                    <small th:text="${valorHoraConfigurado ? 'Valor da mão de obra configurado.' : 'Opcional · inclui mão de obra.'}">Opcional · inclui mão de obra.</small>
-                </span>
-            </a>
-        </div>
-    </section>
-
-    <section class="secao">
-        <div class="titulo-secao">
-            <div>
-                <h2>Seus cadastros</h2>
-                <p>Acesso rápido a tudo que alimenta os cálculos</p>
-            </div>
-        </div>
-
-        <div class="resumo-grid">
-
-            <a th:href="@{/peca/listar}" class="resumo-card inicio-cadastro-card">
-                <span class="resumo-icone"><i class="bi bi-box"></i></span>
-                <span class="resumo-titulo">Peças</span>
-                <strong class="resumo-valor" th:text="${totalPecas}">0</strong>
-                <span class="resumo-link">Ver peças →</span>
-            </a>
-
-            <a th:href="@{/filamento/listar}" class="resumo-card inicio-cadastro-card">
-                <span class="resumo-icone"><i class="bi bi-circle-half"></i></span>
-                <span class="resumo-titulo">Filamentos</span>
-                <strong class="resumo-valor" th:text="${totalFilamentos}">0</strong>
-                <span class="resumo-link">Ver filamentos →</span>
-            </a>
-
-            <a th:href="@{/impressora/listar}" class="resumo-card inicio-cadastro-card">
-                <span class="resumo-icone"><i class="bi bi-printer"></i></span>
-                <span class="resumo-titulo">Impressoras</span>
-                <strong class="resumo-valor" th:text="${totalImpressoras}">0</strong>
-                <span class="resumo-link">Ver impressoras →</span>
-            </a>
-
-            <a th:href="@{/embalagem/listar}" class="resumo-card inicio-cadastro-card">
-                <span class="resumo-icone"><i class="bi bi-box-seam"></i></span>
-                <span class="resumo-titulo">Embalagens</span>
-                <strong class="resumo-valor" th:text="${totalEmbalagens}">0</strong>
-                <span class="resumo-link">Ver embalagens →</span>
-            </a>
-
-        </div>
-    </section>
-
 
     <section class="secao" th:if="${!#lists.isEmpty(ultimosCalculos)}">
         <div class="inicio-recentes">
@@ -164,6 +83,43 @@
             </div>
         </div>
     </section>
+    <section class="secao">
+        <div class="titulo-secao">
+            <div>
+                <h2>Precisa de atenção</h2>
+                <p>O que vale resolver agora</p>
+            </div>
+        </div>
+
+        <div class="inicio-atencao-grade">
+            <a th:if="${filamentoAcabando != null}" th:href="@{/filamento/listar}" class="atalho-card inicio-aviso-estoque">
+                <span class="atalho-icone"><i class="bi bi-circle-half"></i></span>
+                <span>
+                    <strong th:text="|Filamento ${filamentoAcabando.cor} acabando|">Filamento acabando</strong>
+                    <small th:text="|${#numbers.formatDecimal(filamentoAcabando.estoqueGramas, 1, 'POINT', 0, 'COMMA')} g restantes|">0 g restantes</small>
+                </span>
+            </a>
+            <a th:href="@{/historico/listar(produzido='SIM', vendido='NAO')}" class="atalho-card" th:if="${aguardandoVenda > 0}">
+                <span class="atalho-icone"><i class="bi bi-box-seam"></i></span>
+                <span>
+                    <strong th:text="|${aguardandoVenda} ${aguardandoVenda == 1 ? 'peça sem venda' : 'peças sem venda'}|">Peças sem venda</strong>
+                    <small>Produzidas e paradas</small>
+                </span>
+            </a>
+            <a th:href="@{/configuracao#valorMaoObraHora}" class="atalho-card">
+                <span class="atalho-icone"><i class="bi bi-clock-history"></i></span>
+                <span>
+                    <strong>Defina o valor da sua hora</strong>
+                    <small th:text="${valorHoraConfigurado ? 'Valor da mão de obra configurado.' : 'Opcional · inclui mão de obra.'}">Opcional · inclui mão de obra.</small>
+                </span>
+            </a>
+        </div>
+    </section>
+
+
+
+
+
 
     <section class="secao">
         <a th:href="@{/dashboard}" class="dashboard-chamada">

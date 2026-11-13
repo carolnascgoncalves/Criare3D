@@ -193,7 +193,7 @@
                 <div class="peca-lista-identidade">
                     <span class="texto-apoio">EMBALAGEM</span>
                     <h3 th:text="${embalagem.nome}">Nome da embalagem</h3>
-                    <p>Usada como referência nos cálculos</p>
+                    <p th:text="|Usada em ${usosEmbalagem[embalagem.id] ?: 0} cálculo(s)|">Uso nos cálculos</p>
                 </div>
                 <dl class="peca-lista-metricas embalagem-lista-metricas">
                     <div><dt>Custo unitário</dt><dd th:text="|R$ ${#numbers.formatDecimal(embalagem.custoUnitario, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</dd></div>

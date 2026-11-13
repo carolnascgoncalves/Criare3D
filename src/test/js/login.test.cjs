@@ -18,7 +18,7 @@ test('bloqueio fica no aviso e libera o botão quando a espera termina', () => {
     vm.runInNewContext(fs.readFileSync('src/main/resources/static/js/login.js', 'utf8'), {
         document, Date: {now: () => agora},
         setInterval: callback => { atualizar = callback; return 1; },
-        clearInterval: () => {}
+        clearInterval: () => {}, setTimeout: () => 1, clearTimeout: () => {}
     });
     eventos.DOMContentLoaded.forEach(callback => callback());
     assert.equal(botao.disabled, true);
@@ -27,4 +27,35 @@ test('bloqueio fica no aviso e libera o botão quando a espera termina', () => {
     atualizar();
     assert.equal(botao.disabled, false);
     assert.match(aviso.textContent, /já pode tentar entrar novamente/);
+});
+
+test('logout some sem esconder erros e cancela o timer ao sair da página', () => {
+    const eventos = {};
+    const aviso = {hidden: false};
+    const erro = {hidden: false};
+    const timers = new Map();
+    let seq = 0;
+    const document = {
+        addEventListener: (nome, callback) => { (eventos[nome] ??= []).push(callback); },
+        querySelector: () => null,
+        querySelectorAll: seletor => seletor === '[data-aviso-temporario]' ? [aviso] : []
+    };
+    vm.runInNewContext(fs.readFileSync('src/main/resources/static/js/login.js', 'utf8'), {
+        document, Date, setInterval: () => 1, clearInterval: () => {},
+        setTimeout: (callback, delay) => { assert.equal(delay, 7000); timers.set(++seq, callback); return seq; },
+        clearTimeout: id => timers.delete(id)
+    });
+    eventos.DOMContentLoaded.forEach(callback => callback());
+    eventos['turbo:load'].forEach(callback => callback());
+    assert.equal(timers.size, 1);
+    const [id, callback] = [...timers.entries()][0];
+    timers.delete(id);
+    callback();
+    assert.equal(aviso.hidden, true);
+    assert.equal(erro.hidden, false);
+    aviso.hidden = false;
+    eventos['turbo:load'].forEach(callback => callback());
+    eventos['turbo:before-cache'].forEach(callback => callback());
+    assert.equal(aviso.hidden, true);
+    assert.equal(timers.size, 0);
 });

@@ -10,6 +10,9 @@ import java.util.*;
 public class PedidoOrcamento {
  @Id @GeneratedValue(strategy=GenerationType.UUID) private UUID id;
  @TenantId @Column(nullable=false,updatable=false) private UUID tenantId;
+ @Column(insertable=false,updatable=false,unique=true)
+ @org.hibernate.annotations.Generated(event=org.hibernate.generator.EventType.INSERT)
+ private Long numero;
  @Version private long versao;
  @Column(nullable=false) private boolean arquivado;
  @Column(nullable=false) private long revisao;
@@ -37,7 +40,7 @@ public class PedidoOrcamento {
  @Column(nullable=false,precision=12,scale=2) private BigDecimal custoFrete=BigDecimal.ZERO;
  @OneToMany(mappedBy="pedido",cascade=CascadeType.ALL,orphanRemoval=true)
  @OrderBy("ordem ASC") private List<ItemPedido> itens=new ArrayList<>();
- public String getCodigo() { return id==null?"Novo":id.toString().substring(0,8).toUpperCase(Locale.ROOT); }
+ public String getCodigo() { return numero!=null?String.format(Locale.ROOT,"%04d",numero):(id==null?"Novo":id.toString().substring(0,8).toUpperCase(Locale.ROOT)); }
  public BigDecimal getSubtotal() { return itens.stream().map(ItemPedido::getTotal).reduce(BigDecimal.ZERO,BigDecimal::add); }
  public BigDecimal getDesconto(){return descontoPercentual==null?desconto:getSubtotal().multiply(descontoPercentual).divide(new BigDecimal("100"),2,java.math.RoundingMode.HALF_UP);}
  public BigDecimal getTotal() { return getSubtotal().subtract(getDesconto()).add(frete); }

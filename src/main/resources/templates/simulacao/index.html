@@ -6,13 +6,13 @@
 <body>
 <nav th:replace="~{fragmentos :: menu}"></nav>
 
-<main class="pagina pagina-simulacao" data-simulacao tabindex="0" aria-label="Simular produção" th:attr="data-url-calculo=@{/simulacao/calculo},data-url-historico=@{/historico}">
+<main class="pagina pagina-simulacao" data-simulacao tabindex="0" aria-label="Planejar produção" th:attr="data-url-calculo=@{/simulacao/calculo},data-url-historico=@{/historico}">
 <div th:if="${mensagemErro}" class="alerta-erro notificacao-flutuante" role="alert" th:text="${mensagemErro}"></div>
 
     <section class="pagina-intro">
         <div>
             <span class="texto-apoio">PLANEJAMENTO</span>
-            <h1>Simular produção</h1><a th:href="@{/simulacao/planejamentos}">Ver planejamentos salvos</a>
+            <h1>Planejar produção</h1><a th:href="@{/simulacao/planejamentos}">Ver fila e agenda</a>
             <p>Planeje o lote e veja uma estimativa de quando ele ficará pronto.</p>
         </div>
     </section>
@@ -83,7 +83,7 @@
             </details>
 
             <p class="sim-erro" data-sim="erro" role="alert" hidden></p>
-            <button type="submit" class="botao botao-principal">Simular produção</button>
+            <button type="submit" class="botao botao-principal">Planejar produção</button>
             <button type="submit" class="botao botao-secundario" data-salvar-planejamento>Salvar na fila da impressora</button>
             <p class="sim-dica">Ao salvar, o início será ajustado se a impressora já tiver um planejamento. Não movimenta estoque.</p>
         </form>

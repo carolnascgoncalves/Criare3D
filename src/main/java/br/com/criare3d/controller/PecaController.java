@@ -62,6 +62,7 @@ public class PecaController {
         mv.addObject("pecas", pagina.getContent());
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
+        mv.addObject("precosPeca", historicoCalculoService.ultimosPrecosPecas(pagina.getContent().stream().map(Peca::getId).toList()));
         mv.addObject("arquivosPeca", pecaArquivoService.buscarResumos(pagina.getContent()));
 
         return mv;

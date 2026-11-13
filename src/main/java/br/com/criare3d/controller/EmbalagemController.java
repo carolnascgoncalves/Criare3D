@@ -65,6 +65,7 @@ public class EmbalagemController {
                 : catalogoBuscaService.buscarEmbalagens(busca.trim(), pageable);
 
         mv.addObject("embalagens", pagina.getContent());
+        mv.addObject("usosEmbalagem", historicoCalculoService.usosEmbalagens(pagina.getContent().stream().map(Embalagem::getId).toList()));
         mv.addObject("pagina", pagina);
         mv.addObject("busca", busca);
         mv.addObject("ordem", ordem);

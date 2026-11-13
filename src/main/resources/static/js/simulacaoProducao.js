@@ -363,6 +363,13 @@
         });
         ui.formulario.addEventListener('input', () => limparErro(ui));
         desenharCena(ui, 0, null);
+        const recente = [...ui.calculo.options].filter(o => o.value).sort((a,b) =>
+            new Date(b.dataset.data).getTime() - new Date(a.dataset.data).getTime())[0];
+        if (recente && !ui.calculo.value) {
+            ui.calculo.value = recente.value;
+            atualizarBotaoSeletor(ui, recente);
+            carregarCalculo(ui, estado);
+        }
     }
     document.addEventListener('DOMContentLoaded', inicializarSimulacao);
     document.addEventListener('turbo:load', inicializarSimulacao);
