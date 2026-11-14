@@ -9,6 +9,7 @@ import java.util.*;
 /** Reaproveita parâmetros do cálculo, sem copiar seus estados de produção e venda. */
 @Service
 public class EntradaPedidoService {
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CalculoHistoricoRepository historicos;
     private final JsonMapper json = JsonMapper.builder().build();
     public CalculoRequest copiar(CalculoHistorico h) {
         if (h.getPeca()==null || h.getImpressora()==null) throw new IllegalArgumentException("Este cálculo antigo não tem peça ou impressora vinculada. Faça um novo cálculo.");
@@ -41,18 +42,26 @@ public class EntradaPedidoService {
         if (texto.length()>65536) throw new IllegalArgumentException("O cálculo ultrapassa o tamanho permitido para o orçamento.");
         return texto;
     }
+    @org.springframework.transaction.annotation.Transactional(readOnly=true)
     public CalculoRequest ler(ItemPedido item,int unidades) {
         var entrada=ler(item.getEntradaJson(),unidades);
         // Compatibilidade com propostas já existentes antes da fotografia financeira.
         if(entrada.getCustosPreservados()==null && !entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque()!=null) {
-            entrada.setCustosPreservados(CustosPreservados.de(item.getLoteEstoque()));
-            entrada.setReferenciaCustosHistoricos(item.getLoteEstoque().getId());
+            var origem=item.getLoteEstoque();
+            // O pedido pode vir de outra transação. Recarrega o histórico para ler suas coleções com a sessão aberta.
+            if(historicos!=null)origem=historicos.buscarPorIdComItens(origem.getId()).orElseThrow(()->new IllegalArgumentException("Cálculo original não encontrado."));
+            entrada.setCustosPreservados(CustosPreservados.de(origem));
+            entrada.setReferenciaCustosHistoricos(origem.getId());
         }
         return entrada;
     }
     public String origemCustos(ItemPedido item) {
-        var entrada=ler(item,item.getQuantidade());
-        return entrada.getCustosPreservados()!=null?"Valores preservados nesta proposta":"Orçamento antigo: confira os custos antes de confirmar";
+        // A abertura da tela não deve reconstruir custos nem acessar coleções lazy do histórico.
+        // A reconstrução continua em ler(ItemPedido, ...) nas operações transacionais.
+        var entrada=ler(item.getEntradaJson(),item.getQuantidade());
+        if(entrada.getCustosPreservados()!=null)return "Valores preservados nesta proposta";
+        if(!entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque()!=null)return "Valores do cálculo original";
+        return "Orçamento antigo: confira os custos antes de confirmar";
     }
     public CalculoRequest ler(String texto,int unidades) {
         CalculoRequest r=json.readValue(texto,CalculoRequest.class);

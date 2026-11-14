@@ -45,7 +45,7 @@ public class FilamentoServiceImp implements FilamentoService {
         }
         filamento.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
         var salvo=filamentoRepository.save(filamento);
-        if(movimentos!=null)movimentos.registrar("SALDO_INICIAL",salvo.getNome()+" · "+salvo.getCor(),salvo.getEstoqueGramas(),"g","filamento",salvo.getId());
+        if(movimentos!=null)movimentos.registrar("SALDO_INICIAL",salvo.getNome()+" · "+salvo.getCor(),salvo.getEstoqueGramas(),"g","filamento",salvo.getId(),salvo.getId(),salvo.getEstoqueGramas());
         return salvo;
     }
 
@@ -70,7 +70,7 @@ public class FilamentoServiceImp implements FilamentoService {
             if (patch.getEstoqueGramas() != null) {
                 var antes=existing.getEstoqueGramas()==null?BigDecimal.ZERO:existing.getEstoqueGramas();
                 existing.setEstoqueGramas(patch.getEstoqueGramas());
-                if(movimentos!=null)movimentos.registrar("AJUSTE",existing.getNome()+" · "+existing.getCor(),patch.getEstoqueGramas().subtract(antes),"g","filamento",id);
+                if(movimentos!=null)movimentos.registrar("AJUSTE",existing.getNome()+" · "+existing.getCor(),patch.getEstoqueGramas().subtract(antes),"g","filamento",id,existing.getId(),existing.getEstoqueGramas());
             }
 
             if (patch.getPrecoRolo() != null)
@@ -185,8 +185,7 @@ public class FilamentoServiceImp implements FilamentoService {
         BigDecimal estoqueAtual = filamento.getEstoqueGramas() == null ? BigDecimal.ZERO : filamento.getEstoqueGramas();
         BigDecimal pesoNovoRolo = compra.getPesoRoloGramas();
         BigDecimal precoNovoRolo = compra.getPrecoRolo();
-        BigDecimal gramasAdicionadas = compra.getGramasCompradas() == null
-                ? pesoNovoRolo : compra.getGramasCompradas();
+        BigDecimal gramasAdicionadas = compra.getQuantidadeTotalGramas();
         BigDecimal estoqueNovo = estoqueAtual.add(gramasAdicionadas);
 
         BigDecimal valorEstoqueAtual = BigDecimal.ZERO;
@@ -206,7 +205,7 @@ public class FilamentoServiceImp implements FilamentoService {
                 .divide(estoqueNovo, 12, java.math.RoundingMode.HALF_UP);
 
         filamento.setEstoqueGramas(estoqueNovo);
-        if(movimentos!=null)movimentos.registrar("COMPRA",filamento.getNome()+" · "+filamento.getCor(),gramasAdicionadas,"g","filamento",id);
+        if(movimentos!=null)movimentos.registrar("COMPRA",filamento.getNome()+" · "+filamento.getCor(),gramasAdicionadas,"g","filamento",id,filamento.getId(),filamento.getEstoqueGramas());
         filamento.setPesoRoloGramas(pesoNovoRolo);
         filamento.setPrecoRolo(custoMedioPorGrama.multiply(pesoNovoRolo)
                 .setScale(2, java.math.RoundingMode.HALF_UP));

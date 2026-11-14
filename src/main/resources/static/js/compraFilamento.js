@@ -14,9 +14,12 @@
                     ? `${new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 }).format(valor)} g`
                     : "o peso do rolo";
                 referencias.forEach(referencia => { referencia.textContent = texto; });
+                const unidades=Number(formulario.querySelector('#unidadesCompra')?.value||1),preco=Number(formulario.querySelector('#precoRolo')?.value||0),custom=Number(formulario.querySelector('#gramasCompradas')?.value||0);
+                const total=custom>0?custom:valor*unidades;const resumo=formulario.querySelector('[data-compra-resumo]');
+                if(resumo)resumo.textContent=new Intl.NumberFormat('pt-BR').format(total)+' g serão adicionados · custo da compra: '+(valor>0?preco*total/valor:0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
             };
 
-            peso.addEventListener("input", atualizar);
+            formulario.addEventListener("input", atualizar);
             atualizar();
         });
     }

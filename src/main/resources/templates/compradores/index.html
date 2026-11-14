@@ -1,7 +1,82 @@
-<!DOCTYPE html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragmentos :: cabecalho('Clientes')}"></head><body><nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina">
-<section class="pagina-intro"><div><span class="texto-apoio">SEUS CLIENTES</span><h1>Clientes</h1><p>Reutilize os contatos nos orçamentos. Alterar um cadastro não modifica propostas anteriores.</p></div></section>
-<p th:if="${mensagemSucesso}" th:text="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status"></p>
-<section class="cartao formulario-conteudo"><h2 th:text="${comprador.id==null?'Novo cliente':'Editar cliente'}"></h2><form th:action="@{/compradores}" th:object="${comprador}" method="post" class="formulario"><input type="hidden" th:field="*{id}"><input type="hidden" th:field="*{versao}"><div class="form-grade"><label class="campo">Nome<input th:field="*{nome}" required minlength="2" maxlength="150"><small class="erro-campo" th:errors="*{nome}"></small></label><label class="campo">Telefone / WhatsApp<input type="tel" th:field="*{telefone}" maxlength="150"></label><label class="campo">E-mail<input type="email" th:field="*{email}" maxlength="150"><small class="erro-campo" th:errors="*{email}"></small></label></div><label class="campo">Observações<textarea th:field="*{observacoes}" maxlength="500"></textarea></label><div class="formulario-acoes"><button class="botao botao-principal">Salvar cliente</button><a th:if="${comprador.id!=null}" th:href="@{/compradores}" class="botao botao-secundario">Cancelar edição</a></div></form></section>
-<section class="cartao formulario-conteudo"><form method="get" class="operacao-acoes"><input name="busca" th:value="${busca}" placeholder="Nome, telefone ou e-mail" aria-label="Buscar clientes"><input type="hidden" name="arquivados" th:value="${arquivados}"><button class="botao botao-principal">Pesquisar</button><a th:href="@{/compradores(arquivados=${!arquivados})}" th:text="${arquivados?'Ver ativos':'Ver arquivados'}"></a></form><p th:if="${pagina.empty}">Nenhum cliente encontrado.</p>
-<article class="operacao-registro" th:each="c:${pagina}"><div><strong th:text="${c.nome}"></strong><span th:text="${c.telefone}"></span><span th:text="${c.email}"></span></div><div class="operacao-acoes"><a class="botao botao-secundario" th:href="@{/orcamentos(comprador=${c.id})}">Ver orçamentos</a><a class="botao botao-secundario" th:href="@{/compradores(editar=${c.id})}">Editar</a><form method="post" th:action="@{/compradores/{id}/estado(id=${c.id})}"><input type="hidden" name="arquivado" th:value="${!c.arquivado}"><button class="botao botao-secundario" th:text="${c.arquivado?'Restaurar':'Arquivar'}"></button></form></div></article>
-<nav class="operacao-acoes" aria-label="Páginas de clientes"><a th:if="${pagina.hasPrevious()}" th:href="@{/compradores(page=${pagina.number-1},busca=${busca},arquivados=${arquivados})}">Anterior</a><a th:if="${pagina.hasNext()}" th:href="@{/compradores(page=${pagina.number+1},busca=${busca},arquivados=${arquivados})}">Próxima</a></nav></section></main></body></html>
+<!DOCTYPE html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragmentos :: cabecalho('Clientes')}"></head><body><nav th:replace="~{fragmentos :: menu}"></nav>
+<main class="pagina pagina-clientes">
+<section class="pagina-intro"><div class="cabecalho-acao"><div><h1>Clientes</h1><p>Reutilize os contatos nos orçamentos. Alterar um cadastro não modifica propostas anteriores.</p></div><button type="button" class="botao botao-secundario" data-cliente-novo><i class="bi bi-plus-lg" aria-hidden="true"></i> Novo cliente</button></div></section>
+
+<section class="clientes-resumo" aria-label="Resumo dos clientes">
+<div><span>Clientes ativos</span><strong th:text="${totalAtivos}">0</strong></div>
+<div><span>Com pedido em andamento</span><strong th:text="${comAndamento}">0</strong></div>
+<div><span th:text="|Sem orçamento há ${diasSemOrcamento} dias|">Sem orçamento há 60 dias</span><strong th:text="${semOrcamento}">0</strong></div>
+</section>
+
+<section class="cartao clientes-lista">
+<form method="get" class="clientes-busca" role="search">
+<label class="lista-busca"><i class="bi bi-search" aria-hidden="true"></i><input type="search" name="busca" th:value="${busca}" placeholder="Nome, telefone ou e-mail" aria-label="Buscar clientes"><button type="submit" class="busca-enviar" aria-label="Pesquisar clientes"><i class="bi bi-arrow-return-left" aria-hidden="true"></i></button></label>
+<input type="hidden" name="arquivados" th:value="${arquivados}">
+<a class="botao botao-secundario" th:href="@{/compradores(arquivados=${arquivados})}" data-clientes-limpar>Limpar</a>
+<div class="clientes-abas">
+<a class="clientes-aba" th:classappend="${!arquivados}?' ativa'" th:href="@{/compradores(busca=${busca})}">Ativos<span th:if="${totalAtivos!=null}" th:text="| · ${totalAtivos}|"></span></a>
+<a class="clientes-aba" th:classappend="${arquivados}?' ativa'" th:href="@{/compradores(busca=${busca},arquivados=true)}">Arquivados<span th:if="${totalArquivados!=null}" th:text="| · ${totalArquivados}|"></span></a>
+</div>
+</form>
+
+<div class="clientes-vazio" th:if="${pagina.empty}">
+<i class="bi bi-people" aria-hidden="true"></i>
+<h2>Nenhum cliente encontrado</h2>
+<p th:if="${!#strings.isEmpty(busca)}">Tente outro nome, telefone ou e-mail.</p>
+<p th:if="${#strings.isEmpty(busca) and arquivados}">Nenhum cliente arquivado.</p>
+<p th:if="${#strings.isEmpty(busca) and !arquivados}">Cadastre o primeiro cliente para reaproveitar os contatos nos orçamentos.</p>
+<button type="button" class="botao botao-principal" th:if="${#strings.isEmpty(busca) and !arquivados}" data-cliente-novo>Cadastrar cliente</button>
+</div>
+
+<article class="cliente-linha" th:each="l:${linhas}">
+<span class="cliente-avatar" th:classappend="|cor-${l.cor}|" th:text="${l.iniciais}" aria-hidden="true"></span>
+<div class="cliente-dados">
+<strong th:text="${l.comprador.nome}"></strong>
+<div class="cliente-contato">
+<span th:if="${!#strings.isEmpty(l.comprador.telefone)}"><i class="bi bi-telephone" aria-hidden="true"></i> <span th:text="${l.telefoneFormatado}"></span></span>
+<a th:if="${!#strings.isEmpty(l.comprador.email)}" th:href="|mailto:${l.comprador.email}|"><i class="bi bi-envelope" aria-hidden="true"></i> <span th:text="${l.comprador.email}"></span></a>
+<span th:if="${#strings.isEmpty(l.comprador.telefone) and #strings.isEmpty(l.comprador.email)}">Sem contato cadastrado</span>
+</div>
+<div class="cliente-etiquetas">
+<span class="cliente-etiqueta destaque" th:if="${l.abertos>0}" th:text="|${l.abertos} em andamento|"></span>
+<span class="cliente-etiqueta" th:if="${l.total==1}">1 orçamento</span>
+<span class="cliente-etiqueta" th:if="${l.total>1}" th:text="|${l.total} orçamentos|"></span>
+<span class="cliente-etiqueta" th:if="${l.total==0}">Ainda sem orçamentos</span>
+<span class="cliente-etiqueta" th:if="${l.ultimo!=null}" th:text="|Último: ${#temporals.format(l.ultimo,'dd/MM/yyyy')}|"></span>
+</div>
+</div>
+<div class="cliente-acoes">
+<a class="botao botao-secundario" th:if="${l.whatsapp!=null}" th:href="${l.whatsapp}" target="_blank" rel="noopener" data-turbo="false" aria-label="Abrir conversa no WhatsApp" title="Abrir conversa no WhatsApp"><i class="bi bi-whatsapp" aria-hidden="true"></i></a>
+<a class="botao botao-secundario" th:if="${!l.comprador.arquivado}" th:href="@{/orcamentos/novo(comprador=${l.comprador.id})}"><i class="bi bi-file-earmark-plus" aria-hidden="true"></i> Orçamento</a>
+<details class="menu-acoes">
+<summary aria-label="Mais ações"><i class="bi bi-three-dots" aria-hidden="true"></i></summary>
+<div class="menu-acoes-painel">
+<a th:href="@{/orcamentos(comprador=${l.comprador.id})}">Ver orçamentos</a>
+<a th:href="@{/compradores(editar=${l.comprador.id})}" data-cliente-editar th:data-id="${l.comprador.id}" th:data-versao="${l.comprador.versao}" th:data-nome="${l.comprador.nome}" th:data-telefone="${l.comprador.telefone}" th:data-email="${l.comprador.email}" th:data-observacoes="${l.comprador.observacoes}"><i class="bi bi-pencil" aria-hidden="true"></i> Editar</a>
+<form method="post" th:action="@{/compradores/{id}/estado(id=${l.comprador.id})}"><input type="hidden" name="arquivado" th:value="${!l.comprador.arquivado}"><button><i class="bi bi-archive" aria-hidden="true"></i> <span th:text="${l.comprador.arquivado?'Restaurar':'Arquivar'}"></span></button></form>
+</div>
+</details>
+</div>
+</article>
+
+<nav class="clientes-paginas" aria-label="Páginas de clientes" th:if="${pagina.totalPages>1}">
+<a class="botao botao-secundario" th:if="${pagina.hasPrevious()}" th:href="@{/compradores(page=${pagina.number-1},busca=${busca},arquivados=${arquivados})}">Anterior</a>
+<span th:text="|Página ${pagina.number+1} de ${pagina.totalPages}|"></span>
+<a class="botao botao-secundario" th:if="${pagina.hasNext()}" th:href="@{/compradores(page=${pagina.number+1},busca=${busca},arquivados=${arquivados})}">Próxima</a>
+</nav>
+</section>
+
+<dialog id="dialogo-cliente" class="dialogo-cliente" aria-labelledby="dialogoClienteTitulo" th:data-abrir="${abrirDialogo!=null and abrirDialogo}">
+<form th:action="@{/compradores}" th:object="${comprador}" method="post" class="formulario">
+<input type="hidden" th:field="*{id}"><input type="hidden" th:field="*{versao}">
+<div class="dialogo-topo"><h2 id="dialogoClienteTitulo" data-cliente-titulo th:text="${comprador.id==null?'Novo cliente':'Editar cliente'}">Novo cliente</h2><button type="button" class="dialogo-fechar" data-cliente-fechar aria-label="Fechar"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
+<label class="campo">Nome<input th:field="*{nome}" required minlength="2" maxlength="150" autocomplete="off"><small class="erro-campo" th:errors="*{nome}"></small></label>
+<div class="dialogo-grade">
+<label class="campo">Telefone / WhatsApp<input type="tel" th:field="*{telefone}" maxlength="150" placeholder="(11) 90000-0000"><small class="erro-campo" th:errors="*{telefone}"></small></label>
+<label class="campo">E-mail<input type="email" th:field="*{email}" maxlength="150" placeholder="nome@email.com"><small class="erro-campo" th:errors="*{email}"></small></label>
+</div>
+<label class="campo">Observações<textarea th:field="*{observacoes}" maxlength="500" rows="3"></textarea></label>
+<div class="dialogo-acoes"><button type="button" class="botao botao-secundario" data-cliente-fechar>Cancelar</button><button class="botao botao-principal">Salvar cliente</button></div>
+</form>
+</dialog>
+</main></body></html>

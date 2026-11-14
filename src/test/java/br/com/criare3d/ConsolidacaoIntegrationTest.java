@@ -41,6 +41,7 @@ class ConsolidacaoIntegrationTest {
  @Autowired VendaProdutoLojaRepository outras;
  @Autowired CompradorRepository compradores;
  @Autowired MovimentacaoRepository movimentos;
+ @Autowired FotoCalculoService fotos;
  @Autowired OrcamentoPedidoService orcamentos;
  @Autowired OperacaoPedidoService operacoes;
  @Autowired CalculoService calculos;
@@ -66,6 +67,10 @@ class ConsolidacaoIntegrationTest {
   var item=new ItemCalculoRequest();item.setFilamentoId(f.getId());item.setQuantidadeFilamentoGramas(BigDecimal.TEN);r.setFilamentos(List.of(item));
   var custo=new CustoLoja();custo.setDescricao("Despesa original");custo.setInicio(LocalDate.of(2020,1,1));custo.setMeta(new BigDecimal("1500"));custo.setTipo(CustoLoja.Tipo.VALOR_UNIDADE);custo.setValor(new BigDecimal("5"));custos.saveAndFlush(custo);
   var original=salvar.create(calculos.calcular(r));
+  byte[] imagem=java.util.Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j1xoAAAAASUVORK5CYII=");
+  fotos.salvar(original.getId(),"image/png",imagem);
+  assertThat(historicos.findById(original.getId()).orElseThrow().getTemFoto()).isTrue();
+  assertThat(fotos.buscarConteudoFoto(original.getId(),false).orElseThrow().bytes()).containsExactly(imagem);
   new TransactionTemplate(manager).executeWithoutResult(tx->{filamentos.findById(f.getId()).orElseThrow().setPrecoRolo(new BigDecimal("900"));custos.findById(custo.getId()).orElseThrow().setValor(new BigDecimal("50"));var cfg=configs.findById(c.getId()).orElseThrow();cfg.setEmbalagemFixa(false);cfg.setTarifaEnergiaKwh(new BigDecimal("9"));});
   var embalagem=new Embalagem();embalagem.setNome("Caixa atual");embalagem.setCustoUnitario(new BigDecimal("3"));embalagens.saveAndFlush(embalagem);
   var selecao=new SelecaoPedidoRequest();selecao.setCustosAtuais(true);selecao.setEmbalagemAtualId(embalagem.getId());var escolhido=new SelecaoPedidoRequest.Item();escolhido.setSelecionado(true);escolhido.setReferencia(original.getId());selecao.setItens(List.of(escolhido));
@@ -79,6 +84,8 @@ class ConsolidacaoIntegrationTest {
   atual=orcamentos.buscar(id);var lote=atual.getItens().getFirst().getLoteProducao().getId();operacoes.entregar(id,atual.getRevisao());
   assertThat(historicos.findById(lote).orElseThrow().getUnidadesVendidas()).isEqualTo(3);
   assertThat(filamentos.findById(f.getId()).orElseThrow().getEstoqueGramas()).isEqualByComparingTo("970");
+  var consumo=movimentos.findAll().stream().filter(m->"PRODUCAO".equals(m.getTipo())).findFirst().orElseThrow();
+  assertThat(consumo.getFilamentoId()).isEqualTo(f.getId());assertThat(consumo.getSaldoApos()).isEqualByComparingTo("970");
   atual=orcamentos.buscar(id);operacoes.cancelar(id,atual.getRevisao());assertThat(historicos.findById(lote).orElseThrow().getUnidadesVendidas()).isZero();
   var chave=UUID.randomUUID();assertThat(vender.registrarVenda(lote,1,null,null,null,chave)).isEqualTo(ResultadoOperacao.OK);vender.registrarVenda(lote,1,null,null,null,chave);
   assertThat(historicos.findById(lote).orElseThrow().getUnidadesVendidas()).isEqualTo(1);
@@ -114,5 +121,34 @@ class ConsolidacaoIntegrationTest {
   var venda=loja.vender(produto.getId(),3,null,null,hoje,VendaProdutoLoja.TipoEmbalagem.PERSONALIZADA,null,BigDecimal.ONE,1);loja.cancelar(venda.getId(),2);
   var detalhe=outras.findById(venda.getId()).orElseThrow();var resumo=outras.resumir(hoje.atStartOfDay(),hoje.plusDays(1).atStartOfDay());
   assertThat(detalhe.getLucro()).isEqualByComparingTo("1.17");assertThat(resumo.getLucro()).isEqualByComparingTo(detalhe.getLucro());
+ }
+
+ @Autowired br.com.criare3d.controller.CompradorController clientesTela;
+ @Autowired br.com.criare3d.controller.MovimentacaoController extratoTela;
+ @Autowired br.com.criare3d.controller.PedidoOrcamentoController pedidosTela;
+ @Autowired MovimentacaoService registrarMovimento;
+ @Test void clientesExtratoFiltrosESaldoFuncionamNoBanco() {
+  var u=conta();
+  var c=new Comprador();c.setNome("Cliente exemplo");c.setTelefone("+55 (11) 94541-4013");c.setEmail("cliente@exemplo.test");compradores.saveAndFlush(c);
+  assertThat(compradores.pesquisar("11945414013","11945414013",false,org.springframework.data.domain.PageRequest.of(0,20)).getContent()).hasSize(1);
+  var duplicado=new Comprador();duplicado.setNome("Duplicado");duplicado.setTelefone("11945414013");duplicado.setEmail("CLIENTE@EXEMPLO.TEST");
+  var erros=new org.springframework.validation.BeanPropertyBindingResult(duplicado,"comprador");
+  assertThat(clientesTela.salvar(duplicado,erros,new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap()).getStatus()).isEqualTo(org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY);
+  assertThat(erros.hasFieldErrors("telefone")).isTrue();assertThat(erros.hasFieldErrors("email")).isTrue();
+  var nova=pedidosTela.novo(null,c.getId());var dados=(PedidoDadosRequest)nova.getModel().get("dados");assertThat(dados.getCompradorId()).isEqualTo(c.getId());assertThat(dados.getEmail()).isEqualTo(c.getEmail());
+  var tela=clientesTela.listar("",0,false,null);assertThat(tela.getModel().get("totalAtivos")).isEqualTo(1L);
+  var f=new Filamento();f.setNome("PLA");f.setCor("Preto");f.setPesoRoloGramas(new BigDecimal("1000"));f.setPrecoRolo(BigDecimal.TEN);f.setEstoqueGramas(new BigDecimal("1000"));f.setUsuario(u);filamentos.saveAndFlush(f);
+  registrarMovimento.registrar("SALDO_INICIAL","PLA",new BigDecimal("1000"),"g","filamento",f.getId(),f.getId(),new BigDecimal("1000"));
+  registrarMovimento.registrar("PRODUCAO","PLA - Peça",new BigDecimal("-100"),"g","lote",UUID.randomUUID(),f.getId(),new BigDecimal("900"));
+  registrarMovimento.registrar("VENDA_3D","Peça",new BigDecimal("-2"),"un.","lote",UUID.randomUUID());
+  var inicio=LocalDate.of(2000,1,1);var fim=LocalDate.of(2100,1,1);
+  var mv=extratoTela.listar(inicio,fim,"","","",null,false,0);var pagina=(org.springframework.data.domain.Page<?>)mv.getModel().get("pagina");assertThat(pagina.getTotalElements()).isEqualTo(2);
+  assertThat(mv.getModel().get("resumoSaiu").toString()).contains("100 g","2 un.");
+  assertThat(extratoTela.listar(inicio,fim,"","","",null,true,0).getModel().get("pagina")).isInstanceOfSatisfying(org.springframework.data.domain.Page.class,paginaSaldo->assertThat(paginaSaldo.getTotalElements()).isEqualTo(3));
+  clientesTela.estado(c.getId(),true,new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap());
+  var errosArquivado=new org.springframework.validation.BeanPropertyBindingResult(duplicado,"comprador");clientesTela.salvar(duplicado,errosArquivado,new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap());assertThat(errosArquivado.getFieldError("telefone").getDefaultMessage()).contains("arquivado");
+  assertThat(clientesTela.estado(c.getId(),false,new org.springframework.web.servlet.mvc.support.RedirectAttributesModelMap())).isEqualTo("redirect:/compradores?arquivados=true");
+  var filtrada=extratoTela.listar(inicio,fim,"","saida","",f.getId(),false,0);var filtrados=(org.springframework.data.domain.Page<Movimentacao>)filtrada.getModel().get("pagina");assertThat(filtrados.getContent()).hasSize(1);assertThat(filtrados.getContent().getFirst().getSaldoApos()).isEqualByComparingTo("900");
+  var csv=extratoTela.exportar(inicio,fim,"","saida","",f.getId(),false);assertThat(new String(csv.getBody(),java.nio.charset.StandardCharsets.UTF_8)).contains("Produção","900").doesNotContain("Saldo de abertura");
  }
 }

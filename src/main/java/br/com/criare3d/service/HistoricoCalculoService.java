@@ -98,6 +98,7 @@ public class HistoricoCalculoService {
     }
 
     public CalculoHistorico create(CalculoHistorico calculoHistorico, String tipoFoto, byte[] bytesFoto) {
+        calculoHistorico.setTemFoto(bytesFoto != null && bytesFoto.length > 0);
         CalculoHistorico salvo = create(calculoHistorico);
         fotos.salvar(salvo.getId(), tipoFoto, bytesFoto);
         return salvo;

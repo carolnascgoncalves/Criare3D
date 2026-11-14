@@ -82,51 +82,59 @@
     }
     function criarAgenda(){
         const agenda=document.querySelector('[data-agenda]'),lista=document.querySelector('[data-agenda-lista]');
-        if(!agenda||agenda.dataset.pronto)return;agenda.dataset.pronto='true';
-        const cards=[...lista.querySelectorAll('[data-agenda-inicio]')];
-        if(!cards.length){agenda.hidden=true;document.querySelector('[data-agenda-controles]').hidden=true;return;}
+        if(!agenda||!lista||agenda.dataset.pronto)return;agenda.dataset.pronto='true';
+        const cards=[...lista.querySelectorAll('[data-agenda-inicio]')].filter(c=>Number.isFinite(new Date(c.dataset.agendaInicio).getTime())&&Number.isFinite(new Date(c.dataset.agendaFim).getTime()));
+        if(!cards.length){agenda.hidden=true;const controles=document.querySelector('[data-agenda-controles]');if(controles)controles.hidden=true;return;}
         const grupos=new Map();for(const card of cards){const key=card.dataset.agendaImpressora;const g=grupos.get(key)||[];g.push(card);grupos.set(key,g);}
-        const datas=cards.flatMap(c=>[new Date(c.dataset.agendaInicio).getTime(),new Date(c.dataset.agendaFim).getTime()]).filter(Number.isFinite);
-        if(!datas.length){agenda.hidden=true;return;}
-        const min=Math.min(...datas),max=Math.max(...datas),duracao=Math.max(3600000,max-min);
+        const minimo=new Date(Math.min(...cards.map(c=>new Date(c.dataset.agendaInicio).getTime())));minimo.setHours(0,0,0,0);
+        const maximo=new Date(Math.max(...cards.map(c=>new Date(c.dataset.agendaFim).getTime())));maximo.setHours(0,0,0,0);maximo.setDate(maximo.getDate()+1);
+        let inicio=new Date(minimo),tudo=false;
+        const dia=v=>new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
         const data=v=>new Date(v).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-        const periodo=document.createElement('p');periodo.className='texto-apoio';periodo.textContent=`${data(min)} → ${data(max)}`;agenda.append(periodo);
-        for(const grupo of grupos.values()){
-            const linha=document.createElement('section');linha.className='agenda-linha';
-            const h=document.createElement('h2');h.textContent=grupo[0].dataset.agendaNome;linha.append(h);
-            for(const card of grupo.sort((a,b)=>a.dataset.agendaInicio.localeCompare(b.dataset.agendaInicio))){
-                const inicio=new Date(card.dataset.agendaInicio).getTime(),fim=new Date(card.dataset.agendaFim).getTime();
-                if(!Number.isFinite(inicio)||!Number.isFinite(fim))continue;
-                const faixa=document.createElement('div');faixa.className='agenda-trilho';
-                const link=document.createElement('a');link.className='agenda-evento';link.href=card.querySelector('.planejamento-acoes a').href;
-                link.style.marginLeft=`${100*(inicio-min)/duracao}%`;link.style.width=`${Math.max(.3,100*(fim-inicio)/duracao)}%`;
-                link.style.maxWidth=`${100-100*(inicio-min)/duracao}%`;
-                const nome=card.querySelector('h2').textContent;link.title=`${nome} · ${data(inicio)} até ${data(fim)}`;link.setAttribute('aria-label',link.title);link.textContent=nome;
-                const item=document.createElement('article');item.className='agenda-planejamento';item.title=link.title;
-                faixa.title=link.title;faixa.append(link);
-                const marcos=document.createElement('div');marcos.className='agenda-marcos';
-                const curto=v=>new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-                const esquerda=100*(inicio-min)/duracao,direita=100*(fim-min)/duracao;
-                const deMarco=document.createElement('span'),ateMarco=document.createElement('span');
-                deMarco.textContent=curto(inicio);ateMarco.textContent=curto(fim);
-                deMarco.className='agenda-marco inicio';ateMarco.className='agenda-marco fim';
-                deMarco.style.left=esquerda+'%';ateMarco.style.left=direita+'%';
-                deMarco.style.setProperty('--marco-deslocamento',esquerda<14?'0%':'-100%');
-                ateMarco.style.setProperty('--marco-deslocamento',direita>86?'-100%':'0%');
-                deMarco.title='Início: '+data(inicio);ateMarco.title='Previsão: '+data(fim);
-                if(direita-esquerda<14){marcos.classList.add('agenda-marcos-proximos');}
-                marcos.append(deMarco,ateMarco);item.append(marcos,faixa);
-                const legenda=document.createElement('div');legenda.className='agenda-legenda';
-                const titulo=document.createElement('strong');titulo.textContent=nome;
-                const datas=document.createElement('span');datas.className='agenda-datas';
-                const de=document.createElement('time'),ate=document.createElement('time');
-                de.dateTime=card.dataset.agendaInicio;de.textContent='Início: '+data(inicio);
-                ate.dateTime=card.dataset.agendaFim;ate.textContent='Previsão: '+data(fim);
-                datas.append(de,ate);legenda.append(titulo,datas);item.append(legenda);linha.append(item);
+        const elemento=(tag,classe,texto)=>{const e=document.createElement(tag);if(classe)e.className=classe;if(texto!=null)e.textContent=texto;return e;};
+        function render(){
+            agenda.replaceChildren();const fim=tudo?new Date(maximo):new Date(inicio);if(!tudo)fim.setDate(fim.getDate()+7);
+            const de=tudo?minimo:inicio,amplitude=Math.max(1,fim-de),pos=v=>Math.max(0,Math.min(100,100*(v-de)/amplitude));
+            const barra=elemento('header','agenda-navegacao');const periodo=elemento('strong','',dia(de)+' – '+dia(new Date(fim.getTime()-1)));
+            const anterior=elemento('button','botao botao-secundario','‹'),proximo=elemento('button','botao botao-secundario','›'),todos=elemento('button','botao botao-secundario',tudo?'Ver semana':'Ver todo o período');
+            for(const b of [anterior,proximo,todos])b.type='button';anterior.setAttribute('aria-label','Semana anterior');proximo.setAttribute('aria-label','Próxima semana');
+            anterior.disabled=tudo||inicio<=minimo;proximo.disabled=tudo||fim>=maximo;
+            anterior.addEventListener('click',()=>{inicio.setDate(inicio.getDate()-7);if(inicio<minimo)inicio=new Date(minimo);render();});
+            proximo.addEventListener('click',()=>{inicio.setDate(inicio.getDate()+7);render();});todos.addEventListener('click',()=>{tudo=!tudo;render();});
+            barra.append(periodo,anterior,proximo,todos);agenda.append(barra);
+            const superficie=elemento('div','agenda-superficie');const regua=elemento('div','agenda-regua');regua.append(elemento('span','agenda-regua-titulo','Planejamento'));
+            const eixo=elemento('div','agenda-eixo');const quantidade=Math.ceil(amplitude/86400000),passo=Math.max(1,Math.ceil(quantidade/8));const pontos=[];
+            for(let d=new Date(de),i=0;d<fim;d.setDate(d.getDate()+1),i++){if(i%passo)continue;const p=pos(d);pontos.push(p);const marca=elemento('span','agenda-dia',dia(d));marca.style.left=p+'%';if(p>88)marca.style.transform='translateX(-100%)';eixo.append(marca);}
+            const hoje=new Date();const agora=pos(hoje);const temHoje=hoje>=de&&hoje<fim;
+            if(temHoje){const marca=elemento('span','agenda-hoje-titulo','Hoje');marca.style.left=agora+'%';eixo.append(marca);}
+            regua.append(eixo);superficie.append(regua);
+            let indice=0,visiveis=0;const cores=['var(--cor-primaria)','#329e99','#be8b39','#6e89b4'];
+            for(const grupo of grupos.values()){
+                const cor=cores[indice++%cores.length];const section=elemento('section','agenda-linha');section.style.setProperty('--agenda-cor',cor);
+                const cabecalho=elemento('h2','agenda-impressora');const icone=elemento('i','bi bi-printer');icone.setAttribute('aria-hidden','true');cabecalho.append(icone,document.createTextNode(grupo[0].dataset.agendaNome));section.append(cabecalho);
+                const eventos=grupo.filter(c=>new Date(c.dataset.agendaFim)>=de&&new Date(c.dataset.agendaInicio)<fim).sort((a,b)=>a.dataset.agendaInicio.localeCompare(b.dataset.agendaInicio));
+                if(!eventos.length)section.append(elemento('p','agenda-sem-trabalho','Sem trabalhos neste período.'));
+                for(const card of eventos){visiveis++;const comeco=new Date(card.dataset.agendaInicio),termino=new Date(card.dataset.agendaFim),esquerda=pos(comeco),direita=pos(termino);
+                    const nome=card.querySelector('h2').textContent;const destino=card.querySelector('.planejamento-acoes a');
+                    const item=elemento('article','agenda-planejamento');item.title=nome+' · '+data(comeco)+' até '+data(termino);
+                    const legenda=elemento('div','agenda-legenda');const titulo=elemento('a','agenda-nome',nome);titulo.href=destino.href;
+                    const datas=elemento('div','agenda-datas');const a=elemento('time','','Início: '+data(comeco)),b=elemento('time','','Previsão: '+data(termino));a.dateTime=card.dataset.agendaInicio;b.dateTime=card.dataset.agendaFim;datas.append(a,b);legenda.append(titulo,datas);
+                    const acoes=card.querySelector('.planejamento-acoes')?.cloneNode(true);if(acoes){acoes.classList.add('agenda-acoes');legenda.append(acoes);}
+                    const trilho=elemento('div','agenda-trilho');trilho.title=item.title;
+                    for(const p of pontos){const grade=elemento('span','agenda-grade-dia');grade.style.left=p+'%';trilho.append(grade);}
+                    if(temHoje){const h=elemento('span','agenda-hoje');h.style.left=agora+'%';trilho.append(h);}
+                    const link=elemento('a','agenda-evento');link.href=destino.href;link.title=item.title;link.setAttribute('aria-label',item.title);link.style.left=esquerda+'%';link.style.width=Math.max(.6,direita-esquerda)+'%';link.style.maxWidth=(100-esquerda)+'%';
+                    if(direita-esquerda<4)link.classList.add('agenda-evento-curto');
+                    const marcos=elemento('div','agenda-marcos');if(direita-esquerda<18)marcos.classList.add('agenda-marcos-proximos');
+                    const dm=elemento('span','agenda-marco inicio',comeco<de?'← '+dia(comeco):dia(comeco)),fm=elemento('span','agenda-marco fim',termino>fim?dia(termino)+' →':dia(termino));
+                    dm.style.left=esquerda+'%';fm.style.left=direita+'%';dm.style.setProperty('--marco-deslocamento',esquerda<12?'0%':'-100%');fm.style.setProperty('--marco-deslocamento',direita>88?'-100%':'0%');dm.title='Início: '+data(comeco);fm.title='Previsão: '+data(termino);
+                    marcos.append(dm,fm);trilho.append(marcos,link);item.append(legenda,trilho);section.append(item);
+                }
+                superficie.append(section);
             }
-            agenda.append(linha);
+            agenda.append(superficie,elemento('p','agenda-nota',visiveis+' planejamento(s) neste período · Horários previstos, com margem de segurança. Passe o mouse para conferir os detalhes.'));
         }
-        lista.hidden=true;
+        render();lista.hidden=true;
     }
     document.addEventListener('click',e=>{
         const indice=e.target.closest('.configuracao-indice a[href^="#"]');

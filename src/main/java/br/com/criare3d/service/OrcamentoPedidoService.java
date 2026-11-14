@@ -20,7 +20,7 @@ public class OrcamentoPedidoService {
  }
  @Transactional(readOnly=true) public Page<PedidoOrcamento> listarDoComprador(UUID id,String busca,int pagina,boolean arquivados,StatusPedido status) {
   if(!compradores.existsById(id))throw new IllegalArgumentException("Cliente não encontrado nesta empresa.");
-  return pedidos.buscarDoComprador(id,arquivados,busca,status,PageRequest.of(Math.max(0,pagina),12));
+  return prepararListagem(pedidos.buscarDoComprador(id,arquivados,busca==null?"":busca.strip(),status,PageRequest.of(Math.max(0,pagina),12)));
  }
  private final PedidoOrcamentoRepository pedidos;
  private final ItemPedidoRepository itens;
@@ -39,6 +39,10 @@ public class OrcamentoPedidoService {
  @Transactional(readOnly=true) public Page<PedidoOrcamento> listar(String busca,int pagina,boolean arquivados) {return listar(busca,pagina,arquivados,null);}
  @Transactional(readOnly=true) public Page<PedidoOrcamento> listar(String busca,int pagina,boolean arquivados,StatusPedido status) {
   Page<PedidoOrcamento> resultado=pedidos.buscar(busca==null?"":busca.strip(),arquivados,status,PageRequest.of(Math.max(0,pagina),12));
+  return prepararListagem(resultado);
+ }
+ private Page<PedidoOrcamento> prepararListagem(Page<PedidoOrcamento> resultado) {
+  // O template consulta totais, quantidade de itens e situação após o encerramento da transação.
   resultado.forEach(p->p.getItens().forEach(i->{if(i.getLoteProducao()!=null)i.getLoteProducao().getProduzido();}));
   return resultado;
  }

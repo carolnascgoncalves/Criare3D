@@ -266,6 +266,7 @@ function iniciarCalculoRapido() {
             const partes=buscar('#rapidoUnidades').value;
             buscar('[data-rapido-resultado-contexto]').textContent=`${dados.unidades} arquivo(s) completo(s)${partes ? ' · '+partes+' peças/partes por arquivo' : ''}.`;
             pagina.querySelector('[data-rapido-preco]').textContent=moeda(dados.precoSugerido);
+            const lucro=pagina.querySelector('[data-rapido-lucro]');if(lucro)lucro.textContent='Lucro por arquivo: '+moeda(dados.lucroEstimado ?? Number(dados.precoSugerido)-Number(dados.custoTotal));
             pagina.querySelector('[data-rapido-rateio]').textContent=moeda(dados.custoLoja);
             const detalhe=pagina.querySelector('[data-rapido-detalhamento]');detalhe.replaceChildren();
             const custos=[['Filamentos',dados.custoFilamento],['Energia',dados.custoEnergia],['Embalagem',dados.custoEmbalagem],['Purga',dados.custoPurga],['Mão de obra',dados.custoMaoObra],['Manutenção',dados.custoManutencao],['Depreciação',dados.custoDepreciacao],['Falhas estimadas',dados.custoFalha],...(dados.rateiosCustos || []).map(r=>[r.descricao,r.valorUnitario])];

@@ -144,15 +144,46 @@ class OperacaoTemplatesTest {
         dados.put("valorEmEstoque",BigDecimal.ZERO);dados.put("lucroVendidoMes",BigDecimal.ZERO);
         assertThat(renderizar("vendas-estoque/listar",dados)).contains("Tudo reservado","4 reservadas","width:100.0%");
     }
+    private Map<String,Object> modeloExtrato(List<Movimentacao> itens) {
+        var dados=new HashMap<String,Object>();
+        dados.put("pagina",new PageImpl<>(itens));dados.put("busca","");dados.put("tipo","");dados.put("direcao","");dados.put("saldo",false);
+        dados.put("inicio",java.time.LocalDate.of(2026,11,1));dados.put("fim",java.time.LocalDate.of(2026,11,14));
+        dados.put("tipos",List.of());dados.put("atalhos",List.of());dados.put("resumoEntrou","—");dados.put("resumoSaiu","—");
+        dados.put("grupos",itens.isEmpty()?List.of():List.of(new MovimentacaoController.GrupoDia("Hoje · 14 de novembro",itens)));
+        return dados;
+    }
     @Test void clientesEExtratoRenderizamSemRegistros() {
-        assertThat(renderizar("compradores/index",Map.of("comprador",new Comprador(),"pagina",new PageImpl<>(List.of()),"busca","","arquivados",false)))
-            .contains("Novo cliente","Nenhum cliente encontrado","Buscar clientes");
-        assertThat(renderizar("movimentacoes/index",Map.of("pagina",new PageImpl<>(List.of()),"busca","","tipo","","inicio",java.time.LocalDate.of(2026,11,1),"fim",java.time.LocalDate.of(2026,11,14))))
+        var clientes=new HashMap<String,Object>();
+        clientes.put("comprador",new Comprador());clientes.put("pagina",new PageImpl<>(List.of()));clientes.put("linhas",List.of());clientes.put("busca","");clientes.put("arquivados",false);
+        clientes.put("totalAtivos",0L);clientes.put("totalArquivados",0L);clientes.put("comAndamento",0L);clientes.put("semOrcamento",0L);clientes.put("diasSemOrcamento",60);clientes.put("abrirDialogo",false);
+        assertThat(renderizar("compradores/index",clientes))
+            .contains("Novo cliente","Nenhum cliente encontrado","Buscar clientes","Cadastre o primeiro cliente","data-clientes-limpar");
+        assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of())))
             .contains("Extrato de movimentações","Nenhuma movimentação");
+    }
+    @Test void clientesMostramContatoResumoEAcoes() {
+        var c=new Comprador();c.setId(UUID.randomUUID());c.setNome("Carolina Nascimento");c.setTelefone("11945414013");c.setEmail("carol@example.com");
+        var linha=new CompradorController.LinhaCliente(c,3,1,LocalDateTime.of(2026,11,10,9,0));
+        var clientes=new HashMap<String,Object>();
+        clientes.put("comprador",new Comprador());clientes.put("pagina",new PageImpl<>(List.of(c)));clientes.put("linhas",List.of(linha));clientes.put("busca","");clientes.put("arquivados",false);
+        clientes.put("totalAtivos",1L);clientes.put("totalArquivados",0L);clientes.put("comAndamento",1L);clientes.put("semOrcamento",0L);clientes.put("diasSemOrcamento",60);clientes.put("abrirDialogo",false);
+        assertThat(renderizar("compradores/index",clientes))
+            .contains("Carolina Nascimento","(11) 94541-4013","https://wa.me/5511945414013","1 em andamento","3 orçamentos","Último: 10/11/2026","Arquivar","Editar");
     }
     @Test void extratoComMovimentacaoMostraQuantidadeEOrigem() {
         var m=new Movimentacao();m.setId(UUID.randomUUID());m.setTipo("VENDA_3D");m.setDescricao("Peça vendida");m.setQuantidade(new BigDecimal("-2"));m.setMedida("un.");m.setOrigem("lote");m.setReferencia(UUID.randomUUID());m.setData(LocalDateTime.of(2026,11,14,10,0));
-        assertThat(renderizar("movimentacoes/index",Map.of("pagina",new PageImpl<>(List.of(m)),"busca","","tipo","","inicio",java.time.LocalDate.of(2026,11,1),"fim",java.time.LocalDate.of(2026,11,14))))
-            .contains("Peça vendida","-2 un.","Ver origem","/vendas-estoque/lote/");
+        assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of(m))))
+            .contains("Peça vendida","-2 un.","Venda","Hoje · 14 de novembro","Ver origem","/vendas-estoque/lote/");
+    }
+    @Test void extratoMostraGramasGrandesEmQuilos() {
+        var m=new Movimentacao();m.setId(UUID.randomUUID());m.setTipo("COMPRA");m.setDescricao("PLA · Branco");m.setQuantidade(new BigDecimal("1000"));m.setMedida("g");m.setOrigem("filamento");m.setReferencia(UUID.randomUUID());m.setData(LocalDateTime.of(2026,11,14,9,15));
+        assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of(m)))).contains("+1,00 kg","Compra","+1.000,000 g");
+    }
+
+    @Test void filtroDoHistoricoIndicaSelecaoAtual() {
+        var dados=new HashMap<String,Object>();dados.put("pagina",new PageImpl<>(List.of()));dados.put("historicos",List.of());dados.put("produzido","TODOS");dados.put("vendido","SIM");dados.put("busca","");dados.put("ordem","dataDesc");dados.put("tamanhoPagina",10);
+        var html=renderizar("historico/listar",dados);
+        assertThat(html).containsPattern("aria-current=\"page\"[^>]*>Vendidos");
+        dados.put("vendido","TODOS");assertThat(renderizar("historico/listar",dados)).containsPattern("aria-current=\"page\"[^>]*>Todos");
     }
 }

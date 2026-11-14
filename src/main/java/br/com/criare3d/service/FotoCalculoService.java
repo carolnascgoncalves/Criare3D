@@ -25,6 +25,7 @@ public class FotoCalculoService {
         foto.setTipo(tipo);
         foto.setBytes(bytes);
         calculoFotoRepository.save(foto);
+        historicos.findById(id).ifPresent(h->h.setTemFoto(true));
     }
 
     public Optional<CalculoFoto> buscarFoto(UUID calculoId) {

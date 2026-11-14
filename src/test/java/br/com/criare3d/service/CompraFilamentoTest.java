@@ -43,4 +43,12 @@ class CompraFilamentoTest {
         assertThat(filamento.getPrecoRolo()).isEqualByComparingTo(custoMedioEsperado);
         verify(repository).saveAndFlush(filamento);
     }
+
+    @org.junit.jupiter.api.Test void cincoRolosMantemPrecoUnitarioESomamCincoQuilos() {
+        var repository=mock(FilamentoRepository.class);var service=new FilamentoServiceImp(repository,null,null);
+        var f=new Filamento();var id=UUID.randomUUID();f.setId(id);f.setEstoqueGramas(BigDecimal.ZERO);f.setPesoRoloGramas(new BigDecimal("1000"));f.setPrecoRolo(new BigDecimal("100"));when(repository.findById(id)).thenReturn(Optional.of(f));
+        var compra=new CompraFilamentoRequest();compra.setPesoRoloGramas(new BigDecimal("1000"));compra.setPrecoRolo(new BigDecimal("100"));compra.setUnidadesCompra(5);
+        service.registrarCompra(id,compra);assertThat(f.getEstoqueGramas()).isEqualByComparingTo("5000");assertThat(f.getPrecoRolo()).isEqualByComparingTo("100");
+        compra.setGramasCompradas(new BigDecimal("2500"));assertThat(compra.getQuantidadeTotalGramas()).isEqualByComparingTo("2500");
+    }
 }

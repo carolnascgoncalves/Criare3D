@@ -46,7 +46,7 @@ public class CatalogoOpcoesController  {
         }
         if(entidade instanceof Filamento f) {
             dados.put("id",f.getId());
-            dados.put("nome",f.getNome()+" · "+f.getCor()+" · R$ "+f.getPrecoRolo()+" / "+f.getPesoRoloGramas()+" g");
+            dados.put("nome",f.getNome()+" · "+f.getCor());
             atributos.put("cor",f.getCor());
             atributos.put("codigoCor",f.getCodigoCor());
             atributos.put("precoRolo",f.getPrecoRolo());
@@ -62,11 +62,13 @@ public class CatalogoOpcoesController  {
         }
         if(entidade instanceof Embalagem e) {
             dados.put("id",e.getId());
-            dados.put("nome",e.getNome()+" · R$ "+e.getCustoUnitario());
+            dados.put("nome",e.getNome());
+            atributos.put("custo",e.getCustoUnitario());
         }
         if(entidade instanceof ProdutoLoja p) {
             dados.put("id",p.getId());
             dados.put("nome",p.getNome());
+            atributos.put("preco",p.getPreco());
         }
         if(entidade instanceof Comprador c) {
             dados.put("id",c.getId());

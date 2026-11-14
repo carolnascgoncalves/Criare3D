@@ -15,6 +15,7 @@ import java.util.*;
 @Controller @RequestMapping("/orcamentos")
 public class PedidoOrcamentoController  {
     @org.springframework.beans.factory.annotation.Autowired private EntradaPedidoService entradas;
+    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CompradorRepository compradores;
     private final OrcamentoPedidoService service;
     private final OperacaoPedidoService operacoes;
     private final PlanejamentoPedidoService planejamento;
@@ -30,8 +31,12 @@ public class PedidoOrcamentoController  {
     @GetMapping public ModelAndView listar(@RequestParam(defaultValue="")String busca,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="false")boolean arquivados,@RequestParam(required=false)br.com.criare3d.models.enums.StatusPedido status,@RequestParam(required=false)UUID comprador) {
         return new ModelAndView("orcamentos/listar").addObject("pagina",comprador==null?service.listar(busca,page,arquivados,status):service.listarDoComprador(comprador,busca,page,arquivados,status)).addObject("busca",busca).addObject("arquivados",arquivados).addObject("compradorFiltro",comprador).addObject("statusFiltro",status).addObject("statusOpcoes",br.com.criare3d.models.enums.StatusPedido.values());
     }
-    @GetMapping("/novo") public ModelAndView novo(@RequestParam(required=false)UUID calculo) {
+    @GetMapping("/novo") public ModelAndView novo(@RequestParam(required=false)UUID calculo,@RequestParam(required=false)UUID comprador) {
         var p=new PedidoOrcamento();
+        if(comprador!=null) {
+            var c=compradores.findById(comprador).filter(cliente->!cliente.isArquivado()).orElseThrow(()->new IllegalArgumentException("Cliente não encontrado ou arquivado."));
+            p.setCompradorId(c.getId());p.setCliente(c.getNome());p.setContato(c.getTelefone());p.setEmail(c.getEmail());
+        }
         return tela(p,1,null).addObject("referenciaSelecionada",calculo);
     }
     @PostMapping( {

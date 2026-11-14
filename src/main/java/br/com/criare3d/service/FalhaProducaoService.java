@@ -24,7 +24,7 @@ public class FalhaProducaoService {
   f.setCustoMaterial(gramas.multiply(filamento.getPrecoRolo()).divide(filamento.getPesoRoloGramas(),8,RoundingMode.HALF_UP));
   f.setObservacao(observacao);f.setDataRegistro(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
   filamento.setEstoqueGramas(filamento.getEstoqueGramas().subtract(gramas));falhas.save(f);
-  if(movimentos!=null)movimentos.registrar("PERDA",filamento.getNome()+" · "+filamento.getCor(),gramas.negate(),"g","lote",id);
+  if(movimentos!=null)movimentos.registrar("PERDA",filamento.getNome()+" · "+filamento.getCor(),gramas.negate(),"g","lote",id,filamento.getId(),filamento.getEstoqueGramas());
  }
  public void cancelar(UUID id,UUID falhaId) {
   historicos.bloquearPorId(id).orElseThrow();
@@ -33,6 +33,6 @@ public class FalhaProducaoService {
   if (f.isCancelada()) return;
   var filamento = filamentos.bloquearPorId(f.getFilamento().getId()).orElseThrow();
   filamento.setEstoqueGramas(filamento.getEstoqueGramas().add(f.getGramas()));f.setCancelada(true);
-  if(movimentos!=null)movimentos.registrar("CANCELAR_PERDA",filamento.getNome()+" · "+filamento.getCor(),f.getGramas(),"g","lote",id);
+  if(movimentos!=null)movimentos.registrar("CANCELAR_PERDA",filamento.getNome()+" · "+filamento.getCor(),f.getGramas(),"g","lote",id,filamento.getId(),filamento.getEstoqueGramas());
  }
 }

@@ -1700,31 +1700,7 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     }
 }
 
-/* PESQUISA DAS LISTAGENS */
-
-form:has(input[name="busca"]) {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 0 24px 24px;
-    margin: 0;
-}
-
-form:has(input[name="busca"]) input {
-    min-width: 0;
-    flex: 1;
-}
-
-form:has(input[name="busca"]) button {
-    flex-shrink: 0;
-}
-
-@media (max-width: 500px) {
-    form:has(input[name="busca"]) {
-        padding: 0 16px 20px;
-        gap: 8px;
-    }
-}
+/* As buscas usam os componentes de listagem; formulários com campos ocultos não recebem layout de pesquisa. */
 
 /* FOTO NOS DETALHES DO CÁLCULO */
 
@@ -2280,7 +2256,7 @@ input[type="search"] {
 /* Padroniza a altura da área de pesquisa */
 
 .cartao > form.busca-filamentos {
-    min-height: 46px;
+    min-height: 36px;
     box-sizing: content-box;
 }
 
@@ -2466,8 +2442,8 @@ main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select {
     width: 100%;
     min-width: 0;
     max-width: none;
-    min-height: 46px;
-    padding: 10px 12px;
+    min-height: 36px;
+    padding: 7px 12px;
     border: 1px solid var(--borda);
     border-radius: 9px;
     background: var(--superficie-suave);
@@ -2594,7 +2570,7 @@ main.pagina:has(> .cartao form.busca-filamentos) .historico-filtros > select:foc
 /* Histórico: data por ícone e seletor compacto de quantidade por página. */
 main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
     width: 46px;
-    height: 46px;
+    height: 36px;
     min-width: 46px;
     justify-self: start;
     overflow: hidden;
@@ -2615,7 +2591,7 @@ main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone input {
     inset: 0;
     z-index: 2;
     width: 100%;
-    min-height: 46px;
+    min-height: 36px;
     padding: 0;
     opacity: 0;
     cursor: pointer;

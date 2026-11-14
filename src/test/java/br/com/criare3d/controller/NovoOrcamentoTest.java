@@ -8,7 +8,7 @@ import static org.mockito.Mockito.*;
 class NovoOrcamentoTest {
  @Test void novoOrcamentoAbreDiretoNaPrimeiraEtapaSemGravarRascunhoVazio(){
   var service=mock(OrcamentoPedidoService.class);var controller=new PedidoOrcamentoController(service,mock(OperacaoPedidoService.class),mock(PlanejamentoPedidoService.class),mock(FotoPedidoService.class),mock(FotoRascunhoService.class));
-  var mv=controller.novo(null);assertThat(mv.getViewName()).isEqualTo("orcamentos/editar");assertThat(mv.getModel().get("etapa")).isEqualTo(1);
+  var mv=controller.novo(null,null);assertThat(mv.getViewName()).isEqualTo("orcamentos/editar");assertThat(mv.getModel().get("etapa")).isEqualTo(1);
   assertThat(((PedidoOrcamento)mv.getModel().get("pedido")).getId()).isNull();
  }
 }

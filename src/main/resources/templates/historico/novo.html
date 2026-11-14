@@ -89,7 +89,7 @@
 
                     <div class="campo">
                         <label id="pecaSeletorRotulo" for="abrirPecaSeletor">Peça</label>
-                        <select id="pecaId" th:field="*{pecaId}" required data-peca-nativo data-catalogo="peca">
+                        <select id="pecaId" th:field="*{pecaId}" required data-peca-nativo >
                             <option value="">Selecione uma peça</option>
                             <option th:each="peca : ${pecas}"
                                     th:value="${peca.id}"

@@ -39,4 +39,25 @@ class EntradaPedidoTest {
         assertThat(entrada.getEmbalagemId()).isNull();
         assertThat(entrada.getCustoEmbalagemPersonalizada()).isEqualByComparingTo("2.50");
     }
+
+    @Test void abrirResumoAntigoNaoPrecisaCarregarColecoesDoHistorico() {
+        var lote=org.mockito.Mockito.mock(CalculoHistorico.class);
+        org.mockito.Mockito.when(lote.getItensFilamento()).thenThrow(new org.hibernate.LazyInitializationException("Histórico fora da transação"));
+        var item=new ItemPedido();item.setEntradaJson("{}");item.setQuantidade(1);item.setLoteEstoque(lote);
+        assertThat(service.origemCustos(item)).isEqualTo("Valores do cálculo original");
+        org.mockito.Mockito.verifyNoInteractions(lote);
+    }
+
+    @Test void recuperarCustosAntigosRecarregaHistoricoEmVezDePercorrerEntidadeDesconectada() {
+        var id=UUID.randomUUID();var desconectado=org.mockito.Mockito.mock(CalculoHistorico.class);
+        org.mockito.Mockito.when(desconectado.getId()).thenReturn(id);
+        org.mockito.Mockito.when(desconectado.getItensFilamento()).thenThrow(new org.hibernate.LazyInitializationException("Desconectado"));
+        var repositorio=org.mockito.Mockito.mock(br.com.criare3d.repository.CalculoHistoricoRepository.class);
+        var original=new CalculoHistorico();original.setId(id);original.setCustoEmbalagem(new java.math.BigDecimal("2.50"));
+        org.mockito.Mockito.when(repositorio.buscarPorIdComItens(id)).thenReturn(java.util.Optional.of(original));
+        org.springframework.test.util.ReflectionTestUtils.setField(service,"historicos",repositorio);
+        var item=new ItemPedido();item.setEntradaJson("{}");item.setQuantidade(1);item.setLoteEstoque(desconectado);
+        assertThat(service.ler(item,1).getCustosPreservados().embalagem()).isEqualByComparingTo("2.50");
+        org.mockito.Mockito.verify(desconectado,org.mockito.Mockito.never()).getItensFilamento();
+    }
 }

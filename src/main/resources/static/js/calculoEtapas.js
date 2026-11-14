@@ -539,7 +539,7 @@ function inicializarCalculoEtapas() {
     atualizarPlataforma();
 
     // Antes de enviar o cálculo, valida todas as etapas em ordem.
-    formulario.addEventListener("submit", event => {
+    formulario.addEventListener("submit", async event => {
         for (let numero = 1; numero <= conteudos.length; numero++) {
             if (!validarEtapa(numero)) {
                 event.preventDefault();
@@ -548,6 +548,12 @@ function inicializarCalculoEtapas() {
             }
         }
 
+        if(fotosSincronizando>0) {
+            event.preventDefault();
+            try { await sincronizacaoFotoPendente; formulario.requestSubmit(event.submitter || undefined); }
+            catch { window.mostrarNotificacao?.("A foto ainda não foi guardada. Selecione-a novamente antes de calcular.","erro"); }
+            return;
+        }
         salvarRascunho();
     });
 
@@ -560,8 +566,10 @@ function inicializarCalculoEtapas() {
     const fotoRemovida = document.getElementById("fotoRemovida");
     let fotoUrlTemporaria = null;
     let sincronizacaoFotoPendente = Promise.resolve();
+    let fotosSincronizando = 0;
 
     function sincronizarFotoTemporaria(arquivo = null, remover = false) {
+        fotosSincronizando++;
         const dados = new FormData();
         const tokenCsrf = formulario.querySelector('input[name="_csrf"]')?.value;
         if (tokenCsrf) dados.append("_csrf", tokenCsrf);
@@ -577,7 +585,7 @@ function inicializarCalculoEtapas() {
                     credentials: "same-origin"
                 });
                 if (!resposta.ok) throw new Error("Não foi possível guardar a foto temporária.");
-            });
+            }).finally(()=>{fotosSincronizando--;});
 
         sincronizacaoFotoPendente.catch(() => {
             window.mostrarNotificacao?.(

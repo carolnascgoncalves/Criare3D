@@ -108,7 +108,7 @@ public class ProducaoService {
             BigDecimal saldo = filamento.getEstoqueGramas() == null
                     ? ZERO : filamento.getEstoqueGramas();
             filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
-            if(movimentos!=null)movimentos.registrar(devolver?"DESFAZER_PRODUCAO":"PRODUCAO",filamento.getNome()+" · "+filamento.getCor()+" — "+lote.getNomePeca(),devolver?quantidade:quantidade.negate(),"g","lote",lote.getId());
+            if(movimentos!=null)movimentos.registrar(devolver?"DESFAZER_PRODUCAO":"PRODUCAO",filamento.getNome()+" · "+filamento.getCor()+" — "+lote.getNomePeca(),devolver?quantidade:quantidade.negate(),"g","lote",lote.getId(),filamento.getId(),filamento.getEstoqueGramas());
         });
         return true;
     }

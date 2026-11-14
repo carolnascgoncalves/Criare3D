@@ -28,22 +28,23 @@ public class OutrasVendasController {
         @NotNull @DecimalMin("0.00") @DecimalMax("99999999.99") @Digits(integer=8,fraction=2) private BigDecimal preco;
         @DecimalMin("0.00") @DecimalMax("99999999.99") @Digits(integer=8,fraction=2) private BigDecimal custo;
     }
-    private ModelAndView pagina(ProdutoFormulario form,int paginaProdutos,int paginaVendas) {
+    private ModelAndView pagina(ProdutoFormulario form,int paginaProdutos,int paginaVendas) { return pagina(form,paginaProdutos,paginaVendas,""); }
+    private ModelAndView pagina(ProdutoFormulario form,int paginaProdutos,int paginaVendas,String buscaVendas) {
         return new ModelAndView("outras-vendas/index").addObject("produtoFormulario",form)
             .addObject("produtos",produtos.findAllByOrderByNomeAsc(PageRequest.of(Math.max(0,paginaProdutos),10)))
             .addObject("opcoes",produtos.findByArquivadoFalseOrderByNomeAsc(PageRequest.of(0,20)).getContent())
-            .addObject("vendas",vendas.findAllByOrderByDataVendaDesc(PageRequest.of(Math.max(0,paginaVendas),20)))
+            .addObject("buscaVendas",buscaVendas).addObject("vendas",vendas.pesquisar(buscaVendas.strip(),PageRequest.of(Math.max(0,paginaVendas),20)))
             .addObject("hoje",LocalDate.now(clock))
             .addObject("embalagens",embalagens.findByArquivadoFalse(PageRequest.of(0,20)).getContent());
     }
     @GetMapping public ModelAndView abrir(@RequestParam(required=false) UUID editar,
-            @RequestParam(defaultValue="0") int paginaProdutos,@RequestParam(defaultValue="0") int paginaVendas) {
+            @RequestParam(defaultValue="0") int paginaProdutos,@RequestParam(defaultValue="0") int paginaVendas,@RequestParam(defaultValue="") String buscaVendas) {
         var form=new ProdutoFormulario();
         if(editar!=null) {
             var p=produtos.findById(editar).orElseThrow(()->new IllegalArgumentException("Produto não encontrado."));
             form.setId(p.getId());form.setNome(p.getNome());form.setPreco(p.getPreco());form.setCusto(p.getCusto());
         }
-        return pagina(form,paginaProdutos,paginaVendas);
+        return pagina(form,paginaProdutos,paginaVendas,buscaVendas);
     }
     @PostMapping("/produto") public ModelAndView salvar(@Valid @ModelAttribute("produtoFormulario") ProdutoFormulario form,BindingResult erros) {
         if(erros.hasErrors()) {

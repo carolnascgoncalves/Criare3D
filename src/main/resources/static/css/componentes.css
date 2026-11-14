@@ -54,7 +54,7 @@
 .operacao-grade .cartao, .operacao-grade form, .campos-pendentes { min-width:0; }
 .operacao-grade details { margin-block:12px; }
 .campos-pendentes { margin:0 0 16px; padding:12px; border:1px solid var(--borda-erro); border-radius:12px; background:var(--fundo-erro); color:var(--cor-erro); }
-.campos-pendentes summary { cursor:pointer; font-weight:600; }
+.campos-pendentes summary { cursor:pointer; font-weight: 400; }
 .campos-pendentes ul { margin:10px 0 0; padding-left:20px; }
 .campos-pendentes button { text-align:left; white-space:normal; overflow-wrap:anywhere; }
 .orcamento-foto { max-width:160px; max-height:160px; object-fit:contain; border-radius:12px; }
@@ -152,7 +152,7 @@
 .rapido-campo-lupa { display: flex; align-items: stretch; gap: 8px; }
 .rapido-campo-lupa input { flex: 1; }
 .rapido-campo-lupa .botao { min-width: 46px; padding: 0 12px; }
-.rapido-material { display: grid; grid-template-columns: minmax(0,2fr) minmax(140px,1fr) auto; align-items: end; gap: 18px; padding: 22px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie-suave); margin-bottom: 18px; }
+.rapido-material { display: grid; grid-template-columns: minmax(0,2fr) minmax(140px,1fr) auto; align-items: start; gap: 18px; padding: 22px; border: 1px solid var(--borda); border-radius: 14px; background: var(--superficie-suave); margin-bottom: 18px; }
 .pagina-calculo-rapido .rapido-material label { min-height: 22px; margin: 0; font-size: .9rem; line-height: 1.5; }
 .rapido-material-titulo { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .rapido-material .botao { min-height: 46px; }
@@ -201,7 +201,7 @@
 .rapido-composicao-titulo { font-size: 1rem; margin: 0 0 14px; }
 .rapido-custos-tabela { font-size: .9rem; }
 .rapido-custos-tabela th:not(:first-child), .rapido-custos-tabela td:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-.rapido-custos-tabela th { color: var(--marrom-claro); font-size: .8rem; font-weight: 600; }
+.rapido-custos-tabela thead th { background: var(--destaque-suave); color: var(--marrom); font-size: .8rem; font-weight: 600; }
 @media (max-width: 760px) { .rapido-resultado-indicadores { grid-template-columns: minmax(0,1fr); } }
 
 @media (max-width: 1000px) { .rapido-materiais-arquivo { grid-template-columns: repeat(2,minmax(0,1fr)); } }
@@ -304,14 +304,6 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .valor-negativo { color:#ad2439; font-weight:700; }
 .reserva-selo { display:inline-flex; padding:4px 9px; background:#fff0d7; color:#805600; border-radius:6px; font-size:.8rem; font-weight:650; }
 .vendas-lote-topo h3 { white-space:normal; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.planejamentos-grade[hidden], .agenda-impressoras[hidden] { display:none; }
-.agenda-impressoras { overflow-x:auto; margin:20px 0; }
-.agenda-linha { min-width:650px; padding:20px; margin-bottom:16px; border:1px solid var(--borda,#ddd); border-radius:14px; background:var(--superficie,#fff); }
-.agenda-linha h2 { font-size:1rem; margin-bottom:15px; }
-.agenda-trilho { overflow:hidden; margin-top:12px; background:var(--fundo,#f4f0fa); border-radius:8px; }
-.agenda-evento { box-sizing:border-box; display:block; padding:10px 8px; border-radius:8px; background:var(--cor-primaria,#6c5590); color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration:none; }
-.agenda-evento:hover { color:white; filter:brightness(1.12); }
-.agenda-linha small { display:block; margin-top:5px; }
 .formulario-dialogo { width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--borda,#ddd); border-radius:18px; background:var(--superficie,#fff); color:inherit; }
 .formulario-dialogo::backdrop { background:#21162e80; }
 .formulario-dialogo .cartao { border:0; box-shadow:none; padding:0; margin:0; }
@@ -349,12 +341,6 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .filamentos-filtros-rapidos { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:8px 24px 20px; padding:14px 0 0; border-top:1px solid var(--borda); }
 .filamentos-filtros-rapidos small { color:var(--marrom-claro); }
 .filamentos-filtros-rapidos button[aria-pressed=true] { background:var(--cor-primaria); color:var(--branco,#fff); border-color:var(--cor-primaria); box-shadow:inset 0 0 0 1px currentColor; }
-.agenda-planejamento { margin-top:18px; }
-.agenda-planejamento .agenda-trilho { margin-top:0; }
-.agenda-legenda { display:grid; gap:8px; padding:10px 0 4px; }
-.agenda-legenda > strong { font-size:.97rem; font-weight:700; line-height:1.4; color:var(--marrom); }
-.agenda-datas { display:flex; flex-wrap:wrap; gap:8px; }
-.agenda-datas time { font-size:.82rem; padding:5px 9px; border:1px solid var(--borda); border-radius:7px; background:var(--superficie-suave); color:var(--marrom); }
 .configuracao-indice a[aria-current=location] { background:var(--superficie-suave); color:var(--cor-primaria); font-weight:700; }
 .configuracao-destino { outline:2px solid var(--cor-primaria); outline-offset:6px; border-radius:12px; }
 .pagina-configuracao { padding-bottom:140px; }
@@ -372,17 +358,6 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .operacao-painel > form details summary { font-weight:600; cursor:pointer; }
 .operacao-painel > form details .campo { margin-top:14px; }
 .operacao-painel > form > button { justify-self:start; }
-.agenda-marcos { position:relative; height:30px; margin:0 0 0; }
-.agenda-marco { position:absolute; top:0; font-size:.76rem; font-weight:700; white-space:nowrap; color:var(--marrom); }
-.agenda-marco.inicio { transform:translateX(var(--marco-deslocamento,0%)); }
-.agenda-marco.fim { transform:translateX(var(--marco-deslocamento,-100%)); }
-.agenda-marco::after { content:''; position:absolute; height:12px; top:19px; border-left:1px dashed var(--cor-primaria); }
-.agenda-marco.inicio::after { left:calc(-1 * var(--marco-deslocamento,0%)); }
-.agenda-marco.fim::after { left:calc(-1 * var(--marco-deslocamento,-100%)); }
-.agenda-marcos-proximos { height:48px; }
-.agenda-marcos-proximos .inicio { top:0; }
-.agenda-marcos-proximos .inicio::after { height:30px; }
-.agenda-marcos-proximos .fim { top:18px; }
 
 .operacao-venda-concluida { display:grid; gap:8px; padding:18px; margin:20px 0; background:var(--superficie-suave); border:1px solid var(--borda); border-radius:12px; }
 .operacao-venda-concluida strong { font-size:1.5rem; }
@@ -407,11 +382,97 @@ body.senha-primeiro-acesso {
 .senha-primeiro-acesso input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset; -webkit-text-fill-color:#422329; }
 
 .form-grade { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:20px; align-items:start; }
-.comprador-escolha { margin:18px 0 24px; padding:18px; border:1px solid var(--borda); border-radius:12px; }
+.comprador-escolha { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px 20px; align-items:center; margin:16px 0; padding:16px; border:1px solid var(--borda); border-radius:12px; background:var(--superficie); }
+.comprador-identificacao { display:flex; align-items:center; gap:12px; min-width:0; }
+.comprador-identificacao > .bi { font-size:28px; color:var(--marrom-claro); }
+.comprador-identificacao > div { display:grid; gap:3px; min-width:0; }
+.comprador-identificacao span { font-size:12px; color:var(--marrom-claro); }
+.comprador-identificacao strong { font-size:14px; overflow-wrap:anywhere; }
+.comprador-acoes { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
+.comprador-acoes .catalogo-buscar { order:-1; margin:0; }
+.comprador-gerenciar { color:var(--marrom-claro); font-size:13px; }
+.comprador-escolha > small { grid-column:1 / -1; font-size:12px; color:var(--marrom-claro); }
+@media(max-width:800px) { .comprador-escolha { grid-template-columns:1fr; } }
+
 .catalogo-buscar { align-self:flex-start; margin-top:8px; font-size:.84rem; }
-.catalogo-dialogo { width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--borda); border-radius:16px; background:var(--superficie); color:var(--marrom); }
+.catalogo-dialogo { margin:auto; inset:0; width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--borda); border-radius:16px; background:var(--superficie); color:var(--marrom); }
 .catalogo-dialogo::backdrop { background:#21162e80; }
 .catalogo-dialogo input { width:100%; }
 .catalogo-resultados { display:grid; gap:8px; margin:16px 0; }
-.catalogo-resultado { text-align:left; border:1px solid var(--borda); background:var(--superficie-suave); color:var(--marrom); border-radius:10px; padding:14px; cursor:pointer; }
+.catalogo-resultado { display:flex; align-items:center; gap:12px; text-align:left; border:1px solid var(--borda); background:var(--superficie-suave); color:var(--marrom); border-radius:10px; padding:14px; cursor:pointer; }
 .catalogo-resultado:hover,.catalogo-resultado:focus-visible { outline:2px solid var(--marrom-claro); outline-offset:1px; }
+
+/* Campo de pesquisa compartilhado das listagens. */
+
+.lista-busca { display: flex; flex: 1 1 240px; align-items: center; gap: 8px; min-width: 0; min-height: 36px; margin: 0; padding: 0 10px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--marrom-claro); }
+
+.lista-busca:focus-within { border-color: var(--destaque); }
+
+.lista-busca input[type="search"] { width: 100%; min-width: 0; min-height: 34px; margin: 0; padding: 5px 0; border: 0; border-radius: 0; background: transparent; color: var(--marrom); font-size: 13px; font-weight: 400; outline: none; box-shadow: none; }
+
+.busca-enviar { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); }
+
+/* Mesmo padrão das abas de Clientes para as demais listagens. */
+.abas-listagem, .clientes-abas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.abas-listagem > a, .clientes-abas .clientes-aba { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 6px 12px; border: 0; border-radius: 6px; background: var(--fundo-suave); color: var(--marrom-claro); font-size: 13px; font-weight: 400; text-decoration: none; white-space: nowrap; }
+.abas-listagem > a.ativo, .clientes-abas .clientes-aba.ativa { background: var(--destaque-suave); color: var(--marrom); }
+
+.clientes-abas { flex: 0 0 auto; }
+.pagina .busca-filamentos > .botao, .pagina .vendas-busca-detalhe > .botao { height: 36px; min-height: 36px; margin-block: 0; padding: 7px 14px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--marrom); font-size: 13px; line-height: 20px; font-weight: 500; align-self: center; }
+
+.abas-listagem > a[aria-current="page"] { border:1px solid var(--destaque); background:var(--destaque-suave); color:var(--marrom); font-weight:700; box-shadow:inset 0 -2px var(--destaque); }
+
+.catalogo-estado { margin:18px 0 12px; color:var(--marrom-claro); }
+.catalogo-resultado > .bi { flex:0 0 32px; font-size:24px; color:var(--marrom-claro); }
+.catalogo-resultado > span { display:grid; gap:5px; min-width:0; }
+.catalogo-resultado strong { font-size:15px; font-weight:600; overflow-wrap:anywhere; }
+.catalogo-resultado small { font-size:13px; color:var(--marrom-claro); }
+.catalogo-cor { width:28px; height:28px; flex:0 0 28px; border-radius:6px; border:1px solid var(--borda); }
+.catalogo-seletor { position:absolute; width:1px; height:1px; opacity:0; clip-path:inset(50%); }
+.catalogo-seletor + .catalogo-buscar { width:100%; min-height:42px; margin-top:0; text-align:left; justify-content:flex-start; border:1px solid var(--borda); background:var(--superficie); }
+.catalogo-seletor:focus + .catalogo-buscar { outline:2px solid var(--destaque); }
+.rapido-material .campo { gap:8px; }
+.rapido-material .campo > label { min-height:24px; margin:0; }
+.rapido-material .catalogo-buscar, .rapido-material .campo input, .rapido-material > .botao { height:46px; min-height:46px; }
+.rapido-material > .botao { align-self:start; margin-top:32px; }
+@media(max-width:760px) { .rapido-material > .botao { margin-top:0; } }
+.rapido-lucro { font-weight:600; color:var(--cor-sucesso); }
+
+/* Agenda de impressão com eixo de datas comum e identificação fora das barras. */
+.planejamentos-grade[hidden], .agenda-impressoras[hidden] { display:none; }
+.agenda-impressoras { margin:20px 0; min-width:0; }
+.agenda-navegacao { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.agenda-navegacao > strong { margin-right:auto; color:var(--marrom); }
+.agenda-navegacao .botao:disabled { opacity:.4; cursor:default; }
+.agenda-superficie { overflow-x:auto; border:1px solid var(--borda); border-radius:16px; background:var(--superficie); }
+.agenda-regua { display:grid; grid-template-columns:240px minmax(500px,1fr); min-width:800px; padding:20px 20px 12px; border-bottom:1px solid var(--borda); }
+.agenda-regua-titulo { color:var(--marrom-claro); font-size:13px; }
+.agenda-eixo { position:relative; height:40px; }
+.agenda-dia { position:absolute; top:0; font-size:12px; font-weight:600; color:var(--marrom); white-space:nowrap; }
+.agenda-hoje-titulo { position:absolute; bottom:0; transform:translateX(-50%); padding:2px 6px; border-radius:5px; background:var(--cor-primaria); color:var(--texto-sobre-primaria); font-size:11px; }
+.agenda-linha { min-width:800px; padding:12px 20px 0; }
+.agenda-impressora { display:flex; align-items:center; gap:10px; padding:12px; margin:0; border-radius:8px; background:color-mix(in srgb,var(--agenda-cor) 12%,var(--superficie)); color:var(--marrom); font-size:16px; font-weight:700; }
+.agenda-impressora .bi { color:var(--agenda-cor); font-size:21px; }
+.agenda-planejamento { display:grid; grid-template-columns:240px minmax(500px,1fr); border-bottom:1px solid var(--borda-clara); }
+.agenda-legenda { display:grid; align-content:start; gap:8px; padding:18px 16px 18px 0; min-width:0; }
+.agenda-nome { color:var(--marrom); font-size:14px; font-weight:700; line-height:1.4; text-decoration:none; overflow-wrap:anywhere; }
+.agenda-nome:hover { text-decoration:underline; }
+.agenda-datas { display:grid; gap:4px; color:var(--marrom-claro); }
+.agenda-datas time { font-size:12px; line-height:1.4; }
+.agenda-trilho { position:relative; min-height:142px; overflow:hidden; }
+.agenda-grade-dia { position:absolute; top:0; bottom:0; border-left:1px solid var(--borda-clara); pointer-events:none; }
+.agenda-hoje { position:absolute; top:0; bottom:0; border-left:2px dashed var(--destaque); z-index:1; pointer-events:none; }
+.agenda-evento { position:absolute; top:76px; height:16px; min-width:5px; box-sizing:border-box; border-radius:999px; background:color-mix(in srgb,var(--agenda-cor) 65%,var(--superficie)); text-decoration:none; z-index:2; }
+.agenda-evento::before, .agenda-evento::after { content:''; position:absolute; top:-2px; width:20px; height:20px; border-radius:50%; border:2px solid var(--superficie); background:var(--agenda-cor); }
+.agenda-evento::before { left:0; }.agenda-evento::after { right:0; }
+.agenda-evento:hover, .agenda-evento:focus-visible { outline:2px solid var(--agenda-cor); outline-offset:3px; }
+.agenda-evento-curto { height:12px; top:78px; }.agenda-evento-curto::before, .agenda-evento-curto::after { width:14px; height:14px; top:-1px; }
+.agenda-marcos { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.agenda-marco { position:absolute; top:20px; padding:3px 7px; border:1px solid var(--borda); border-radius:6px; background:var(--superficie-suave); color:var(--marrom); font-size:11px; font-weight:600; white-space:nowrap; transform:translateX(var(--marco-deslocamento,0%)); }
+.agenda-marcos-proximos .fim { top:46px; }
+.agenda-acoes { display:flex; gap:6px; flex-wrap:wrap; margin:2px 0 0; }
+.agenda-acoes .botao { min-height:28px; padding:4px 8px; font-size:11px; }
+.agenda-sem-trabalho { margin:0; padding:20px 12px; color:var(--marrom-claro); font-size:13px; }
+.agenda-nota { margin:10px 0 0; color:var(--marrom-claro); font-size:12px; }
+[data-agenda-controles] [aria-pressed="true"] { border:1px solid var(--destaque); background:var(--destaque-suave); color:var(--marrom); }
+[data-agenda-controles] [aria-pressed="false"] { background:var(--superficie); color:var(--marrom-claro); }

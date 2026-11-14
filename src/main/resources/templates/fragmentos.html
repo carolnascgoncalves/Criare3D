@@ -19,6 +19,7 @@
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
     <link th:href="@{/css/componentes.css}" rel="stylesheet" data-turbo-track="reload">
     <link th:if="${paginaAtiva == 'simulacao' or paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
+    <link th:if="${paginaAtiva == 'compradores' or paginaAtiva == 'movimentacoes'}" rel="stylesheet" th:href="@{/css/clientes-extrato.css}" data-turbo-track="dynamic">
     <link th:if="${temaCssUrl != null}" rel="stylesheet" th:href="${temaCssUrl}" data-turbo-track="reload">
 
     <meta name="turbo-cache-control" th:content="${paginaAtiva == 'calculo-rapido' ? 'no-cache' : 'no-preview'}" content="no-preview">
@@ -40,6 +41,7 @@
     <script th:src="@{/js/notificacoes.js}" defer></script>
     <script th:src="@{/js/selecaoListagem.js}" defer></script>
     <script th:src="@{/js/vendasEstoque.js}" defer></script>
+    <script th:src="@{/js/compradores.js}" defer></script>
     <script th:src="@{/js/restaurarRolagem.js}" defer></script>
     <script th:src="@{/js/validacaoInline.js}" defer></script>
     <script th:src="@{/js/formularioEstado.js}" defer></script>
@@ -80,7 +82,7 @@
         </button>
     </div>
 
-    <a th:if="${tenantDisponivel}" th:href="@{/calculo-rapido}" class="botao-menu menu-calcular" aria-label="Calcular preço" title="Calcular preço">
+    <a th:if="${tenantDisponivel}" th:href="@{/historico/novo}" class="botao-menu menu-calcular" aria-label="Calcular preço" title="Calcular preço">
         <i class="bi bi-calculator" aria-hidden="true"></i><span>Calcular preço</span>
     </a>
 

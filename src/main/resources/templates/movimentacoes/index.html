@@ -1,1 +1,68 @@
-<!DOCTYPE html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragmentos :: cabecalho('Extrato de movimentações')}"></head><body><nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina"><section class="pagina-intro"><div><span class="texto-apoio">ACOMPANHE SEU ESTOQUE</span><h1>Extrato de movimentações</h1><p>Compras, produção, perdas, ajustes, vendas e cancelamentos em um só lugar.</p></div></section><section class="cartao formulario-conteudo"><form method="get" class="form-grade"><label class="campo">De<input type="date" name="inicio" th:value="${inicio}" required></label><label class="campo">Até<input type="date" name="fim" th:value="${fim}" required></label><label class="campo">Buscar<input name="busca" th:value="${busca}" placeholder="Peça ou filamento"></label><label class="campo">Tipo<select name="tipo"><option value="">Todos</option><option th:each="t:${ {'SALDO_INICIAL','COMPRA','AJUSTE','PRODUCAO','DESFAZER_PRODUCAO','PERDA','CANCELAR_PERDA','VENDA_3D','CANCELAR_VENDA_3D','VENDA_PRODUTO','CANCELAR_VENDA_PRODUTO'} }" th:value="${t}" th:text="${#strings.replace(t,'_',' ')}" th:selected="${t==tipo}"></option></select></label><button class="botao botao-principal">Filtrar</button></form><p class="texto-apoio">O saldo de abertura marca o início do extrato. Operações anteriores continuam nos históricos de cada peça e venda. Quantidades positivas entram no estoque; negativas saem.</p><p th:if="${pagina.empty}">Nenhuma movimentação neste período.</p><article th:each="m:${pagina}" class="operacao-registro"><div><strong th:text="${m.descricao}"></strong><small th:text="${#strings.replace(m.tipo,'_',' ')}"></small><time th:text="${#temporals.format(m.data,'dd/MM/yyyy HH:mm')}"></time></div><strong th:text="|${m.quantidade.signum()>0?'+':''}${#numbers.formatDecimal(m.quantidade,1,'POINT',m.medida=='g'?3:0,'COMMA')} ${m.medida}|"></strong><a th:if="${m.referencia!=null}" th:href="${m.origem=='filamento'?'/filamento/detalhes/'+m.referencia:m.origem=='lote'?'/vendas-estoque/lote/'+m.referencia:'/outras-vendas'}">Ver origem</a></article><nav class="operacao-acoes" aria-label="Páginas do extrato"><a th:if="${pagina.hasPrevious()}" th:href="@{/movimentacoes(page=${pagina.number-1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo})}">Anterior</a><a th:if="${pagina.hasNext()}" th:href="@{/movimentacoes(page=${pagina.number+1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo})}">Próxima</a></nav></section></main></body></html>
+<!DOCTYPE html><html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"><head th:replace="~{fragmentos :: cabecalho('Extrato de movimentações')}"></head><body><nav th:replace="~{fragmentos :: menu}"></nav>
+<main class="pagina pagina-extrato">
+<section class="pagina-intro"><div><h1>Extrato de movimentações</h1><p>Tudo que entrou e saiu do seu estoque, do mais recente para o mais antigo.</p></div></section>
+
+<section class="extrato-filtros">
+<div class="extrato-barra">
+<div class="extrato-chips" role="group" aria-label="Período">
+<a th:each="a:${atalhos}" class="extrato-chip" th:classappend="${a.ativo}?' ativo'" th:href="@{/movimentacoes(inicio=${a.inicio},fim=${a.fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento})}" th:text="${a.rotulo}"></a>
+</div>
+<a class="botao botao-secundario" data-turbo="false" th:href="@{/movimentacoes/exportar.csv(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento})}"><i class="bi bi-download" aria-hidden="true"></i> Exportar CSV</a>
+</div>
+<div class="extrato-pesquisa">
+<form method="get" class="lista-busca" role="search">
+<i class="bi bi-search" aria-hidden="true"></i><input type="search" name="busca" th:value="${busca}" placeholder="Peça ou filamento" aria-label="Buscar movimentações">
+<input type="hidden" name="inicio" th:value="${inicio}"><input type="hidden" name="fim" th:value="${fim}"><input type="hidden" name="tipo" th:value="${tipo}"><input type="hidden" name="direcao" th:value="${direcao}"><input type="hidden" name="saldo" th:value="${saldo}"><input type="hidden" name="filamento" th:value="${filamento}">
+<button type="submit" class="busca-enviar" aria-label="Pesquisar movimentações"><i class="bi bi-arrow-return-left" aria-hidden="true"></i></button>
+</form>
+
+<div class="extrato-chips" role="group" aria-label="Entradas e saídas">
+<a class="extrato-chip" th:classappend="${#strings.isEmpty(direcao) and tipo!='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},busca=${busca},saldo=${saldo},filamento=${filamento})}">Todos</a>
+<a class="extrato-chip" th:classappend="${direcao=='entrada'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao='entrada',busca=${busca},saldo=${saldo},filamento=${filamento})}">Entradas</a>
+<a class="extrato-chip" th:classappend="${direcao=='saida'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao='saida',busca=${busca},saldo=${saldo},filamento=${filamento})}">Saídas</a>
+<a class="extrato-chip" th:classappend="${tipo=='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='AJUSTE',busca=${busca},saldo=${saldo},filamento=${filamento})}">Ajustes</a>
+</div>
+</div>
+<details class="extrato-avancados"><summary>Mais filtros</summary><form method="get" class="extrato-form">
+<input type="hidden" name="direcao" th:value="${direcao}">
+<label class="campo">De<input type="date" name="inicio" th:value="${inicio}" required></label>
+<label class="campo">Até<input type="date" name="fim" th:value="${fim}" required></label>
+<input type="hidden" name="busca" th:value="${busca}">
+<label class="campo">Filamento<select name="filamento" data-catalogo="filamento"><option value="">Todos os filamentos</option><option th:if="${filamentoSelecionado!=null}" th:value="${filamentoSelecionado.id}" th:text="|${filamentoSelecionado.nome} · ${filamentoSelecionado.cor}|" selected></option></select></label>
+<label class="campo">Tipo<select name="tipo"><option value="">Todos</option><option th:each="t:${tipos}" th:value="${t.name()}" th:text="${t.rotulo}" th:selected="${t.name()==tipo}"></option></select></label>
+<div class="extrato-form-acoes"><label class="extrato-saldo"><input type="checkbox" name="saldo" value="true" th:checked="${saldo}"> Mostrar saldo de abertura</label>
+<button class="botao botao-principal">Filtrar</button></div>
+</form></details>
+</section>
+
+<section class="extrato-resumo" aria-label="Resumo do período">
+<div><span>Entrou no estoque</span><strong class="entrada" th:text="${resumoEntrou}">—</strong></div>
+<div><span>Saiu do estoque</span><strong class="saida" th:text="${resumoSaiu}">—</strong></div>
+<div><span>Movimentações no período</span><strong th:text="${pagina.totalElements}">0</strong></div>
+</section>
+
+<section class="cartao extrato-lista">
+<div class="extrato-vazio" th:if="${pagina.empty}"><i class="bi bi-inbox" aria-hidden="true"></i><h2>Nenhuma movimentação neste período</h2><p>Amplie as datas ou limpe os filtros para ver mais registros.</p></div>
+<th:block th:each="g:${grupos}">
+<h2 class="extrato-dia" th:text="${g.titulo}"></h2>
+<article class="extrato-linha" th:each="m:${g.itens}">
+<span class="extrato-icone" th:classappend="${m.direcao}"><i class="bi" th:classappend="${m.tipoInfo.icone}" aria-hidden="true"></i></span>
+<div class="extrato-texto"><strong th:text="${m.descricao}"></strong><span><em class="extrato-tag" th:text="${m.tipoInfo.rotulo}"></em><time th:datetime="${m.data}" th:text="${#temporals.format(m.data,'HH:mm')}"></time></span><small th:if="${m.saldoApos!=null}" th:text="|Saldo após: ${#numbers.formatDecimal(m.saldoApos,1,'POINT',3,'COMMA')} g|"></small></div>
+<span class="extrato-qtd" th:classappend="${m.direcao}" th:title="${m.quantidadeExata}" th:text="${m.quantidadeTexto}"></span>
+<a class="extrato-origem" th:if="${m.linkOrigem!=null}" th:href="@{${m.linkOrigem}}" aria-label="Ver origem" title="Ver origem"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+</article>
+</th:block>
+<nav class="extrato-paginas" aria-label="Páginas do extrato" th:if="${pagina.totalPages>1}">
+<a class="botao botao-secundario" th:if="${pagina.hasPrevious()}" th:href="@{/movimentacoes(page=${pagina.number-1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento})}">Anterior</a>
+<span th:text="|Página ${pagina.number+1} de ${pagina.totalPages}|"></span>
+<a class="botao botao-secundario" th:if="${pagina.hasNext()}" th:href="@{/movimentacoes(page=${pagina.number+1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento})}">Próxima</a>
+</nav>
+</section>
+
+<aside class="extrato-abertura" th:if="${aberturaTotal!=null}">
+<i class="bi bi-flag" aria-hidden="true"></i>
+<div><strong>Saldo de abertura</strong><span th:text="|${aberturaTotal} filamentos · ${aberturaGramas} registrados quando o extrato começou|"></span></div>
+<a class="botao botao-secundario" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=true,filamento=${filamento})}">Mostrar na lista</a>
+</aside>
+<p class="texto-apoio extrato-nota">A exportação inclui até 5.000 registros dos filtros selecionados. Quantidades positivas entram no estoque; negativas saem. Operações anteriores ao extrato continuam no histórico de cada peça e venda.</p>
+</main></body></html>

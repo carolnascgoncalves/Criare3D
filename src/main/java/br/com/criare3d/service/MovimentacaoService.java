@@ -13,7 +13,10 @@ public class MovimentacaoService {
  @Autowired private UsuarioLogadoService usuario;
  @Autowired private Clock clock;
  public void registrar(String tipo,String descricao,BigDecimal quantidade,String medida,String origem,UUID referencia) {
+  registrar(tipo,descricao,quantidade,medida,origem,referencia,null,null);
+ }
+ public void registrar(String tipo,String descricao,BigDecimal quantidade,String medida,String origem,UUID referencia,UUID filamentoId,BigDecimal saldoApos) {
   if(quantidade==null || quantidade.signum()==0)return;
-  var m=new Movimentacao();m.setTipo(tipo);m.setDescricao(descricao.substring(0,Math.min(180,descricao.length())));m.setQuantidade(quantidade);m.setMedida(medida);m.setOrigem(origem);m.setReferencia(referencia);m.setData(LocalDateTime.now(clock));m.setUsuarioId(usuario.buscarIdUsuarioAtual());movimentos.save(m);
+  var m=new Movimentacao();m.setTipo(tipo);m.setDescricao(descricao.substring(0,Math.min(180,descricao.length())));m.setQuantidade(quantidade);m.setMedida(medida);m.setOrigem(origem);m.setReferencia(referencia);m.setData(LocalDateTime.now(clock));m.setUsuarioId(usuario.buscarIdUsuarioAtual());m.setFilamentoId(filamentoId);m.setSaldoApos(saldoApos);movimentos.save(m);
  }
 }

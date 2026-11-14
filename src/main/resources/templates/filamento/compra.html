@@ -41,12 +41,13 @@
                     <small>Informe o preço pago por um rolo com o peso acima.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('precoRolo')}" th:errors="*{precoRolo}"></span>
                 </div>
-                <div class="campo">
+                <div class="campo"><label for="unidadesCompra">Quantos rolos você comprou?</label><input id="unidadesCompra" type="number" th:field="*{unidadesCompra}" min="1" max="10000" step="1" required><small>Ex.: 5 rolos de 1.000 g a R$ 100 cada = 5.000 g no estoque e R$ 500 na compra.</small><strong data-compra-resumo role="status"></strong><span class="erro-campo" th:errors="*{unidadesCompra}"></span></div>
+<details th:open="${compra.gramasCompradas!=null}"><summary>Personalizar quantidade em gramas</summary><div class="campo">
                     <label for="gramasCompradas">Quantidade comprada para adicionar ao estoque (g) <span class="etiqueta-opcional">Opcional</span></label>
                     <input id="gramasCompradas" type="number" th:field="*{gramasCompradas}" min="0.01" step="0.01">
                     <small>Use esta opção se for adicionar uma quantidade diferente do rolo completo. Se deixar vazio, será considerado automaticamente o peso informado acima: <span data-compra-peso-referencia>o peso do rolo</span>.</small>
                     <span class="erro-campo" th:if="${#fields.hasErrors('gramasCompradas')}" th:errors="*{gramasCompradas}"></span>
-                </div>
+                </div></details>
                 <div class="formulario-acoes">
                     <button type="submit" class="botao botao-principal"><i class="bi bi-check-lg"></i> Registrar compra</button>
                     <a th:href="@{/filamento/detalhes/{id}(id=${filamento.id})}" class="botao botao-secundario">Cancelar</a>

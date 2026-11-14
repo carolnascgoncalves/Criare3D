@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 public interface VendaProdutoLojaRepository extends JpaRepository<VendaProdutoLoja,UUID> {
     Page<VendaProdutoLoja> findAllByOrderByDataVendaDesc(Pageable pagina);
+    @Query("select v from VendaProdutoLoja v where lower(v.nomeProduto) like lower(concat('%',:busca,'%')) order by v.dataVenda desc,v.id")
+    Page<VendaProdutoLoja> pesquisar(@Param("busca")String busca,Pageable pagina);
     @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from VendaProdutoLoja v where v.id=:id")
     Optional<VendaProdutoLoja> bloquear(@Param("id") UUID id);

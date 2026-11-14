@@ -3,12 +3,12 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm');
 function iniciar({seletores={},listas={},ids={}}={}) {
  const eventos={};
- const document={addEventListener:(n,f)=>(eventos[n]??=[]).push(f),querySelector:s=>seletores[s]??null,querySelectorAll:s=>listas[s]??[],getElementById:id=>ids[id]??null,createElement:tag=>no(tag)};
+ const document={addEventListener:(n,f)=>(eventos[n]??=[]).push(f),querySelector:s=>seletores[s]??null,querySelectorAll:s=>listas[s]??[],getElementById:id=>ids[id]??null,createElement:tag=>no(tag),createTextNode:text=>Object.assign(no('text'),{textContent:text})};
  vm.runInNewContext(fs.readFileSync('src/main/resources/static/js/polimento.js','utf8'),{window:{},document,location:{hash:''},setTimeout:()=>1,clearTimeout:()=>{},requestAnimationFrame:f=>f(),Date,Map,Number,Event:class{}});
  eventos.DOMContentLoaded.forEach(f=>f());return eventos;
 }
 function no(tag='div') {
- return {tag,children:[],dataset:{},style:{setProperty(k,v){this[k]=v}},attrs:{},eventos:{},addEventListener(n,f){this.eventos[n]=f},classList:{add(){},remove(){},toggle(){}},append(...n){this.children.push(...n)},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ return {tag,children:[],dataset:{},style:{setProperty(k,v){this[k]=v}},attrs:{},eventos:{},addEventListener(n,f){this.eventos[n]=f},classList:{add(){},remove(){},toggle(){}},append(...n){this.children.push(...n)},replaceChildren(...n){this.children=[...n]},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
 }
 test('Acabando alterna estado e mantém somente saldos baixos visíveis',()=>{
  const linhas=[{dataset:{estoqueBaixo:'true'},hidden:false},{dataset:{estoqueBaixo:'false'},hidden:false}];
@@ -26,15 +26,23 @@ test('índice vai ao destino visível e marca o item ativo sem navegar pelo Turb
  eventos.click.forEach(f=>f({target:{closest:s=>s==='.configuracao-indice a[href^="#"]'?indice:null},preventDefault:()=>prevenido=true,stopPropagation(){}}));
  assert.equal(prevenido,true);assert.equal(indice.attrs['aria-current'],'location');assert.equal(destino.rolagem.block,'start');assert.equal(destino.foco.preventScroll,true);
 });
-test('nome completo está em toda faixa e legenda separa nome e datas',()=>{
+test('agenda conserva nomes e horários fora das barras e limita a posição dos marcos',()=>{
  const agenda=no(),lista=no();
- const card={dataset:{agendaInicio:'2026-11-20T08:00:00',agendaFim:'2026-11-20T09:00:00',agendaImpressora:'1',agendaNome:'Impressora'},querySelector:s=>s==='h2'?{textContent:'Book Page Holder V3'}:{href:'/pedido/1'}};
- lista.querySelectorAll=()=>[card];
+ const card={dataset:{agendaInicio:'2026-11-20T08:00:00',agendaFim:'2026-11-20T09:00:00',agendaImpressora:'1',agendaNome:'Impressora'},querySelector:s=>s==='h2'?{textContent:'Book Page Holder V3'}:s==='.planejamento-acoes a'?{href:'/pedido/1'}:null};
+ lista.querySelectorAll=()=>[card];iniciar({seletores:{'[data-agenda]':agenda,'[data-agenda-lista]':lista}});
+ const superficie=agenda.children[1],grupo=superficie.children[1],artigo=grupo.children[1],legenda=artigo.children[0],faixa=artigo.children[1];
+ assert.equal(superficie.children[0].className,'agenda-regua');assert.equal(lista.hidden,true);
+ assert.equal(legenda.children[0].textContent,'Book Page Holder V3');assert.equal(legenda.children[0].href,'/pedido/1');assert.match(legenda.children[1].children[0].textContent,/Início:/);assert.match(legenda.children[1].children[1].textContent,/Previsão:/);
+ assert.match(artigo.title,/Book Page Holder V3/);assert.equal(faixa.title,artigo.title);
+ const eventos=faixa.children.filter(e=>e.className==='agenda-evento');assert.equal(eventos.length,1);assert.equal(eventos[0].attrs['aria-label'],artigo.title);assert.ok(parseFloat(eventos[0].style.left)>=0);assert.ok(parseFloat(eventos[0].style.left)+parseFloat(eventos[0].style.width)<=100);
+});
+
+test('agenda navega entre semanas e a visão completa inclui trabalhos fora da primeira semana',()=>{
+ const agenda=no(),lista=no();const card=(nome,de,ate)=>({dataset:{agendaInicio:de,agendaFim:ate,agendaImpressora:'1',agendaNome:'Impressora'},querySelector:s=>s==='h2'?{textContent:nome}:s==='.planejamento-acoes a'?{href:'/lote/'+nome}:null});
+ lista.querySelectorAll=()=>[card('Primeiro','2026-11-20T08:00:00','2026-11-20T09:00:00'),card('Segundo','2026-11-30T08:00:00','2026-12-01T09:00:00')];
  iniciar({seletores:{'[data-agenda]':agenda,'[data-agenda-lista]':lista}});
- const artigo=agenda.children[1].children[1],marcos=artigo.children[0],faixa=artigo.children[1],legenda=artigo.children[2];
- assert.equal(marcos.children.length,2);assert.equal(marcos.children[0].textContent,"20/11");assert.equal(marcos.children[1].style.left,"100%");assert.equal(marcos.children[1].style['--marco-deslocamento'],'-100%');
- assert.match(artigo.title,/Book Page Holder V3/);assert.equal(faixa.title,artigo.title);assert.equal(legenda.children[0].textContent,'Book Page Holder V3');
- assert.match(legenda.children[1].children[0].textContent,/Início:/);assert.match(legenda.children[1].children[1].textContent,/Previsão:/);
+ const nomes=()=>agenda.children[1].children[1].children.slice(1).filter(n=>n.className==='agenda-planejamento').map(n=>n.children[0].children[0].textContent);
+ assert.deepEqual(nomes(),['Primeiro']);agenda.children[0].children[2].eventos.click();assert.deepEqual(nomes(),['Segundo']);agenda.children[0].children[3].eventos.click();assert.deepEqual(nomes(),['Primeiro','Segundo']);
 });
 
 test('calendário marca ocupação parcial e seleciona o dia preservando o horário',()=>{
