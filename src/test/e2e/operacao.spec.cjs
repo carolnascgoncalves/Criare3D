@@ -1,7 +1,11 @@
 const { test, expect } = require('@playwright/test');
 const id = (base,width) => `00000000-0000-4000-8000-${String(base+Number(width)).padStart(12,'0')}`;
 async function semOverflow(page) {
- await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+ await expect.poll(() => page.evaluate(() => {
+  const excesso=document.documentElement.scrollWidth-innerWidth;
+  if(excesso<=0)return {excesso:0,elementos:[]};
+  return {excesso:Math.ceil(excesso),elementos:[...document.querySelectorAll('main *')].filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&(r.right>innerWidth+1||r.left<0);}).slice(0,12).map(e=>({tag:e.tagName,classe:e.className,direita:Math.round(e.getBoundingClientRect().right),largura:innerWidth}))};
+ }),{message:'Elementos da página que ultrapassam a largura da tela'}).toEqual({excesso:0,elementos:[]});
 }
 test('cadastros, validação, produção, venda parcial, perdas e planejamento',async ({page},info) => {
  const largura=info.project.name,lote=id(500000,largura),peca=id(100000,largura);

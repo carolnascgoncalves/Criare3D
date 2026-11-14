@@ -428,7 +428,8 @@ body.senha-primeiro-acesso {
 .catalogo-resultado strong { font-size:15px; font-weight:600; overflow-wrap:anywhere; }
 .catalogo-resultado small { font-size:13px; color:var(--marrom-claro); }
 .catalogo-cor { width:28px; height:28px; flex:0 0 28px; border-radius:6px; border:1px solid var(--borda); }
-.catalogo-seletor { position:absolute; width:1px; height:1px; opacity:0; clip-path:inset(50%); }
+select.catalogo-seletor, .campo select.catalogo-seletor { position:absolute; inset:0 auto auto 0; width:1px; min-width:0; max-width:1px; height:1px; min-height:0; padding:0; border:0; opacity:0; overflow:hidden; clip-path:inset(50%); }
+.campo:has(> select.catalogo-seletor) { position:relative; }
 .catalogo-seletor + .catalogo-buscar { width:100%; min-height:42px; margin-top:0; text-align:left; justify-content:flex-start; border:1px solid var(--borda); background:var(--superficie); }
 .catalogo-seletor:focus + .catalogo-buscar { outline:2px solid var(--destaque); }
 .rapido-material .campo { gap:8px; }
