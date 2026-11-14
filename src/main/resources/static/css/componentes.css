@@ -287,11 +287,11 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .configuracao-indice a { padding:8px 10px; border-radius:8px; text-decoration:none; }
 .configuracao-indice a:hover { background:var(--fundo,#f7f3fc); }
 .pagina-configuracao [id] { scroll-margin-top:105px; }
-.configuracao-opcao input[role=switch], .configuracao-tempo-fixo input[role=switch] { appearance:none; width:44px; height:26px; flex-shrink:0; border-radius:20px; border:1px solid var(--borda,#ccc); background:#d8d4df; position:relative; cursor:pointer; }
+.configuracao-opcao input[role=switch], .configuracao-tempo-fixo input[role=switch] { appearance:none; box-sizing:border-box; width:44px; height:26px; flex:0 0 44px; padding:0; margin:0; border-radius:20px; border:1px solid var(--borda,#ccc); background:#d8d4df; position:relative; cursor:pointer; }
 .configuracao-opcao input[role=switch]::before, .configuracao-tempo-fixo input[role=switch]::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:white; border-radius:50%; box-shadow:0 1px 4px #0003; }
 .configuracao-opcao input[role=switch]:checked, .configuracao-tempo-fixo input[role=switch]:checked { background:var(--cor-primaria,#675188); }
 .configuracao-opcao input[role=switch]:checked::before, .configuracao-tempo-fixo input[role=switch]:checked::before { transform:translateX(18px); }
-.configuracao-opcao input[role=switch]:focus-visible { outline:2px solid var(--cor-primaria,#675188); outline-offset:4px; }
+.configuracao-opcao input[role=switch]:focus-visible, .configuracao-tempo-fixo input[role=switch]:focus-visible { outline:2px solid var(--cor-primaria,#675188); outline-offset:4px; }
 .custo-preview { padding:16px; font-weight:650; border-radius:10px; background:var(--fundo,#f7f3fc); }
 .nova-meta { margin:24px 0; }
 .nova-meta > summary { display:inline-flex; cursor:pointer; }
@@ -383,3 +383,25 @@ input[type=file]::file-selector-button { border: 0; border-radius: 8px; padding:
 .agenda-marcos-proximos .inicio { top:0; }
 .agenda-marcos-proximos .inicio::after { height:30px; }
 .agenda-marcos-proximos .fim { top:18px; }
+
+.operacao-venda-concluida { display:grid; gap:8px; padding:18px; margin:20px 0; background:var(--superficie-suave); border:1px solid var(--borda); border-radius:12px; }
+.operacao-venda-concluida strong { font-size:1.5rem; }
+#vendas-lote { scroll-margin-top:24px; }
+
+/* Primeiro acesso pertence à identidade cost3d, independente do tema da loja. */
+body.senha-primeiro-acesso {
+ --fundo:#F4EEE4; --superficie:#fff; --superficie-suave:#F4EEE4;
+ --marrom:#422329; --marrom-claro:#69494F; --borda:#DFCFCC;
+ --cor-primaria:#86202D; --cor-destaque:#86202D; --destaque:#86202D;
+ margin:0; padding:32px 20px; min-height:100dvh; background:#F4EEE4; color:#422329;
+}
+.senha-primeiro-acesso .senha-marca { position:static; display:flex; justify-content:center; margin:0 auto 28px; background:transparent; }
+.senha-marca img { display:block; width:240px; max-width:100%; height:auto; }
+.senha-primeiro-acesso main.pagina { width:100%; max-width:660px; margin:0 auto; padding:0; min-height:0; }
+.senha-primeiro-acesso .pagina-intro { margin:0 0 24px; min-height:0; }
+.senha-primeiro-acesso .pagina-intro h1 { color:#86202D; }
+.senha-primeiro-acesso .cartao { background:#fff; border-color:#DFCFCC; }
+.senha-primeiro-acesso .botao-principal { background:#86202D; border-color:#86202D; color:#F4EEE4; }
+.senha-primeiro-acesso .botao-principal:hover { background:#6D1824; border-color:#6D1824; }
+.senha-primeiro-acesso input:focus { outline-color:#86202D; border-color:#86202D; box-shadow:0 0 0 3px #86202D20; }
+.senha-primeiro-acesso input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset; -webkit-text-fill-color:#422329; }

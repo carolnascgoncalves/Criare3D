@@ -53,6 +53,20 @@ class CalculoRapidoTest {
         assertThat(duasCompletas.getMinutosMaquinaLote()).isEqualTo(200L);
         assertThat(duasCompletas.getGramasTotaisLote()).isEqualByComparingTo("168");
         assertThat(duasCompletas.getCustoLoja()).isEqualByComparingTo("5");
+        configuracao.setEmbalagemFixa(false);
+        request.setCustoEmbalagemPersonalizada(new BigDecimal("2.50"));
+        item.setQuantidadeFilamentoGramas(new BigDecimal("160"));
+        var personalizada=servico.calcularAvulsoTotais(request,"Embalagem personalizada",4);
+        assertThat(personalizada.getCustoEmbalagem()).isEqualByComparingTo("2.50");
+        assertThat(personalizada.getCustoTotal()).isEqualByComparingTo(duasCompletas.getCustoTotal().add(new BigDecimal("2.50")));
+        assertThat(configuracao.getEmbalagemFixa()).isFalse();
+        assertThat(configuracao.getCustoEmbalagemFixa()).isEqualByComparingTo("0");
         verifyNoInteractions(pecas,embalagens);verify(custos,never()).save(any());
+        var peca=new Peca();peca.setId(request.getPecaId());peca.setNome("Peça do histórico");
+        when(pecas.fetchById(peca.getId())).thenReturn(Optional.of(peca));
+        var historico=servico.calcular(request);
+        assertThat(historico.getCustoEmbalagem()).isEqualByComparingTo("2.50");
+        assertThat(servico.calcularComPrecoFixo(request,new BigDecimal("50")).getCustoEmbalagem()).isEqualByComparingTo("2.50");
+        assertThat(configuracao.getEmbalagemFixa()).isFalse();
     }
 }

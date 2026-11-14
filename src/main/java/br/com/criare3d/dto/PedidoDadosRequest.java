@@ -9,6 +9,7 @@ public class PedidoDadosRequest {
  @NotBlank @Size(max=150) private String titulo;
  @Size(max=150) private String cliente;
  @Size(max=150) private String contato;
+ @jakarta.validation.constraints.Email @jakarta.validation.constraints.Size(max=150) private String email;
  @Size(max=1000) private String observacoes;
  @DateTimeFormat(iso=DateTimeFormat.ISO.DATE_TIME) private LocalDateTime inicioPretendido;
  @NotNull @DateTimeFormat(iso=DateTimeFormat.ISO.TIME) private LocalTime turnoInicio=LocalTime.of(8,0);

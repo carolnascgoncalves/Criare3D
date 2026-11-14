@@ -123,7 +123,7 @@
                 <p class="texto-apoio">Os valores desta composição são por unidade; o resumo abaixo mostra os totais do lote.</p>
 
                 <div class="detalhes-custos-grupo" th:if="${!#lists.isEmpty(historico.rateiosCustos)}">
-                    <h4>Custos da loja</h4>
+                    <h4>Custos extras</h4>
                     <div class="detalhes-custo" th:each="r : ${historico.rateiosCustos}"><strong th:text="${r.descricao}"></strong><strong class="detalhes-valor" th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario,1,'POINT',2,'COMMA')}|"></strong></div>
                 </div>
                 <div class="detalhes-custos-grupo">

@@ -29,7 +29,7 @@ public class CalculoRapidoController {
     @InitBinder("consulta") public void limitar(WebDataBinder binder) {
         binder.setAutoGrowCollectionLimit(100);
         binder.setAllowedFields("filamentos[*].filamentoId", "filamentos[*].quantidadeFilamentoGramas",
-                "unidades", "pecasPorImpressao", "impressoraId", "tempoImpressaoMinutos", "tempoTrabalhoMinutos", "embalagemId", "markupPercentual");
+                "unidades", "pecasPorImpressao", "impressoraId", "tempoImpressaoMinutos", "tempoTrabalhoMinutos", "embalagemId", "custoEmbalagemPersonalizada", "markupPercentual");
     }
     @GetMapping
     public ModelAndView abrir(jakarta.servlet.http.HttpServletResponse resposta) {

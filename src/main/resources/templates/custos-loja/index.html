@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragmentos :: cabecalho('Custos da loja')}"></head>
+<head th:replace="~{fragmentos :: cabecalho('Custos extras')}"></head>
 <body><nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina">
-<section class="pagina-intro"><div><span class="texto-apoio">GESTÃO</span><h1>Custos da loja</h1><p>Distribua despesas pelas peças e acompanhe a recuperação nas vendas.</p></div></section>
+<section class="pagina-intro"><div><span class="texto-apoio">GESTÃO</span><h1>Custos extras</h1><p>Distribua despesas pelas peças e acompanhe a recuperação nas vendas.</p></div></section>
 <p th:if="${param.criado}" class="alerta-sucesso" role="status">Meta criada. O custo será incluído nos novos cálculos a partir da data inicial.</p>
 <p th:if="${mensagemSucesso}" class="alerta-sucesso" role="status" th:text="${mensagemSucesso}"></p>
 

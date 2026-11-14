@@ -58,6 +58,16 @@ function iniciarCalculoRapido() {
     const numero=valor=>Number(valor || 0).toLocaleString('pt-BR',{maximumFractionDigits:3});
     const imagemValida=valor=>/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(valor || '');
     const headers=()=>({'X-CSRF-TOKEN':tokenConsultaRapida(form)});
+    const modoEmbalagem=buscar('[data-rapido-modo-embalagem]');
+    function atualizarEmbalagem(){
+        if(!modoEmbalagem)return;
+        for(const [modo,seletor] of [['cadastrada','[data-rapido-embalagem-cadastrada]'],['personalizada','[data-rapido-embalagem-personalizada]']]){
+            const grupo=buscar(seletor);if(!grupo)continue;
+            const ativo=modoEmbalagem.value===modo;grupo.hidden=!ativo;
+            grupo.querySelectorAll('input,select').forEach(c=>{c.disabled=!ativo;c.required=ativo;});
+        }
+    }
+    modoEmbalagem?.addEventListener('change',atualizarEmbalagem);atualizarEmbalagem();
     let precoTimer;
     const vivo=buscar('[data-rapido-preco-vivo]'), estadoVivo=buscar('[data-rapido-estado-vivo]');
     function invalidar() {
@@ -271,7 +281,7 @@ function iniciarCalculoRapido() {
         finally {if(calculo===controle) {calculo=null;botao.disabled=false;}}
     });
     function limpar() {
-        leitura?.abort();leitura=null;invalidar();window.validacaoInline?.limparFormulario(form);pagina.querySelectorAll('.notificacao-flutuante.alerta-erro').forEach(aviso=>aviso.remove());form.reset();minutosUnidade=null;atualizarTempoUnidade();arquivo.value='';placas=[];limparPreview();informarImportacao('');lista.replaceChildren();adicionar();status.textContent='';botao.disabled=false;
+        leitura?.abort();leitura=null;invalidar();window.validacaoInline?.limparFormulario(form);pagina.querySelectorAll('.notificacao-flutuante.alerta-erro').forEach(aviso=>aviso.remove());form.reset();atualizarEmbalagem();minutosUnidade=null;atualizarTempoUnidade();arquivo.value='';placas=[];limparPreview();informarImportacao('');lista.replaceChildren();adicionar();status.textContent='';botao.disabled=false;
         if(dialogo.open) dialogo.close();
     }
     buscar('[data-rapido-limpar]').addEventListener('click',limpar);

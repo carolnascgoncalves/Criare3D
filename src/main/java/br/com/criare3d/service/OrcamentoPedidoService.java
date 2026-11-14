@@ -47,7 +47,7 @@ public class OrcamentoPedidoService {
   var selecionados=d.getItens().stream().filter(SelecaoPedidoRequest.Item::isSelecionado).toList();
   if(selecionados.isEmpty()||selecionados.size()>20)throw new IllegalArgumentException("Selecione de 1 a 20 peças para adicionar.");
   var p=id==null?novo():editavel(id);if(p.getItens().size()+selecionados.size()>20)throw new IllegalArgumentException("Use até 20 itens por orçamento.");
-  if(id==null){p.setCliente(d.getCliente());p.setContato(d.getContato());}
+  if(id==null){p.setCliente(d.getCliente());p.setContato(d.getContato());p.setEmail(d.getEmail());}
   for(var i:selecionados){if(i.getReferencia()==null)throw new IllegalArgumentException("Selecione um cálculo válido.");adicionar(p,i.getReferencia(),i.getQuantidade(),i.getEstoque());}if(id==null && d.getTitulo()!=null&&!d.getTitulo().isBlank()&&!d.getTitulo().equals("Novo orçamento"))p.setTitulo(d.getTitulo().strip());return p;
  }
  public PedidoOrcamento iniciar(UUID referencia,int quantidade,int estoque) {
@@ -118,12 +118,12 @@ public class OrcamentoPedidoService {
   d.setDesconto(desconto.valor());
   validarDinheiro(d.getDesconto());validarDinheiro(d.getFrete());validarDinheiro(d.getCustoFrete());
   if(d.getDesconto().compareTo(p.getSubtotal())>0)throw new IllegalArgumentException("O desconto não pode ultrapassar o valor das peças.");
-  p.setTitulo(d.getTitulo().strip());p.setCliente(d.getCliente());p.setContato(d.getContato());p.setObservacoes(d.getObservacoes());
+  p.setTitulo(d.getTitulo().strip());p.setCliente(d.getCliente());p.setContato(d.getContato());p.setEmail(d.getEmail());p.setObservacoes(d.getObservacoes());
   p.setInicioPretendido(d.getInicioPretendido()==null?LocalDateTime.now(clock):d.getInicioPretendido());p.setTurnoInicio(d.getTurnoInicio());p.setTurnoFim(d.getTurnoFim());p.setDias(d.getDias());p.setIntervalo(d.getIntervalo());p.setFolga(d.getFolga());
   p.setDesconto(d.getDesconto());p.setDescontoPercentual(desconto.percentual());p.setFrete(d.getFrete());p.setCustoFrete(d.getCustoFrete());p.setRevisao(p.getRevisao()+1);
  }
  public void salvarCliente(UUID id,PedidoClienteRequest d) {
-  var p=editavel(id);p.setTitulo(d.getTitulo().strip());p.setCliente(d.getCliente());p.setContato(d.getContato());p.setObservacoes(d.getObservacoes());p.setRevisao(p.getRevisao()+1);
+  var p=editavel(id);p.setTitulo(d.getTitulo().strip());p.setCliente(d.getCliente());p.setContato(d.getContato());p.setEmail(d.getEmail());p.setObservacoes(d.getObservacoes());p.setRevisao(p.getRevisao()+1);
  }
  public void aplicarFrete(UUID id,long revisao,BigDecimal preco){var p=editavel(id);if(p.getRevisao()!=revisao)throw new IllegalArgumentException("O orçamento foi alterado. Consulte o frete novamente.");validarDinheiro(preco);p.setCustoFrete(preco);p.setFrete(preco);p.setRevisao(p.getRevisao()+1);}
  public void enviar(UUID id) {var p=editavel(id);validarProposta(p);p.setPrevisao(planejamento.prever(p).stream().map(PlanejamentoPedidoService.Linha::fim).max(LocalDateTime::compareTo).orElse(LocalDateTime.now(clock)));p.setRevisao(p.getRevisao()+1);p.setStatus(StatusPedido.ENVIADO);p.setEnviadoEm(LocalDateTime.now(clock));}

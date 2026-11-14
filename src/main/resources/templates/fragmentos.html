@@ -115,7 +115,7 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Gestão">
             <span class="menu-lateral-titulo">Gestão</span>
-            <a th:href="@{/custos-loja}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'custos-loja' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'custos-loja' ? 'page' : null}" title="Custos da loja"><i class="bi bi-receipt" aria-hidden="true"></i><span>Custos da loja</span></a>
+            <a th:href="@{/custos-loja}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'custos-loja' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'custos-loja' ? 'page' : null}" title="Custos extras"><i class="bi bi-receipt" aria-hidden="true"></i><span>Custos extras</span></a>
             <a th:href="@{/configuracao}" class="menu-link menu-lateral-link menu-configuracoes" th:classappend="${paginaAtiva == 'configuracao' ? ' menu-link-ativo' : ''}" title="Configurações"><i class="bi bi-gear" aria-hidden="true"></i><span>Configurações</span></a>
         </section>
 

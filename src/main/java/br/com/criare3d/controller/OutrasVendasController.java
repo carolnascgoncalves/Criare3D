@@ -59,8 +59,9 @@ public class OutrasVendasController {
             @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso=org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(defaultValue="SEM") br.com.criare3d.models.VendaProdutoLoja.TipoEmbalagem tipoEmbalagem,
             @RequestParam(required=false) UUID embalagemId,@RequestParam(required=false) BigDecimal valorEmbalagem,
+            @RequestParam(defaultValue="1") int quantidadeEmbalagens,
             RedirectAttributes flash) {
-        try {service.vender(produtoId,quantidade,preco,custo,data,tipoEmbalagem,embalagemId,valorEmbalagem);flash.addFlashAttribute("mensagemSucesso","Venda registrada e incluída na dashboard.");}
+        try {service.vender(produtoId,quantidade,preco,custo,data,tipoEmbalagem,embalagemId,valorEmbalagem,quantidadeEmbalagens);flash.addFlashAttribute("mensagemSucesso","Venda registrada e incluída na dashboard.");}
         catch(IllegalArgumentException e) {flash.addFlashAttribute("mensagemErro",e.getMessage());}
         return "redirect:/outras-vendas";
     }

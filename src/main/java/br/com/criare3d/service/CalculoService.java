@@ -104,6 +104,17 @@ public class CalculoService {
     private CalculoHistorico calcularDados(CalculoRequest request, Peca peca, boolean tempoPorPlaca, int placasConsulta) {
         Impressora impressora = impressoraService.fetchById(request.getImpressoraId()).orElseThrow(() -> new IllegalArgumentException("Impressora não encontrada"));
         Configuracao configuracao = configuracaoService.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar);
+        if(placasConsulta>0 && request.getEmbalagemId()!=null && request.getCustoEmbalagemPersonalizada()==null) {
+            var copia=new Configuracao();org.springframework.beans.BeanUtils.copyProperties(configuracao,copia);
+            copia.setEmbalagemFixa(false);configuracao=copia;
+        }
+        if(request.getCustoEmbalagemPersonalizada()!=null) {
+            var valor=request.getCustoEmbalagemPersonalizada();
+            if(valor.signum()<0 || valor.compareTo(new BigDecimal("99999999"))>0)
+                throw new IllegalArgumentException("Informe um valor válido para a embalagem personalizada.");
+            var copia=new Configuracao();org.springframework.beans.BeanUtils.copyProperties(configuracao,copia);
+            copia.setEmbalagemFixa(true);copia.setCustoEmbalagemFixa(valor);configuracao=copia;
+        }
         CalculoValidador.validar(request, peca, impressora, configuracao);
         Set<UUID> ids = new LinkedHashSet<>();
         request.getFilamentos().forEach(item -> ids.add(item.getFilamentoId()));

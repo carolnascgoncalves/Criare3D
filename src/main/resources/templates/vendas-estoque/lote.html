@@ -8,7 +8,7 @@
             <div th:if="${mensagemSucesso}" class="alerta-sucesso notificacao-flutuante" role="status" th:text="${mensagemSucesso}"></div>
             <section class="pagina-intro">
                 <div>
-                    <span class="texto-apoio">OPERAÇÃO DO LOTE</span>
+                    <span class="texto-apoio" th:text="${lote.unidadesVendidas >= lote.unidades ? 'LOTE VENDIDO' : 'OPERAÇÃO DO LOTE'}">OPERAÇÃO DO LOTE</span>
                     <h1 th:text="${lote.nomePeca}"></h1>
                     <p th:text="|${lote.unidades} ${lote.unidades == 1 ? 'unidade' : 'unidades'} · ${lote.nomeImpressora != null ? lote.nomeImpressora : 'Impressão 3D'}|"></p>
                 </div>
@@ -67,14 +67,25 @@
                     </form>
                 </section>
                 <section class="cartao formulario-conteudo operacao-painel">
-                    <h2>
-                        <i class="bi bi-bag-check" aria-hidden="true"></i>
-                        Registrar venda
-                    </h2>
-                    <p class="texto-apoio" th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas) : 0} unidades prontas disponíveis|"></p>
-                    <p class="texto-apoio" th:if="${reservadas != null and reservadas > 0}" th:text="|${reservadas} unidades reservadas para pedidos.|"></p>
-                    <a th:if="${reservadas != null and reservadas > 0}" th:href="@{/orcamentos}">Gerenciar reservas nos pedidos</a>
-                    <p th:unless="${lote.produzido}">Registre a produção para liberar a venda.</p>
+                    <th:block th:if="${lote.unidadesVendidas >= lote.unidades}">
+                        <h2><i class="bi bi-bag-check" aria-hidden="true"></i> Lote vendido</h2>
+                        <p class="operacao-etiqueta"><i class="bi bi-check-circle" aria-hidden="true"></i> Todas as unidades foram vendidas</p>
+                        <p th:text="|${lote.unidadesVendidas} ${lote.unidadesVendidas == 1 ? 'unidade vendida' : 'unidades vendidas'} · Nenhuma unidade restante em estoque.|"></p>
+                        <div class="operacao-venda-concluida">
+                            <span>Resultado das vendas</span>
+                            <strong th:text="|R$ ${#numbers.formatDecimal(resultadoVendas,1,'POINT',2,'COMMA')}|"></strong>
+                            <small>Com os valores registrados nas vendas.</small>
+                        </div>
+                        <a class="botao botao-secundario" href="#vendas-lote"><i class="bi bi-receipt" aria-hidden="true"></i> Ver vendas registradas</a>
+                    </th:block>
+                    <th:block th:unless="${lote.unidadesVendidas >= lote.unidades}">
+                        <h2><i class="bi bi-bag-check" aria-hidden="true"></i> Registrar venda</h2>
+                        <p class="texto-apoio" th:if="${lote.unidadesVendidas > 0}" th:text="|${lote.unidadesVendidas} de ${lote.unidades} unidades já vendidas.|"></p>
+                        <p class="texto-apoio" th:text="|${lote.produzido ? lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas) : 0} unidades prontas disponíveis|"></p>
+                        <p class="texto-apoio" th:if="${reservadas != null and reservadas > 0}" th:text="|${reservadas} unidades reservadas para pedidos.|"></p>
+                        <a th:if="${reservadas != null and reservadas > 0}" th:href="@{/orcamentos}">Gerenciar reservas nos pedidos</a>
+                        <p th:unless="${lote.produzido}">Registre a produção para liberar a venda.</p>
+                    </th:block>
                     <form method="post" th:action="@{/vendas-estoque/lote/{id}/vender(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas + (reservadas == null ? 0 : reservadas) < lote.unidades}" data-turbo-confirm="Registrar a venda desta quantidade? Apenas as unidades informadas serão vendidas.">
                         <div class="campo">
                             <label for="vendaUnidades">Unidades</label>
@@ -101,19 +112,19 @@
                 </section>
             </div>
             <section class="cartao formulario-conteudo" th:if="${!#lists.isEmpty(lote.rateiosCustos)}">
-                <h2>Custos da loja incluídos</h2>
+                <h2>Custos extras incluídos</h2>
                 <p>Valores por unidade, já incluídos no custo do cálculo. As unidades vendidas contribuem para estas metas.</p>
                 <div class="operacao-registro" th:each="r : ${lote.rateiosCustos}"><a th:href="@{/custos-loja/{id}(id=${r.custoLoja.id})}" th:text="${r.descricao}"></a><strong th:text="|R$ ${#numbers.formatDecimal(r.valorUnitario,1,'POINT',2,'COMMA')} / un.|"></strong></div>
             </section>
             <section class="cartao formulario-conteudo">
-                <h2>Vendas do lote</h2>
+                <h2 id="vendas-lote">Vendas do lote</h2>
                 <div class="operacao-indicadores">
                     <div>
-                        <span>Resultado previsto</span>
+                        <span>Lucro previsto</span>
                         <strong th:text="|R$ ${#numbers.formatDecimal(estimadoVendas,1,'POINT',2,'COMMA')}|"></strong>
                     </div>
                     <div>
-                        <span>Com os valores registrados</span>
+                        <span>Lucro com os valores da venda</span>
                         <strong th:text="|R$ ${#numbers.formatDecimal(resultadoVendas,1,'POINT',2,'COMMA')}|"></strong>
                     </div>
                 </div>

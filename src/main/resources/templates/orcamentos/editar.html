@@ -8,8 +8,8 @@
 <form id="pedidoDados" th:action="${pedido.id==null?'/orcamentos/iniciar-varios':etapa==4?'/orcamentos/'+pedido.id+'/rascunho':'/orcamentos/'+pedido.id+'/dados'}" th:object="${dados}" method="post" class="cartao pedido-dados" th:attr="data-autosave-url=${pedido.id!=null?'/orcamentos/'+pedido.id+'/autosave':null},data-etapa=${etapa}">
 <input type="hidden" name="etapa" th:value="${etapa}">
 <input type="hidden" th:field="*{titulo}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}"><details class="pedido-titulo-editor"><summary>Editar título</summary><label class="campo">Título do orçamento<input data-pedido-titulo maxlength="150" th:value="*{titulo}" required></label></details>
-<section th:if="${etapa==1}"><h2>Para quem é o orçamento?</h2><div class="pedido-grade"><label class="campo">Nome do cliente<input th:field="*{cliente}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}" maxlength="150" placeholder="Pode preencher depois"></label><label class="campo">WhatsApp ou e-mail<input th:field="*{contato}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}" maxlength="150" placeholder="Telefone com DDD ou e-mail"></label></div></section>
-<th:block th:unless="${etapa==1}"><input type="hidden" th:field="*{cliente}"><input type="hidden" th:field="*{contato}"></th:block>
+<section th:if="${etapa==1}"><h2>Para quem é o orçamento?</h2><div class="pedido-grade"><label class="campo">Nome do cliente<input th:field="*{cliente}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}" maxlength="150" placeholder="Pode preencher depois"></label><label class="campo">Telefone / WhatsApp<input type="tel" th:field="*{contato}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}" maxlength="150" placeholder="Telefone com DDD"></label><label class="campo">E-mail<input type="email" th:field="*{email}" th:attr="form=${pedido.id==null?'pedidoAdicionar':null}" maxlength="150" placeholder="cliente@exemplo.com"></label></div></section>
+<th:block th:unless="${etapa==1}"><input type="hidden" th:field="*{cliente}"><input type="hidden" th:field="*{contato}"><input type="hidden" th:field="*{email}"></th:block>
 <th:block th:unless="${etapa==4}"><input type="hidden" th:field="*{observacoes}"></th:block>
 <div th:if="${etapa!=2}"><input type="hidden" th:field="*{inicioPretendido}"><input type="hidden" th:field="*{turnoInicio}"><input type="hidden" th:field="*{turnoFim}"><input type="hidden" th:field="*{dias}"><input type="hidden" th:field="*{intervalo}"><input type="hidden" th:field="*{folga}"></div>
 <div th:if="${etapa!=3}"><input type="hidden" th:field="*{desconto}"><input type="hidden" th:field="*{descontoInformado}"><input type="hidden" th:field="*{frete}"><input type="hidden" th:field="*{custoFrete}"></div>
@@ -39,7 +39,7 @@
             <section class="pedido-revisao-bloco pedido-revisao-cliente" aria-label="Cliente">
                 <span class="pedido-revisao-legenda"><i class="bi bi-person" aria-hidden="true"></i> Cliente</span>
                 <h3 th:text="${#strings.isEmpty(pedido.cliente)?'Cliente não informado':pedido.cliente}"></h3>
-                <p th:if="${!#strings.isEmpty(pedido.contato)}" th:text="${pedido.contato}"></p>
+                <p th:if="${!#strings.isEmpty(pedido.contato)}" th:text="${pedido.contato}"></p><p th:if="${!#strings.isEmpty(pedido.email)}" th:text="${pedido.email}"></p>
             </section>
             <section class="pedido-revisao-bloco pedido-revisao-prazo" aria-label="Prazo previsto">
                 <span class="pedido-revisao-legenda"><i class="bi bi-calendar3" aria-hidden="true"></i> Prazo previsto</span>

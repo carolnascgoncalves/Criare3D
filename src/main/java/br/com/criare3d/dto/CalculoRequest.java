@@ -53,6 +53,10 @@ public class CalculoRequest {
 
     private UUID embalagemId;
 
+    @DecimalMin(value="0.0", message="O valor da embalagem não pode ser negativo.")
+    @jakarta.validation.constraints.DecimalMax(value="99999999", message="O valor da embalagem é muito alto.")
+    private BigDecimal custoEmbalagemPersonalizada;
+
     @NotNull(message = "Selecione o markup do cálculo")
     @DecimalMin(value = "0.0", message = "O markup não pode ser negativo")
     private BigDecimal markupPercentual;

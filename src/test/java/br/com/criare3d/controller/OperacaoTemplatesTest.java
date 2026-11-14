@@ -59,6 +59,17 @@ class OperacaoTemplatesTest {
         dados.put("perdaMaterial",BigDecimal.ZERO);dados.put("estimadoVendas",BigDecimal.TEN);dados.put("resultadoVendas",BigDecimal.TEN);
         assertThat(renderizar("vendas-estoque/lote",dados)).contains("Cancelar unidades","1 unidades ativas","vendaUnidades");
     }
+    @Test void loteTotalmenteVendidoMostraConclusaoESemFormularioDeVenda() {
+        var c=lote(true);c.setUnidadesVendidas(3);
+        var dados=new HashMap<String,Object>();dados.put("lote",c);dados.put("materiais",List.of());dados.put("vendas",List.of());dados.put("falhas",List.of());dados.put("filamentos",List.of());
+        dados.put("perdaMaterial",BigDecimal.ZERO);dados.put("estimadoVendas",BigDecimal.TEN);dados.put("resultadoVendas",new BigDecimal("28.11"));
+        String html=renderizar("vendas-estoque/lote",dados);
+        assertThat(html).contains("LOTE VENDIDO","Todas as unidades foram vendidas","3 unidades vendidas","28,11","Ver vendas registradas")
+            .doesNotContain("Registrar venda","id=\"vendaUnidades\"");
+        c.setUnidadesVendidas(2);
+        assertThat(renderizar("vendas-estoque/lote",dados)).contains("Registrar venda","2 de 3 unidades já vendidas","id=\"vendaUnidades\"")
+            .doesNotContain("Todas as unidades foram vendidas");
+    }
     @Test void planejamentosRenderizamComReferenciaAoLote() {
         var p=new PlanejamentoProducao();p.setId(UUID.randomUUID());p.setCalculo(lote(false));p.setNomePeca("Peça exemplo");p.setNomeImpressora("Impressora exemplo");p.setUnidades(3);p.setInicio(LocalDateTime.now());p.setFim(LocalDateTime.now().plusHours(3));
         assertThat(renderizar("simulacao/planejamentos",Map.of("pagina",new PageImpl<>(List.of(p)))))

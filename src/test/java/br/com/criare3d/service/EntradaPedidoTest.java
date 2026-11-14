@@ -32,4 +32,11 @@ class EntradaPedidoTest {
         h.setImpressora(Impressora.builder().id(UUID.randomUUID()).build());h.setPlataformaVenda("TIKTOK_SHOP");
         assertThat(service.copiar(h).getPlataformaVenda()).isEqualTo(PlataformaVenda.TIKTOK);
     }
+    @Test void embalagemFixaOriginalSegueNoOrcamentoMesmoSemCadastroVinculado() {
+        var h=new CalculoHistorico();h.setPeca(Peca.builder().id(UUID.randomUUID()).build());
+        h.setImpressora(Impressora.builder().id(UUID.randomUUID()).build());h.setCustoEmbalagem(new java.math.BigDecimal("2.50"));
+        var entrada=service.ler(service.escrever(service.copiar(h)),10);
+        assertThat(entrada.getEmbalagemId()).isNull();
+        assertThat(entrada.getCustoEmbalagemPersonalizada()).isEqualByComparingTo("2.50");
+    }
 }

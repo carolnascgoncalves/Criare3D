@@ -4,7 +4,9 @@
     function atualizar(caixa) {
         const campo=document.querySelector('input:not([type="hidden"])[name="contato"]');
         const contato=(campo ? campo.value : caixa.dataset.contato || '').trim();
-        const email=/^[^\s@\r\n]+@[^\s@\r\n]+\.[^\s@\r\n]+$/.test(contato);
+        const campoEmail=document.querySelector('input:not([type="hidden"])[name="email"]');
+        const endereco=(campoEmail ? campoEmail.value : caixa.dataset.email || (contato.includes('@')?contato:'')).trim();
+        const email=/^[^\s@\r\n]+@[^\s@\r\n]+\.[^\s@\r\n]+$/.test(endereco);
         let telefone=/^[+\d\s().-]+$/.test(contato)?contato.replace(/\D/g,''):'';
         if(!contato.startsWith('+') && (telefone.length===10 || telefone.length===11))telefone='55'+telefone;
         const telefoneValido=/^\d{10,15}$/.test(telefone);
@@ -16,11 +18,11 @@
         caixa.querySelectorAll('[data-pedido-destino]').forEach(link=>{
             const whatsapp=link.dataset.pedidoDestino==='whatsapp',valido=whatsapp?telefoneValido:email;
             link.setAttribute('aria-disabled',String(!valido));
-            link.href=valido?(link.dataset.pedidoDestino==='gmail'?'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(contato)+'&su='+encodeURIComponent(titulo)+'&body='+encodeURIComponent(texto):whatsapp?'https://wa.me/'+telefone+'?text='+encodeURIComponent(texto):'mailto:'+encodeURIComponent(contato).replace(/%40/g,'@')+'?subject='+encodeURIComponent(titulo)+'&body='+encodeURIComponent(texto)):'#';
+            link.href=valido?(link.dataset.pedidoDestino==='gmail'?'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(endereco)+'&su='+encodeURIComponent(titulo)+'&body='+encodeURIComponent(texto):whatsapp?'https://wa.me/'+telefone+'?text='+encodeURIComponent(texto):'mailto:'+encodeURIComponent(endereco).replace(/%40/g,'@')+'?subject='+encodeURIComponent(titulo)+'&body='+encodeURIComponent(texto)):'#';
         });
     }
     const carregar=()=>document.querySelectorAll('[data-pedido-contatos]').forEach(atualizar);
-    document.addEventListener('input',event=>{if(event.target.name==='contato')carregar();});
+    document.addEventListener('input',event=>{if(['contato','email'].includes(event.target.name))carregar();});
     document.addEventListener('click',event=>{
         const link=event.target.closest('[data-pedido-destino]');if(!link)return;
         atualizar(link.closest('[data-pedido-contatos]'));

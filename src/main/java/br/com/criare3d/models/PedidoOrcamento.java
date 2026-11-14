@@ -20,6 +20,7 @@ public class PedidoOrcamento {
  @Column(nullable=false,length=150) private String titulo="Novo orçamento";
  @Column(length=150) private String cliente;
  @Column(length=150) private String contato;
+ @Column(length=150) private String email;
  @Column(length=1000) private String observacoes;
  @Column(nullable=false) private LocalDateTime criadoEm;
  private LocalDateTime enviadoEm;

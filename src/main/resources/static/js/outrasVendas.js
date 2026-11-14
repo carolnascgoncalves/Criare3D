@@ -6,7 +6,8 @@ function iniciarEmbalagemOutrasVendas() {
     const cadastro=form.querySelector('[data-venda-embalagem-cadastro]');
     const personalizado=form.querySelector('[data-venda-embalagem-valor]');
     function atualizar() {
-        for(const [campo,ativo] of [[cadastro,tipo.value==='CADASTRADA'],[personalizado,tipo.value==='PERSONALIZADA']]) {
+        for(const [campo,ativo] of [[cadastro,tipo.value==='CADASTRADA'],[personalizado,tipo.value==='PERSONALIZADA'],[form.querySelector('[data-venda-embalagem-quantidade]'),tipo.value!=='SEM']]) {
+            if(!campo)continue;
             campo.hidden=!ativo;const input=campo.querySelector('input,select');input.disabled=!ativo;input.required=ativo;
         }
     }

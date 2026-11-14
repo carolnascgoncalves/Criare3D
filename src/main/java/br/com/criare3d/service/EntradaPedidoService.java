@@ -15,6 +15,7 @@ public class EntradaPedidoService {
         CalculoRequest r = CalculoRascunhoMapper.copiar(h);
         r.setPecaId(h.getPeca().getId()); r.setImpressoraId(h.getImpressora().getId());
         r.setEmbalagemId(h.getEmbalagem()==null?null:h.getEmbalagem().getId());
+        r.setCustoEmbalagemPersonalizada(h.getCustoEmbalagem());
         if (h.getPlataformaVenda()!=null) {
             try { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.valueOf("TIKTOK_SHOP".equals(h.getPlataformaVenda()) ? "TIKTOK" : h.getPlataformaVenda())); }
             catch (IllegalArgumentException e) { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.NENHUMA); }

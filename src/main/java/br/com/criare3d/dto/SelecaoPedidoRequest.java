@@ -6,6 +6,7 @@ import java.util.*;
 public class SelecaoPedidoRequest {
  @jakarta.validation.constraints.Size(max=150) private String cliente;
  @jakarta.validation.constraints.Size(max=150) private String contato;
+ @jakarta.validation.constraints.Email @jakarta.validation.constraints.Size(max=150) private String email;
  @jakarta.validation.constraints.Size(max=150) private String titulo;
 
  @Size(max=100) private List<Item> itens=new ArrayList<>();

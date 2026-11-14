@@ -66,4 +66,15 @@ class OutrasVendasTest {
         assertThatIllegalArgumentException().isThrownBy(()->s.vender(id,1,null,null,null,VendaProdutoLoja.TipoEmbalagem.CADASTRADA,id,null));
         verifyNoInteractions(vendas);
     }
+    @Test void dezProdutosEmUmaSacolaDescontamUmaEmbalagemECancelamentoProporcional() {
+        var s=service();produto();
+        var v=s.vender(id,10,null,null,null,VendaProdutoLoja.TipoEmbalagem.PERSONALIZADA,null,BigDecimal.ONE,1);
+        assertThat(v.getEmbalagensUsadas()).isEqualTo(1);
+        assertThat(v.getCustoEmbalagemTotal()).isEqualByComparingTo("1");
+        assertThat(v.getLucro()).isEqualByComparingTo("14");
+        when(vendas.bloquear(id)).thenReturn(Optional.of(v));s.cancelar(id,5);
+        assertThat(v.getCustoEmbalagemAtivas()).isEqualByComparingTo("0.50");
+        assertThat(v.getLucro()).isEqualByComparingTo("7");
+        assertThatIllegalArgumentException().isThrownBy(()->s.vender(id,10,null,null,null,VendaProdutoLoja.TipoEmbalagem.PERSONALIZADA,null,BigDecimal.ONE,0));
+    }
 }

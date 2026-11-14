@@ -34,6 +34,12 @@ public class OutrasVendasService {
     }
     public VendaProdutoLoja vender(UUID produtoId,int quantidade,BigDecimal preco,BigDecimal custo,LocalDate data,
             VendaProdutoLoja.TipoEmbalagem tipoEmbalagem,UUID embalagemId,BigDecimal valorEmbalagem) {
+        return vender(produtoId,quantidade,preco,custo,data,tipoEmbalagem,embalagemId,valorEmbalagem,quantidade);
+    }
+    public VendaProdutoLoja vender(UUID produtoId,int quantidade,BigDecimal preco,BigDecimal custo,LocalDate data,
+            VendaProdutoLoja.TipoEmbalagem tipoEmbalagem,UUID embalagemId,BigDecimal valorEmbalagem,int quantidadeEmbalagens) {
+        if(tipoEmbalagem!=VendaProdutoLoja.TipoEmbalagem.SEM && (quantidadeEmbalagens<1 || quantidadeEmbalagens>10000))
+            throw new IllegalArgumentException("Informe entre 1 e 10.000 embalagens.");
         if(quantidade<1 || quantidade>10000) throw new IllegalArgumentException("Informe entre 1 e 10.000 unidades.");
         valor(preco,false);valor(custo,false);
         var p=produtos.findById(produtoId).orElseThrow(()->new IllegalArgumentException("Produto não encontrado."));
@@ -43,7 +49,7 @@ public class OutrasVendasService {
         var v=new VendaProdutoLoja();v.setProduto(p);v.setNomeProduto(p.getNome());v.setQuantidade(quantidade);
         v.setPrecoUnitario(preco==null ? p.getPreco() : preco);v.setCustoUnitario(custo==null ? p.getCusto() : custo);
         if(tipoEmbalagem==null) throw new IllegalArgumentException("Escolha a opção de embalagem.");
-        v.setTipoEmbalagem(tipoEmbalagem);
+        v.setTipoEmbalagem(tipoEmbalagem);v.setQuantidadeEmbalagens(tipoEmbalagem==VendaProdutoLoja.TipoEmbalagem.SEM?0:quantidadeEmbalagens);
         switch(tipoEmbalagem) {
             case SEM -> v.setCustoEmbalagem(BigDecimal.ZERO);
             case CADASTRADA -> {
@@ -54,7 +60,7 @@ public class OutrasVendasService {
                 v.setEmbalagemId(embalagem.getId());v.setNomeEmbalagem(embalagem.getNome());v.setCustoEmbalagem(embalagem.getCustoUnitario());
             }
             case PERSONALIZADA -> {
-                if(valorEmbalagem==null) throw new IllegalArgumentException("Informe o custo da embalagem por unidade vendida.");
+                if(valorEmbalagem==null) throw new IllegalArgumentException("Informe o custo de uma embalagem.");
                 valor(valorEmbalagem,true);v.setNomeEmbalagem("Embalagem personalizada");v.setCustoEmbalagem(valorEmbalagem);
             }
         }

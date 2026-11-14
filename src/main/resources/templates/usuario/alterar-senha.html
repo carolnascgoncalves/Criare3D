@@ -3,15 +3,12 @@
 
 <head th:replace="~{fragmentos :: cabecalho('Alterar senha')}"></head>
 
-<body>
+<body th:classappend="${primeiroAcesso} ? 'senha-primeiro-acesso' : ''">
 <div th:if="${!primeiroAcesso}">
     <nav th:replace="~{fragmentos :: menu}"></nav>
 </div>
-<header th:if="${primeiroAcesso}" class="menu-principal">
-    <a th:href="@{/}" class="marca">
-        <img th:src="${tenantLogoUrl}" th:alt="${tenantNome}" class="marca-icone">
-        <span th:text="${tenantNome}">Criare 3D</span>
-    </a>
+<header th:if="${primeiroAcesso}" class="senha-marca">
+    <img th:src="@{/images/cost3d/logo-espacada.svg}" alt="cost3d" width="280" height="115">
 </header>
 
 <main class="pagina">
