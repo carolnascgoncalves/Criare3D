@@ -104,7 +104,7 @@
             barra.append(periodo,anterior,proximo,todos);agenda.append(barra);
             const superficie=elemento('div','agenda-superficie');const regua=elemento('div','agenda-regua');regua.append(elemento('span','agenda-regua-titulo','Planejamento'));
             const eixo=elemento('div','agenda-eixo');const quantidade=Math.ceil(amplitude/86400000),passo=Math.max(1,Math.ceil(quantidade/8));const pontos=[];
-            for(let d=new Date(de),i=0;d<fim;d.setDate(d.getDate()+1),i++){if(i%passo)continue;const p=pos(d);pontos.push(p);const marca=elemento('span','agenda-dia',dia(d));marca.style.left=p+'%';if(p>88)marca.style.transform='translateX(-100%)';eixo.append(marca);}
+            for(let d=new Date(de),i=0;d<fim;d.setDate(d.getDate()+1),i++){if(i%passo)continue;const p=pos(d);pontos.push(p);const marca=elemento('span','agenda-dia',dia(d));const limite=new Date(d);limite.setDate(limite.getDate()+passo);marca.style.left=((p+pos(limite>fim?fim:limite))/2)+'%';eixo.append(marca);}
             const hoje=new Date();const agora=pos(hoje);const temHoje=hoje>=de&&hoje<fim;
             if(temHoje){const marca=elemento('span','agenda-hoje-titulo','Hoje');marca.style.left=agora+'%';eixo.append(marca);}
             regua.append(eixo);superficie.append(regua);
@@ -125,6 +125,7 @@
                     if(temHoje){const h=elemento('span','agenda-hoje');h.style.left=agora+'%';trilho.append(h);}
                     const link=elemento('a','agenda-evento');link.href=destino.href;link.title=item.title;link.setAttribute('aria-label',item.title);link.style.left=esquerda+'%';link.style.width=Math.max(.6,direita-esquerda)+'%';link.style.maxWidth=(100-esquerda)+'%';
                     if(direita-esquerda<4)link.classList.add('agenda-evento-curto');
+                    if(termino>fim)link.classList.add('agenda-continua-fim');if(comeco<de)link.classList.add('agenda-continua-inicio');
                     const marcos=elemento('div','agenda-marcos');if(direita-esquerda<18)marcos.classList.add('agenda-marcos-proximos');
                     const dm=elemento('span','agenda-marco inicio',comeco<de?'← '+dia(comeco):dia(comeco)),fm=elemento('span','agenda-marco fim',termino>fim?dia(termino)+' →':dia(termino));
                     dm.style.left=esquerda+'%';fm.style.left=direita+'%';dm.style.setProperty('--marco-deslocamento',esquerda<12?'0%':'-100%');fm.style.setProperty('--marco-deslocamento',direita>88?'-100%':'0%');dm.title='Início: '+data(comeco);fm.title='Previsão: '+data(termino);

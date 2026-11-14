@@ -8,14 +8,16 @@
    const atualizar=()=>{campo.hidden=modo.value!=='true';campo.querySelector('select').disabled=campo.hidden;};modo.addEventListener('change',atualizar);atualizar();
   });
   document.querySelectorAll('select[data-catalogo]').forEach(select=>{
-   if(select.dataset.buscaCatalogo)return;select.dataset.buscaCatalogo='true';
+   if(select.dataset.buscaCatalogo){if(seletorUnico(select))atualizarSeletor(select);return;}select.dataset.buscaCatalogo='true';
    const abrir=document.createElement('button');abrir.type='button';abrir.className='botao botao-secundario catalogo-buscar';abrir.textContent=select.matches('[data-comprador-orcamento]')?'Buscar cliente':'Buscar no catálogo';
-   abrir.addEventListener('click',()=>{if(!select.disabled)abrirBusca(select);});select.insertAdjacentElement('afterend',abrir);atualizarComprador(select);if(select.dataset.catalogo==='filamento'){select.classList.add('catalogo-seletor');atualizarFilamento(select);select.addEventListener('change',()=>atualizarFilamento(select));}
+   abrir.addEventListener('click',()=>{if(!select.disabled)abrirBusca(select);});select.insertAdjacentElement('afterend',abrir);atualizarComprador(select);if(seletorUnico(select)){select.classList.add('catalogo-seletor');atualizarSeletor(select);select.addEventListener('change',()=>atualizarSeletor(select));}
   });
  }
  const numero=(v,max=4)=>new Intl.NumberFormat('pt-BR',{maximumFractionDigits:max}).format(Number(v));
  const moeda=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4});
- function atualizarFilamento(select){const b=select.nextElementSibling;if(!b?.classList.contains('catalogo-buscar'))return;const texto=select.value?select.selectedOptions[0].textContent.split(' · R$')[0]:'Selecionar filamento';if(b.textContent!==texto)b.textContent=texto;}
+ function seletorUnico(select){return select.dataset.catalogo==='filamento'||(['impressora','embalagem','produto'].includes(select.dataset.catalogo)&&!!select.closest('#formCalculo,[data-calculo-rapido],.pagina-outras-vendas'));}
+ function atualizarSeletor(select){const b=select.nextElementSibling;if(!b?.classList.contains('catalogo-buscar'))return;const rotulos={filamento:'Selecionar filamento',impressora:'Selecionar impressora',embalagem:'Selecionar embalagem',produto:'Selecionar produto'};const texto=select.value?select.selectedOptions[0].textContent.split(' · R$')[0]:rotulos[select.dataset.catalogo];if(b.textContent!==texto)b.textContent=texto;if(b.disabled!==select.disabled)b.disabled=select.disabled;}
+
  function apresentarResultado(botao,item,tipo){
   const a=item.atributos||{};botao.setAttribute('aria-label',item.nome);const icone=document.createElement('i');icone.className='bi '+({filamento:'bi-disc',impressora:'bi-printer',peca:'bi-box',embalagem:'bi-box-seam',produto:'bi-bag',comprador:'bi-person'}[tipo]||'bi-search');icone.setAttribute('aria-hidden','true');
   if(tipo==='filamento'){const cores={preto:'#242424',branco:'#ffffff',vermelho:'#dd3535',amarelo:'#f4d744',azul:'#447ed4',verde:'#499365',marrom:'#986c50','marrom claro':'#bd9b87',dourado:'#d6b345'};icone.className='catalogo-cor';icone.style.backgroundColor=/^#[a-f0-9]{6}$/i.test(a.codigoCor||'')?a.codigoCor:(cores[(a.cor||'').toLowerCase()]||'#ddd8e6');icone.title=a.cor||'Cor não informada';}
@@ -54,7 +56,7 @@
   function abrirFoco(){select.parentElement?.querySelector('.catalogo-buscar')?.focus();}
   dialogo.showModal();busca.focus();carregar();
  }
- function carregar(){inicializar();observador?.disconnect();observador=new MutationObserver(()=>inicializar());observador.observe(document.body,{childList:true,subtree:true});}
+ function carregar(){inicializar();observador?.disconnect();observador=new MutationObserver(()=>inicializar());observador.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled']});}
  function atualizarComprador(select){
   if(!select.matches?.('[data-comprador-orcamento]'))return;
   const bloco=select.closest('.comprador-escolha');if(!bloco)return;

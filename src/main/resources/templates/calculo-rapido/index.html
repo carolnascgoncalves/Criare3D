@@ -2,8 +2,9 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragmentos :: cabecalho('Cálculo rápido')}"></head><body>
 <nav th:replace="~{fragmentos :: menu}"></nav><main class="pagina pagina-calculo-rapido" data-calculo-rapido>
+<nav class="operacao-abas" aria-label="Como calcular"><a th:href="@{/historico/novo}">Calcular e salvar</a><a class="ativo" th:href="@{/calculo-rapido}">Consulta sem salvar</a></nav>
 <section class="pagina-intro"><div><span class="texto-apoio">CONSULTA PROVISÓRIA</span><h1>Cálculo rápido</h1><p>Consulte um preço sem cadastrar a peça. Nada desta consulta é salvo e nenhum material é descontado do estoque.</p></div></section>
-<nav class="operacao-abas" aria-label="Como calcular"><a class="ativo" th:href="@{/calculo-rapido}">Consulta sem salvar</a><a th:href="@{/historico/novo}">Calcular e salvar</a></nav><section class="cartao rapido-secao">
+<section class="cartao rapido-secao">
 <header class="rapido-secao-titulo"><span class="rapido-etapa">01</span><div><h2>Arquivo e prévia</h2><p>Importe todas as placas de uma vez. Trocar a imagem abaixo não altera os totais.</p></div></header>
 <div class="campo arquivo-soltar"><span><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i> Arraste o .3mf aqui ou escolha um arquivo</span><label for="rapidoArquivo">Arquivo de impressão (3MF, opcional)</label><input id="rapidoArquivo" type="file" accept=".3mf" data-rapido-arquivo th:attr="data-url=@{/calculo-rapido/analisar-arquivo}"><small>Até 100 MB. Para preencher gramas e tempo automaticamente, use um arquivo fatiado.</small></div>
 <p data-rapido-importacao class="rapido-status" role="status" aria-live="polite"></p>

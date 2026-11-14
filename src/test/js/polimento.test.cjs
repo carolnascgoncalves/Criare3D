@@ -8,7 +8,7 @@ function iniciar({seletores={},listas={},ids={}}={}) {
  eventos.DOMContentLoaded.forEach(f=>f());return eventos;
 }
 function no(tag='div') {
- return {tag,children:[],dataset:{},style:{setProperty(k,v){this[k]=v}},attrs:{},eventos:{},addEventListener(n,f){this.eventos[n]=f},classList:{add(){},remove(){},toggle(){}},append(...n){this.children.push(...n)},replaceChildren(...n){this.children=[...n]},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
+ return {tag,children:[],dataset:{},style:{setProperty(k,v){this[k]=v}},attrs:{},eventos:{},addEventListener(n,f){this.eventos[n]=f},classList:{values:new Set(),add(...v){v.forEach(x=>this.values.add(x))},remove(...v){v.forEach(x=>this.values.delete(x))},toggle(){}},append(...n){this.children.push(...n)},replaceChildren(...n){this.children=[...n]},setAttribute(k,v){this.attrs[k]=v},removeAttribute(k){delete this.attrs[k]}};
 }
 test('Acabando alterna estado e mantém somente saldos baixos visíveis',()=>{
  const linhas=[{dataset:{estoqueBaixo:'true'},hidden:false},{dataset:{estoqueBaixo:'false'},hidden:false}];
@@ -43,6 +43,15 @@ test('agenda navega entre semanas e a visão completa inclui trabalhos fora da p
  iniciar({seletores:{'[data-agenda]':agenda,'[data-agenda-lista]':lista}});
  const nomes=()=>agenda.children[1].children[1].children.slice(1).filter(n=>n.className==='agenda-planejamento').map(n=>n.children[0].children[0].textContent);
  assert.deepEqual(nomes(),['Primeiro']);agenda.children[0].children[2].eventos.click();assert.deepEqual(nomes(),['Segundo']);agenda.children[0].children[3].eventos.click();assert.deepEqual(nomes(),['Primeiro','Segundo']);
+});
+
+test('agenda distingue continuidade de um fim real e centraliza a data no dia',()=>{
+ const agenda=no(),lista=no();const card={dataset:{agendaInicio:'2026-11-20T08:00:00',agendaFim:'2026-12-01T09:00:00',agendaImpressora:'1',agendaNome:'Impressora'},querySelector:s=>s==='h2'?{textContent:'Impressão longa'}:s==='.planejamento-acoes a'?{href:'/lote/1'}:null};
+ lista.querySelectorAll=()=>[card];iniciar({seletores:{'[data-agenda]':agenda,'[data-agenda-lista]':lista}});
+ const evento=()=>agenda.children[1].children[1].children[1].children[1].children.find(e=>e.className==='agenda-evento');
+ assert.equal(evento().classList.values.has('agenda-continua-fim'),true);assert.equal(evento().classList.values.has('agenda-continua-inicio'),false);
+ const dias=agenda.children[1].children[0].children[1].children;assert.ok(parseFloat(dias[0].style.left)>0);assert.ok(parseFloat(dias[0].style.left)<parseFloat(dias[1].style.left));
+ agenda.children[0].children[2].eventos.click();assert.equal(evento().classList.values.has('agenda-continua-inicio'),true);assert.equal(evento().classList.values.has('agenda-continua-fim'),false);
 });
 
 test('calendário marca ocupação parcial e seleciona o dia preservando o horário',()=>{

@@ -16,7 +16,7 @@
         A tarifa de energia está zerada ou o markup fixo não foi definido. O cálculo ainda pode ser feito, mas o custo ou o preço sugerido pode ficar abaixo do esperado.
         <a th:href="@{/configuracao}">Revisar configurações</a>
     </div>
-    <nav class="operacao-abas" aria-label="Como calcular"><a th:href="@{/calculo-rapido}">Consulta sem salvar</a><a class="ativo" th:href="@{/historico/novo}">Calcular e salvar</a></nav><section class="pagina-intro">
+    <nav class="operacao-abas" aria-label="Como calcular"><a class="ativo" th:href="@{/historico/novo}">Calcular e salvar</a><a th:href="@{/calculo-rapido}">Consulta sem salvar</a></nav><section class="pagina-intro">
         <div>
             <span class="texto-apoio">CRIARE 3D</span>
             <h1>Novo cálculo</h1>
