@@ -70,7 +70,11 @@ test('cadastros, validação, produção, venda parcial, perdas e planejamento',
  await expect(page).toHaveURL(/simulacao\/planejamentos/);
  await expect(page.locator('main')).toContainText('Peça navegador');await expect(page.locator('.planejamento-card')).toContainText('Produzido · aguardando venda');await semOverflow(page);
  await page.goto(`/vendas-estoque/lote/${lote}`);await page.locator('#vendaUnidades').fill('2');await confirmar(page.getByRole('button',{name:'Registrar venda',exact:true}));
- await expect(page.getByText('0 unidades prontas disponíveis',{exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Lote vendido',exact:true})).toBeVisible();
+ await expect(page.getByText('Todas as unidades foram vendidas',{exact:true})).toBeVisible();
+ await expect(page.getByText('3 unidades vendidas · Nenhuma unidade restante em estoque.',{exact:true})).toBeVisible();
+ await expect(page.locator('#vendaUnidades')).toHaveCount(0);
+ await expect(page.getByRole('button',{name:'Registrar venda',exact:true})).toHaveCount(0);
  await page.goto('/simulacao/planejamentos');await expect(page.locator('.planejamento-card')).toHaveCount(0);
  await page.getByRole('link',{name:'Concluídos',exact:true}).click();await expect(page.locator('.planejamento-card')).toContainText('Peça navegador');
  // A navegação Turbo conserva o menu durante rolagem na simulação.
