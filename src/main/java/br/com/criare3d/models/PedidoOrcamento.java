@@ -19,6 +19,7 @@ public class PedidoOrcamento {
  @Enumerated(EnumType.STRING) @Column(nullable=false,length=20) private StatusPedido status=StatusPedido.RASCUNHO;
  @Column(nullable=false,length=150) private String titulo="Novo orçamento";
  @Column(length=150) private String cliente;
+ private UUID compradorId;
  @Column(length=150) private String contato;
  @Column(length=150) private String email;
  @Column(length=1000) private String observacoes;

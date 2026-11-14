@@ -52,7 +52,7 @@
   <label class="campo" th:hidden="${r.disponivel==0}"><span th:text="|Usar do estoque (máx. ${r.disponivel})|"></span><input th:type="${r.disponivel==0?'hidden':'number'}" min="0" value="0" required data-multi-estoque th:name="|itens[${idx.index}].estoque|" th:max="${r.disponivel}" th:disabled="${r.id!=selecionada}"></label></div>
  </article></div>
  <p data-pedido-sem-resultados hidden>Nenhuma referência encontrada.</p>
- <p class="texto-apoio">Marque as peças e informe as quantidades.</p>
+ <label class="campo">Quais preços usar?<select name="custosAtuais" data-modo-custos><option value="false">Preservar preços do cálculo salvo</option><option value="true">Recalcular com os preços atuais</option></select><small>Preservar usa os valores originais de materiais, energia, embalagem e custos extras. Recalcular usa os cadastros atuais; pode exigir uma embalagem cadastrada.</small></label><div class="campo" data-embalagem-recalculo hidden><label>Embalagem para o recálculo<select name="embalagemAtualId" data-catalogo="embalagem" disabled><option value="">Manter a embalagem cadastrada no cálculo</option></select></label><small>Escolha uma embalagem se o cálculo usava valor fixo e essa configuração foi desativada.</small></div>
  <div class="pedido-acoes"><button th:unless="${#lists.isEmpty(referencias)}" class="botao botao-principal" type="submit">Adicionar peças selecionadas</button><a class="botao botao-secundario" th:href="${pedido != null and pedido.id!=null ? '/historico/novo?novo=true&amp;orcamento='+pedido.id : '/historico/novo?novo=true'}">Calcular outra peça</a></div>
  </div></details>
 </form>

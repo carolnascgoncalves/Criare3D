@@ -589,14 +589,30 @@ public class CalculoHistoricoController {
 
     private void carregarDadosFormulario(ModelAndView mv) {
 
-        Pageable pageable = PageRequest.of(0, 1000);
+        Pageable pageable = PageRequest.of(0, 20);
 
-        var pecas = pecaService.fetchAll(pageable).getContent();
-        mv.addObject("pecas", pecas);
-        mv.addObject("arquivosPeca", pecaArquivoService.buscarResumos(pecas));
-        mv.addObject("filamentos", filamentoService.fetchAll(pageable).getContent());
-        mv.addObject("impressoras", impressoraService.fetchAll(pageable).getContent());
-        mv.addObject("embalagens", embalagemService.fetchAll(pageable).getContent());
+        var pecas=new java.util.ArrayList<>(pecaService.fetchAll(pageable).getContent());
+        var filamentos=new java.util.ArrayList<>(filamentoService.fetchAll(pageable).getContent());
+        var impressoras=new java.util.ArrayList<>(impressoraService.fetchAll(pageable).getContent());
+        var embalagens=new java.util.ArrayList<>(embalagemService.fetchAll(pageable).getContent());
+        if(mv.getModel().get("calculo") instanceof CalculoRequest r) {
+            if(r.getPecaId()!=null && pecas.stream().noneMatch(p->p.getId().equals(r.getPecaId())))pecaService.fetchById(r.getPecaId()).ifPresent(pecas::add);
+            if(r.getImpressoraId()!=null && impressoras.stream().noneMatch(p->p.getId().equals(r.getImpressoraId())))impressoraService.fetchById(r.getImpressoraId()).ifPresent(impressoras::add);
+            if(r.getEmbalagemId()!=null && embalagens.stream().noneMatch(p->p.getId().equals(r.getEmbalagemId())))embalagemService.fetchById(r.getEmbalagemId()).ifPresent(embalagens::add);
+            if(r.getFilamentos()!=null)for(var i:r.getFilamentos())if(i.getFilamentoId()!=null && filamentos.stream().noneMatch(f->f.getId().equals(i.getFilamentoId())))filamentoService.fetchById(i.getFilamentoId()).ifPresent(filamentos::add);
+        }
+        for(String chave:java.util.List.of("pecaCriada","filamentoCriado","impressoraCriada","embalagemCriada")) {
+            Object valor=mv.getModel().get(chave);if(valor==null)continue;
+            UUID criado=UUID.fromString(valor.toString());
+            switch(chave) {
+                case "pecaCriada" -> {if(pecas.stream().noneMatch(p->p.getId().equals(criado)))pecaService.fetchById(criado).ifPresent(pecas::add);}
+                case "filamentoCriado" -> {if(filamentos.stream().noneMatch(p->p.getId().equals(criado)))filamentoService.fetchById(criado).ifPresent(filamentos::add);}
+                case "impressoraCriada" -> {if(impressoras.stream().noneMatch(p->p.getId().equals(criado)))impressoraService.fetchById(criado).ifPresent(impressoras::add);}
+                case "embalagemCriada" -> {if(embalagens.stream().noneMatch(p->p.getId().equals(criado)))embalagemService.fetchById(criado).ifPresent(embalagens::add);}
+            }
+        }
+        mv.addObject("pecas",pecas);mv.addObject("arquivosPeca",pecaArquivoService.buscarResumos(pecas));
+        mv.addObject("filamentos",filamentos);mv.addObject("impressoras",impressoras);mv.addObject("embalagens",embalagens);
         var configuracao = configuracaoService.buscarOuCriarConfiguracao();
         mv.addObject("configuracao", configuracao);
         boolean tarifaSemValor = configuracao.getTarifaEnergiaKwh() == null

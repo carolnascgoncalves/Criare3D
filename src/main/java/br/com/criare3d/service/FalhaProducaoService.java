@@ -11,6 +11,7 @@ import java.util.UUID;
 public class FalhaProducaoService {
  @Autowired private CalculoHistoricoRepository historicos;
  @Autowired private FilamentoRepository filamentos;
+ @Autowired private MovimentacaoService movimentos;
  @Autowired private FalhaProducaoRepository falhas;
  public void registrar(UUID id,UUID filamentoId,int unidades,BigDecimal gramas,long minutos,String observacao) {
   if (unidades < 1 || unidades > 10000 || gramas == null || gramas.signum() <= 0 || gramas.compareTo(new BigDecimal("1000000")) > 0 || minutos < 0 || minutos > 10000000 || (observacao != null && observacao.length() > 500))
@@ -23,6 +24,7 @@ public class FalhaProducaoService {
   f.setCustoMaterial(gramas.multiply(filamento.getPrecoRolo()).divide(filamento.getPesoRoloGramas(),8,RoundingMode.HALF_UP));
   f.setObservacao(observacao);f.setDataRegistro(LocalDateTime.now(ZoneId.of("America/Sao_Paulo")));
   filamento.setEstoqueGramas(filamento.getEstoqueGramas().subtract(gramas));falhas.save(f);
+  if(movimentos!=null)movimentos.registrar("PERDA",filamento.getNome()+" · "+filamento.getCor(),gramas.negate(),"g","lote",id);
  }
  public void cancelar(UUID id,UUID falhaId) {
   historicos.bloquearPorId(id).orElseThrow();
@@ -31,5 +33,6 @@ public class FalhaProducaoService {
   if (f.isCancelada()) return;
   var filamento = filamentos.bloquearPorId(f.getFilamento().getId()).orElseThrow();
   filamento.setEstoqueGramas(filamento.getEstoqueGramas().add(f.getGramas()));f.setCancelada(true);
+  if(movimentos!=null)movimentos.registrar("CANCELAR_PERDA",filamento.getNome()+" · "+filamento.getCor(),f.getGramas(),"g","lote",id);
  }
 }

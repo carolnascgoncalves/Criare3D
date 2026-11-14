@@ -39,6 +39,8 @@ public class NavegacaoModelAdvice {
         else if (caminho.equals("/historico/novo") || caminho.equals("/historico/resultado")) pagina = "";
         else if (caminho.startsWith("/historico")) pagina = "historico";
         else if (caminho.startsWith("/usuarios") || caminho.startsWith("/clientes")) pagina = "clientes";
+        if(caminho.startsWith("/compradores"))pagina="compradores";
+        if(caminho.startsWith("/movimentacoes"))pagina="movimentacoes";
         model.addAttribute("paginaAtiva", pagina);
 
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();

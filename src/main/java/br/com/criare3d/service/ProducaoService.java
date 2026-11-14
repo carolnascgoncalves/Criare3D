@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class ProducaoService {
+    @org.springframework.beans.factory.annotation.Autowired private MovimentacaoService movimentos;
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
@@ -54,10 +55,10 @@ public class ProducaoService {
             }
         }
 
-        if (produzido && !ajustarEstoque(dados, false)) {
+        if (produzido && !ajustarEstoque(dados, false,bloqueado)) {
             return ResultadoOperacao.ESTOQUE_INSUFICIENTE;
         }
-        if (!produzido) ajustarEstoque(dados, true);
+        if (!produzido) ajustarEstoque(dados, true,bloqueado);
 
         bloqueado.setProduzido(produzido);
         bloqueado.setDataProducao(produzido ? LocalDateTime.now(clock) : null);
@@ -69,7 +70,7 @@ public class ProducaoService {
         return valor == null ? 0 : valor;
     }
 
-    private boolean ajustarEstoque(List<AjusteEstoqueCalculoResponse> dados, boolean devolver) {
+    private boolean ajustarEstoque(List<AjusteEstoqueCalculoResponse> dados, boolean devolver,CalculoHistorico lote) {
         Map<UUID, BigDecimal> quantidades = new HashMap<>();
         for (AjusteEstoqueCalculoResponse item : dados) {
             if (item.filamentoItemId() != null && item.quantidadeItem() != null) {
@@ -107,6 +108,7 @@ public class ProducaoService {
             BigDecimal saldo = filamento.getEstoqueGramas() == null
                     ? ZERO : filamento.getEstoqueGramas();
             filamento.setEstoqueGramas(devolver ? saldo.add(quantidade) : saldo.subtract(quantidade));
+            if(movimentos!=null)movimentos.registrar(devolver?"DESFAZER_PRODUCAO":"PRODUCAO",filamento.getNome()+" · "+filamento.getCor()+" — "+lote.getNomePeca(),devolver?quantidade:quantidade.negate(),"g","lote",lote.getId());
         });
         return true;
     }

@@ -89,7 +89,7 @@
 
                     <div class="campo">
                         <label id="pecaSeletorRotulo" for="abrirPecaSeletor">Peça</label>
-                        <select id="pecaId" th:field="*{pecaId}" required data-peca-nativo>
+                        <select id="pecaId" th:field="*{pecaId}" required data-peca-nativo data-catalogo="peca">
                             <option value="">Selecione uma peça</option>
                             <option th:each="peca : ${pecas}"
                                     th:value="${peca.id}"
@@ -183,7 +183,7 @@
                                 <div class="campo">
                                     <label>Filamento</label>
                                     <select th:field="*{filamentos[__${stat.index}__].filamentoId}"
-                                            data-campo-filamento required>
+                                            data-campo-filamento required data-catalogo="filamento">
                                         <option value="">Selecione um filamento</option>
                                         <option th:each="filamento : ${filamentos}"
                                                 th:value="${filamento.id}"
@@ -227,7 +227,7 @@
 
                             <div class="campo">
                                 <label>Filamento</label>
-                                <select data-campo-filamento required>
+                                <select data-campo-filamento required data-catalogo="filamento">
                                     <option value="">Selecione um filamento</option>
                                     <option th:each="filamento : ${filamentos}"
                                             th:value="${filamento.id}"
@@ -343,7 +343,7 @@
 
                     <div class="campo">
                         <label for="impressoraId">Impressora</label>
-                        <select id="impressoraId" th:field="*{impressoraId}" required>
+                        <select id="impressoraId" th:field="*{impressoraId}" required data-catalogo="impressora">
                             <option value="">Selecione uma impressora</option>
                             <option th:each="impressora : ${impressoras}"
                                     th:value="${impressora.id}"
@@ -440,7 +440,7 @@
                     <div class="campo"
                          th:if="${configuracao == null or configuracao.embalagemFixa != true}">
                         <label for="embalagemId">Embalagem</label>
-                        <select id="embalagemId" th:field="*{embalagemId}" required>
+                        <select id="embalagemId" th:field="*{embalagemId}" required data-catalogo="embalagem">
                             <option value="">Selecione uma embalagem</option>
                             <option th:each="embalagem : ${embalagens}"
                                     th:value="${embalagem.id}"

@@ -16,6 +16,8 @@ public class EntradaPedidoService {
         r.setPecaId(h.getPeca().getId()); r.setImpressoraId(h.getImpressora().getId());
         r.setEmbalagemId(h.getEmbalagem()==null?null:h.getEmbalagem().getId());
         r.setCustoEmbalagemPersonalizada(h.getCustoEmbalagem());
+        r.setReferenciaCustosHistoricos(h.getId());
+        r.setCustosPreservados(CustosPreservados.de(h));
         if (h.getPlataformaVenda()!=null) {
             try { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.valueOf("TIKTOK_SHOP".equals(h.getPlataformaVenda()) ? "TIKTOK" : h.getPlataformaVenda())); }
             catch (IllegalArgumentException e) { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.NENHUMA); }
@@ -38,6 +40,19 @@ public class EntradaPedidoService {
         String texto=json.writeValueAsString(copia);
         if (texto.length()>65536) throw new IllegalArgumentException("O cálculo ultrapassa o tamanho permitido para o orçamento.");
         return texto;
+    }
+    public CalculoRequest ler(ItemPedido item,int unidades) {
+        var entrada=ler(item.getEntradaJson(),unidades);
+        // Compatibilidade com propostas já existentes antes da fotografia financeira.
+        if(entrada.getCustosPreservados()==null && !entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque()!=null) {
+            entrada.setCustosPreservados(CustosPreservados.de(item.getLoteEstoque()));
+            entrada.setReferenciaCustosHistoricos(item.getLoteEstoque().getId());
+        }
+        return entrada;
+    }
+    public String origemCustos(ItemPedido item) {
+        var entrada=ler(item,item.getQuantidade());
+        return entrada.getCustosPreservados()!=null?"Valores preservados nesta proposta":"Orçamento antigo: confira os custos antes de confirmar";
     }
     public CalculoRequest ler(String texto,int unidades) {
         CalculoRequest r=json.readValue(texto,CalculoRequest.class);

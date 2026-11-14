@@ -405,3 +405,13 @@ body.senha-primeiro-acesso {
 .senha-primeiro-acesso .botao-principal:hover { background:#6D1824; border-color:#6D1824; }
 .senha-primeiro-acesso input:focus { outline-color:#86202D; border-color:#86202D; box-shadow:0 0 0 3px #86202D20; }
 .senha-primeiro-acesso input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset; -webkit-text-fill-color:#422329; }
+
+.form-grade { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:20px; align-items:start; }
+.comprador-escolha { margin:18px 0 24px; padding:18px; border:1px solid var(--borda); border-radius:12px; }
+.catalogo-buscar { align-self:flex-start; margin-top:8px; font-size:.84rem; }
+.catalogo-dialogo { width:min(620px,calc(100% - 32px)); max-height:85dvh; overflow:auto; padding:24px; border:1px solid var(--borda); border-radius:16px; background:var(--superficie); color:var(--marrom); }
+.catalogo-dialogo::backdrop { background:#21162e80; }
+.catalogo-dialogo input { width:100%; }
+.catalogo-resultados { display:grid; gap:8px; margin:16px 0; }
+.catalogo-resultado { text-align:left; border:1px solid var(--borda); background:var(--superficie-suave); color:var(--marrom); border-radius:10px; padding:14px; cursor:pointer; }
+.catalogo-resultado:hover,.catalogo-resultado:focus-visible { outline:2px solid var(--marrom-claro); outline-offset:1px; }

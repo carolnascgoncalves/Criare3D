@@ -9,6 +9,12 @@ import java.time.*;
 import java.util.UUID;
 @Service @Transactional
 public class OutrasVendasService {
+    @Autowired private IdempotenciaService idempotencia;
+    @Autowired private MovimentacaoService movimentos;
+    public VendaProdutoLoja vender(UUID produtoId,int quantidade,BigDecimal preco,BigDecimal custo,LocalDate data,VendaProdutoLoja.TipoEmbalagem tipo,UUID embalagemId,BigDecimal valorEmbalagem,int embalagens,UUID chave) {
+        String id=idempotencia.executar(chave,"VENDA_PRODUTO",java.util.Arrays.asList(produtoId,quantidade,preco,custo,data,tipo,embalagemId,valorEmbalagem,embalagens).toString(),()->vender(produtoId,quantidade,preco,custo,data,tipo,embalagemId,valorEmbalagem,embalagens).getId().toString());
+        return vendas.findById(UUID.fromString(id)).orElseThrow();
+    }
     @Autowired private ProdutoLojaRepository produtos;
     @Autowired private VendaProdutoLojaRepository vendas;
     @Autowired private EmbalagemRepository embalagens;
@@ -64,11 +70,14 @@ public class OutrasVendasService {
                 valor(valorEmbalagem,true);v.setNomeEmbalagem("Embalagem personalizada");v.setCustoEmbalagem(valorEmbalagem);
             }
         }
-        v.setDataVenda(data.atTime(LocalTime.now(clock)));vendas.save(v);atualizarDashboard();return v;
+        v.setDataVenda(data.atTime(LocalTime.now(clock)));vendas.save(v);
+        if(movimentos!=null)movimentos.registrar("VENDA_PRODUTO",v.getNomeProduto(),BigDecimal.valueOf(quantidade).negate(),"un.","produto",v.getId());
+        atualizarDashboard();return v;
     }
     public void cancelar(UUID id,int quantidade) {
         var v=vendas.bloquear(id).orElseThrow(()->new IllegalArgumentException("Venda não encontrada."));
         if(quantidade<1 || quantidade>v.getAtivas()) throw new IllegalArgumentException("Informe uma quantidade entre 1 e as unidades ativas da venda.");
+        if(movimentos!=null)movimentos.registrar("CANCELAR_VENDA_PRODUTO",v.getNomeProduto(),BigDecimal.valueOf(quantidade),"un.","produto",id);
         v.setCanceladas(v.getCanceladas()+quantidade);v.setDataCancelamento(LocalDateTime.now(clock));atualizarDashboard();
     }
     private void atualizarDashboard() {

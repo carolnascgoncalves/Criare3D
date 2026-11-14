@@ -33,6 +33,7 @@ public class CalculoService {
     private final java.time.Clock clock;
     private final CalculoPlataformaService calculoPlataformaService;
     private final PecaService pecaService;
+    @org.springframework.beans.factory.annotation.Autowired private CustosHistoricosService custosHistoricos;
     private final FilamentoService filamentoService;
     private final ImpressoraService impressoraService;
     private final EmbalagemService embalagemService;
@@ -115,17 +116,21 @@ public class CalculoService {
             var copia=new Configuracao();org.springframework.beans.BeanUtils.copyProperties(configuracao,copia);
             copia.setEmbalagemFixa(true);copia.setCustoEmbalagemFixa(valor);configuracao=copia;
         }
-        CalculoValidador.validar(request, peca, impressora, configuracao);
         Set<UUID> ids = new LinkedHashSet<>();
         request.getFilamentos().forEach(item -> ids.add(item.getFilamentoId()));
         Map<UUID, Filamento> filamentos = new HashMap<>();
-        filamentoService.fetchByIds(ids).forEach(f -> filamentos.put(f.getId(), f));
-        Embalagem embalagem = Boolean.TRUE.equals(configuracao.getEmbalagemFixa()) ? null
-                : embalagemService.fetchById(request.getEmbalagemId()).orElseThrow(() -> new IllegalArgumentException("Embalagem não encontrada"));
+        for(var f:filamentoService.fetchByIds(ids)) filamentos.put(f.getId(),f);
         BigDecimal manutencao = manutencaoImpressoraService.custoPorHora(impressora.getId());
-        return new MotorCalculo(calculoPlataformaService).calcular(request, peca, impressora, configuracao,
-                filamentos, embalagem, manutencao, LocalDateTime.now(clock),
-                custosLoja == null ? java.util.List.of() : custosLoja.findByAtivoTrueAndInicioLessThanEqualOrderByInicioAsc(java.time.LocalDate.now(clock)), tempoPorPlaca, placasConsulta);
+        var extras=custosLoja==null?java.util.List.<CustoLoja>of():custosLoja.findByAtivoTrueAndInicioLessThanEqualOrderByInicioAsc(java.time.LocalDate.now(clock));
+        String nomeEmbalagem=null;
+        if(request.getReferenciaCustosHistoricos()!=null||request.getCustosPreservados()!=null) {
+            var base=custosHistoricos.carregar(request,impressora,filamentos);
+            configuracao=base.configuracao();impressora=base.impressora();filamentos=base.filamentos();manutencao=base.manutencao();extras=base.extras();nomeEmbalagem=base.embalagem();
+        }
+        Embalagem embalagem=Boolean.TRUE.equals(configuracao.getEmbalagemFixa())?null:embalagemService.fetchById(request.getEmbalagemId()).orElseThrow(()->new IllegalArgumentException("Embalagem não encontrada"));
+        var resultado=new MotorCalculo(calculoPlataformaService).calcular(request,peca,impressora,configuracao,filamentos,embalagem,manutencao,LocalDateTime.now(clock),extras,tempoPorPlaca,placasConsulta);
+        if(nomeEmbalagem!=null)resultado.setNomeEmbalagem(nomeEmbalagem);
+        return resultado;
     }
 
     public CalculoHistorico calcularComPrecoFixo(
@@ -159,6 +164,7 @@ public class CalculoService {
         Configuracao configuracao =
                 configuracaoService.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar);
 
+        if(request.getReferenciaCustosHistoricos()!=null||request.getCustosPreservados()!=null){var copia=new Configuracao();org.springframework.beans.BeanUtils.copyProperties(configuracao,copia);copia.setFormularioAvancado(true);configuracao=copia;}
         calculoPlataformaService.calcularTaxasPrecoFixo(
                 request,
                 historico,

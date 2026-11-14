@@ -17,19 +17,19 @@ public interface VendaProdutoLojaRepository extends JpaRepository<VendaProdutoLo
     @Query("""
         select coalesce(sum(v.quantidade-v.canceladas),0) as unidades,
           coalesce(sum(v.precoUnitario*(v.quantidade-v.canceladas)),0) as receita,
-          coalesce(sum((v.precoUnitario-v.custoUnitario-(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)/v.quantidade))*(v.quantidade-v.canceladas)),0) as lucro,
+          coalesce(sum(((v.precoUnitario-v.custoUnitario)*(v.quantidade-v.canceladas)-round(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)*(v.quantidade-v.canceladas)/v.quantidade,2))),0) as lucro,
           coalesce(sum(case when v.custoUnitario is null then v.quantidade-v.canceladas else 0 end),0) as semCusto
         from VendaProdutoLoja v where v.dataVenda>=:inicio and v.dataVenda<:fim
         """)
     Resumo resumir(@Param("inicio") LocalDateTime inicio,@Param("fim") LocalDateTime fim);
     @Query("""
-        select year(v.dataVenda),month(v.dataVenda),day(v.dataVenda),sum((v.precoUnitario-v.custoUnitario-(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)/v.quantidade))*(v.quantidade-v.canceladas))
+        select year(v.dataVenda),month(v.dataVenda),day(v.dataVenda),sum(((v.precoUnitario-v.custoUnitario)*(v.quantidade-v.canceladas)-round(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)*(v.quantidade-v.canceladas)/v.quantidade,2)))
         from VendaProdutoLoja v where v.dataVenda>=:inicio and v.dataVenda<:fim and v.custoUnitario is not null and v.quantidade>v.canceladas
         group by year(v.dataVenda),month(v.dataVenda),day(v.dataVenda)
         """)
     List<Object[]> lucroPorDia(@Param("inicio") LocalDateTime inicio,@Param("fim") LocalDateTime fim);
     @Query("""
-        select year(v.dataVenda),month(v.dataVenda),sum((v.precoUnitario-v.custoUnitario-(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)/v.quantidade))*(v.quantidade-v.canceladas))
+        select year(v.dataVenda),month(v.dataVenda),sum(((v.precoUnitario-v.custoUnitario)*(v.quantidade-v.canceladas)-round(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)*(v.quantidade-v.canceladas)/v.quantidade,2)))
         from VendaProdutoLoja v where v.dataVenda>=:inicio and v.dataVenda<:fim and v.custoUnitario is not null and v.quantidade>v.canceladas
         group by year(v.dataVenda),month(v.dataVenda)
         """)

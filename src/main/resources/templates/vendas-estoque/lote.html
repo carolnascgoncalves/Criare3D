@@ -88,23 +88,23 @@
                     </th:block>
                     <form method="post" th:action="@{/vendas-estoque/lote/{id}/vender(id=${lote.id})}" th:if="${lote.produzido and lote.unidadesVendidas + (reservadas == null ? 0 : reservadas) < lote.unidades}" data-turbo-confirm="Registrar a venda desta quantidade? Apenas as unidades informadas serão vendidas.">
                         <div class="campo">
-                            <label for="vendaUnidades">Unidades</label>
-                            <input id="vendaUnidades" name="unidades" type="number" min="1" th:max="${lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas)}" value="1" required>
+                            <input type="hidden" name="chaveOperacao" th:value="${T(java.util.UUID).randomUUID()}"><label for="vendaUnidades">Unidades</label>
+                            <input id="vendaUnidades" th:value="${tentativaVenda3d==null?1:tentativaVenda3d['unidades']}" name="unidades" type="number" min="1" th:max="${lote.unidades - lote.unidadesVendidas - (reservadas == null ? 0 : reservadas)}" value="1" required>
                         </div>
                         <details>
                             <summary>Preço, desconto e taxas reais (opcional)</summary>
                             <p>Valores por unidade. Deixe vazio para usar a estimativa.</p>
                             <div class="campo">
                                 <label for="vendaPreco">Preço antes do desconto (R$)</label>
-                                <input id="vendaPreco" name="preco" type="number" min="0" max="99999999" step="0.01" th:placeholder="${lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido}">
+                                <input id="vendaPreco" th:value="${tentativaVenda3d==null?null:tentativaVenda3d['preco']}" name="preco" type="number" min="0" max="99999999" step="0.01" th:placeholder="${lote.precoVendaPlataforma != null ? lote.precoVendaPlataforma : lote.precoSugerido}">
                             </div>
                             <div class="campo">
                                 <label for="vendaDesconto">Desconto por unidade (R$)</label>
-                                <input id="vendaDesconto" name="desconto" type="number" min="0" max="99999999" step="0.01">
+                                <input id="vendaDesconto" th:value="${tentativaVenda3d==null?null:tentativaVenda3d['desconto']}" name="desconto" type="number" min="0" max="99999999" step="0.01">
                             </div>
                             <div class="campo">
                                 <label for="vendaTaxas">Taxas, impostos e frete (R$)</label>
-                                <input id="vendaTaxas" name="taxas" type="number" min="0" max="99999999" step="0.01">
+                                <input id="vendaTaxas" th:value="${tentativaVenda3d==null?null:tentativaVenda3d['taxas']}" name="taxas" type="number" min="0" max="99999999" step="0.01">
                             </div>
                         </details>
                         <button class="botao botao-principal">Registrar venda</button>
@@ -197,7 +197,7 @@
                         <div class="operacao-grade">
                             <div class="campo">
                                 <label for="falhaFilamento">Filamento consumido</label>
-                                <select id="falhaFilamento" name="filamentoId" required>
+                                <select id="falhaFilamento" name="filamentoId" required data-catalogo="filamento">
                                     <option value="">Escolha</option>
                                     <option th:each="f : ${filamentos}" th:value="${f.id}" th:text="|${f.nome} · ${f.cor}|"></option>
                                 </select>

@@ -112,7 +112,7 @@ class Criare3dApplicationTests {
 				.filter(tenant -> tenant.getSlug() != null && tenant.getSlug().startsWith("teste-"))
 				.forEach(tenant -> {
 					UUID tenantId = tenant.getId();
-					for (String tabela : java.util.List.of("venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
+					for (String tabela : java.util.List.of("movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "foto_rascunho", "custo_personalizado", "planejamento_producao", "falha_producao", "venda_calculo", "calculo_foto", "item_calculo_historico",
 							"manutencao_impressora", "calculo_historico", "configuracao", "embalagem",
 							"filamento", "impressora", "peca", "usuario")) {
 						jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?", tenantId);
@@ -601,7 +601,7 @@ class Criare3dApplicationTests {
     }
     private void limparOperacao(Usuario usuario) {
         UUID tenant=usuario.getTenant().getId();
-        for (String tabela : java.util.List.of("venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
+        for (String tabela : java.util.List.of("movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "melhor_envio_conexao", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "foto_rascunho", "custo_personalizado","planejamento_producao","falha_producao","venda_calculo","calculo_foto","item_calculo_historico","calculo_historico","peca","filamento","impressora","configuracao","embalagem"))
             jdbcTemplate.update("DELETE FROM " + tabela + " WHERE tenant_id = ?",tenant);
         usuarioRepository.deleteById(usuario.getId());SecurityContextHolder.clearContext();tenantRepository.deleteById(tenant);
     }

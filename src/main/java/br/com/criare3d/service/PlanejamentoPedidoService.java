@@ -27,7 +27,7 @@ public class PlanejamentoPedidoService {
    var livre=anterior?new InicioLivre(fila.get(i.getImpressoraId()),""):inicioLivre(p,i.getImpressoraId());
    var cursor=anterior?fila.get(i.getImpressoraId()):livre.horario();
    String motivo=anterior?"Após a impressão anterior deste orçamento.":livre.motivo();
-   var r=entradas.ler(i.getEntradaJson(),i.getProduzir());
+   var r=entradas.ler(i,i.getProduzir());
    // Aquecimento foi preservado na fotografia do cálculo dentro da entrada do orçamento.
    var agenda=AgendaPedido.de(p.getTurnoInicio(),p.getTurnoFim(),p.getDias());
    var previsao=agenda.prever(cursor,r.getTempoImpressaoMinutos(),i.getAquecimento(),i.getProduzir(),r.getPecasPorImpressao(),p.getIntervalo(),p.getFolga());
@@ -49,7 +49,7 @@ public class PlanejamentoPedidoService {
  }
  private record InicioLivre(LocalDateTime horario,String motivo) {}
  public void programar(PedidoOrcamento p,ItemPedido i,CalculoHistorico calculo) {
-  var r=entradas.ler(i.getEntradaJson(),i.getProduzir());
+  var r=entradas.ler(i,i.getProduzir());
   var previa=AgendaPedido.de(p.getTurnoInicio(),p.getTurnoFim(),p.getDias()).prever(inicioLivre(p,i.getImpressoraId()).horario(),r.getTempoImpressaoMinutos(),i.getAquecimento(),i.getProduzir(),r.getPecasPorImpressao(),p.getIntervalo(),p.getFolga());
   var plano=new PlanejamentoProducao();plano.setCalculo(calculo);plano.setImpressora(calculo.getImpressora());plano.setNomePeca(i.getNome());plano.setNomeImpressora(calculo.getNomeImpressora());
   plano.setUnidades(i.getProduzir());plano.setPecasPorImpressao(r.getPecasPorImpressao());plano.setIntervalo(p.getIntervalo());plano.setFolga(p.getFolga());plano.setInicio(previa.inicio());plano.setFim(previa.fim());

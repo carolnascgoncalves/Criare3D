@@ -84,8 +84,9 @@
   document.querySelectorAll('[name="revisao"]').forEach(no=>no.value=dados.revisao);
   for(const i of dados.itens||[]){const artigo=document.querySelector('[data-item-id="'+i.id+'"]');if(!artigo)continue;const total=artigo.querySelector('[data-item-total]');if(total)total.textContent='Subtotal: '+moeda(i.total);const origem=artigo.querySelector('[data-item-origem]');if(origem)origem.textContent=i.estoque+' do estoque · '+i.produzir+' a produzir';}
  }
+ function formularioPronto(form){return [...form.elements].every(c=>!c.willValidate||c.validity.valid);}
  function salvar(form){
-  if(!form.isConnected||!form.checkValidity()){sujos.add(form);return;}
+  if(!form.isConnected||!formularioPronto(form)){sujos.add(form);return;}
   sujos.delete(form);const edicao=edicoes.get(form);const corpo=new FormData(form);pendentes++;status('Salvando…');
   fila=fila.then(async()=>{
    try{
@@ -111,11 +112,11 @@
   if(e.target.matches?.('[data-pedido-titulo]')){const form=e.target.closest('form'),titulo=form.querySelector('[name="titulo"]');titulo.value=e.target.value;}
   const form=formDo(e.target);if(form){sujos.add(form);edicoes.set(form,(edicoes.get(form)||0)+1);
    if(form.dataset.etapa==='2'&&['inicioPretendido','turnoInicio','turnoFim','dias','intervalo','folga'].includes(e.target.name)){
-    clearTimeout(temporizadores.get(form));temporizadores.set(form,setTimeout(()=>{if(form.isConnected&&form.checkValidity()){automaticos.add(form);form.requestSubmit();}},400));
+    clearTimeout(temporizadores.get(form));temporizadores.set(form,setTimeout(()=>{if(form.isConnected&&formularioPronto(form)){automaticos.add(form);form.requestSubmit();}},400));
    }
   }
  });
- document.addEventListener('change',e=>{const form=formDo(e.target);if(form?.dataset.autosaveUrl&&form.checkValidity()){clearTimeout(temporizadores.get(form));automaticos.add(form);form.requestSubmit();}});
+ document.addEventListener('change',e=>{const form=formDo(e.target);if(form?.dataset.autosaveUrl&&formularioPronto(form)){clearTimeout(temporizadores.get(form));automaticos.add(form);form.requestSubmit();}});
  async function terminar(){
   do {
    for(const form of [...sujos]){if(!form.isConnected){sujos.delete(form);continue;}if(!form.checkValidity()){form.reportValidity();return false;}salvar(form);}

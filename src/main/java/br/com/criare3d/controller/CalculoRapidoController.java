@@ -36,9 +36,9 @@ public class CalculoRapidoController {
         resposta.setHeader("Cache-Control", "no-store");
         return new ModelAndView("calculo-rapido/index")
                 .addObject("configuracao",configuracoes.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar))
-                .addObject("filamentos",filamentos.findByArquivadoFalse(PageRequest.of(0,1000)).getContent())
-                .addObject("impressoras",impressoras.findByArquivadoFalse(PageRequest.of(0,1000)).getContent())
-                .addObject("embalagens",embalagens.findByArquivadoFalse(PageRequest.of(0,1000)).getContent());
+                .addObject("filamentos",filamentos.findByArquivadoFalse(PageRequest.of(0,20)).getContent())
+                .addObject("impressoras",impressoras.findByArquivadoFalse(PageRequest.of(0,20)).getContent())
+                .addObject("embalagens",embalagens.findByArquivadoFalse(PageRequest.of(0,20)).getContent());
     }
     @PostMapping @ResponseBody
     public ResponseEntity<?> calcular(@Valid @ModelAttribute("consulta") CalculoRequest consulta, BindingResult erros,

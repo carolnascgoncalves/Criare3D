@@ -25,6 +25,7 @@ import java.util.Set;
 public class FilamentoServiceImp implements FilamentoService {
 
     @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
+    @org.springframework.beans.factory.annotation.Autowired private MovimentacaoService movimentos;
     private final FilamentoRepository filamentoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
@@ -43,7 +44,9 @@ public class FilamentoServiceImp implements FilamentoService {
             filamento.setEstoqueGramas(filamento.getPesoRoloGramas());
         }
         filamento.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
-        return filamentoRepository.save(filamento);
+        var salvo=filamentoRepository.save(filamento);
+        if(movimentos!=null)movimentos.registrar("SALDO_INICIAL",salvo.getNome()+" · "+salvo.getCor(),salvo.getEstoqueGramas(),"g","filamento",salvo.getId());
+        return salvo;
     }
 
     @Override
@@ -64,8 +67,11 @@ public class FilamentoServiceImp implements FilamentoService {
             if (patch.getPesoRoloGramas() != null)
                 existing.setPesoRoloGramas(patch.getPesoRoloGramas());
 
-            if (patch.getEstoqueGramas() != null)
+            if (patch.getEstoqueGramas() != null) {
+                var antes=existing.getEstoqueGramas()==null?BigDecimal.ZERO:existing.getEstoqueGramas();
                 existing.setEstoqueGramas(patch.getEstoqueGramas());
+                if(movimentos!=null)movimentos.registrar("AJUSTE",existing.getNome()+" · "+existing.getCor(),patch.getEstoqueGramas().subtract(antes),"g","filamento",id);
+            }
 
             if (patch.getPrecoRolo() != null)
                 existing.setPrecoRolo(patch.getPrecoRolo());
@@ -200,6 +206,7 @@ public class FilamentoServiceImp implements FilamentoService {
                 .divide(estoqueNovo, 12, java.math.RoundingMode.HALF_UP);
 
         filamento.setEstoqueGramas(estoqueNovo);
+        if(movimentos!=null)movimentos.registrar("COMPRA",filamento.getNome()+" · "+filamento.getCor(),gramasAdicionadas,"g","filamento",id);
         filamento.setPesoRoloGramas(pesoNovoRolo);
         filamento.setPrecoRolo(custoMedioPorGrama.multiply(pesoNovoRolo)
                 .setScale(2, java.math.RoundingMode.HALF_UP));

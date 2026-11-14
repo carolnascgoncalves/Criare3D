@@ -144,4 +144,15 @@ class OperacaoTemplatesTest {
         dados.put("valorEmEstoque",BigDecimal.ZERO);dados.put("lucroVendidoMes",BigDecimal.ZERO);
         assertThat(renderizar("vendas-estoque/listar",dados)).contains("Tudo reservado","4 reservadas","width:100.0%");
     }
+    @Test void clientesEExtratoRenderizamSemRegistros() {
+        assertThat(renderizar("compradores/index",Map.of("comprador",new Comprador(),"pagina",new PageImpl<>(List.of()),"busca","","arquivados",false)))
+            .contains("Novo cliente","Nenhum cliente encontrado","Buscar clientes");
+        assertThat(renderizar("movimentacoes/index",Map.of("pagina",new PageImpl<>(List.of()),"busca","","tipo","","inicio",java.time.LocalDate.of(2026,11,1),"fim",java.time.LocalDate.of(2026,11,14))))
+            .contains("Extrato de movimentações","Nenhuma movimentação");
+    }
+    @Test void extratoComMovimentacaoMostraQuantidadeEOrigem() {
+        var m=new Movimentacao();m.setId(UUID.randomUUID());m.setTipo("VENDA_3D");m.setDescricao("Peça vendida");m.setQuantidade(new BigDecimal("-2"));m.setMedida("un.");m.setOrigem("lote");m.setReferencia(UUID.randomUUID());m.setData(LocalDateTime.of(2026,11,14,10,0));
+        assertThat(renderizar("movimentacoes/index",Map.of("pagina",new PageImpl<>(List.of(m)),"busca","","tipo","","inicio",java.time.LocalDate.of(2026,11,1),"fim",java.time.LocalDate.of(2026,11,14))))
+            .contains("Peça vendida","-2 un.","Ver origem","/vendas-estoque/lote/");
+    }
 }

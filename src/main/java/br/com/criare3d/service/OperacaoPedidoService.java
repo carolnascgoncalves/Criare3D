@@ -43,7 +43,7 @@ public class OperacaoPedidoService {
     i.setReservaEstoque(i.getUsarEstoque());itens.flush();
    }
    if(i.getProduzir()>0) {
-    var h=calculos.calcularComPrecoFixo(entradas.ler(i.getEntradaJson(),i.getProduzir()),i.getPrecoUnitario());
+    var h=calculos.calcularComPrecoFixo(entradas.ler(i,i.getProduzir()),i.getPrecoUnitario());
     BigDecimal custo=h.getCustoTotal().multiply(BigDecimal.valueOf(i.getProduzir()));
     if(i.getUsarEstoque()>0)custo=custo.add(i.getLoteEstoque().getCustoTotal().multiply(BigDecimal.valueOf(i.getUsarEstoque())));
     if(custo.compareTo(i.getCusto())!=0)throw new IllegalArgumentException("Os custos de "+i.getNome()+" mudaram. Volte à edição para conferir antes de aprovar.");

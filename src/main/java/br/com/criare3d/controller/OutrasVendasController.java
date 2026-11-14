@@ -31,10 +31,10 @@ public class OutrasVendasController {
     private ModelAndView pagina(ProdutoFormulario form,int paginaProdutos,int paginaVendas) {
         return new ModelAndView("outras-vendas/index").addObject("produtoFormulario",form)
             .addObject("produtos",produtos.findAllByOrderByNomeAsc(PageRequest.of(Math.max(0,paginaProdutos),10)))
-            .addObject("opcoes",produtos.findByArquivadoFalseOrderByNomeAsc(PageRequest.of(0,1000)).getContent())
+            .addObject("opcoes",produtos.findByArquivadoFalseOrderByNomeAsc(PageRequest.of(0,20)).getContent())
             .addObject("vendas",vendas.findAllByOrderByDataVendaDesc(PageRequest.of(Math.max(0,paginaVendas),20)))
             .addObject("hoje",LocalDate.now(clock))
-            .addObject("embalagens",embalagens.findByArquivadoFalse(PageRequest.of(0,1000)).getContent());
+            .addObject("embalagens",embalagens.findByArquivadoFalse(PageRequest.of(0,20)).getContent());
     }
     @GetMapping public ModelAndView abrir(@RequestParam(required=false) UUID editar,
             @RequestParam(defaultValue="0") int paginaProdutos,@RequestParam(defaultValue="0") int paginaVendas) {
@@ -59,10 +59,16 @@ public class OutrasVendasController {
             @RequestParam @org.springframework.format.annotation.DateTimeFormat(iso=org.springframework.format.annotation.DateTimeFormat.ISO.DATE) LocalDate data,
             @RequestParam(defaultValue="SEM") br.com.criare3d.models.VendaProdutoLoja.TipoEmbalagem tipoEmbalagem,
             @RequestParam(required=false) UUID embalagemId,@RequestParam(required=false) BigDecimal valorEmbalagem,
-            @RequestParam(defaultValue="1") int quantidadeEmbalagens,
+            @RequestParam(defaultValue="1") int quantidadeEmbalagens,@RequestParam UUID chaveOperacao,
             RedirectAttributes flash) {
-        try {service.vender(produtoId,quantidade,preco,custo,data,tipoEmbalagem,embalagemId,valorEmbalagem,quantidadeEmbalagens);flash.addFlashAttribute("mensagemSucesso","Venda registrada e incluída na dashboard.");}
-        catch(IllegalArgumentException e) {flash.addFlashAttribute("mensagemErro",e.getMessage());}
+        try {service.vender(produtoId,quantidade,preco,custo,data,tipoEmbalagem,embalagemId,valorEmbalagem,quantidadeEmbalagens,chaveOperacao);flash.addFlashAttribute("mensagemSucesso","Venda registrada e incluída na dashboard.");}
+        catch(IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro",e.getMessage());
+            var tentativa=new java.util.LinkedHashMap<String,Object>();
+            tentativa.put("produtoId",produtoId);tentativa.put("quantidade",quantidade);tentativa.put("preco",preco);tentativa.put("custo",custo);tentativa.put("data",data);
+            tentativa.put("tipoEmbalagem",tipoEmbalagem);tentativa.put("embalagemId",embalagemId);tentativa.put("valorEmbalagem",valorEmbalagem);tentativa.put("quantidadeEmbalagens",quantidadeEmbalagens);tentativa.put("chaveOperacao",chaveOperacao);
+            flash.addFlashAttribute("tentativaVenda",tentativa);
+        }
         return "redirect:/outras-vendas";
     }
     @PostMapping("/venda/{id}/cancelar") public String cancelar(@PathVariable UUID id,@RequestParam int quantidade,RedirectAttributes flash) {

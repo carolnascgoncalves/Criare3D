@@ -60,13 +60,16 @@ public class OperacaoLoteController {
    .addObject("custosExtras",custosExtras).addObject("totalExtras",totalExtras)
    .addObject("vendas",registrosVenda).addObject("falhas",perdas)
    .addObject("perdaMaterial",perdas.stream().filter(f -> !f.isCancelada()).map(f -> f.getCustoMaterial()).reduce(BigDecimal.ZERO,BigDecimal::add))
-   .addObject("filamentos",filamentos.findByArquivadoFalse(PageRequest.of(0,1000)).getContent());
+   .addObject("filamentos",filamentos.findByArquivadoFalse(PageRequest.of(0,20)).getContent());
  }
  @PostMapping("/vendas-estoque/lote/{id}/vender")
  public String vender(@PathVariable UUID id,@RequestParam Integer unidades,
   @RequestParam(required=false) BigDecimal preco,@RequestParam(required=false) BigDecimal desconto,
-  @RequestParam(required=false) BigDecimal taxas,RedirectAttributes flash) {
-  ResultadoOperacao resultado = vendaService.registrarVenda(id,unidades,preco,desconto,taxas);
+  @RequestParam(required=false) BigDecimal taxas,@RequestParam UUID chaveOperacao,RedirectAttributes flash) {
+  ResultadoOperacao resultado = vendaService.registrarVenda(id,unidades,preco,desconto,taxas,chaveOperacao);
+  if(resultado!=ResultadoOperacao.OK){
+   var tentativa=new java.util.LinkedHashMap<String,Object>();tentativa.put("unidades",unidades);tentativa.put("preco",preco);tentativa.put("desconto",desconto);tentativa.put("taxas",taxas);flash.addFlashAttribute("tentativaVenda3d",tentativa);
+  }
   return resposta(id,resultado,flash,"Venda registrada.");
  }
  @PostMapping("/vendas-estoque/lote/{id}/cancelar-venda")

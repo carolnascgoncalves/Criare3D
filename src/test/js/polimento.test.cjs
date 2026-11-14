@@ -47,3 +47,12 @@ test('calendário marca ocupação parcial e seleciona o dia preservando o horá
  assert.equal(dias[19].attrs['aria-pressed'],'true');
  dias[21].eventos.click();assert.equal(input.value,'2026-11-22T08:30');assert.equal(input.alterado,true);
 });
+
+test('Registrar venda mantém produto escolhido fora das primeiras opções do catálogo',()=>{
+ const select=no('select');select.options=[];select.append=o=>select.options.push(o);select.dispatchEvent=()=>{};
+ const dialogo={querySelector:()=>select,showModal(){this.aberto=true;}};
+ const abrir={dataset:{dialogoAbrir:'vendaDialogo',produtoVender:'produto-21',produtoNome:'Produto da segunda página'}};
+ const eventos=iniciar({ids:{vendaDialogo:dialogo}});
+ eventos.click.forEach(f=>f({target:{closest:s=>s==='[data-dialogo-abrir]'?abrir:null}}));
+ assert.equal(select.value,'produto-21');assert.equal(select.options[0].textContent,'Produto da segunda página');assert.equal(dialogo.aberto,true);
+});

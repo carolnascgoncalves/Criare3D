@@ -68,6 +68,12 @@ jobs:
       - run: npm install --ignore-scripts
       - run: npx playwright install --with-deps chromium
       - run: mvn -B -ntp -DskipTests package
+      - name: Conferir fluxo completo e vendas simultâneas
+        env:
+          CRIARE_TEST_DB_URL: jdbc:postgresql://127.0.0.1:5432/criare3d_e2e
+          CRIARE_TEST_DB_USER: postgres
+          CRIARE_TEST_DB_PASSWORD: postgres
+        run: mvn -B -ntp -Dcriare.integration=true -Dtest=ConsolidacaoIntegrationTest test
       - name: Iniciar aplicação de teste
         run: |
           java -jar target/criare3d-0.0.1-SNAPSHOT.jar > target/e2e-app.log 2>&1 &

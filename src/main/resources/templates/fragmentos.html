@@ -15,6 +15,7 @@
           th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}">
 
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
+    <link th:href="@{/css/navegacao.css}" rel="stylesheet" data-turbo-track="reload">
     <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
     <link th:href="@{/css/componentes.css}" rel="stylesheet" data-turbo-track="reload">
     <link th:if="${paginaAtiva == 'simulacao' or paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
@@ -30,6 +31,7 @@
     <script th:src="@{/js/dashboardCharts.js}" defer></script>
     <script th:src="@{/js/menuLateral.js}" defer></script>
     <script th:src="@{/js/polimento.js}" defer></script>
+    <script th:src="@{/js/catalogoBusca.js}" defer></script>
     <script th:src="@{/js/menuConta.js}" defer></script>
 
     <script th:src="@{/js/placeholders.js}" defer></script>
@@ -40,6 +42,7 @@
     <script th:src="@{/js/vendasEstoque.js}" defer></script>
     <script th:src="@{/js/restaurarRolagem.js}" defer></script>
     <script th:src="@{/js/validacaoInline.js}" defer></script>
+    <script th:src="@{/js/formularioEstado.js}" defer></script>
     <script th:src="@{/js/calculoEtapas.js}" defer></script>
     <script th:src="@{/js/modelosImpressora.js}" defer></script>
     <script th:src="@{/js/compraFilamento.js}" defer></script>
@@ -103,6 +106,7 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Comercial">
             <span class="menu-lateral-titulo">Comercial</span>
+<a th:href="@{/compradores}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva=='compradores'?' menu-link-ativo':''}"><i class="bi bi-people" aria-hidden="true"></i><span>Clientes</span></a>
             <a th:href="@{/orcamentos}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'orcamentos' ? ' menu-link-ativo' : ''}" title="Orçamentos e pedidos"><i class="bi bi-file-earmark-text" aria-hidden="true"></i><span>Orçamentos e pedidos</span></a>
             <a th:href="@{/vendas-estoque}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'vendas-estoque' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'vendas-estoque' ? 'page' : null}" title="Vendas e estoque"><i class="bi bi-boxes" aria-hidden="true"></i><span>Vendas e estoque</span></a>
             <a th:href="@{/outras-vendas}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'outras-vendas' ? ' menu-link-ativo' : ''}" title="Outras vendas"><i class="bi bi-shop" aria-hidden="true"></i><span>Outras vendas</span></a>
@@ -115,13 +119,14 @@
 
         <section class="menu-lateral-grupo" th:if="${tenantDisponivel}" aria-label="Gestão">
             <span class="menu-lateral-titulo">Gestão</span>
+<a th:href="@{/movimentacoes}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva=='movimentacoes'?' menu-link-ativo':''}"><i class="bi bi-arrow-left-right" aria-hidden="true"></i><span>Movimentações</span></a>
             <a th:href="@{/custos-loja}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'custos-loja' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'custos-loja' ? 'page' : null}" title="Custos extras"><i class="bi bi-receipt" aria-hidden="true"></i><span>Custos extras</span></a>
             <a th:href="@{/configuracao}" class="menu-link menu-lateral-link menu-configuracoes" th:classappend="${paginaAtiva == 'configuracao' ? ' menu-link-ativo' : ''}" title="Configurações"><i class="bi bi-gear" aria-hidden="true"></i><span>Configurações</span></a>
         </section>
 
         <section class="menu-lateral-grupo" sec:authorize="hasRole('ADMIN')" aria-label="Administração">
             <span class="menu-lateral-titulo">Administração</span>
-            <a th:href="@{/clientes/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'clientes' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'clientes' ? 'page' : null}" title="Clientes"><i class="bi bi-people" aria-hidden="true"></i><span>Clientes</span></a>
+            <a th:href="@{/clientes/listar}" class="menu-link menu-lateral-link" th:classappend="${paginaAtiva == 'clientes' ? ' menu-link-ativo' : ''}" th:attr="aria-current=${paginaAtiva == 'clientes' ? 'page' : null}" title="Empresas e acessos"><i class="bi bi-building" aria-hidden="true"></i><span>Empresas e acessos</span></a>
         </section>
     </div>
 

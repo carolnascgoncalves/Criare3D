@@ -52,6 +52,9 @@ public class CalculoRequest {
     private Long tempoTrabalhoMinutos;
 
     private UUID embalagemId;
+    private UUID referenciaCustosHistoricos;
+    private CustosPreservados custosPreservados;
+    private boolean precosAtuaisNoOrcamento;
 
     @DecimalMin(value="0.0", message="O valor da embalagem não pode ser negativo.")
     @jakarta.validation.constraints.DecimalMax(value="99999999", message="O valor da embalagem é muito alto.")

@@ -12,6 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class VendaService {
+    @org.springframework.beans.factory.annotation.Autowired private IdempotenciaService idempotencia;
+    public ResultadoOperacao registrarVenda(UUID id,Integer unidades,BigDecimal preco,BigDecimal desconto,BigDecimal taxas,UUID chave) {
+        return ResultadoOperacao.valueOf(idempotencia.executar(chave,"VENDA_3D",Arrays.asList(id,unidades,preco,desconto,taxas).toString(),()->registrarVenda(id,unidades,preco,desconto,taxas).name()));
+    }
+    @org.springframework.beans.factory.annotation.Autowired private MovimentacaoService movimentos;
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
@@ -83,6 +88,7 @@ public class VendaService {
         venda.setLucroUnitario(precoAplicado.subtract(descontoAplicado).subtract(taxasAplicadas)
                 .subtract(calculo.getCustoTotal()));
         vendaCalculoRepository.save(venda);
+        if(movimentos!=null)movimentos.registrar("VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(unidades).negate(),"un.","lote",id);
 
         int totalVendido = vendidas + unidades;
         calculo.setUnidadesVendidas(totalVendido);
@@ -100,6 +106,8 @@ public class VendaService {
         var registros = vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(id);
         if (registros.stream().anyMatch(v -> v.getPedidoId()!=null && v.getUnidadesAtivas()>0)) return ResultadoOperacao.PEDIDO_VINCULADO;
         for (VendaCalculo venda : registros) {
+            int devolvidas=venda.getUnidadesAtivas();
+            if(movimentos!=null)movimentos.registrar("CANCELAR_VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(devolvidas),"un.","lote",id);
             venda.setUnidadesCanceladas(venda.getUnidades());
             venda.setDataCancelamento(LocalDateTime.now(clock));
         }
@@ -128,6 +136,7 @@ public class VendaService {
         if (venda.getPedidoId()!=null && !peloPedido) return ResultadoOperacao.PEDIDO_VINCULADO;
         if (unidades == null || unidades < 1 || unidades > venda.getUnidadesAtivas()) return ResultadoOperacao.QUANTIDADE_VENDA_INVALIDA;
         venda.setUnidadesCanceladas(venda.getUnidadesCanceladas() + unidades);
+        if(movimentos!=null)movimentos.registrar("CANCELAR_VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(unidades),"un.","lote",calculoId);
         venda.setDataCancelamento(LocalDateTime.now(clock));
         recalcularVendas(calculo);
         return ResultadoOperacao.OK;

@@ -144,7 +144,7 @@
         }
         const abrir=e.target.closest('[data-dialogo-abrir]');
         if(abrir){const d=document.getElementById(abrir.dataset.dialogoAbrir);if(!d)return;
-            if(abrir.dataset.produtoVender){const s=d.querySelector('[name=produtoId]');if(s){s.value=abrir.dataset.produtoVender;s.dispatchEvent(new Event('change',{bubbles:true}));}}
+            if(abrir.dataset.produtoVender){const s=d.querySelector('[name=produtoId]');if(s){if(![...s.options].some(o=>o.value===abrir.dataset.produtoVender)){const o=document.createElement('option');o.value=abrir.dataset.produtoVender;o.textContent=abrir.dataset.produtoNome||'Produto selecionado';s.append(o);}s.value=abrir.dataset.produtoVender;s.dispatchEvent(new Event('change',{bubbles:true}));}}
             d.showModal();
         }
         e.target.closest('[data-dialogo-fechar]')?.closest('dialog')?.close();
