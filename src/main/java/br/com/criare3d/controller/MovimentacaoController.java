@@ -62,10 +62,10 @@ public class MovimentacaoController  {
         var pagina=movimentos.extrato(de,ate,tipo,direcao,saldo,busca,filamento,PageRequest.of(Math.max(0,page),30,Sort.by(Sort.Direction.DESC,"data","id")));
         var resumo=movimentos.resumo(de,ate,tipo,direcao,saldo,busca,filamento);
         var entrou=resumo.stream().filter(r->r.getEntrou()!=null).map(r->FormatoQuantidade.resumido(r.getEntrou(),r.getMedida(),true)).collect(Collectors.joining(" · "));
-        var saiu=resumo.stream().filter(r->r.getSaiu()!=null).map(r->FormatoQuantidade.resumido(r.getSaiu(),r.getMedida(),false)).collect(Collectors.joining(" · "));
+        var saiu=resumo.stream().filter(r->"g".equals(r.getMedida()) && r.getSaiu()!=null).map(r->FormatoQuantidade.resumido(r.getSaiu(),r.getMedida(),false)).collect(Collectors.joining(" · "));
         var mv=new ModelAndView("movimentacoes/index").addObject("inicio",inicio).addObject("fim",fim).addObject("tipo",tipo).addObject("direcao",direcao).addObject("busca",busca).addObject("saldo",saldo)
             .addObject("filamento",filamento).addObject("filamentoSelecionado",filamento==null?null:filamentos.findById(filamento).orElseThrow()).addObject("pagina",pagina).addObject("grupos",agrupar(pagina.getContent(),hoje)).addObject("tipos",Arrays.stream(TipoMovimentacao.values()).filter(t->t!=TipoMovimentacao.OUTRO).toList())
-            .addObject("resumoEntrou",entrou.isEmpty()?"—":entrou).addObject("resumoSaiu",saiu.isEmpty()?"—":saiu).addObject("atalhos",atalhos(hoje,inicio,fim));
+            .addObject("pecasVendidas",movimentos.pecasVendidas(de,ate,tipo,direcao,saldo,busca,filamento)).addObject("resumoEntrou",entrou.isEmpty()?"—":entrou).addObject("resumoSaiu",saiu.isEmpty()?"—":saiu).addObject("atalhos",atalhos(hoje,inicio,fim));
         if(!saldo) {
             var abertura=movimentos.saldoAbertura(de,ate,filamento,busca);
             if(abertura!=null && abertura.getTotal()>0)mv.addObject("aberturaTotal",abertura.getTotal()).addObject("aberturaGramas",FormatoQuantidade.resumido(abertura.getGramas(),"g",false));

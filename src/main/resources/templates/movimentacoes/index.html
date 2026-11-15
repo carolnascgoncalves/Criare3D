@@ -15,6 +15,7 @@
 <input type="hidden" name="inicio" th:value="${inicio}"><input type="hidden" name="fim" th:value="${fim}"><input type="hidden" name="tipo" th:value="${tipo}"><input type="hidden" name="direcao" th:value="${direcao}"><input type="hidden" name="saldo" th:value="${saldo}"><input type="hidden" name="filamento" th:value="${filamento}">
 <button type="submit" class="busca-enviar" aria-label="Pesquisar movimentações"><i class="bi bi-arrow-return-left" aria-hidden="true"></i></button>
 </form>
+<a class="botao botao-secundario extrato-limpar" th:href="@{/movimentacoes}">Limpar</a>
 
 <div class="extrato-chips" role="group" aria-label="Entradas e saídas">
 <a class="extrato-chip" th:classappend="${#strings.isEmpty(direcao) and tipo!='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},busca=${busca},saldo=${saldo},filamento=${filamento})}">Todos</a>
@@ -38,7 +39,7 @@
 <section class="extrato-resumo" aria-label="Resumo do período">
 <div><span>Entrou no estoque</span><strong class="entrada" th:text="${resumoEntrou}">—</strong></div>
 <div><span>Saiu do estoque</span><strong class="saida" th:text="${resumoSaiu}">—</strong></div>
-<div><span>Movimentações no período</span><strong th:text="${pagina.totalElements}">0</strong></div>
+<div><span>Peças vendidas</span><strong th:text="|${#numbers.formatInteger(pecasVendidas,1,'POINT')} un.|">0 un.</strong></div>
 </section>
 
 <section class="cartao extrato-lista">
@@ -46,8 +47,8 @@
 <th:block th:each="g:${grupos}">
 <h2 class="extrato-dia" th:text="${g.titulo}"></h2>
 <article class="extrato-linha" th:each="m:${g.itens}">
-<span class="extrato-icone" th:classappend="${m.direcao}"><i class="bi" th:classappend="${m.tipoInfo.icone}" aria-hidden="true"></i></span>
-<div class="extrato-texto"><strong th:text="${m.descricao}"></strong><span><em class="extrato-tag" th:text="${m.tipoInfo.rotulo}"></em><time th:datetime="${m.data}" th:text="${#temporals.format(m.data,'HH:mm')}"></time></span><small th:if="${m.saldoApos!=null}" th:text="|Saldo após: ${#numbers.formatDecimal(m.saldoApos,1,'POINT',3,'COMMA')} g|"></small></div>
+<span class="extrato-icone" th:classappend="${m.corIconeExtrato}"><i class="bi" th:classappend="${m.iconeExtrato}" aria-hidden="true"></i></span>
+<div class="extrato-texto"><div class="extrato-titulo"><strong th:text="${m.tituloExtrato}"></strong><em class="extrato-tag" th:text="${m.tipoInfo.rotulo}"></em></div><span><span th:text="${m.detalheExtrato}"></span><span aria-hidden="true">·</span><time th:datetime="${m.data}" th:text="${#temporals.format(m.data,'HH:mm')}"></time></span><small th:if="${m.saldoApos!=null}" th:text="|Saldo após: ${#numbers.formatDecimal(m.saldoApos,1,'POINT',3,'COMMA')} g|"></small></div>
 <span class="extrato-qtd" th:classappend="${m.direcao}" th:title="${m.quantidadeExata}" th:text="${m.quantidadeTexto}"></span>
 <a class="extrato-origem" th:if="${m.linkOrigem!=null}" th:href="@{${m.linkOrigem}}" aria-label="Ver origem" title="Ver origem"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
 </article>

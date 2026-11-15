@@ -34,8 +34,10 @@
 .extrato-dia { margin: 0; padding: 10px 14px; background: var(--fundo-suave); color: var(--marrom-claro); font-size: .8rem; font-weight: 500; }
 .extrato-linha { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-bottom: 1px solid var(--borda); }
 .extrato-icone { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%; background: var(--fundo-suave); color: var(--marrom-claro); font-size: 1.05rem; }
-.extrato-icone.entrada { background: var(--fundo-sucesso); color: var(--cor-sucesso); }
-.extrato-icone.saida { background: var(--fundo-erro); color: var(--cor-erro); }
+.extrato-icone.entrada { background: #ccebc9; color: #087b16; }
+.extrato-icone.saida { background: #fad4d4; color: #b52222; }
+.extrato-icone.ajuste { background: #fbdba0; color: #80520c; }
+.extrato-titulo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
 .extrato-texto { display: grid; flex: 1 1 auto; gap: 3px; min-width: 0; }
 .extrato-texto strong { color: var(--marrom); overflow-wrap: anywhere; }
 .extrato-texto > small { color: var(--marrom-claro); font-size: .8rem; }
@@ -106,6 +108,7 @@
 .pagina-clientes .botao, .pagina-extrato .botao { min-height: 36px; padding: 7px 14px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); color: var(--marrom); font-size: 13px; font-weight: 500; line-height: 20px; white-space: nowrap; }
 .pagina-clientes .botao:hover, .pagina-extrato .botao:hover { background: var(--fundo-suave); border-color: var(--destaque); transform: none; }
 .extrato-pesquisa { display: flex; align-items: center; gap: 8px; }
+.extrato-limpar { flex: 0 0 auto; }
 .extrato-pesquisa > .extrato-chips { flex: 0 0 auto; flex-wrap: nowrap; }
 .extrato-avancados > summary { width: fit-content; color: var(--marrom-claro); font-size: 12px; cursor: pointer; }
 .extrato-avancados[open] { padding: 12px; border: 1px solid var(--borda); border-radius: 8px; background: var(--superficie); }

@@ -159,7 +159,7 @@ class OperacaoTemplatesTest {
         assertThat(renderizar("compradores/index",clientes))
             .contains("Novo cliente","Nenhum cliente encontrado","Buscar clientes","Cadastre o primeiro cliente","data-clientes-limpar");
         assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of())))
-            .contains("Extrato de movimentações","Nenhuma movimentação");
+            .contains("Extrato de movimentações","Nenhuma movimentação","extrato-limpar","href=\"/movimentacoes\">Limpar</a>");
     }
     @Test void clientesMostramContatoResumoEAcoes() {
         var c=new Comprador();c.setId(UUID.randomUUID());c.setNome("Carolina Nascimento");c.setTelefone("11945414013");c.setEmail("carol@example.com");
@@ -175,6 +175,23 @@ class OperacaoTemplatesTest {
         assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of(m))))
             .contains("Peça vendida","-2 un.","Venda","Hoje · 14 de novembro","Ver origem","/vendas-estoque/lote/");
     }
+    @Test void extratoSeparaFilamentoDaPecaEMostraTipoJuntoAoTitulo() {
+        var m=new Movimentacao();m.setTipo("PRODUCAO");m.setDescricao("PLA · Branco - Porta-chaves coração");
+        m.setQuantidade(new BigDecimal("-86"));m.setMedida("g");m.setData(LocalDateTime.of(2026,11,14,10,42));
+        var html=renderizar("movimentacoes/index",modeloExtrato(List.of(m)));
+        assertThat(html).contains("bi-arrow-up-right","extrato-titulo","<strong>PLA · Branco</strong>","Porta-chaves coração","10:42","Peças vendidas")
+            .doesNotContain("PLA · Branco - Porta-chaves coração","Movimentações no período");
+        for (String separador : List.of(" — ", " – ")) {
+            m.setDescricao("PLA · Amarelo" + separador + "Flexi Skeleton T-Rex dinosaur (Tiny & XL Size)");
+            var dados=modeloExtrato(List.of(m));dados.put("pecasVendidas",new BigDecimal("2.000000"));
+            assertThat(renderizar("movimentacoes/index",dados))
+                .contains("<strong>PLA · Amarelo</strong>","<span>Flexi Skeleton T-Rex dinosaur (Tiny &amp; XL Size)</span>","<strong>2 un.</strong>")
+                .doesNotContain("2.000000");
+        }
+        m.setTipo("AJUSTE");
+        assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of(m)))).contains("extrato-icone ajuste","bi-sliders","Correção manual");
+    }
+
     @Test void extratoMostraGramasGrandesEmQuilos() {
         var m=new Movimentacao();m.setId(UUID.randomUUID());m.setTipo("COMPRA");m.setDescricao("PLA · Branco");m.setQuantidade(new BigDecimal("1000"));m.setMedida("g");m.setOrigem("filamento");m.setReferencia(UUID.randomUUID());m.setData(LocalDateTime.of(2026,11,14,9,15));
         assertThat(renderizar("movimentacoes/index",modeloExtrato(List.of(m)))).contains("+1,00 kg","Compra","+1.000,000 g");

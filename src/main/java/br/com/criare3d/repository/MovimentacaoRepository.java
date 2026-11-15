@@ -32,6 +32,9 @@ public interface MovimentacaoRepository extends JpaRepository<Movimentacao,UUID>
     @Query("select count(m) as total, sum(m.quantidade) as gramas from Movimentacao m where m.tipo='SALDO_INICIAL' and m.medida='g' and m.data>=:inicio and m.data<:fim and (:filamento is null or m.filamentoId=:filamento) and lower(m.descricao) like lower(concat('%',:busca,'%'))")
     SaldoAbertura saldoAbertura(@Param("inicio")LocalDateTime inicio,@Param("fim")LocalDateTime fim,@Param("filamento")UUID filamento,@Param("busca")String busca);
 
+    @Query("select coalesce(sum(-m.quantidade),0) from Movimentacao m where " + FILTRO + " and m.tipo in ('VENDA_3D','VENDA_PRODUTO','CANCELAR_VENDA_3D','CANCELAR_VENDA_PRODUTO')")
+    BigDecimal pecasVendidas(@Param("inicio")LocalDateTime inicio,@Param("fim")LocalDateTime fim,@Param("tipo")String tipo,@Param("direcao")String direcao,@Param("saldo")boolean saldo,@Param("busca")String busca,@Param("filamento")UUID filamento);
+
     @Query("select min(m.data) from Movimentacao m")
     LocalDateTime primeiraData();
 }
