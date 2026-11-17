@@ -4,6 +4,30 @@
 
     let formularioInicializado = null;
     let logoutEmAndamento = false;
+    const idAtual = () => document.getElementById("rascunhoCalculoId")?.value || "";
+    const chaveRascunho = () => CHAVE_RASCUNHO + ":" + idAtual();
+    window.urlRascunhoCalculo = destino => {
+        const url = new URL(destino, window.location.href);
+        if (idAtual()) url.searchParams.set("rascunhoId", idAtual());
+        return url.pathname + url.search + url.hash;
+    };
+    window.sincronizarRascunhoCalculo = () => {
+        salvarRascunho();
+        return window.filaRascunhoCalculo?.sincronizar() || Promise.resolve();
+    };
+    function configurarUrls() {
+        if (!idAtual()) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set("rascunhoId", idAtual());
+        url.searchParams.delete("novo");
+        window.history.replaceState(window.history.state, "", url.pathname + url.search + url.hash);
+        document.querySelectorAll('a[href*="/historico/novo"],a[href*="/historico/resultado"],a[data-peca-cadastrar]').forEach(link => {
+            // Refazer tudo sempre cria outro rascunho.
+            if (new URL(link.href, window.location.href).searchParams.has("novo")) return;
+            link.href = window.urlRascunhoCalculo(link.href);
+        });
+    }
+
 
     function obterFormulario() {
         return document.getElementById("formCalculo");
@@ -25,7 +49,7 @@
 
         [...formulario.elements].forEach(campo => {
             if (
-                !campo.name ||
+                !campo.name || campo.name === "_csrf" || campo.name === "rascunhoId" ||
                 campo.name.startsWith("filamentos[") ||
                 campo.type === "file" ||
                 campo.type === "submit" ||
@@ -60,11 +84,9 @@
             }))
             : [];
 
-        sessionStorage.setItem(CHAVE_RASCUNHO, JSON.stringify({
-            campos,
-            filamentos,
-            etapa: obterEtapaAtual()
-        }));
+        const dados = {campos, filamentos, etapa: obterEtapaAtual(), atualizadoEm: Date.now()};
+        sessionStorage.setItem(chaveRascunho(), JSON.stringify(dados));
+        window.filaRascunhoCalculo?.agendar(idAtual(), dados);
     }
 
     window.salvarRascunhoCalculo = salvarRascunho;
@@ -271,7 +293,7 @@
 
             if (!confirmar) return;
 
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            sessionStorage.removeItem(chaveRascunho());
 
             window.location.assign("/historico/novo?novo=true");
         });
@@ -279,7 +301,9 @@
 
     function inicializarRascunhoCalculo() {
         if (document.getElementById("paginaResultado")) {
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            configurarUrls();
+            window.filaRascunhoCalculo?.descartar(idAtual());
+            sessionStorage.removeItem(chaveRascunho());
             return;
         }
 
@@ -293,13 +317,13 @@
         const cadastroPecaNova = parametros.has("pecaCriada");
 
         if (parametros.has("novo")) {
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            sessionStorage.removeItem(chaveRascunho());
         }
 
         // Ao reabrir um cálculo salvo para recalcular com preços atuais, os dados
         // carregados pelo servidor devem prevalecer sobre um rascunho anterior.
         if (parametros.has("editar")) {
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            sessionStorage.removeItem(chaveRascunho());
         }
 
         const respostaCalculoComErro =
@@ -308,12 +332,24 @@
         // Em uma resposta de erro, os valores do servidor são os mais recentes.
         // Não substituí-los por um rascunho antigo do sessionStorage.
         if (respostaCalculoComErro) {
-            sessionStorage.removeItem(CHAVE_RASCUNHO);
+            sessionStorage.removeItem(chaveRascunho());
         }
 
-        const salvo = respostaCalculoComErro || parametros.has("editar")
-            ? null
-            : sessionStorage.getItem(CHAVE_RASCUNHO);
+        let salvo = null;
+        if (!respostaCalculoComErro && !parametros.has("editar") && !parametros.has("novo")) {
+            let servidor;
+            try { servidor = JSON.parse(document.getElementById("rascunhoServidor")?.textContent || "null"); } catch {}
+            let local;
+            try { local = JSON.parse(sessionStorage.getItem(chaveRascunho()) || "null"); } catch {}
+            // Migração única do cache antigo, antes de os cálculos terem identificador próprio.
+            if (!local && !servidor) {
+                try { local = JSON.parse(sessionStorage.getItem(CHAVE_RASCUNHO) || "null"); } catch {}
+                sessionStorage.removeItem(CHAVE_RASCUNHO);
+            }
+            const escolhido = local && (!servidor || Number(local.atualizadoEm || 0) > Number(servidor.atualizadoEm || 0))
+                ? local : servidor;
+            salvo = escolhido ? JSON.stringify(escolhido) : null;
+        }
 
         if (salvo) {
             try {
@@ -331,7 +367,7 @@
 
             } catch (erro) {
                 console.error("Não foi possível restaurar o rascunho:", erro);
-                sessionStorage.removeItem(CHAVE_RASCUNHO);
+                sessionStorage.removeItem(chaveRascunho());
             }
         } else {
             aplicarCadastrosRecentes();
@@ -347,6 +383,7 @@
             }
         });
 
+        configurarUrls();
         salvarRascunho();
     }
 
@@ -355,13 +392,26 @@
         if (event.target?.id !== "logoutForm") return;
 
         logoutEmAndamento = true;
-        sessionStorage.removeItem(CHAVE_RASCUNHO);
+        sessionStorage.removeItem(chaveRascunho());
     }, true);
 
     document.addEventListener("turbo:before-visit", salvarRascunho);
     document.addEventListener("turbo:before-cache", salvarRascunho);
     window.addEventListener("pagehide", salvarRascunho);
 
+    document.addEventListener("click", async evento => {
+        const link = evento.target.closest?.('a[data-peca-cadastrar]');
+        if (!link || !obterFormulario() || evento.ctrlKey || evento.metaKey || evento.button > 0) return;
+        evento.preventDefault();
+        try {
+            await window.sincronizarRascunhoCalculo();
+            const destino = window.urlRascunhoCalculo(link.href);
+            if (window.Turbo) window.Turbo.visit(destino); else window.location.assign(destino);
+        } catch {
+            window.mostrarNotificacao?.("Não foi possível salvar o rascunho. Tente novamente antes de sair do cálculo.", "erro");
+        }
+    }, true);
+    window.addEventListener("pagehide", () => { window.filaRascunhoCalculo?.sincronizar().catch(() => {}); });
     configurarBotaoRefazer();
 
     document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);

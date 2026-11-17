@@ -4,6 +4,9 @@ import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.models.Filamento;
 import br.com.criare3d.models.Impressora;
 import br.com.criare3d.service.CatalogoModelosImpressora;
+import br.com.criare3d.service.EstimativaUsoImpressoraService;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
+import java.time.Clock;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
@@ -30,12 +33,15 @@ class CatalogoCadastroRapidoTest {
 
     @BeforeEach
     void preparar() {
+        var uso = new EstimativaUsoImpressoraService(mock(CalculoHistoricoRepository.class), Clock.systemUTC());
         var controller = new CatalogoCadastroRapidoController();
+        ReflectionTestUtils.setField(controller, "estimativaUso", uso);
         ReflectionTestUtils.setField(controller, "filamentos", filamentos);
         ReflectionTestUtils.setField(controller, "impressoras", impressoras);
         ReflectionTestUtils.setField(controller, "embalagens", embalagens);
         ReflectionTestUtils.setField(controller, "modelosImpressora", new CatalogoModelosImpressora());
         var opcoes = new CatalogoOpcoesController();
+        ReflectionTestUtils.setField(opcoes, "estimativaUso", uso);
         ReflectionTestUtils.setField(opcoes, "modelosImpressora", new CatalogoModelosImpressora());
         mvc = MockMvcBuilders.standaloneSetup(controller, opcoes).build();
     }
@@ -96,6 +102,37 @@ class CatalogoCadastroRapidoTest {
         mvc.perform(post("/catalogo-opcoes/cadastro/impressora").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"nome\":\"Principal\",\"modelo\":\"Bambu Lab A1\",\"potenciaWatts\":999}"))
             .andExpect(status().isCreated()).andExpect(jsonPath("$.atributos.potencia").value(95));
+    }
+
+    @Test
+    void cadastroPersisteEstimativasAutomaticasEPreservaAjustesManuais() throws Exception {
+        when(impressoras.create(any())).thenAnswer(chamada -> {
+            Impressora impressora = chamada.getArgument(0);
+            impressora.setId(UUID.randomUUID());
+            return impressora;
+        });
+        mvc.perform(post("/catalogo-opcoes/cadastro/impressora").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"nome\":\"Principal\",\"modelo\":\"Bambu Lab A1\"}"))
+            .andExpect(status().isCreated());
+        mvc.perform(post("/catalogo-opcoes/cadastro/impressora").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"nome":"Secundária","modelo":"Bambu Lab P1S","vidaUtilHoras":4500,
+                     "horasMensaisUso":80,"horasMensaisManual":true}
+                    """))
+            .andExpect(status().isCreated());
+        var captor = org.mockito.ArgumentCaptor.forClass(Impressora.class);
+        verify(impressoras, times(2)).create(captor.capture());
+        var automatico = captor.getAllValues().get(0);
+        org.assertj.core.api.Assertions.assertThat(automatico.getVidaUtilHoras()).isEqualByComparingTo("3000");
+        org.assertj.core.api.Assertions.assertThat(automatico.getHorasMensaisUso()).isEqualByComparingTo("100");
+        org.assertj.core.api.Assertions.assertThat(automatico.getHorasMensaisManual()).isFalse();
+        var manual = captor.getAllValues().get(1);
+        org.assertj.core.api.Assertions.assertThat(manual.getVidaUtilHoras()).isEqualByComparingTo("4500");
+        org.assertj.core.api.Assertions.assertThat(manual.getHorasMensaisUso()).isEqualByComparingTo("80");
+        org.assertj.core.api.Assertions.assertThat(manual.getHorasMensaisManual()).isTrue();
+        mvc.perform(get("/catalogo-opcoes/impressora/estimativa-uso").param("modelo", "Bambu Lab A1"))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.horasMensais").value(100))
+            .andExpect(jsonPath("$.horasAteSubstituicao").value(3000));
     }
 
     @Test

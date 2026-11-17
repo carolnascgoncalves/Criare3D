@@ -3,6 +3,7 @@ package br.com.criare3d.controller;
 import br.com.criare3d.models.*;
 import br.com.criare3d.dto.CatalogoOpcaoMapper;
 import br.com.criare3d.service.CatalogoModelosImpressora;
+import br.com.criare3d.service.EstimativaUsoImpressoraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -19,6 +20,15 @@ public class CatalogoOpcoesController {
     private EntityManager em;
     @Autowired
     private CatalogoModelosImpressora modelosImpressora;
+
+    @Autowired
+    private EstimativaUsoImpressoraService estimativaUso;
+
+    @GetMapping("/impressora/estimativa-uso")
+    public EstimativaUsoImpressoraService.Estimativa estimativaUso(@RequestParam String modelo,
+                                                                  @RequestParam(required = false) UUID impressoraId) {
+        return estimativaUso.estimar(modelo, impressoraId);
+    }
 
     @GetMapping("/modelos-impressora")
     public List<CatalogoModelosImpressora.Modelo> modelosImpressora() {

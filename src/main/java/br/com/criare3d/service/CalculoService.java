@@ -1,6 +1,7 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.calculo.ResultadoCalculo;
 import br.com.criare3d.models.*;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.service.interfaces.*;
@@ -70,6 +71,19 @@ public class CalculoService {
      * Entradas da consulta são totais do conjunto, rateadas apenas para exibir a média unitária.
      */
     public CalculoHistorico calcularAvulsoTotais(CalculoRequest request, String nome, int placas) {
+        var contexto = prepararAvulsoTotais(request, nome, placas);
+        var h = CalculoMapper.historico(contexto.resultado(), contexto.peca(), contexto.impressora(),
+            contexto.filamentos(), contexto.embalagem(), contexto.extras());
+        h.setPeca(null);
+        if (contexto.nomeEmbalagem() != null) h.setNomeEmbalagem(contexto.nomeEmbalagem());
+        return h;
+    }
+
+    public ResultadoCalculo preverAvulsoTotais(CalculoRequest request, String nome, int placas) {
+        return prepararAvulsoTotais(request, nome, placas).resultado();
+    }
+
+    private Contexto prepararAvulsoTotais(CalculoRequest request, String nome, int placas) {
         if (placas < 1 || placas > 1000000)
             throw new IllegalArgumentException("Informe até 1.000.000 de impressões no lote.");
         if (request.getUnidades() == null || request.getUnidades() < 1 || request.getUnidades() > 10000)
@@ -88,9 +102,7 @@ public class CalculoService {
                 BigDecimal.valueOf(request.getUnidades()), 8, java.math.RoundingMode.HALF_UP));
         }
         request.setPecasPorImpressao(request.getUnidades());
-        var resultado = calcularDados(request, peca, true, placas);
-        resultado.setPeca(null);
-        return resultado;
+        return prepararDados(request, peca, true, placas);
     }
 
     private CalculoHistorico calcularDados(CalculoRequest request, Peca peca) {
@@ -101,7 +113,24 @@ public class CalculoService {
         return calcularDados(request, peca, tempoPorPlaca, 0);
     }
 
+    public ResultadoCalculo prever(CalculoRequest request) {
+        CalculoValidador.validarRequisicao(request);
+        var peca = pecaService.fetchById(request.getPecaId()).orElseThrow(() -> new IllegalArgumentException("Peça não encontrada"));
+        return prepararDados(request, peca, false, 0).resultado();
+    }
+
+    private record Contexto(ResultadoCalculo resultado, Peca peca, Impressora impressora,
+        Map<UUID, Filamento> filamentos, Embalagem embalagem, List<CustoLoja> extras, String nomeEmbalagem) {}
+
     private CalculoHistorico calcularDados(CalculoRequest request, Peca peca, boolean tempoPorPlaca, int placasConsulta) {
+        var contexto = prepararDados(request, peca, tempoPorPlaca, placasConsulta);
+        var historico = CalculoMapper.historico(contexto.resultado(), contexto.peca(), contexto.impressora(),
+            contexto.filamentos(), contexto.embalagem(), contexto.extras());
+        if (contexto.nomeEmbalagem() != null) historico.setNomeEmbalagem(contexto.nomeEmbalagem());
+        return historico;
+    }
+
+    private Contexto prepararDados(CalculoRequest request, Peca peca, boolean tempoPorPlaca, int placasConsulta) {
         Impressora impressora = impressoraService.fetchById(request.getImpressoraId()).orElseThrow(() -> new IllegalArgumentException("Impressora não encontrada"));
         Configuracao configuracao = configuracaoService.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar);
         if (placasConsulta > 0 && request.getEmbalagemId() != null && request.getCustoEmbalagemPersonalizada() == null) {
@@ -137,9 +166,10 @@ public class CalculoService {
             nomeEmbalagem = base.embalagem();
         }
         Embalagem embalagem = Boolean.TRUE.equals(configuracao.getEmbalagemFixa()) ? null : embalagemService.fetchById(request.getEmbalagemId()).orElseThrow(() -> new IllegalArgumentException("Embalagem não encontrada"));
-        var resultado = new MotorCalculo(calculoPlataformaService).calcular(request, peca, impressora, configuracao, filamentos, embalagem, manutencao, LocalDateTime.now(clock), extras, tempoPorPlaca, placasConsulta);
-        if (nomeEmbalagem != null) resultado.setNomeEmbalagem(nomeEmbalagem);
-        return resultado;
+        var entrada = CalculoMapper.entrada(request, peca, impressora, configuracao, filamentos, embalagem,
+            manutencao, LocalDateTime.now(clock), extras, tempoPorPlaca, placasConsulta);
+        var resultado = new MotorCalculo(calculoPlataformaService).calcular(entrada.comNomeEmbalagem(nomeEmbalagem));
+        return new Contexto(resultado, peca, impressora, filamentos, embalagem, extras, nomeEmbalagem);
     }
 
     public CalculoHistorico calcularComPrecoFixo(

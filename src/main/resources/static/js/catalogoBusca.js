@@ -36,7 +36,7 @@
   const tipo=select.dataset.catalogo;
   const campos={
    filamento:[['nome','Nome do filamento','text',2,150],['cor','Nome da cor','text',2,80],['codigoCor','Escolha a cor','color'],['pesoRoloGramas','Peso do rolo (g)','number','0.01'],['precoRolo','Preço do rolo (R$)','number','0.01'],['estoqueGramas','Quantidade disponível (g)','number','0']],
-   impressora:[['nome','Nome da impressora','text',2,150],['modelo','Modelo','select'],['modeloPersonalizado','Nome do outro modelo','text',2,150],['potenciaWatts','Potência média (W)','number','0']],
+   impressora:[['nome','Nome da impressora','text',2,150],['modelo','Modelo','select'],['modeloPersonalizado','Nome do outro modelo','text',2,150],['potenciaWatts','Potência média (W)','number','0'],['vidaUtilHoras','Horas estimadas até troca ou revenda','number','0'],['horasMensaisUso','Horas de impressão estimadas por mês','number','0']],
    embalagem:[['nome','Nome da embalagem','text',2,150],['custoUnitario','Custo unitário (R$)','number','0.01']]
   }[tipo];
   const form=document.createElement('form');form.className='formulario';form.method='post';form.noValidate=true;
@@ -54,6 +54,7 @@
    if(nome==='codigoCor')input.value='#75c9a5';
    if(nome==='pesoRoloGramas')input.value='1000';
    if(nome==='estoqueGramas')input.value='0';
+   if(['vidaUtilHoras','horasMensaisUso'].includes(nome)){input.required=false;input.addEventListener('input',()=>{input.dataset.editado='true';});}
    const mensagem=document.createElement('small');mensagem.className='erro-campo';mensagem.dataset.erroApresentado='true';mensagem.id=prefixo+nome+'-erro';mensagem.hidden=true;
    input.setAttribute('aria-describedby',mensagem.id);
    input.addEventListener('input',()=>{input.removeAttribute('aria-invalid');mensagem.hidden=true;});
@@ -66,13 +67,33 @@
    const modelo=inputs.get('modelo').input;
    const opcao=(nome,valor)=>{const elemento=document.createElement('option');elemento.textContent=nome;elemento.value=valor;return elemento;};
    let referencias=[];
+   let versaoUso=0;
+   async function atualizarUso(){
+    const atual=++versaoUso;
+    for(const campo of ['vidaUtilHoras','horasMensaisUso']){const input=inputs.get(campo).input;if(input.dataset.editado!=='true')input.value='';}
+    const nome=modelo.value==='__outro__'?inputs.get('modeloPersonalizado').input.value.trim():modelo.value;
+    if(!nome)return;
+    try{
+     const uso=await window.estimarUsoImpressora(nome);
+     if(atual!==versaoUso)return;
+     for(const [campo,valor] of [['vidaUtilHoras',uso.horasAteSubstituicao],['horasMensaisUso',uso.horasMensais]]){
+      const input=inputs.get(campo).input;if(input.dataset.editado!=='true')input.value=String(valor);
+     }
+     const origem=uso.horasMensaisPadrao?'100 h/mês como ponto de partida, sem histórico recente':'uso registrado nos últimos 30 dias';
+     informacaoUso.textContent=`Estimativas editáveis: ${origem}. As horas até troca/revenda são uma referência de planejamento do sistema, não uma vida útil garantida pelo fabricante.`;
+    }catch{
+     if(atual===versaoUso)informacaoUso.textContent='Não foi possível carregar as estimativas. Você pode informá-las ou deixar em branco para estimar ao salvar.';
+    }
+   }
+   const informacaoUso=document.createElement('p');informacaoUso.className='texto-apoio';form.append(informacaoUso);
+   inputs.get('modeloPersonalizado').input.addEventListener('change',atualizarUso);
    function atualizarModelo(){
     const manual=modelo.value==='__outro__';
     for(const nome of ['modeloPersonalizado','potenciaWatts']){const campo=inputs.get(nome);campo.grupo.hidden=!manual;campo.input.disabled=!manual;}
     const referencia=referencias.find(item=>item.nome===modelo.value);
     nota.textContent=referencia?`Potência média de referência para PLA: ${referencia.potenciaMediaPLA} W. Você pode ajustar depois em Impressoras.`:manual?'Informe a potência média medida ou estimada para este modelo.':'Escolha um modelo para preencher a potência automaticamente.';
    }
-   modelo.addEventListener('change',atualizarModelo);
+   modelo.addEventListener('change',()=>{atualizarModelo();atualizarUso();});
    modelo.append(opcao('Carregando modelos…',''));modelo.disabled=true;modelosCarregando=true;atualizarModelo();
    Promise.resolve().then(()=>window.carregarModelosImpressora()).then(dados=>{
     referencias=dados;modelo.replaceChildren(opcao('Selecione o modelo',''),...dados.map(item=>opcao(item.nome,item.nome)),opcao('Outro modelo','__outro__'));
@@ -105,6 +126,7 @@
     if(!input.validity.valid)invalidos[nome]=input.validationMessage;
     dados[nome]=input.type==='number'?(input.value===''?null:input.value):input.value.trim();
    });
+   if(tipo==='impressora')dados.horasMensaisManual=inputs.get('horasMensaisUso').input.dataset.editado==='true';
    if(tipo==='impressora'&&dados.modelo==='__outro__'){dados.modelo=dados.modeloPersonalizado;delete dados.modeloPersonalizado;}
    if(Object.keys(invalidos).length){mostrarErros('Confira os campos destacados.',invalidos);return;}
    salvando=true;salvar.disabled=true;cancelar.disabled=true;salvar.textContent='Salvando…';form.setAttribute('aria-busy','true');

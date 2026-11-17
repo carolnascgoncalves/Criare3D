@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,7 +114,7 @@ class ConsolidacaoIntegrationTest {
     void limpar() {
         SecurityContextHolder.clearContext();
         for (var tenant : criados) {
-            for (var tabela : List.of("movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "custo_personalizado", "planejamento_producao", "falha_producao", "calculo_foto", "item_calculo_historico", "calculo_historico", "configuracao", "filamento", "impressora", "embalagem", "peca", "usuario"))
+            for (var tabela : List.of("calculo_rascunho", "movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "custo_personalizado", "planejamento_producao", "falha_producao", "calculo_foto", "item_calculo_historico", "calculo_historico", "configuracao", "filamento", "impressora", "embalagem", "peca", "usuario"))
                 jdbc.update("DELETE FROM " + tabela + " WHERE tenant_id=?", tenant);
             jdbc.update("DELETE FROM tenant WHERE id=?", tenant);
         }
@@ -303,6 +304,32 @@ class ConsolidacaoIntegrationTest {
     br.com.criare3d.controller.PedidoOrcamentoController pedidosTela;
     @Autowired
     MovimentacaoService registrarMovimento;
+    @Autowired
+    CalculoRascunhoService rascunhosCalculo;
+    @Autowired
+    FotoRascunhoService fotosRascunho;
+
+    @Test
+    void rascunhoReabreSemSessaoEIsoleFotosDeDuasAbasEDeOutraConta() {
+        var usuario = conta();
+        var primeiro = rascunhosCalculo.abrir(null, true);
+        var segundo = rascunhosCalculo.abrir(null, true);
+        var formulario = new br.com.criare3d.dto.RascunhoFormulario(Map.of("unidades", "5"), List.of(), 2, 1L);
+        primeiro.setAttribute("formulario", formulario);
+        byte[] foto = java.util.Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j1xoAAAAASUVORK5CYII=");
+        var fotoPrimeiro = fotosRascunho.salvar(primeiro.getId(), "image/png", foto);
+        var fotoSegundo = fotosRascunho.salvar(segundo.getId(), "image/png", foto);
+        primeiro.setAttribute("fotoCalculoId", fotoPrimeiro);
+        segundo.setAttribute("fotoCalculoId", fotoSegundo);
+        assertThat(rascunhosCalculo.abrir(primeiro.getId(), false).getDados().getFormulario()).isEqualTo(formulario);
+        assertThat(fotosRascunho.buscar(fotoPrimeiro)).isPresent();
+        assertThat(fotosRascunho.buscar(fotoSegundo)).isPresent();
+        conta();
+        assertThatIllegalArgumentException().isThrownBy(() -> rascunhosCalculo.abrir(primeiro.getId(), false));
+        assertThat(fotosRascunho.buscar(fotoPrimeiro)).isEmpty();
+        autenticar(usuario);
+        assertThat(rascunhosCalculo.abrir(primeiro.getId(), false).getDados().getFotoCalculoId()).isEqualTo(fotoPrimeiro);
+    }
 
     @Test
     void indicadoresEResumosDeClientesRespeitamStatusEContaETelefoneNormalizado() {

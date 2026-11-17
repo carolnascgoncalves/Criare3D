@@ -1,6 +1,9 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.calculo.EstadoCalculo;
+import br.com.criare3d.dto.calculo.EntradaCalculo.Parametros;
+import br.com.criare3d.dto.calculo.EntradaCalculo.ConfiguracaoDados;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.models.enums.PlataformaVenda;
@@ -17,6 +20,18 @@ public class CalculoPlataformaService {
     private static final BigDecimal CEM = new BigDecimal("100");
 
     void calcularVendaPlataforma(CalculoRequest request, CalculoHistorico historico, BigDecimal base, Configuracao configuracao) {
+        var estado = new EstadoCalculo();
+        org.springframework.beans.BeanUtils.copyProperties(historico, estado, "itensFilamento", "rateiosCustos");
+        calcularVendaPlataforma(CalculoMapper.dados(request), estado, base, CalculoMapper.dados(configuracao));
+        copiarPlataforma(estado, historico);
+    }
+
+    private void copiarPlataforma(EstadoCalculo origem, CalculoHistorico destino) {
+        org.springframework.beans.BeanUtils.copyProperties(origem, destino, "id", "pecaId", "impressoraId",
+            "filamentoId", "embalagemId", "impressoes", "itensFilamento", "rateiosCustos");
+    }
+
+    void calcularVendaPlataforma(Parametros request, EstadoCalculo historico, BigDecimal base, ConfiguracaoDados configuracao) {
         boolean avancado = Boolean.TRUE.equals(configuracao.getFormularioAvancado());
 
         String plataforma = request.getPlataformaVenda() == null ? "NENHUMA" : request.getPlataformaVenda().name();
@@ -221,6 +236,13 @@ public class CalculoPlataformaService {
     }
 
     void calcularTaxasPrecoFixo(CalculoRequest request, CalculoHistorico historico, BigDecimal precoVenda, Configuracao configuracao, PlataformaVenda plataformaEnum) {
+        var estado = new EstadoCalculo();
+        org.springframework.beans.BeanUtils.copyProperties(historico, estado, "itensFilamento", "rateiosCustos");
+        calcularTaxasPrecoFixo(CalculoMapper.dados(request), estado, precoVenda, CalculoMapper.dados(configuracao), plataformaEnum);
+        copiarPlataforma(estado, historico);
+    }
+
+    void calcularTaxasPrecoFixo(Parametros request, EstadoCalculo historico, BigDecimal precoVenda, ConfiguracaoDados configuracao, PlataformaVenda plataformaEnum) {
         boolean avancado = Boolean.TRUE.equals(configuracao.getFormularioAvancado());
 
         String plataforma = plataformaEnum == null ? "NENHUMA" : plataformaEnum.name();
@@ -666,7 +688,7 @@ public class CalculoPlataformaService {
             .add(custosFixos));
     }
 
-    private BigDecimal obterFreteVendedor(CalculoRequest request, boolean avancado, String plataforma) {
+    private BigDecimal obterFreteVendedor(Parametros request, boolean avancado, String plataforma) {
         if (!avancado && "MERCADO_LIVRE".equals(plataforma) && request.isFreteMercadoLivreManualNecessario()) {
             BigDecimal freteManual = request.getFreteMercadoLivreManual();
 

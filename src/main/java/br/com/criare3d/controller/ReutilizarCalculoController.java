@@ -6,7 +6,7 @@ import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.CalculoRascunhoMapper;
-import jakarta.servlet.http.HttpSession;
+import br.com.criare3d.dto.RascunhoCalculo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,17 +24,17 @@ public class ReutilizarCalculoController {
 
     @GetMapping("/historico/reutilizar")
     @Transactional(readOnly = true)
-    public String ultimo(@RequestParam UUID pecaId, HttpSession session, RedirectAttributes flash) {
-        return carregar(historicos.findFirstByPeca_IdOrderByDataCalculoDesc(pecaId).orElse(null), session, flash);
+    public String ultimo(@RequestParam UUID pecaId, RascunhoCalculo estado, RedirectAttributes flash) {
+        return carregar(historicos.findFirstByPeca_IdOrderByDataCalculoDesc(pecaId).orElse(null), estado, flash);
     }
 
     @GetMapping("/historico/{id}/reutilizar")
     @Transactional(readOnly = true)
-    public String especifico(@PathVariable UUID id, HttpSession session, RedirectAttributes flash) {
-        return carregar(historicos.findById(id).orElse(null), session, flash);
+    public String especifico(@PathVariable UUID id, RascunhoCalculo estado, RedirectAttributes flash) {
+        return carregar(historicos.findById(id).orElse(null), estado, flash);
     }
 
-    private String carregar(CalculoHistorico c, HttpSession session, RedirectAttributes flash) {
+    private String carregar(CalculoHistorico c, RascunhoCalculo estado, RedirectAttributes flash) {
         if (c == null) {
             flash.addFlashAttribute("mensagemErro", "Ainda não há cálculo para reutilizar desta peça.");
             return "redirect:/historico/novo";
@@ -66,13 +66,14 @@ public class ReutilizarCalculoController {
             item.setQuantidadeFilamentoGramas(c.getQuantidadeFilamentoGramas());
             request.getFilamentos().add(item);
         }
-        session.removeAttribute("fotoCalculoBytes");
-        session.removeAttribute("fotoCalculoTipo");
-        session.removeAttribute("resultadoCalculo");
-        session.removeAttribute("requestCalculo");
-        session.setAttribute("calculoParaEditar", request);
-        session.setAttribute("custoReferencia", c.getCustoTotal());
-        session.setAttribute("pecaReferencia", c.getPeca().getId());
+        estado.removeAttribute("fotoCalculoBytes");
+        estado.removeAttribute("fotoCalculoTipo");
+        estado.removeAttribute("resultadoCalculo");
+        estado.removeAttribute("requestCalculo");
+        estado.removeAttribute("formulario");
+        estado.setAttribute("calculoParaEditar", request);
+        estado.setAttribute("custoReferencia", c.getCustoTotal());
+        estado.setAttribute("pecaReferencia", c.getPeca().getId());
         flash.addFlashAttribute("mensagemSucesso", "Dados reutilizados. Confira os filamentos e as opções antes de calcular com os custos atuais.");
         return "redirect:/historico/novo?editar=true";
     }

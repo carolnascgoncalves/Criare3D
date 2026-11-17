@@ -52,6 +52,7 @@
     <script th:src="@{/js/compraFilamento.js}" defer></script>
     <script th:if="${paginaAtiva == 'pecas'}" th:src="@{/js/importadorModelo3mf.js}" defer></script>
     <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/filamentosCalculo.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo' or paginaAtiva == 'resultado-calculo'}" th:src="@{/js/rascunhoPersistente.js}" defer></script>
     <script th:if="${paginaAtiva == 'calculo' or paginaAtiva == 'resultado-calculo'}" th:src="@{/js/rascunhoCalculo.js}" defer></script>
     <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/pecaSeletor.js}" defer></script>
     <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/mercadoLivreFrete.js}" defer></script>

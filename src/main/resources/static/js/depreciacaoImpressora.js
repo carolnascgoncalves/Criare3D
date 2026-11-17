@@ -17,7 +17,8 @@
     const resumo = document.getElementById("referenciaDepreciacaoResumo");
     let ultimaEstimativa = null;
     let horasMensaisEditadas = horasMensaisManual.value === "true";
-    let horasVidaEditadas = false;
+    let horasVidaEditadas = Boolean(horas.value);
+    let versaoUso = 0;
     let requisicaoAtual = null;
 
     function atualizarCustoMensal() {
@@ -41,6 +42,22 @@
         anunciosNovos.value = ultimaEstimativa.anunciosNovos;
         anunciosUsados.value = ultimaEstimativa.anunciosUsados;
         atualizarCustoMensal();
+    }
+
+
+    async function preencherUso() {
+        const consulta = modelo.value.trim();
+        const atual = ++versaoUso;
+        if (consulta.length < 2) return;
+        try {
+            const dados = await window.estimarUsoImpressora(consulta, raiz.dataset.impressoraId);
+            if (atual !== versaoUso) return;
+            if (!horasVidaEditadas) horas.value = dados.horasAteSubstituicao;
+            if (!horasMensaisEditadas && !horasMensais.value) horasMensais.value = dados.horasMensais;
+            atualizarCustoMensal();
+        } catch {
+            // A busca de preços e o preenchimento manual continuam disponíveis.
+        }
     }
 
     async function buscarReferencia() {
@@ -127,7 +144,9 @@
             anunciosUsados.value = "";
             resumo.hidden = true;
         }
+        preencherUso();
         if (modelo.value.trim().length >= 2) buscarReferencia();
     });
+    preencherUso();
     atualizarCustoMensal();
 })();

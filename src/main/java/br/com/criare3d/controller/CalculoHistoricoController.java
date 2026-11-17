@@ -9,7 +9,7 @@ import br.com.criare3d.service.*;
 import br.com.criare3d.service.interfaces.*;
 import br.com.criare3d.util.HistoricoFiltros;
 import br.com.criare3d.util.OrdenacaoPaginada;
-import jakarta.servlet.http.HttpSession;
+import br.com.criare3d.dto.RascunhoCalculo;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,10 +40,10 @@ public class CalculoHistoricoController {
     private static final String RESULTADO_CALCULO = "resultadoCalculo";
     private static final String REQUEST_CALCULO = "requestCalculo";
     private static final String CALCULO_PARA_EDITAR = "calculoParaEditar";
-    private static final String FOTO_SESSAO = "fotoCalculoId";
+    private static final String FOTO_RASCUNHO = "fotoCalculoId";
     @org.springframework.beans.factory.annotation.Autowired
     private br.com.criare3d.service.FotoRascunhoService fotoRascunhoService;
-    private static final String FOTO_TIPO_SESSAO = "fotoCalculoTipo";
+    private static final String FOTO_TIPO_RASCUNHO = "fotoCalculoTipo";
 
     private final CatalogoBuscaService catalogoBuscaService;
     private final CalculoService calculoService;
@@ -141,31 +141,35 @@ public class CalculoHistoricoController {
         @RequestParam(defaultValue = "false") boolean editar,
         @RequestParam(defaultValue = "false") boolean novo,
         @RequestParam(required = false) UUID orcamento,
-        HttpSession session) {
+        RascunhoCalculo estado) {
 
-        if (!editar && !novo && pecaCriada == null && filamentoCriado == null && impressoraCriada == null && embalagemCriada == null) {
-            session.removeAttribute("orcamentoDestino");
-        }
         if (novo) {
-            session.removeAttribute("orcamentoDestino");
-            if (orcamento != null) session.setAttribute("orcamentoDestino", orcamento);
-            session.removeAttribute("custoReferencia");
-            session.removeAttribute("pecaReferencia");
-            session.removeAttribute(REQUEST_CALCULO);
-            session.removeAttribute(RESULTADO_CALCULO);
-            session.removeAttribute(CALCULO_PARA_EDITAR);
-            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
-            session.removeAttribute(FOTO_SESSAO);
-            session.removeAttribute(FOTO_TIPO_SESSAO);
+            estado.removeAttribute("formulario");
+            estado.removeAttribute("orcamentoDestino");
+            if (orcamento != null) estado.setAttribute("orcamentoDestino", orcamento);
+            estado.removeAttribute("custoReferencia");
+            estado.removeAttribute("pecaReferencia");
+            estado.removeAttribute(REQUEST_CALCULO);
+            estado.removeAttribute(RESULTADO_CALCULO);
+            estado.removeAttribute("formulario");
+            estado.removeAttribute(CALCULO_PARA_EDITAR);
+            fotoRascunhoService.excluir(estado.getAttribute(FOTO_RASCUNHO));
+            estado.removeAttribute(FOTO_RASCUNHO);
+            estado.removeAttribute(FOTO_TIPO_RASCUNHO);
         }
 
         ModelAndView mv = new ModelAndView("historico/novo");
 
         CalculoRequest request;
 
-        if (editar && session.getAttribute(CALCULO_PARA_EDITAR) != null) {
-            request = (CalculoRequest) session.getAttribute(CALCULO_PARA_EDITAR);
-            session.removeAttribute(CALCULO_PARA_EDITAR);
+        if (editar && estado.getAttribute(CALCULO_PARA_EDITAR) != null) {
+            request = (CalculoRequest) estado.getAttribute(CALCULO_PARA_EDITAR);
+            estado.removeAttribute(CALCULO_PARA_EDITAR);
+            estado.setAttribute(REQUEST_CALCULO, request);
+        } else if (estado.getDados().getFormulario() != null) {
+            request = CalculoRascunhoService.formulario(estado.getDados().getFormulario());
+        } else if (estado.getAttribute(REQUEST_CALCULO) instanceof CalculoRequest existente) {
+            request = existente;
         } else {
             request = new CalculoRequest();
 
@@ -200,7 +204,7 @@ public class CalculoHistoricoController {
         mv.addObject("impressoraCriada", impressoraCriada);
         mv.addObject("embalagemCriada", embalagemCriada);
 
-        adicionarPreviewFoto(mv, request, session);
+        adicionarPreviewFoto(mv, request, estado);
         carregarDadosFormulario(mv);
 
         return mv;
@@ -208,17 +212,17 @@ public class CalculoHistoricoController {
 
     /*
      * O cálculo segue o padrão POST -> GET.
-     * O resultado fica na sessão e o POST responde com HTTP 303.
+     * O resultado fica no rascunho persistente e o POST responde com HTTP 303.
      */
     @PostMapping("/historico/calcular")
     public Object calcular(
         @Valid @ModelAttribute("calculo") CalculoRequest request,
         BindingResult bd,
         @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca,
-        HttpSession session) {
+        RascunhoCalculo estado) {
 
         try {
-            aplicarFoto(request, fotoPeca, session);
+            aplicarFoto(request, fotoPeca, estado);
 
             if (request.isFreteMercadoLivreManualNecessario()
                 && request.getFreteMercadoLivreManual() == null) {
@@ -234,28 +238,28 @@ public class CalculoHistoricoController {
                 mv.setStatus(HttpStatusCode.valueOf(422));
                 mv.addObject("calculo", request);
                 mv.addObject("respostaCalculoComErro", true);
-                adicionarPreviewFoto(mv, request, session);
+                adicionarPreviewFoto(mv, request, estado);
                 carregarDadosFormulario(mv);
                 return mv;
             }
 
-            CalculoHistorico calculo = calculoService.calcular(request);
+            var calculo = calculoService.prever(request);
 
-            guardarFotoRascunho(session, request.getFotoPecaContentType(), request.getFotoPecaBytes());
-            session.setAttribute(FOTO_TIPO_SESSAO, request.getFotoPecaContentType());
-            CalculoResponse resposta = CalculoResponse.toDto(calculo);
+            guardarFotoRascunho(estado, request.getFotoPecaContentType(), request.getFotoPecaBytes());
+            estado.setAttribute(FOTO_TIPO_RASCUNHO, request.getFotoPecaContentType());
+            CalculoResponse resposta = CalculoMapper.resposta(calculo);
             resposta.setTemFoto(request.getFotoPecaBytes() != null && request.getFotoPecaBytes().length > 0);
             request.setFotoPecaBytes(null);
             request.setFotoPecaContentType(null);
-            session.setAttribute(REQUEST_CALCULO, request);
-            session.setAttribute(
+            estado.setAttribute(REQUEST_CALCULO, request);
+            estado.setAttribute(
                 RESULTADO_CALCULO,
                 resposta
             );
 
             return ResponseEntity
                 .status(HttpStatus.SEE_OTHER)
-                .location(URI.create("/historico/resultado"))
+                .location(URI.create("/historico/resultado?rascunhoId=" + estado.getId()))
                 .build();
 
         } catch (IllegalArgumentException | IOException e) {
@@ -276,7 +280,7 @@ public class CalculoHistoricoController {
                     : e.getMessage());
             }
 
-            adicionarPreviewFoto(mv, request, session);
+            adicionarPreviewFoto(mv, request, estado);
             carregarDadosFormulario(mv);
 
             return mv;
@@ -288,7 +292,7 @@ public class CalculoHistoricoController {
     public ResponseEntity<?> previaCustos(@ModelAttribute CalculoRequest request) {
         try {
             if (request.getMarkupPercentual() == null) request.setMarkupPercentual(BigDecimal.ZERO);
-            CalculoHistorico previa = calculoService.calcular(request);
+            var previa = calculoService.prever(request);
             int unidades = request.getUnidades() == null ? 1 : request.getUnidades();
             int impressoes = previa.getFornadas() == null ? 1 : previa.getFornadas();
             int aquecimento = previa.getTempoAquecimentoMinutos() == null
@@ -313,28 +317,28 @@ public class CalculoHistoricoController {
 
     @GetMapping("/historico/resultado")
     public ModelAndView resultado(
-        HttpSession session,
+        RascunhoCalculo estado,
         @RequestParam(defaultValue = "LUCRO_DESEJADO") String modoComparacao,
         @RequestParam(required = false) BigDecimal precoVendaFixo,
         @RequestParam(defaultValue = "false") boolean valoresAtualizados
     ) {
         CalculoRequest request =
-            (CalculoRequest) session.getAttribute(REQUEST_CALCULO);
+            (CalculoRequest) estado.getAttribute(REQUEST_CALCULO);
 
         CalculoResponse resultado =
-            (CalculoResponse) session.getAttribute(RESULTADO_CALCULO);
+            (CalculoResponse) estado.getAttribute(RESULTADO_CALCULO);
 
         if (request == null || resultado == null) {
             return new ModelAndView("redirect:/historico/novo?novo=true");
         }
 
         ModelAndView mv = presenter.resultado(request, resultado, modoComparacao, precoVendaFixo, valoresAtualizados);
-        mv.addObject("orcamentoDestino", session.getAttribute("orcamentoDestino"));
-        if (request.getPecaId().equals(session.getAttribute("pecaReferencia"))) {
-            mv.addObject("custoReferencia", session.getAttribute("custoReferencia"));
+        mv.addObject("orcamentoDestino", estado.getAttribute("orcamentoDestino"));
+        if (request.getPecaId().equals(estado.getAttribute("pecaReferencia"))) {
+            mv.addObject("custoReferencia", estado.getAttribute("custoReferencia"));
         }
 
-        adicionarPreviewFoto(mv, request, session);
+        adicionarPreviewFoto(mv, request, estado);
 
         return mv;
     }
@@ -342,18 +346,19 @@ public class CalculoHistoricoController {
     @PostMapping("/historico/editar")
     public ResponseEntity<Void> editar(
         @ModelAttribute("calculo") CalculoRequest request,
-        HttpSession session) {
+        RascunhoCalculo estado) {
 
-        // A foto permanece no armazenamento temporário; a sessão guarda somente seu identificador.
+        // A foto permanece no armazenamento temporário; o rascunho guarda somente seu identificador.
         request.setFotoRemovida(false);
 
         request.setFotoPecaBytes(null);
         request.setFotoPecaContentType(null);
-        session.setAttribute(CALCULO_PARA_EDITAR, request);
+        estado.removeAttribute("formulario");
+        estado.setAttribute(CALCULO_PARA_EDITAR, request);
 
         return ResponseEntity
             .status(HttpStatus.SEE_OTHER)
-            .location(URI.create("/historico/novo?editar=true"))
+            .location(URI.create("/historico/novo?editar=true&rascunhoId=" + estado.getId()))
             .build();
     }
 
@@ -361,23 +366,24 @@ public class CalculoHistoricoController {
     public ModelAndView salvar(
         @Valid @ModelAttribute("calculo") CalculoRequest request,
         BindingResult bd,
-        HttpSession session) {
+        RascunhoCalculo estado) {
 
         ModelAndView mv = new ModelAndView("historico/novo");
         mv.addObject("calculo", request);
 
         if (bd.hasErrors()) {
             mv.setStatus(HttpStatusCode.valueOf(422));
-            adicionarPreviewFoto(mv, request, session);
+            mv.addObject("respostaCalculoComErro", true);
+            adicionarPreviewFoto(mv, request, estado);
             carregarDadosFormulario(mv);
             return mv;
         }
 
         try {
-            CalculoResponse resultadoAnterior = (CalculoResponse) session.getAttribute(RESULTADO_CALCULO);
-            request.setFotoPecaBytes(fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
-            request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
-            if (session.getAttribute(FOTO_SESSAO) instanceof UUID && request.getFotoPecaBytes() == null) {
+            CalculoResponse resultadoAnterior = (CalculoResponse) estado.getAttribute(RESULTADO_CALCULO);
+            request.setFotoPecaBytes(fotoRascunhoService.buscar(estado.getAttribute(FOTO_RASCUNHO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
+            request.setFotoPecaContentType((String) estado.getAttribute(FOTO_TIPO_RASCUNHO));
+            if (estado.getAttribute(FOTO_RASCUNHO) instanceof UUID && request.getFotoPecaBytes() == null) {
                 throw new IllegalArgumentException("A foto temporária expirou ou foi substituída em outra aba. Anexe a foto novamente antes de salvar.");
             }
             CalculoHistorico calculo = calculoService.calcular(request);
@@ -389,32 +395,34 @@ public class CalculoHistoricoController {
                 atualizado.setTemFoto(request.getFotoPecaBytes() != null);
                 request.setFotoPecaBytes(null);
                 request.setFotoPecaContentType(null);
-                session.setAttribute(REQUEST_CALCULO, request);
-                session.setAttribute(RESULTADO_CALCULO, atualizado);
+                estado.setAttribute(REQUEST_CALCULO, request);
+                estado.setAttribute(RESULTADO_CALCULO, atualizado);
                 return new ModelAndView("redirect:/historico/resultado?valoresAtualizados=true");
             }
 
-            byte[] foto = fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
-            String tipoFoto = (String) session.getAttribute(FOTO_TIPO_SESSAO);
+            byte[] foto = fotoRascunhoService.buscar(estado.getAttribute(FOTO_RASCUNHO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
+            String tipoFoto = (String) estado.getAttribute(FOTO_TIPO_RASCUNHO);
             calculo.setTemFoto(foto != null && foto.length > 0);
 
             historicoCalculoService.create(calculo, tipoFoto, foto);
 
-            session.removeAttribute("custoReferencia");
-            session.removeAttribute("pecaReferencia");
+            estado.removeAttribute("custoReferencia");
+            estado.removeAttribute("pecaReferencia");
 
-            session.removeAttribute(REQUEST_CALCULO);
-            session.removeAttribute(RESULTADO_CALCULO);
-            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
-            session.removeAttribute(FOTO_SESSAO);
-            session.removeAttribute(FOTO_TIPO_SESSAO);
+            estado.removeAttribute(REQUEST_CALCULO);
+            estado.removeAttribute(RESULTADO_CALCULO);
+            estado.removeAttribute("formulario");
+            fotoRascunhoService.excluir(estado.getAttribute(FOTO_RASCUNHO));
+            estado.removeAttribute(FOTO_RASCUNHO);
+            estado.removeAttribute(FOTO_TIPO_RASCUNHO);
 
             return new ModelAndView("redirect:/historico/listar?sucesso=historicoSalvo");
 
         } catch (IllegalArgumentException e) {
             mv.setStatus(HttpStatusCode.valueOf(422));
+            mv.addObject("respostaCalculoComErro", true);
             mv.addObject("erro", e.getMessage());
-            adicionarPreviewFoto(mv, request, session);
+            adicionarPreviewFoto(mv, request, estado);
             carregarDadosFormulario(mv);
 
             return mv;
@@ -461,23 +469,31 @@ public class CalculoHistoricoController {
         }
     }
 
+    @PostMapping("/historico/rascunho")
+    @ResponseBody
+    public ResponseEntity<Void> salvarFormularioRascunho(
+        @Valid @RequestBody br.com.criare3d.dto.RascunhoFormulario formulario, RascunhoCalculo estado) {
+        estado.setAttribute("formulario", formulario);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/historico/rascunho/foto")
     @ResponseBody
     public ResponseEntity<Void> sincronizarFotoRascunho(
         @RequestParam(value = "fotoPeca", required = false) MultipartFile fotoPeca,
         @RequestParam(value = "remover", defaultValue = "false") boolean remover,
-        HttpSession session) {
+        RascunhoCalculo estado) {
         if (remover) {
-            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
-            session.removeAttribute(FOTO_SESSAO);
-            session.removeAttribute(FOTO_TIPO_SESSAO);
+            fotoRascunhoService.excluir(estado.getAttribute(FOTO_RASCUNHO));
+            estado.removeAttribute(FOTO_RASCUNHO);
+            estado.removeAttribute(FOTO_TIPO_RASCUNHO);
             return ResponseEntity.noContent().build();
         }
         if (fotoPeca == null || fotoPeca.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            aplicarFoto(new CalculoRequest(), fotoPeca, session);
+            aplicarFoto(new CalculoRequest(), fotoPeca, estado);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException | IOException e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(422)).build();
@@ -486,29 +502,29 @@ public class CalculoHistoricoController {
 
     @GetMapping("/historico/resultado/foto")
     @ResponseBody
-    public ResponseEntity<byte[]> buscarFotoTemporaria(HttpSession session) {
-        byte[] bytes = fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
-        String tipo = (String) session.getAttribute(FOTO_TIPO_SESSAO);
+    public ResponseEntity<byte[]> buscarFotoTemporaria(RascunhoCalculo estado) {
+        byte[] bytes = fotoRascunhoService.buscar(estado.getAttribute(FOTO_RASCUNHO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null);
+        String tipo = (String) estado.getAttribute(FOTO_TIPO_RASCUNHO);
         if (bytes == null || tipo == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok().header("Cache-Control", "private, no-store")
             .contentType(org.springframework.http.MediaType.parseMediaType(tipo)).body(bytes);
     }
 
-    private void aplicarFoto(CalculoRequest request, MultipartFile fotoPeca, HttpSession session)
+    private void aplicarFoto(CalculoRequest request, MultipartFile fotoPeca, RascunhoCalculo estado)
         throws IOException {
 
         if (fotoPeca == null || fotoPeca.isEmpty()) {
             if (request.isFotoRemovida()) {
                 request.setFotoPecaBytes(null);
                 request.setFotoPecaContentType(null);
-                fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
-                session.removeAttribute(FOTO_SESSAO);
-                session.removeAttribute(FOTO_TIPO_SESSAO);
+                fotoRascunhoService.excluir(estado.getAttribute(FOTO_RASCUNHO));
+                estado.removeAttribute(FOTO_RASCUNHO);
+                estado.removeAttribute(FOTO_TIPO_RASCUNHO);
                 return;
             }
             if (request.getFotoPecaBytes() == null) {
-                request.setFotoPecaBytes(fotoRascunhoService.buscar(session.getAttribute(FOTO_SESSAO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
-                request.setFotoPecaContentType((String) session.getAttribute(FOTO_TIPO_SESSAO));
+                request.setFotoPecaBytes(fotoRascunhoService.buscar(estado.getAttribute(FOTO_RASCUNHO)).map(br.com.criare3d.dto.FotoConteudo::bytes).orElse(null));
+                request.setFotoPecaContentType((String) estado.getAttribute(FOTO_TIPO_RASCUNHO));
             }
             return;
         }
@@ -527,17 +543,17 @@ public class CalculoHistoricoController {
 
         request.setFotoPecaBytes(bytes);
         request.setFotoPecaContentType(contentType);
-        guardarFotoRascunho(session, contentType, bytes);
-        session.setAttribute(FOTO_TIPO_SESSAO, contentType);
+        guardarFotoRascunho(estado, contentType, bytes);
+        estado.setAttribute(FOTO_TIPO_RASCUNHO, contentType);
     }
 
-    private void guardarFotoRascunho(HttpSession session, String tipo, byte[] bytes) {
+    private void guardarFotoRascunho(RascunhoCalculo estado, String tipo, byte[] bytes) {
         if (bytes == null || bytes.length == 0) {
-            fotoRascunhoService.excluir(session.getAttribute(FOTO_SESSAO));
-            session.removeAttribute(FOTO_SESSAO);
+            fotoRascunhoService.excluir(estado.getAttribute(FOTO_RASCUNHO));
+            estado.removeAttribute(FOTO_RASCUNHO);
             return;
         }
-        session.setAttribute(FOTO_SESSAO, fotoRascunhoService.salvar(tipo, bytes));
+        estado.setAttribute(FOTO_RASCUNHO, fotoRascunhoService.salvar(estado.getId(), tipo, bytes));
     }
 
     private String detectarTipoImagem(byte[] bytes) {
@@ -562,13 +578,13 @@ public class CalculoHistoricoController {
         return null;
     }
 
-    private void adicionarPreviewFoto(ModelAndView mv, CalculoRequest request, HttpSession session) {
+    private void adicionarPreviewFoto(ModelAndView mv, CalculoRequest request, RascunhoCalculo estado) {
         boolean fotoNaRequest = request.getFotoPecaBytes() != null
             && request.getFotoPecaContentType() != null;
-        boolean fotoNaSessao = session.getAttribute(FOTO_SESSAO) instanceof UUID
-            && session.getAttribute(FOTO_TIPO_SESSAO) instanceof String tipo && !tipo.isBlank();
-        if (fotoNaRequest || fotoNaSessao)
-            mv.addObject("fotoPecaPreview", "/historico/resultado/foto");
+        boolean fotoNoRascunho = estado.getAttribute(FOTO_RASCUNHO) instanceof UUID
+            && estado.getAttribute(FOTO_TIPO_RASCUNHO) instanceof String tipo && !tipo.isBlank();
+        if (fotoNaRequest || fotoNoRascunho)
+            mv.addObject("fotoPecaPreview", "/historico/resultado/foto?rascunhoId=" + estado.getId());
     }
 
     private void carregarDadosFormulario(ModelAndView mv) {

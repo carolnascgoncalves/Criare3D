@@ -15,6 +15,14 @@
         return carregamento;
     }
     window.carregarModelosImpressora = carregarModelos;
+    window.estimarUsoImpressora = async (modelo, impressoraId) => {
+        const parametros = new URLSearchParams({modelo});
+        if (impressoraId) parametros.set('impressoraId', impressoraId);
+        const resposta = await fetch('/catalogo-opcoes/impressora/estimativa-uso?' + parametros,
+            {headers: {Accept: 'application/json'}, credentials: 'same-origin'});
+        if (!resposta.ok || resposta.redirected) throw new Error('Não foi possível carregar as estimativas de uso.');
+        return resposta.json();
+    };
 
     async function inicializarModelos() {
         if (!document.querySelectorAll("#modelo[list='modelosBambu']").length) return;

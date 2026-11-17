@@ -56,7 +56,8 @@
                 </div>
             </div>
 
-            <form th:action="@{/historico/calcular}"
+            <p class="texto-apoio" data-rascunho-status role="status" aria-live="polite"></p>
+<form th:action="@{/historico/calcular}"
                   th:object="${calculo}"
                   method="post"
                   enctype="multipart/form-data"
@@ -65,6 +66,7 @@
                   data-turbo="false"
                   th:attr="data-tarifa-energia=${configuracao.tarifaEnergiaKwh}"
                   novalidate>
+<input type="hidden" name="rascunhoId" id="rascunhoCalculoId" th:value="${rascunhoId}">
 
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <input type="hidden" th:field="*{fotoRemovida}" id="fotoRemovida">
@@ -774,5 +776,6 @@
         </div>
     </section>
 </main>
+<script type="application/json" id="rascunhoServidor" th:utext="${rascunhoFormularioJson}">null</script>
 </body>
 </html>

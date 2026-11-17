@@ -52,7 +52,8 @@ class MotorCalculoTest {
         config.setTarifaEnergiaKwh(BigDecimal.ONE);
         var agora = LocalDateTime.of(2026, 11, 12, 12, 0);
         var motor = new MotorCalculo(new CalculoPlataformaService());
-        var resultado = motor.calcular(request, peca, impressora, config, Map.of(filamento.getId(), filamento), null, BigDecimal.ZERO, agora);
+        var resultado = motor.calcular(CalculoMapper.entrada(request, peca, impressora, config,
+            Map.of(filamento.getId(), filamento), null, BigDecimal.ZERO, agora, List.of(), false, 0));
         assertThat(resultado.getTempoImpressaoMinutos()).isEqualTo(29);
         assertThat(resultado.getMinutosMaquinaLote()).isEqualTo(155);
         assertThat(resultado.getFornadas()).isEqualTo(2);
@@ -60,8 +61,19 @@ class MotorCalculoTest {
         assertThat(resultado.getGramasTotaisLote()).isEqualByComparingTo("50");
         assertThat(resultado.getDataCalculo()).isEqualTo(agora);
         assertThat(resultado.getId()).isNull();
-        assertThat(resultado.getItensFilamento().getFirst().getCalculoHistorico()).isSameAs(resultado);
+        assertThat(resultado.getItensFilamento().getFirst().filamentoId()).isEqualTo(filamento.getId());
+        assertThat(resultado.getItensFilamento()).hasSize(1);
         assertThat(request.getTempoImpressaoMinutos()).isEqualTo(29);
+        var historico = CalculoMapper.historico(resultado, peca, impressora,
+            Map.of(filamento.getId(), filamento), null, List.of());
+        assertThat(historico.getTemFoto()).isFalse();
+        assertThat(CalculoMapper.resposta(resultado)).usingRecursiveComparison()
+            .isEqualTo(br.com.criare3d.dto.CalculoResponse.toDto(historico));
+        var entrada = CalculoMapper.entrada(request, peca, impressora, config,
+            Map.of(filamento.getId(), filamento), null, BigDecimal.ZERO, agora, List.of(), false, 0);
+        filamento.setPrecoRolo(new BigDecimal("999"));
+        impressora.setPotenciaWatts(new BigDecimal("999"));
+        assertThat(motor.calcular(entrada)).isEqualTo(resultado);
     }
 
     @Test

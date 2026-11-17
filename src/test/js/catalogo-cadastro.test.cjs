@@ -12,7 +12,7 @@ function preparar(tipo, modo = 'normal', respostaPost) {
             this.className = ''; this.value = ''; this.validity = {valid: true};
             this.classList = {add() {}, contains: nome => this.className.split(' ').includes(nome)};
         }
-        addEventListener(nome, callback) { this.eventos.set(nome, callback); }
+        addEventListener(nome, callback) { const anterior = this.eventos.get(nome); this.eventos.set(nome, anterior ? evento => { anterior(evento); return callback(evento); } : callback); }
         setAttribute(nome, valor) { this[nome] = valor; }
         removeAttribute(nome) { delete this[nome]; }
         append(...filhos) { this.children.push(...filhos); }
@@ -44,7 +44,7 @@ function preparar(tipo, modo = 'normal', respostaPost) {
     const item = {id: 'novo-id', nome: 'Novo cadastro', atributos: {codigoCor: '#ffee00', cor: 'Amarelo',
         pesoRolo: 1000, precoRolo: 80, estoque: 0, potencia: 100, custo: 2.5}};
     const sucesso = () => ({ok: true, headers: {get: () => 'application/json'}, json: async () => item});
-    const window = {carregarModelosImpressora: async () => [{nome: 'Bambu Lab A1', potenciaMediaPLA: 95}]};
+    const window = {estimarUsoImpressora: async () => ({horasAteSubstituicao:3000,horasMensais:100,horasMensaisPadrao:true}), carregarModelosImpressora: async () => [{nome: 'Bambu Lab A1', potenciaMediaPLA: 95}]};
     vm.runInNewContext(codigo, {document, window, Intl, URLSearchParams, AbortController,
         setTimeout, clearTimeout, Event,
         MutationObserver: class {observe() {} disconnect() {}},
@@ -175,4 +175,26 @@ test('sessao expirada e falha de rede deixam o erro no painel sem alterar o calc
         assert.equal(form.children[0].hidden, false);
     }
     assert.equal(preparar('filamento', null).cadastro, undefined);
+});
+
+test('horas sao preenchidas automaticamente e ajustes sobrevivem a troca de modelo', async () => {
+    const a = preparar('impressora');
+    const form = await a.abrir();
+    const campos = a.descendentes(form);
+    const modelo = campos.find(e => e.name === 'modelo');
+    const vida = campos.find(e => e.name === 'vidaUtilHoras');
+    const mensal = campos.find(e => e.name === 'horasMensaisUso');
+    modelo.dispatchEvent(new Event('change'));
+    await new Promise(setImmediate);
+    assert.equal(vida.value, '3000');
+    assert.equal(mensal.value, '100');
+    vida.value = '4200';vida.dispatchEvent(new Event('input'));
+    mensal.value = '60';mensal.dispatchEvent(new Event('input'));
+    modelo.dispatchEvent(new Event('change'));
+    await new Promise(setImmediate);
+    assert.equal(vida.value, '4200');assert.equal(mensal.value, '60');
+    await a.enviar(form);
+    const dados = JSON.parse(a.requests.find(r => r.options?.method === 'POST').options.body);
+    assert.equal(dados.vidaUtilHoras, '4200');assert.equal(dados.horasMensaisUso, '60');
+    assert.equal(dados.horasMensaisManual, true);
 });

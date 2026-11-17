@@ -75,7 +75,7 @@ public class CalculoRapidoController {
             int impressoes = Math.multiplyExact(numeroPlacas, consulta.getUnidades());
             var config = configuracoes.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar);
             if (Boolean.TRUE.equals(config.getMarkupFixo())) consulta.setMarkupPercentual(config.getMarkupPercentual());
-            return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(CalculoResponse.toDto(calculos.calcularAvulsoTotais(consulta, nome, impressoes)));
+            return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(br.com.criare3d.service.CalculoMapper.resposta(calculos.preverAvulsoTotais(consulta, nome, impressoes)));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.unprocessableEntity().cacheControl(CacheControl.noStore()).body(Map.of("erro", e.getMessage()));
         }

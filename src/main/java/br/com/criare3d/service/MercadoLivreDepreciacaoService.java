@@ -1,7 +1,6 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.EstimativaDepreciacaoResponse;
-import br.com.criare3d.repository.CalculoHistoricoRepository;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +17,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,11 +29,9 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class MercadoLivreDepreciacaoService {
     private static final int MINIMO_ANUNCIOS = 3;
-    private static final BigDecimal HORAS_ENTRADA = new BigDecimal("3000");
-    private static final BigDecimal HORAS_ROBUSTA = new BigDecimal("5000");
     private static final BigDecimal LIMITE_OUTLIER = new BigDecimal("0.50");
 
-    private final CalculoHistoricoRepository historicoRepository;
+    private final EstimativaUsoImpressoraService estimativaUso;
     private final ObjectMapper objectMapper;
     private final String accessToken;
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -46,10 +42,10 @@ public class MercadoLivreDepreciacaoService {
         .build();
 
     public MercadoLivreDepreciacaoService(
-        CalculoHistoricoRepository historicoRepository,
+        EstimativaUsoImpressoraService estimativaUso,
         ObjectMapper objectMapper,
         @Value("${criare.integracoes.mercado-livre.access-token:}") String accessToken) {
-        this.historicoRepository = historicoRepository;
+        this.estimativaUso = estimativaUso;
         this.objectMapper = objectMapper;
         this.accessToken = accessToken == null ? "" : accessToken.trim();
     }
@@ -59,17 +55,12 @@ public class MercadoLivreDepreciacaoService {
         if (consulta.length() < 2 || consulta.length() > 100) {
             throw new IllegalArgumentException("Informe um modelo de impressora entre 2 e 100 caracteres.");
         }
-        long minutos = impressoraId == null
-            ? valor(historicoRepository.somarMinutosMaquinaProduzidosDesde(LocalDateTime.now().minusDays(30)))
-            : valor(historicoRepository.somarMinutosMaquinaProduzidosDaImpressoraDesde(
-            LocalDateTime.now().minusDays(30), impressoraId));
-        boolean horasMensaisPadrao = minutos <= 0;
-        BigDecimal horasMensais = minutos > 0
-            ? BigDecimal.valueOf(minutos).divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP)
-            : new BigDecimal("100.00");
+        var uso = estimativaUso.estimar(consulta, impressoraId);
+        boolean horasMensaisPadrao = uso.horasMensaisPadrao();
+        BigDecimal horasMensais = uso.horasMensais();
 
         if (accessToken.isBlank()) {
-            return indisponivel(consulta, horasMensais, horasMensaisPadrao,
+            return indisponivel(consulta, uso.horasAteSubstituicao(), horasMensais, horasMensaisPadrao,
                 "A busca de preços do Mercado Livre ainda não está configurada. Informe o token da integração no servidor.");
         }
 
@@ -87,11 +78,11 @@ public class MercadoLivreDepreciacaoService {
                 }
             });
         } catch (Exception ex) {
-            return indisponivel(consulta, horasMensais, horasMensaisPadrao,
+            return indisponivel(consulta, uso.horasAteSubstituicao(), horasMensais, horasMensaisPadrao,
                 "Não foi possível consultar os anúncios agora. Tente novamente mais tarde; nenhum dado foi alterado.");
         }
 
-        BigDecimal horasVida = horasPadrao(consulta);
+        BigDecimal horasVida = uso.horasAteSubstituicao();
         boolean temNovos = resumo.novos().quantidade() >= MINIMO_ANUNCIOS;
         boolean temUsados = resumo.usados().quantidade() >= MINIMO_ANUNCIOS;
         boolean fallback = !temUsados || resumo.usados().mediana() == null;
@@ -115,10 +106,10 @@ public class MercadoLivreDepreciacaoService {
             horasVida, horasMensais, horasMensaisPadrao, depreciacao, fallback, confianca);
     }
 
-    private EstimativaDepreciacaoResponse indisponivel(String modelo, BigDecimal horasMensais,
+    private EstimativaDepreciacaoResponse indisponivel(String modelo, BigDecimal horasVida, BigDecimal horasMensais,
                                                        boolean horasMensaisPadrao, String mensagem) {
         return new EstimativaDepreciacaoResponse(false, mensagem, modelo, null, 0,
-            null, 0, horasPadrao(modelo), horasMensais, horasMensaisPadrao,
+            null, 0, horasVida, horasMensais, horasMensaisPadrao,
             null, true, "Sem referência");
     }
 
@@ -177,16 +168,6 @@ public class MercadoLivreDepreciacaoService {
         if (ordenados.size() % 2 == 1) return ordenados.get(meio);
         return ordenados.get(meio - 1).add(ordenados.get(meio))
             .divide(new BigDecimal("2"), 2, RoundingMode.HALF_UP);
-    }
-
-    private static BigDecimal horasPadrao(String modelo) {
-        String normalizado = normalizar(modelo);
-        return normalizado.contains("mini") || normalizado.matches(".*\\ba1\\b.*")
-            ? HORAS_ENTRADA : HORAS_ROBUSTA;
-    }
-
-    private static long valor(Long minutos) {
-        return minutos == null ? 0 : minutos;
     }
 
     private record DadosAnuncios(BigDecimal mediana, int quantidade) {

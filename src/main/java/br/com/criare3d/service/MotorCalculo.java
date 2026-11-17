@@ -1,8 +1,9 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.dto.CalculoRequest;
-import br.com.criare3d.dto.ItemCalculoRequest;
-import br.com.criare3d.models.*;
+import br.com.criare3d.dto.calculo.*;
+import br.com.criare3d.dto.calculo.EntradaCalculo.*;
+
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,46 +26,30 @@ public final class MotorCalculo {
         this.calculoPlataformaService = plataformas;
     }
 
-    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo) {
-
-        return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
-            embalagemSelecionada, manutencaoPorHora, dataCalculo, List.of());
-    }
-
-    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-                                     List<CustoLoja> custosLoja) {
-        return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
-            embalagemSelecionada, manutencaoPorHora, dataCalculo, custosLoja, false);
-    }
-
-    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-                                     List<CustoLoja> custosLoja, boolean tempoPorPlaca) {
-        return calcular(request, peca, impressora, configuracao, filamentosCadastrados, embalagemSelecionada,
-            manutencaoPorHora, dataCalculo, custosLoja, tempoPorPlaca, 0);
-    }
-
-    public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-                                     List<CustoLoja> custosLoja, boolean tempoPorPlaca, int placasConsulta) {
+    public ResultadoCalculo calcular(EntradaCalculo entrada) {
+        var request = entrada.request();
+        var peca = entrada.peca();
+        var impressora = entrada.impressora();
+        var configuracao = entrada.configuracao();
+        var filamentosCadastrados = entrada.filamentos();
+        var embalagemSelecionada = entrada.embalagem();
+        var manutencaoPorHora = entrada.manutencaoPorHora();
+        var dataCalculo = entrada.dataCalculo();
+        var custosLoja = entrada.custosLoja();
+        var tempoPorPlaca = entrada.tempoPorPlaca();
+        var placasConsulta = entrada.placasConsulta();
         CalculoValidador.validar(request, peca, impressora, configuracao);
         int unidades = request.getUnidades();
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
-        int fornadas = placasConsulta > 0 ? placasConsulta : ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
+        int impressoes = placasConsulta > 0 ? placasConsulta : ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null
             ? 0 : impressora.getTempoAquecimentoMinutos();
         long minutosMaquinaLote;
         try {
             minutosMaquinaLote = placasConsulta > 0
-                ? Math.addExact(request.getTempoImpressaoMinutos(), Math.multiplyExact((long) tempoAquecimentoMinutos, fornadas))
+                ? Math.addExact(request.getTempoImpressaoMinutos(), Math.multiplyExact((long) tempoAquecimentoMinutos, impressoes))
                 : tempoPorPlaca
-                ? ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas)
+                ? ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, impressoes)
                 : ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, unidades, pecasPorImpressao);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException("O tempo total de impressão ultrapassa o limite permitido.");
@@ -72,14 +57,14 @@ public final class MotorCalculo {
 
         BigDecimal markup = request.getMarkupPercentual();
 
-        CalculoHistorico historico = CalculoHistorico.builder()
+        EstadoCalculo historico = EstadoCalculo.builder()
             .itensFilamento(new java.util.ArrayList<>())
             .build();
 
         BigDecimal custoFilamentoTotal = ZERO;
         BigDecimal quantidadeFilamentoTotal = ZERO;
 
-        for (ItemCalculoRequest itemRequest : request.getFilamentos()) {
+        for (ItemEntrada itemRequest : request.getFilamentos()) {
 
             if (itemRequest.getFilamentoId() == null) {
                 throw new IllegalArgumentException("Selecione todos os filamentos");
@@ -92,7 +77,7 @@ public final class MotorCalculo {
                     "A quantidade de cada filamento deve ser maior que zero");
             }
 
-            Filamento filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
+            FilamentoDados filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
             if (filamento == null || filamento.isArquivado()) {
                 throw new IllegalArgumentException("Filamento não encontrado");
             }
@@ -112,7 +97,7 @@ public final class MotorCalculo {
             BigDecimal custoIndividual = CalculoFinanceiro.filamento(
                 quantidade, filamento.getPrecoRolo(), filamento.getPesoRoloGramas());
 
-            ItemCalculoHistorico item = MontadorHistorico.item(historico, filamento, quantidade, custoIndividual);
+            ItemMotor item = MontadorResultado.item(historico, filamento, quantidade, custoIndividual);
 
             historico.getItensFilamento().add(item);
             custoFilamentoTotal = custoFilamentoTotal.add(custoIndividual);
@@ -121,9 +106,9 @@ public final class MotorCalculo {
 
         custoFilamentoTotal = precisao(custoFilamentoTotal);
 
-        ItemCalculoHistorico primeiroItem = historico.getItensFilamento().get(0);
+        ItemMotor primeiroItem = historico.getItensFilamento().get(0);
 
-        historico.setFilamento(primeiroItem.getFilamento());
+        historico.setFilamentoId(primeiroItem.getFilamentoId());
         historico.setNomeFilamento(primeiroItem.getNomeFilamento());
         historico.setPrecoRoloFilamento(primeiroItem.getPrecoRoloFilamento());
         historico.setPesoRoloGramas(primeiroItem.getPesoRoloGramas());
@@ -172,7 +157,7 @@ public final class MotorCalculo {
         CalculadoraProducao.CustosOperacionaisLote custosOperacionais =
             CalculadoraProducao.calcularCustosOperacionaisLote(
                 impressora.getPotenciaWatts(), minutosMaquinaLote,
-                configuracao.getTarifaEnergiaKwh(), purgaGramasPorImpressao, fornadas,
+                configuracao.getTarifaEnergiaKwh(), purgaGramasPorImpressao, impressoes,
                 custoFilamentoTotal, quantidadeFilamentoTotal,
                 Boolean.TRUE.equals(configuracao.getMaoObraAtivada()),
                 configuracao.getValorMaoObraHora(), tempoTrabalhoMinutos,
@@ -185,8 +170,8 @@ public final class MotorCalculo {
         BigDecimal custoMaoObraLote = custosOperacionais.maoDeObra();
         BigDecimal custoManutencaoLote = custosOperacionais.manutencao();
         BigDecimal custoDepreciacaoLote = custosOperacionais.depreciacao();
-        List<ItemCalculoHistorico> itensHistorico = historico.getItensFilamento();
-        DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico);
+        List<ItemMotor> itensHistorico = historico.getItensFilamento();
+        DistribuidorPurga.distribuir(purgaGramasUnidade, quantidadeFilamentoTotal, itensHistorico, ItemMotor::getQuantidadeFilamentoGramas, ItemMotor::setPurgaGramas);
 
         boolean taxaFalhaAtivada = Boolean.TRUE.equals(configuracao.getTaxaFalhaAtivada());
         BigDecimal percentualFalha = configuracao.getPercentualFalha();
@@ -201,7 +186,7 @@ public final class MotorCalculo {
 
         BigDecimal custoEmbalagem;
         String nomeEmbalagem;
-        Embalagem embalagem = embalagemSelecionada;
+        EmbalagemDados embalagem = embalagemSelecionada;
 
         if (Boolean.TRUE.equals(configuracao.getEmbalagemFixa())) {
 
@@ -247,14 +232,15 @@ public final class MotorCalculo {
         BigDecimal custoTotal = custos.custoTotal();
         BigDecimal precoSugerido = custos.precoSugerido();
 
-        MontadorHistorico.preencher(historico, request, peca, impressora, embalagem, configuracao, custos,
-            new MontadorHistorico.DadosLote(quantidadeFilamentoTotal, purgaGramasLote, minutosMaquinaLote,
+        MontadorResultado.preencher(historico, request, peca, impressora, embalagem, configuracao, custos,
+            new MontadorResultado.DadosLote(quantidadeFilamentoTotal, purgaGramasLote, minutosMaquinaLote,
                 manutencaoPorHora, tempoTrabalhoMinutos, nomeEmbalagem, custoEmbalagem, dataCalculo));
 
-        if (placasConsulta > 0) historico.setFornadas(placasConsulta);
-        if (!custosLoja.isEmpty()) RateioCustos.aplicar(historico, custosLoja);
+        if (placasConsulta > 0) historico.setImpressoes(placasConsulta);
+        if (entrada.nomeEmbalagem() != null) historico.setNomeEmbalagem(entrada.nomeEmbalagem());
+        if (!custosLoja.isEmpty()) RateioCalculo.aplicar(historico, custosLoja);
         calculoPlataformaService.calcularVendaPlataforma(request, historico, historico.getPrecoSugerido(), configuracao);
 
-        return historico;
+        return ResultadoCalculo.de(historico);
     }
 }

@@ -32,7 +32,10 @@ public class RetencaoClienteService {
     @Scheduled(cron = "${criare.retencao.cron:0 0 4 * * *}", zone = "America/Sao_Paulo")
     public void executar() {
         jdbc.update("DELETE FROM recuperacao_senha WHERE expira_em < ?", java.sql.Timestamp.from(clock.instant()));
-        jdbc.update("DELETE FROM foto_rascunho WHERE atualizado_em < ?", java.sql.Timestamp.from(clock.instant().minusSeconds(1800)));
+        jdbc.update("DELETE FROM calculo_rascunho WHERE atualizado_em < ?",
+            java.sql.Timestamp.from(clock.instant().minus(CalculoRascunhoService.RETENCAO)));
+        jdbc.update("DELETE FROM foto_rascunho WHERE rascunho_id IS NULL AND atualizado_em < ?",
+            java.sql.Timestamp.from(clock.instant().minusSeconds(1800)));
         if (!habilitada) return;
         Instant limite = clock.instant().minus(Duration.ofDays(30));
         List<UUID> ids = jdbc.query("SELECT id FROM tenant WHERE excluido_em <= ?", (rs, n) -> rs.getObject(1, UUID.class), java.sql.Timestamp.from(limite));

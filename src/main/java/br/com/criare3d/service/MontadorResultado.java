@@ -1,7 +1,8 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.dto.CalculoRequest;
-import br.com.criare3d.models.*;
+
+import br.com.criare3d.dto.calculo.*;
+import br.com.criare3d.dto.calculo.EntradaCalculo.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,8 +12,8 @@ import static br.com.criare3d.service.CalculoFinanceiro.precisao;
 /**
  * Monta snapshots sem persistir ou consultar dados.
  */
-public final class MontadorHistorico {
-    private MontadorHistorico() {
+public final class MontadorResultado {
+    private MontadorResultado() {
     }
 
     public record DadosLote(BigDecimal quantidadeFilamentoTotal, BigDecimal purgaGramasLote,
@@ -20,11 +21,10 @@ public final class MontadorHistorico {
                             String nomeEmbalagem, BigDecimal custoEmbalagem, LocalDateTime dataCalculo) {
     }
 
-    public static ItemCalculoHistorico item(CalculoHistorico historico, Filamento filamento,
+    public static ItemMotor item(EstadoCalculo historico, FilamentoDados filamento,
                                             BigDecimal quantidade, BigDecimal custoIndividual) {
-        return ItemCalculoHistorico.builder()
-            .calculoHistorico(historico)
-            .filamento(filamento)
+        return ItemMotor.builder()
+                        .filamentoId(filamento.getId())
             .nomeFilamento(filamento.getNome())
             .corFilamento(filamento.getCor())
             .codigoCor(filamento.getCodigoCor())
@@ -36,24 +36,24 @@ public final class MontadorHistorico {
 
     }
 
-    public static void preencher(CalculoHistorico historico, CalculoRequest request, Peca peca,
-                                 Impressora impressora, Embalagem embalagem, Configuracao configuracao,
+    public static void preencher(EstadoCalculo historico, Parametros request, PecaDados peca,
+                                 ImpressoraDados impressora, EmbalagemDados embalagem, ConfiguracaoDados configuracao,
                                  CalculadoraProducao.Resultado custos, DadosLote dados) {
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null ? 0 : impressora.getTempoAquecimentoMinutos();
         BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null ? BigDecimal.ZERO : configuracao.getPurgaGramasPorImpressao();
-        historico.setPeca(peca);
+        historico.setPecaId(peca.getId());
         historico.setCategoriaPeca(peca.getCategoria());
-        historico.setImpressora(impressora);
+        historico.setImpressoraId(impressora.getId());
         if (embalagem != null && embalagem.isArquivado())
             throw new IllegalArgumentException("Restaure a embalagem antes de calcular.");
-        historico.setEmbalagem(embalagem);
+        historico.setEmbalagemId(embalagem == null ? null : embalagem.getId());
 
         historico.setNomePeca(peca.getNome());
         historico.setUnidades(request.getUnidades());
         historico.setGramasTotaisLote(precisao(dados.quantidadeFilamentoTotal().multiply(BigDecimal.valueOf(request.getUnidades()))
             .add(dados.purgaGramasLote())));
-        historico.setFornadas(ModeloImpressao.quantidadeImpressoes(request.getUnidades(), pecasPorImpressao));
+        historico.setImpressoes(ModeloImpressao.quantidadeImpressoes(request.getUnidades(), pecasPorImpressao));
         historico.setPecasPorImpressao(pecasPorImpressao);
         historico.setTempoAquecimentoMinutos(tempoAquecimentoMinutos);
         historico.setPurgaGramasPorImpressao(purgaGramasPorImpressao);

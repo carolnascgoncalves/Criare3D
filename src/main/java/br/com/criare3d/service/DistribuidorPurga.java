@@ -16,6 +16,13 @@ public final class DistribuidorPurga {
     public static void distribuir(BigDecimal purgaPorUnidade,
                                   BigDecimal gramasBasePorUnidade,
                                   List<ItemCalculoHistorico> itens) {
+        distribuir(purgaPorUnidade, gramasBasePorUnidade, itens,
+            ItemCalculoHistorico::getQuantidadeFilamentoGramas, ItemCalculoHistorico::setPurgaGramas);
+    }
+
+    public static <T> void distribuir(BigDecimal purgaPorUnidade, BigDecimal gramasBasePorUnidade,
+        List<T> itens, java.util.function.Function<T, BigDecimal> quantidade,
+        java.util.function.BiConsumer<T, BigDecimal> aplicar) {
         if (purgaPorUnidade == null || purgaPorUnidade.signum() < 0
             || gramasBasePorUnidade == null || gramasBasePorUnidade.signum() < 0
             || itens == null || itens.isEmpty()) {
@@ -27,13 +34,13 @@ public final class DistribuidorPurga {
 
         BigDecimal alocada = BigDecimal.ZERO;
         for (int i = 0; i < itens.size(); i++) {
-            ItemCalculoHistorico item = itens.get(i);
+            T item = itens.get(i);
             BigDecimal parcela = i == itens.size() - 1
                 ? CalculoFinanceiro.precisao(purgaPorUnidade.subtract(alocada))
                 : CalculoFinanceiro.precisao(purgaPorUnidade
-                .multiply(item.getQuantidadeFilamentoGramas())
+                .multiply(quantidade.apply(item))
                 .divide(gramasBasePorUnidade, 8, RoundingMode.HALF_UP));
-            item.setPurgaGramas(parcela);
+            aplicar.accept(item, parcela);
             alocada = alocada.add(parcela);
         }
     }

@@ -5,7 +5,6 @@ import br.com.criare3d.models.CustoLoja;
 import br.com.criare3d.models.RateioCustoHistorico;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 public final class RateioCustos {
@@ -13,30 +12,29 @@ public final class RateioCustos {
     }
 
     public static BigDecimal porUnidade(CustoLoja custo, BigDecimal base) {
-        return switch (custo.getTipo()) {
-            case VALOR_UNIDADE -> custo.getValor();
-            case PERCENTUAL -> base.multiply(custo.getValor()).divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP);
-            case RATEIO_MENSAL ->
-                custo.getMeta().divide(BigDecimal.valueOf(custo.getUnidadesPrevistas()), 8, RoundingMode.HALF_UP);
-        };
+        return RateioCalculo.porUnidade(custo.getTipo().name(), custo.getValor(), custo.getMeta(),
+            custo.getUnidadesPrevistas(), base);
     }
 
     public static void aplicar(CalculoHistorico calculo, List<CustoLoja> custos) {
-        BigDecimal base = calculo.getCustoTotal();
-        BigDecimal total = BigDecimal.ZERO;
-        for (CustoLoja custo : custos) {
+        var estado = new br.com.criare3d.dto.calculo.EstadoCalculo();
+        estado.setCustoTotal(calculo.getCustoTotal());
+        estado.setMarkupPercentual(calculo.getMarkupPercentual());
+        var entradas = custos.stream().map(c -> new br.com.criare3d.dto.calculo.EntradaCalculo.CustoDados(
+            c.getId(), c.getDescricao(), c.getTipo().name(), c.getValor(), c.getMeta(), c.getUnidadesPrevistas())).toList();
+        RateioCalculo.aplicar(estado, entradas);
+        for (int indice = 0; indice < custos.size(); indice++) {
+            var resultado = estado.getRateiosCustos().get(indice);
             var item = new RateioCustoHistorico();
             item.setCalculo(calculo);
-            item.setCustoLoja(custo);
-            item.setDescricao(custo.getDescricao());
-            item.setValorUnitario(porUnidade(custo, base));
+            item.setCustoLoja(custos.get(indice));
+            item.setDescricao(resultado.getDescricao());
+            item.setValorUnitario(resultado.getValorUnitario());
             calculo.getRateiosCustos().add(item);
-            total = total.add(item.getValorUnitario());
         }
-        calculo.setCustoLoja(total);
-        calculo.setCustoTotal(base.add(total));
-        calculo.setPrecoSugerido(calculo.getCustoTotal().multiply(BigDecimal.ONE.add(
-            calculo.getMarkupPercentual().divide(new BigDecimal("100"), 8, RoundingMode.HALF_UP))).setScale(2, RoundingMode.HALF_UP));
+        calculo.setCustoLoja(estado.getCustoLoja());
+        calculo.setCustoTotal(estado.getCustoTotal());
+        calculo.setPrecoSugerido(estado.getPrecoSugerido());
     }
 
     public static BigDecimal falta(BigDecimal meta, BigDecimal recuperado) {

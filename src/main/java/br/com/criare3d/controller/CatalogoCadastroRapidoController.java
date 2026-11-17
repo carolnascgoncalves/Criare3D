@@ -6,6 +6,7 @@ import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.ImpressoraCadastroRapidoRequest;
 import br.com.criare3d.models.Impressora;
 import br.com.criare3d.service.CatalogoModelosImpressora;
+import br.com.criare3d.service.EstimativaUsoImpressoraService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.service.interfaces.ImpressoraService;
@@ -33,6 +34,9 @@ public class CatalogoCadastroRapidoController {
     @Autowired
     private CatalogoModelosImpressora modelosImpressora;
 
+    @Autowired
+    private EstimativaUsoImpressoraService estimativaUso;
+
     public record ErrosCadastro(String mensagem, Map<String, String> campos) {
     }
 
@@ -53,9 +57,13 @@ public class CatalogoCadastroRapidoController {
             return ResponseEntity.unprocessableEntity().body(new ErrosCadastro("Informe a potência para este modelo.",
                 Map.of("potenciaWatts", "Não há referência para este modelo. Informe a potência média em watts.")));
         }
+        var uso = estimativaUso.estimar(dados.modelo(), null);
         var impressora = Impressora.builder().nome(dados.nome().strip())
             .modelo(referencia.map(CatalogoModelosImpressora.Modelo::nome).orElse(dados.modelo().strip()))
-            .potenciaWatts(potencia).tempoAquecimentoMinutos(0).build();
+            .potenciaWatts(potencia).tempoAquecimentoMinutos(0)
+            .vidaUtilHoras(dados.vidaUtilHoras() == null ? uso.horasAteSubstituicao() : dados.vidaUtilHoras())
+            .horasMensaisUso(dados.horasMensaisUso() == null ? uso.horasMensais() : dados.horasMensaisUso())
+            .horasMensaisManual(Boolean.TRUE.equals(dados.horasMensaisManual())).build();
         var salvo = impressoras.create(impressora);
         return ResponseEntity.status(201).body(CatalogoOpcaoMapper.de(salvo));
     }

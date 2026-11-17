@@ -6,7 +6,7 @@ import br.com.criare3d.dto.PedidoDadosRequest;
 import br.com.criare3d.dto.SelecaoPedidoRequest;
 import br.com.criare3d.models.PedidoOrcamento;
 import br.com.criare3d.service.*;
-import jakarta.servlet.http.HttpSession;
+import br.com.criare3d.dto.RascunhoCalculo;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -88,8 +88,8 @@ public class PedidoOrcamentoController {
     }
 
     @PostMapping("/do-calculo")
-    public String doCalculo(HttpSession session, @RequestParam(required = false) UUID pedido, RedirectAttributes flash) {
-        var entrada = (CalculoRequest) session.getAttribute("requestCalculo");
+    public String doCalculo(RascunhoCalculo estado, @RequestParam(required = false) UUID pedido, RedirectAttributes flash) {
+        var entrada = (CalculoRequest) estado.getAttribute("requestCalculo");
         if (entrada == null) {
             flash.addFlashAttribute("mensagemErro", "O cálculo expirou. Calcule a peça novamente.");
             return "redirect:/historico/novo";
@@ -106,8 +106,8 @@ public class PedidoOrcamentoController {
                 destino = pedido;
                 itemId = i.getId();
             }
-            rascunho.buscar(session.getAttribute("fotoCalculoId")).ifPresent(f -> fotos.salvar(itemId, f));
-            session.removeAttribute("orcamentoDestino");
+            rascunho.buscar(estado.getAttribute("fotoCalculoId")).ifPresent(f -> fotos.salvar(itemId, f));
+            estado.removeAttribute("orcamentoDestino");
             return "redirect:/orcamentos/" + destino + "?etapa=1";
         } catch (IllegalArgumentException e) {
             flash.addFlashAttribute("mensagemErro", e.getMessage());

@@ -1,9 +1,9 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
-import br.com.criare3d.models.Configuracao;
-import br.com.criare3d.models.Impressora;
-import br.com.criare3d.models.Peca;
+import br.com.criare3d.dto.calculo.EntradaCalculo.*;
+
+
 
 import java.math.BigDecimal;
 
@@ -12,6 +12,10 @@ public final class CalculoValidador {
     }
 
     public static void validarRequisicao(CalculoRequest request) {
+        validarRequisicao(CalculoMapper.dados(request));
+    }
+
+    public static void validarRequisicao(Parametros request) {
         if (request == null || request.getPecaId() == null) throw new IllegalArgumentException("Selecione uma peça.");
         if (request.getImpressoraId() == null) throw new IllegalArgumentException("Selecione uma impressora.");
         if (request.getFilamentos() == null || request.getFilamentos().isEmpty())
@@ -22,7 +26,7 @@ public final class CalculoValidador {
             throw new IllegalArgumentException("Selecione todos os filamentos");
     }
 
-    public static void validar(CalculoRequest request, Peca peca, Impressora impressora, Configuracao configuracao) {
+    public static void validar(Parametros request, PecaDados peca, ImpressoraDados impressora, ConfiguracaoDados configuracao) {
         validarRequisicao(request);
         if (peca.isArquivado() || impressora.isArquivado())
             throw new IllegalArgumentException("Restaure a peça e a impressora arquivadas antes de calcular.");

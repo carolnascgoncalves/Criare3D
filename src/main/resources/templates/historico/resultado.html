@@ -326,6 +326,7 @@
                       class="comparador-controles"
                       id="formComparador"
                       data-turbo="false">
+<input type="hidden" name="rascunhoId" th:value="${rascunhoId}">
 
                     <div class="comparador-campo comparador-campo-modo">
                         <label for="modoComparacao">Como deseja comparar?</label>
@@ -440,9 +441,12 @@
 
             <!-- AÇÕES -->
             <div class="acoes-resultado">
-                <form th:if="${orcamentoDestino != null}" th:action="@{/orcamentos/do-calculo}" method="post"><input type="hidden" name="pedido" th:value="${orcamentoDestino}"><button class="botao botao-principal">Adicionar ao orçamento em edição</button></form>
-                <form th:action="@{/orcamentos/do-calculo}" method="post"><button class="botao botao-principal"><i class="bi bi-file-earmark-text"></i> Usar em um orçamento</button></form>
+                <form th:if="${orcamentoDestino != null}" th:action="@{/orcamentos/do-calculo}" method="post">
+<input type="hidden" name="rascunhoId" th:value="${rascunhoId}"><input type="hidden" name="pedido" th:value="${orcamentoDestino}"><button class="botao botao-principal">Adicionar ao orçamento em edição</button></form>
+                <form th:action="@{/orcamentos/do-calculo}" method="post">
+<input type="hidden" name="rascunhoId" th:value="${rascunhoId}"><button class="botao botao-principal"><i class="bi bi-file-earmark-text"></i> Usar em um orçamento</button></form>
                 <form th:action="@{/historico/salvar}" th:object="${calculo}" method="post">
+<input type="hidden" name="rascunhoId" th:value="${rascunhoId}">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
                     <input type="hidden" th:field="*{pecasPorImpressao}">
@@ -486,6 +490,7 @@
                 </form>
 
                 <form th:action="@{/historico/editar}" th:object="${calculo}" method="post" data-turbo="false">
+<input type="hidden" name="rascunhoId" th:value="${rascunhoId}">
                     <input type="hidden" th:field="*{pecaId}">
                     <input type="hidden" th:field="*{unidades}">
                     <input type="hidden" th:field="*{pecasPorImpressao}">
@@ -589,5 +594,6 @@
     })();
 </script>
 
+<input type="hidden" id="rascunhoCalculoId" th:value="${rascunhoId}">
 </body>
 </html>

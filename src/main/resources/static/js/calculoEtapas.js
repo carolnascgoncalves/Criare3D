@@ -496,7 +496,7 @@ function inicializarCalculoEtapas() {
 
         if (!select) return;
 
-        select.addEventListener("change", () => {
+        select.addEventListener("change", async () => {
             const opcao = select.selectedOptions[0];
 
             if (!opcao?.dataset.acao?.startsWith("cadastrar-")) {
@@ -507,7 +507,8 @@ function inicializarCalculoEtapas() {
 
             salvarRascunho();
 
-            const destino = `${rota}?origem=calculo`;
+            await window.sincronizarRascunhoCalculo?.();
+            const destino = window.urlRascunhoCalculo?.(`${rota}?origem=calculo`) || `${rota}?origem=calculo`;
 
             if (window.Turbo) {
                 window.Turbo.visit(destino);
@@ -575,6 +576,8 @@ function inicializarCalculoEtapas() {
         const dados = new FormData();
         const tokenCsrf = formulario.querySelector('input[name="_csrf"]')?.value;
         if (tokenCsrf) dados.append("_csrf", tokenCsrf);
+        const rascunhoId = formulario.querySelector('[name="rascunhoId"]')?.value;
+        if (rascunhoId) dados.append("rascunhoId", rascunhoId);
         if (arquivo) dados.append("fotoPeca", arquivo);
         if (remover) dados.append("remover", "true");
 

@@ -7,7 +7,7 @@ import br.com.criare3d.service.CalculoService;
 import br.com.criare3d.service.FotoRascunhoService;
 import br.com.criare3d.service.HistoricoCalculoService;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.web.MockHttpSession;
+import br.com.criare3d.dto.RascunhoCalculo;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.BeanPropertyBindingResult;
 
@@ -32,12 +32,12 @@ class EdicaoCalculoTest {
         dados.setUnidades(5);
         dados.setTempoImpressaoMinutos(29L);
         dados.setFotoPecaBytes(new byte[]{1, 2, 3});
-        var session = new MockHttpSession();
+        var session = new RascunhoCalculo();
         var fotoId = UUID.randomUUID();
         session.setAttribute("fotoCalculoId", fotoId);
         var resposta = controller.editar(dados, session);
         assertThat(resposta.getStatusCode().value()).isEqualTo(303);
-        assertThat(resposta.getHeaders().getLocation().toString()).isEqualTo("/historico/novo?editar=true");
+        assertThat(resposta.getHeaders().getLocation().toString()).isEqualTo("/historico/novo?editar=true&rascunhoId=" + session.getId());
         var rascunho = (CalculoRequest) session.getAttribute("calculoParaEditar");
         assertThat(rascunho.getUnidades()).isEqualTo(5);
         assertThat(rascunho.getTempoImpressaoMinutos()).isEqualTo(29);
@@ -51,7 +51,7 @@ class EdicaoCalculoTest {
         ReflectionTestUtils.setField(controller, "fotoRascunhoService", fotos);
         when(fotos.buscar(null)).thenReturn(Optional.empty());
         var dados = new CalculoRequest();
-        var session = new MockHttpSession();
+        var session = new RascunhoCalculo();
         var anterior = new CalculoResponse();
         anterior.setCustoTotal(BigDecimal.ONE);
         anterior.setPrecoSugerido(BigDecimal.TEN);
