@@ -126,3 +126,7 @@ Faça backup do PostgreSQL local e do Neon antes de iniciar a aplicação com es
 - Confirmar as variáveis de ambiente do Render e manter backup do PostgreSQL.
 
 A etapa Preço dos orçamentos permite [conectar e cotar fretes com o Melhor Envio](docs/melhor-envio.md). A integração usa credenciais privadas e autorização separada por empresa; pode ser testada no Sandbox antes de usar em produção.
+
+## API v1 e preparação para Expo
+
+A API de autenticação, Clientes e Extrato funciona ao lado das páginas atuais. Configure `API_JWT_SECRET` para habilitar a emissão de tokens e abra `/swagger-ui/index.html`. As rotas antigas do site conservam sessão e CSRF. Veja a [configuração, contrato e sequência de testes](docs/api-v1.md) e o [arquivo HTTP do IntelliJ](docs/api-v1.http).

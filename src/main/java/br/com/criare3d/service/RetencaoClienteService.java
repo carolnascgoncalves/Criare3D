@@ -31,6 +31,7 @@ public class RetencaoClienteService {
 
     @Scheduled(cron = "${criare.retencao.cron:0 0 4 * * *}", zone = "America/Sao_Paulo")
     public void executar() {
+        jdbc.update("DELETE FROM api_sessao WHERE expira_em < ?", java.sql.Timestamp.from(clock.instant()));
         jdbc.update("DELETE FROM recuperacao_senha WHERE expira_em < ?", java.sql.Timestamp.from(clock.instant()));
         jdbc.update("DELETE FROM calculo_rascunho WHERE atualizado_em < ?",
             java.sql.Timestamp.from(clock.instant().minus(CalculoRascunhoService.RETENCAO)));

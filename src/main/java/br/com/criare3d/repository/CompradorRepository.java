@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CompradorRepository extends JpaRepository<Comprador, UUID> {
+    // HQL garante o discriminador de tenant também no carregamento por identificador.
+    @Override
+    @Query("select c from Comprador c where c.id=:id")
+    java.util.Optional<Comprador> findById(@Param("id") UUID id);
+
     @Query("""
         select c from Comprador c where c.arquivado=:arquivados and (:busca=''
         or lower(c.nome) like lower(concat('%',:busca,'%'))

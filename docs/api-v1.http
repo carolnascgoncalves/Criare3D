@@ -1,0 +1,83 @@
+@base = http://localhost:8080
+
+### Login (defina API_EMAIL e API_SENHA no ambiente local; não versione credenciais)
+POST {{base}}/api/v1/auth/login
+Content-Type: application/json
+
+{"email":"{{$env.API_EMAIL}}","senha":"{{$env.API_SENHA}}"}
+
+> {%
+client.global.set("accessToken", response.body.accessToken);
+client.global.set("refreshToken", response.body.refreshToken);
+%}
+
+### Identidade
+GET {{base}}/api/v1/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Tema
+GET {{base}}/api/v1/tenant
+Authorization: Bearer {{accessToken}}
+
+### Criar comprador
+POST {{base}}/api/v1/clientes
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"nome":"Cliente de teste da API","telefone":"11988887777","email":"cliente-api@example.test","observacoes":"Criado pelo arquivo HTTP"}
+
+> {%
+client.global.set("clienteId", response.body.id);
+client.global.set("clienteVersao", response.body.versao);
+%}
+
+### Listar
+GET {{base}}/api/v1/clientes?busca=Cliente&pagina=0&tamanho=20
+Authorization: Bearer {{accessToken}}
+
+### Abrir
+GET {{base}}/api/v1/clientes/{{clienteId}}
+Authorization: Bearer {{accessToken}}
+
+### Editar (a mesma versão não pode ser reutilizada após salvar)
+PUT {{base}}/api/v1/clientes/{{clienteId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"nome":"Cliente da API atualizado","telefone":"11988887777","email":"cliente-api@example.test","observacoes":"Editado","versao":{{clienteVersao}}}
+
+### Arquivar (troque true por false para restaurar)
+PATCH {{base}}/api/v1/clientes/{{clienteId}}/arquivo
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"arquivado":true}
+
+### Extrato
+GET {{base}}/api/v1/extrato?tudo=true&pagina=0&tamanho=20
+Authorization: Bearer {{accessToken}}
+
+### Renovar: substitui ambos os tokens
+POST {{base}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{"refreshToken":"{{refreshToken}}"}
+
+> {%
+client.global.set("refreshAnterior", client.global.get("refreshToken"));
+client.global.set("accessToken", response.body.accessToken);
+client.global.set("refreshToken", response.body.refreshToken);
+%}
+
+### Reutilização revoga a sessão inteira (execute somente ao testar esse comportamento)
+POST {{base}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{"refreshToken":"{{refreshAnterior}}"}
+
+### Logout
+POST {{base}}/api/v1/auth/logout
+Authorization: Bearer {{accessToken}}
+
+### Sem token deve retornar 401 JSON, mesmo com o site aberto
+GET {{base}}/api/v1/clientes

@@ -39,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 @SpringBootTest
 @ActiveProfiles("test")
 @EnabledIfSystemProperty(named = "criare.integration", matches = "true")
-@TestPropertySource(properties = {"spring.datasource.url=${CRIARE_TEST_DB_URL:jdbc:postgresql://127.0.0.1:55445/postgres}", "spring.datasource.username=${CRIARE_TEST_DB_USER:codex_review}", "spring.datasource.password=${CRIARE_TEST_DB_PASSWORD:}"})
+@TestPropertySource(properties = {"spring.datasource.url=${CRIARE_TEST_DB_URL:jdbc:postgresql://127.0.0.1:55445/postgres}", "criare.api.jwt.secret=YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=", "spring.datasource.username=${CRIARE_TEST_DB_USER:codex_review}", "spring.datasource.password=${CRIARE_TEST_DB_PASSWORD:}"})
 class ConsolidacaoIntegrationTest {
     @Autowired
     TenantRepository tenants;
@@ -89,6 +89,49 @@ class ConsolidacaoIntegrationTest {
     PlatformTransactionManager manager;
     private final List<UUID> criados = new ArrayList<>();
 
+    @Autowired br.com.criare3d.api.auth.ApiAuthService authApi;
+    @Autowired br.com.criare3d.api.auth.ApiJwtService jwtApi;
+    @Autowired org.springframework.security.crypto.password.PasswordEncoder encoder;
+
+    @Test
+    void rotacaoEReusoDeRefreshRevogamFamiliaNoBancoMesmoComExcecao() {
+        var u = conta();
+        u.setPassword(encoder.encode("SenhaCorreta123!"));
+        usuarios.saveAndFlush(u);
+        var primeiro = authApi.login(u.getEmail(), "SenhaCorreta123!", "127.0.0.1");
+        UUID familia = UUID.fromString(jwtApi.ler(primeiro.accessToken()).getClaimAsString("sid"));
+        var segundo = authApi.refresh(primeiro.refreshToken());
+        assertThat(segundo.refreshToken()).isNotEqualTo(primeiro.refreshToken());
+        assertThat(authApi.familiaAtiva(familia, u.getId())).isTrue();
+        assertThatIllegalArgumentException().isThrownBy(() -> authApi.refresh(primeiro.refreshToken()));
+        assertThat(authApi.familiaAtiva(familia, u.getId())).isFalse();
+        assertThatIllegalArgumentException().isThrownBy(() -> authApi.refresh(segundo.refreshToken()));
+        var c = new Comprador();c.setNome("Cliente protegido");compradores.saveAndFlush(c);
+        conta();
+        assertThat(compradores.findById(c.getId())).isEmpty();
+    }
+
+    @Test
+    void refreshConcorrenteNaoEmiteDoisParesValidos() throws Exception {
+        var u = conta();
+        u.setPassword(encoder.encode("SenhaCorreta123!"));usuarios.saveAndFlush(u);
+        var primeiro = authApi.login(u.getEmail(), "SenhaCorreta123!", "127.0.0.2");
+        UUID familia = UUID.fromString(jwtApi.ler(primeiro.accessToken()).getClaimAsString("sid"));
+        var inicio = new java.util.concurrent.CyclicBarrier(2);
+        try (var executor = java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            java.util.concurrent.Callable<Boolean> renovar = () -> {
+                inicio.await(10, java.util.concurrent.TimeUnit.SECONDS);
+                try { authApi.refresh(primeiro.refreshToken()); return true; }
+                catch (br.com.criare3d.api.auth.ApiAuthService.RefreshReutilizado e) { return false; }
+            };
+            var a = executor.submit(renovar);
+            var b = executor.submit(renovar);
+            assertThat(List.of(a.get(15, java.util.concurrent.TimeUnit.SECONDS), b.get(15, java.util.concurrent.TimeUnit.SECONDS)))
+                .containsExactlyInAnyOrder(true, false);
+        }
+        assertThat(authApi.familiaAtiva(familia, u.getId())).isFalse();
+    }
+
     private Usuario conta() {
         SecurityContextHolder.clearContext();
         var t = new Tenant();
@@ -114,7 +157,7 @@ class ConsolidacaoIntegrationTest {
     void limpar() {
         SecurityContextHolder.clearContext();
         for (var tenant : criados) {
-            for (var tabela : List.of("calculo_rascunho", "movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "custo_personalizado", "planejamento_producao", "falha_producao", "calculo_foto", "item_calculo_historico", "calculo_historico", "configuracao", "filamento", "impressora", "embalagem", "peca", "usuario"))
+            for (var tabela : List.of("api_refresh_token", "api_sessao", "calculo_rascunho", "movimentacao", "operacao_confirmada", "venda_produto_loja", "produto_loja", "rateio_custo_historico", "custo_loja", "foto_item_pedido", "venda_calculo", "item_pedido", "pedido_orcamento", "comprador", "custo_personalizado", "planejamento_producao", "falha_producao", "calculo_foto", "item_calculo_historico", "calculo_historico", "configuracao", "filamento", "impressora", "embalagem", "peca", "usuario"))
                 jdbc.update("DELETE FROM " + tabela + " WHERE tenant_id=?", tenant);
             jdbc.update("DELETE FROM tenant WHERE id=?", tenant);
         }

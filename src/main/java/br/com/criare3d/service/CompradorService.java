@@ -68,7 +68,8 @@ public class CompradorService {
     public Comprador salvar(SalvarComprador comando) {
         var cliente = comando.id() == null ? new Comprador() : buscar(comando.id());
         if (cliente.getId() != null && !Objects.equals(cliente.getVersao(), comando.versao())) {
-            throw new IllegalArgumentException("O cliente foi alterado em outra tela. Reabra antes de salvar.");
+            throw new br.com.criare3d.exception.RegraNegocioException("cliente_alterado",
+                "O cliente foi alterado em outra tela. Reabra antes de salvar.", org.springframework.http.HttpStatus.CONFLICT);
         }
         verificarDuplicado(comando);
         cliente.setNome(comando.nome().strip());
