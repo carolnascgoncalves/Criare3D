@@ -18,24 +18,28 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Embalagem {
     @Column(nullable = false)
-    private @Getter @Setter boolean arquivado;
+    private @Getter
+    @Setter boolean arquivado;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
     private @Getter UUID tenantId;
 
-    @NotBlank(message="O nome da embalagem é obrigatório")
+    @NotBlank(message = "O nome da embalagem é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da embalagem deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_emb", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_emb", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
-    @NotNull(message="O custo unitário da embalagem é obrigatorio")
-    @Column(name="custoUni_emb", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal custoUnitario;
+    @NotNull(message = "O custo unitário da embalagem é obrigatorio")
+    @Column(name = "custoUni_emb", nullable = false, precision = 10, scale = 2)
+    private @Getter
+    @Setter BigDecimal custoUnitario;
 
 
     @OneToMany(mappedBy = "embalagem")
@@ -43,5 +47,6 @@ public class Embalagem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private @Getter @Setter Usuario usuario;
+    private @Getter
+    @Setter Usuario usuario;
 }

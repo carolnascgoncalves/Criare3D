@@ -1,23 +1,29 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.CustoPersonalizado;
-import br.com.criare3d.repository.*;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.CustoPersonalizadoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
-@Service @Transactional
+@Service
+@Transactional
 public class CustoPersonalizadoService {
-    @Autowired private CalculoHistoricoRepository historicos;
-    @Autowired private CustoPersonalizadoRepository custos;
+    @Autowired
+    private CalculoHistoricoRepository historicos;
+    @Autowired
+    private CustoPersonalizadoRepository custos;
 
     public void registrar(UUID id, String descricao, BigDecimal valor) {
         if (descricao == null || descricao.trim().length() < 2 || descricao.trim().length() > 150
-                || valor == null || valor.signum() <= 0 || valor.scale() > 2
-                || valor.compareTo(new BigDecimal("9999999999.99")) > 0) {
+            || valor == null || valor.signum() <= 0 || valor.scale() > 2
+            || valor.compareTo(new BigDecimal("9999999999.99")) > 0) {
             throw new IllegalArgumentException("Informe uma descrição e um valor maior que zero, com até duas casas decimais.");
         }
         var lote = historicos.bloquearPorId(id).orElseThrow(() -> new IllegalArgumentException("Lote não encontrado."));

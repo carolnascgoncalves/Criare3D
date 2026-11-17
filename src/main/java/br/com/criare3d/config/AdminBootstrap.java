@@ -1,8 +1,7 @@
-
 package br.com.criare3d.config;
 
-import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.models.Usuario;
+import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.UsuarioRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -22,9 +21,9 @@ public class AdminBootstrap implements ApplicationRunner {
     private final Environment environment;
 
     public AdminBootstrap(
-            UsuarioRepository usuarioRepository,
-            PasswordEncoder passwordEncoder,
-            Environment environment
+        UsuarioRepository usuarioRepository,
+        PasswordEncoder passwordEncoder,
+        Environment environment
     ) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
@@ -39,7 +38,7 @@ public class AdminBootstrap implements ApplicationRunner {
 
         if (!StringUtils.hasText(email) || !StringUtils.hasText(password)) {
             throw new IllegalStateException(
-                    "Configure ADMIN_EMAIL e ADMIN_PASSWORD nas variáveis de ambiente."
+                "Configure ADMIN_EMAIL e ADMIN_PASSWORD nas variáveis de ambiente."
             );
         }
 
@@ -51,7 +50,7 @@ public class AdminBootstrap implements ApplicationRunner {
 
         if (password.length() < 12) {
             throw new IllegalStateException(
-                    "A senha do ADMIN deve possuir pelo menos 12 caracteres."
+                "A senha do ADMIN deve possuir pelo menos 12 caracteres."
             );
         }
 
@@ -61,7 +60,7 @@ public class AdminBootstrap implements ApplicationRunner {
             Usuario adminExistente = usuarioExistente.get();
             if (adminExistente.getPerfil() != Perfil.ADMIN) {
                 throw new IllegalStateException(
-                        "O e-mail configurado em ADMIN_EMAIL já existe e não é ADMIN."
+                    "O e-mail configurado em ADMIN_EMAIL já existe e não é ADMIN."
                 );
             }
 
@@ -84,15 +83,15 @@ public class AdminBootstrap implements ApplicationRunner {
 
         if (usuarioRepository.existsByPerfil(Perfil.ADMIN)) {
             throw new IllegalStateException(
-                    "Já existe uma conta ADMIN cadastrada com outro e-mail."
+                "Já existe uma conta ADMIN cadastrada com outro e-mail."
             );
         }
 
         Usuario admin = Usuario.builder()
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .perfil(Perfil.ADMIN)
-                .build();
+            .email(email)
+            .password(passwordEncoder.encode(password))
+            .perfil(Perfil.ADMIN)
+            .build();
 
         usuarioRepository.save(admin);
     }

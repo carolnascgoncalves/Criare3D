@@ -39,34 +39,34 @@ public class NavegacaoModelAdvice {
         else if (caminho.equals("/historico/novo") || caminho.equals("/historico/resultado")) pagina = "";
         else if (caminho.startsWith("/historico")) pagina = "historico";
         else if (caminho.startsWith("/usuarios") || caminho.startsWith("/clientes")) pagina = "clientes";
-        if(caminho.startsWith("/compradores"))pagina="compradores";
-        if(caminho.startsWith("/movimentacoes"))pagina="movimentacoes";
+        if (caminho.startsWith("/compradores")) pagina = "compradores";
+        if (caminho.startsWith("/movimentacoes")) pagina = "movimentacoes";
         model.addAttribute("paginaAtiva", pagina);
 
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         UsuarioPrincipal principal = autenticacao != null && autenticacao.isAuthenticated()
-                && autenticacao.getPrincipal() instanceof UsuarioPrincipal usuarioPrincipal
-                ? usuarioPrincipal : null;
+            && autenticacao.getPrincipal() instanceof UsuarioPrincipal usuarioPrincipal
+            ? usuarioPrincipal : null;
 
         var tema = principal == null || principal.getTenantId() == null
-                ? null : tenantTemaCache.buscarTema(principal.getTenantId()).orElse(null);
+            ? null : tenantTemaCache.buscarTema(principal.getTenantId()).orElse(null);
         String nomeTenant = tema == null || tema.getNome() == null || tema.getNome().isBlank()
-                ? "Criare 3D" : tema.getNome();
+            ? "Criare 3D" : tema.getNome();
         long temaVersao = tema == null || tema.getTemaVersao() == null
-                ? 1L : Math.max(1L, tema.getTemaVersao());
+            ? 1L : Math.max(1L, tema.getTemaVersao());
         boolean tenantDisponivel = principal != null && principal.getTenantId() != null;
         boolean tenantTemLogo = tema != null && Boolean.TRUE.equals(tema.getTemLogo());
         model.addAttribute("tenantDisponivel", tenantDisponivel);
         model.addAttribute("tenantNome", nomeTenant);
         model.addAttribute("tenantTemLogo", tenantTemLogo);
         model.addAttribute("tenantLogoUrl", tenantDisponivel
-                && tenantTemLogo
-                ? request.getContextPath() + "/tema/" + principal.getTenantId()
-                    + "/" + temaVersao + "/logo"
-                : request.getContextPath() + "/images/criare3d-128.jpg");
+            && tenantTemLogo
+            ? request.getContextPath() + "/tema/" + principal.getTenantId()
+            + "/" + temaVersao + "/logo"
+            : request.getContextPath() + "/images/criare3d-128.jpg");
         if (tenantDisponivel) {
             model.addAttribute("temaCssUrl", request.getContextPath() + "/tema/"
-                    + principal.getTenantId() + "/" + temaVersao + ".css");
+                + principal.getTenantId() + "/" + temaVersao + ".css");
         }
     }
 }

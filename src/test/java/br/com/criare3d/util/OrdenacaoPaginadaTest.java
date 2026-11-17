@@ -13,7 +13,7 @@ class OrdenacaoPaginadaTest {
     @Test
     void limitaTamanhoDePaginaA50MesmoQuandoParametroEGrande() {
         var resultado = OrdenacaoPaginada.aplicar(
-                PageRequest.of(3, 100_000), "nome", Map.of("nome", Sort.by("nome")));
+            PageRequest.of(3, 100_000), "nome", Map.of("nome", Sort.by("nome")));
 
         assertEquals(3, resultado.getPageNumber());
         assertEquals(50, resultado.getPageSize());
@@ -23,7 +23,7 @@ class OrdenacaoPaginadaTest {
     @Test
     void preservaTamanhoNormalDePagina() {
         var resultado = OrdenacaoPaginada.aplicar(
-                PageRequest.of(0, 20), "nome", Map.of("nome", Sort.by("nome")));
+            PageRequest.of(0, 20), "nome", Map.of("nome", Sort.by("nome")));
 
         assertEquals(20, resultado.getPageSize());
     }

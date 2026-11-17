@@ -1,31 +1,28 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.models.Filamento;
 import br.com.criare3d.dto.CompraFilamentoRequest;
-import br.com.criare3d.repository.FilamentoRepository;
+import br.com.criare3d.models.Filamento;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.FilamentoRepository;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
 public class FilamentoServiceImp implements FilamentoService {
 
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
-    @org.springframework.beans.factory.annotation.Autowired private MovimentacaoService movimentos;
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
+    @org.springframework.beans.factory.annotation.Autowired
+    private MovimentacaoService movimentos;
     private final FilamentoRepository filamentoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
@@ -44,8 +41,9 @@ public class FilamentoServiceImp implements FilamentoService {
             filamento.setEstoqueGramas(filamento.getPesoRoloGramas());
         }
         filamento.setUsuario(usuarioLogadoService.buscarUsuarioAtual());
-        var salvo=filamentoRepository.save(filamento);
-        if(movimentos!=null)movimentos.registrar("SALDO_INICIAL",salvo.getNome()+" · "+salvo.getCor(),salvo.getEstoqueGramas(),"g","filamento",salvo.getId(),salvo.getId(),salvo.getEstoqueGramas());
+        var salvo = filamentoRepository.save(filamento);
+        if (movimentos != null)
+            movimentos.registrar("SALDO_INICIAL", salvo.getNome() + " · " + salvo.getCor(), salvo.getEstoqueGramas(), "g", "filamento", salvo.getId(), salvo.getId(), salvo.getEstoqueGramas());
         return salvo;
     }
 
@@ -68,9 +66,10 @@ public class FilamentoServiceImp implements FilamentoService {
                 existing.setPesoRoloGramas(patch.getPesoRoloGramas());
 
             if (patch.getEstoqueGramas() != null) {
-                var antes=existing.getEstoqueGramas()==null?BigDecimal.ZERO:existing.getEstoqueGramas();
+                var antes = existing.getEstoqueGramas() == null ? BigDecimal.ZERO : existing.getEstoqueGramas();
                 existing.setEstoqueGramas(patch.getEstoqueGramas());
-                if(movimentos!=null)movimentos.registrar("AJUSTE",existing.getNome()+" · "+existing.getCor(),patch.getEstoqueGramas().subtract(antes),"g","filamento",id,existing.getId(),existing.getEstoqueGramas());
+                if (movimentos != null)
+                    movimentos.registrar("AJUSTE", existing.getNome() + " · " + existing.getCor(), patch.getEstoqueGramas().subtract(antes), "g", "filamento", id, existing.getId(), existing.getEstoqueGramas());
             }
 
             if (patch.getPrecoRolo() != null)
@@ -91,10 +90,11 @@ public class FilamentoServiceImp implements FilamentoService {
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
         List<UUID> existentes = filamentoRepository.findAllByIdIn(solicitados)
-                .stream().map(Filamento::getId).toList();
+            .stream().map(Filamento::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueados = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsFilamentoComHistorico(existentes));
-        if (falhaProducaoRepository != null) bloqueados.addAll(falhaProducaoRepository.buscarFilamentosComRegistro(existentes));
+        if (falhaProducaoRepository != null)
+            bloqueados.addAll(falhaProducaoRepository.buscarFilamentosComRegistro(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueados.contains(id)).toList();
         if (!removiveis.isEmpty()) filamentoRepository.deleteAllByIdInBatch(removiveis);
         return existentes.stream().filter(bloqueados::contains).toList();
@@ -117,8 +117,8 @@ public class FilamentoServiceImp implements FilamentoService {
         }
 
         String[] termos = busca.trim()
-                .toLowerCase(Locale.ROOT)
-                .split("\\s+");
+            .toLowerCase(Locale.ROOT)
+            .split("\\s+");
 
         Specification<Filamento> especificacao = (root, query, criteriaBuilder) -> {
             List<jakarta.persistence.criteria.Predicate> filtros = new java.util.ArrayList<>();
@@ -128,11 +128,11 @@ public class FilamentoServiceImp implements FilamentoService {
                 String padrao = "%" + termo + "%";
 
                 var correspondeNome = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("nome")), padrao
+                    criteriaBuilder.lower(root.get("nome")), padrao
                 );
 
                 var correspondeCor = criteriaBuilder.like(
-                        criteriaBuilder.lower(root.get("cor")), padrao
+                    criteriaBuilder.lower(root.get("cor")), padrao
                 );
 
                 filtros.add(criteriaBuilder.or(correspondeNome, correspondeCor));
@@ -168,7 +168,7 @@ public class FilamentoServiceImp implements FilamentoService {
     @Override
     public Optional<Filamento> fetchEstoqueCritico() {
         List<Filamento> encontrados = filamentoRepository.buscarComEstoqueCritico(
-                PageRequest.of(0, 1));
+            PageRequest.of(0, 1));
         return encontrados.stream().findFirst();
     }
 
@@ -193,22 +193,23 @@ public class FilamentoServiceImp implements FilamentoService {
             BigDecimal pesoRoloAtual = filamento.getPesoRoloGramas();
             BigDecimal precoRoloAtual = filamento.getPrecoRolo();
             if (pesoRoloAtual == null || pesoRoloAtual.signum() <= 0
-                    || precoRoloAtual == null || precoRoloAtual.signum() < 0) {
+                || precoRoloAtual == null || precoRoloAtual.signum() < 0) {
                 throw new IllegalStateException("O custo atual do filamento não está válido para calcular a média.");
             }
             valorEstoqueAtual = estoqueAtual.multiply(precoRoloAtual)
-                    .divide(pesoRoloAtual, 10, java.math.RoundingMode.HALF_UP);
+                .divide(pesoRoloAtual, 10, java.math.RoundingMode.HALF_UP);
         }
         BigDecimal valorCompraAdicionada = gramasAdicionadas.multiply(precoNovoRolo)
-                .divide(pesoNovoRolo, 10, java.math.RoundingMode.HALF_UP);
+            .divide(pesoNovoRolo, 10, java.math.RoundingMode.HALF_UP);
         BigDecimal custoMedioPorGrama = valorEstoqueAtual.add(valorCompraAdicionada)
-                .divide(estoqueNovo, 12, java.math.RoundingMode.HALF_UP);
+            .divide(estoqueNovo, 12, java.math.RoundingMode.HALF_UP);
 
         filamento.setEstoqueGramas(estoqueNovo);
-        if(movimentos!=null)movimentos.registrar("COMPRA",filamento.getNome()+" · "+filamento.getCor(),gramasAdicionadas,"g","filamento",id,filamento.getId(),filamento.getEstoqueGramas());
+        if (movimentos != null)
+            movimentos.registrar("COMPRA", filamento.getNome() + " · " + filamento.getCor(), gramasAdicionadas, "g", "filamento", id, filamento.getId(), filamento.getEstoqueGramas());
         filamento.setPesoRoloGramas(pesoNovoRolo);
         filamento.setPrecoRolo(custoMedioPorGrama.multiply(pesoNovoRolo)
-                .setScale(2, java.math.RoundingMode.HALF_UP));
+            .setScale(2, java.math.RoundingMode.HALF_UP));
         filamentoRepository.saveAndFlush(filamento);
         return true;
     }

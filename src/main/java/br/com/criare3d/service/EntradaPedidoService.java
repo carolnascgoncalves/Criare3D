@@ -1,71 +1,100 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.dto.*;
-import br.com.criare3d.models.*;
+import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.CustosPreservados;
+import br.com.criare3d.dto.ItemCalculoRequest;
+import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.ItemPedido;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
-import java.util.*;
 
-/** Reaproveita parâmetros do cálculo, sem copiar seus estados de produção e venda. */
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Reaproveita parâmetros do cálculo, sem copiar seus estados de produção e venda.
+ */
 @Service
 public class EntradaPedidoService {
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CalculoHistoricoRepository historicos;
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.repository.CalculoHistoricoRepository historicos;
     private final JsonMapper json = JsonMapper.builder().build();
+
     public CalculoRequest copiar(CalculoHistorico h) {
-        if (h.getPeca()==null || h.getImpressora()==null) throw new IllegalArgumentException("Este cálculo antigo não tem peça ou impressora vinculada. Faça um novo cálculo.");
+        if (h.getPeca() == null || h.getImpressora() == null)
+            throw new IllegalArgumentException("Este cálculo antigo não tem peça ou impressora vinculada. Faça um novo cálculo.");
         CalculoRequest r = CalculoRascunhoMapper.copiar(h);
-        r.setPecaId(h.getPeca().getId()); r.setImpressoraId(h.getImpressora().getId());
-        r.setEmbalagemId(h.getEmbalagem()==null?null:h.getEmbalagem().getId());
+        r.setPecaId(h.getPeca().getId());
+        r.setImpressoraId(h.getImpressora().getId());
+        r.setEmbalagemId(h.getEmbalagem() == null ? null : h.getEmbalagem().getId());
         r.setCustoEmbalagemPersonalizada(h.getCustoEmbalagem());
         r.setReferenciaCustosHistoricos(h.getId());
         r.setCustosPreservados(CustosPreservados.de(h));
-        if (h.getPlataformaVenda()!=null) {
-            try { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.valueOf("TIKTOK_SHOP".equals(h.getPlataformaVenda()) ? "TIKTOK" : h.getPlataformaVenda())); }
-            catch (IllegalArgumentException e) { r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.NENHUMA); }
+        if (h.getPlataformaVenda() != null) {
+            try {
+                r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.valueOf("TIKTOK_SHOP".equals(h.getPlataformaVenda()) ? "TIKTOK" : h.getPlataformaVenda()));
+            } catch (IllegalArgumentException e) {
+                r.setPlataformaVenda(br.com.criare3d.models.enums.PlataformaVenda.NENHUMA);
+            }
         }
         List<ItemCalculoRequest> itens = new ArrayList<>();
-        if (h.getItensFilamento()!=null) for (var i:h.getItensFilamento()) {
-            if (i.getFilamento()==null) throw new IllegalArgumentException("Um material deste cálculo não está mais disponível.");
-            var item=new ItemCalculoRequest(); item.setFilamentoId(i.getFilamento().getId()); item.setQuantidadeFilamentoGramas(i.getQuantidadeFilamentoGramas()); itens.add(item);
+        if (h.getItensFilamento() != null) for (var i : h.getItensFilamento()) {
+            if (i.getFilamento() == null)
+                throw new IllegalArgumentException("Um material deste cálculo não está mais disponível.");
+            var item = new ItemCalculoRequest();
+            item.setFilamentoId(i.getFilamento().getId());
+            item.setQuantidadeFilamentoGramas(i.getQuantidadeFilamentoGramas());
+            itens.add(item);
         }
-        if (itens.isEmpty() && h.getFilamento()!=null) {
-            var item=new ItemCalculoRequest(); item.setFilamentoId(h.getFilamento().getId()); item.setQuantidadeFilamentoGramas(h.getQuantidadeFilamentoGramas()); itens.add(item);
+        if (itens.isEmpty() && h.getFilamento() != null) {
+            var item = new ItemCalculoRequest();
+            item.setFilamentoId(h.getFilamento().getId());
+            item.setQuantidadeFilamentoGramas(h.getQuantidadeFilamentoGramas());
+            itens.add(item);
         }
         r.setFilamentos(itens);
         return r;
     }
+
     public String escrever(CalculoRequest entrada) {
         // Não serializa a foto temporária nem altera o rascunho da calculadora.
-        CalculoRequest copia=json.readValue(json.writeValueAsString(entrada),CalculoRequest.class);
-        copia.setFotoPecaBytes(null); copia.setFotoPecaContentType(null);
-        String texto=json.writeValueAsString(copia);
-        if (texto.length()>65536) throw new IllegalArgumentException("O cálculo ultrapassa o tamanho permitido para o orçamento.");
+        CalculoRequest copia = json.readValue(json.writeValueAsString(entrada), CalculoRequest.class);
+        copia.setFotoPecaBytes(null);
+        copia.setFotoPecaContentType(null);
+        String texto = json.writeValueAsString(copia);
+        if (texto.length() > 65536)
+            throw new IllegalArgumentException("O cálculo ultrapassa o tamanho permitido para o orçamento.");
         return texto;
     }
-    @org.springframework.transaction.annotation.Transactional(readOnly=true)
-    public CalculoRequest ler(ItemPedido item,int unidades) {
-        var entrada=ler(item.getEntradaJson(),unidades);
+
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public CalculoRequest ler(ItemPedido item, int unidades) {
+        var entrada = ler(item.getEntradaJson(), unidades);
         // Compatibilidade com propostas já existentes antes da fotografia financeira.
-        if(entrada.getCustosPreservados()==null && !entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque()!=null) {
-            var origem=item.getLoteEstoque();
+        if (entrada.getCustosPreservados() == null && !entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque() != null) {
+            var origem = item.getLoteEstoque();
             // O pedido pode vir de outra transação. Recarrega o histórico para ler suas coleções com a sessão aberta.
-            if(historicos!=null)origem=historicos.buscarPorIdComItens(origem.getId()).orElseThrow(()->new IllegalArgumentException("Cálculo original não encontrado."));
+            if (historicos != null)
+                origem = historicos.buscarPorIdComItens(origem.getId()).orElseThrow(() -> new IllegalArgumentException("Cálculo original não encontrado."));
             entrada.setCustosPreservados(CustosPreservados.de(origem));
             entrada.setReferenciaCustosHistoricos(origem.getId());
         }
         return entrada;
     }
+
     public String origemCustos(ItemPedido item) {
         // A abertura da tela não deve reconstruir custos nem acessar coleções lazy do histórico.
         // A reconstrução continua em ler(ItemPedido, ...) nas operações transacionais.
-        var entrada=ler(item.getEntradaJson(),item.getQuantidade());
-        if(entrada.getCustosPreservados()!=null)return "Valores preservados nesta proposta";
-        if(!entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque()!=null)return "Valores do cálculo original";
+        var entrada = ler(item.getEntradaJson(), item.getQuantidade());
+        if (entrada.getCustosPreservados() != null) return "Valores preservados nesta proposta";
+        if (!entrada.isPrecosAtuaisNoOrcamento() && item.getLoteEstoque() != null) return "Valores do cálculo original";
         return "Orçamento antigo: confira os custos antes de confirmar";
     }
-    public CalculoRequest ler(String texto,int unidades) {
-        CalculoRequest r=json.readValue(texto,CalculoRequest.class);
-        r.setUnidades(unidades); r.setPecasPorImpressao(Math.min(unidades,Math.max(1,r.getPecasPorImpressao()==null?1:r.getPecasPorImpressao())));
+
+    public CalculoRequest ler(String texto, int unidades) {
+        CalculoRequest r = json.readValue(texto, CalculoRequest.class);
+        r.setUnidades(unidades);
+        r.setPecasPorImpressao(Math.min(unidades, Math.max(1, r.getPecasPorImpressao() == null ? 1 : r.getPecasPorImpressao())));
         return r;
     }
 }

@@ -18,11 +18,11 @@ public class PrimeiroAcessoSenhaObrigatoriaFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         var session = request.getSession(false);
         boolean trocaObrigatoria = session != null
-                && Boolean.TRUE.equals(session.getAttribute(SESSAO_TROCA_OBRIGATORIA));
+            && Boolean.TRUE.equals(session.getAttribute(SESSAO_TROCA_OBRIGATORIA));
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
 
         if (trocaObrigatoria && autenticacao != null && autenticacao.isAuthenticated()
-                && !permitidoDuranteTroca(request)) {
+            && !permitidoDuranteTroca(request)) {
             response.sendRedirect(request.getContextPath() + "/senha/primeiro-acesso");
             return;
         }
@@ -32,15 +32,15 @@ public class PrimeiroAcessoSenhaObrigatoriaFilter extends OncePerRequestFilter {
     private boolean permitidoDuranteTroca(HttpServletRequest request) {
         String caminho = request.getRequestURI().substring(request.getContextPath().length());
         return caminho.equals("/senha/primeiro-acesso")
-                || caminho.equals("/actuator/health")
-                || caminho.startsWith("/actuator/health/")
-                || caminho.equals("/recuperar-senha")
-                || caminho.startsWith("/recuperar-senha/")
-                || caminho.equals("/logout")
-                || caminho.equals("/favicon.ico")
-                || caminho.startsWith("/vendor/")
-                || caminho.startsWith("/css/")
-                || caminho.startsWith("/js/")
-                || caminho.startsWith("/images/");
+            || caminho.equals("/actuator/health")
+            || caminho.startsWith("/actuator/health/")
+            || caminho.equals("/recuperar-senha")
+            || caminho.startsWith("/recuperar-senha/")
+            || caminho.equals("/logout")
+            || caminho.equals("/favicon.ico")
+            || caminho.startsWith("/vendor/")
+            || caminho.startsWith("/css/")
+            || caminho.startsWith("/js/")
+            || caminho.startsWith("/images/");
     }
 }

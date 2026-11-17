@@ -35,7 +35,7 @@ class TemaEIsolamentoDeSessaoTest {
         UUID tenantUsuario = UUID.randomUUID();
         UsuarioPrincipal principal = principalDoTenant(tenantUsuario);
         SecurityContextHolder.getContext().setAuthentication(
-                UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
+            UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
         TenantTemaCache cache = mock(TenantTemaCache.class);
         TemaController controller = new TemaController(cache);
 
@@ -47,7 +47,7 @@ class TemaEIsolamentoDeSessaoTest {
         UUID tenantId = UUID.randomUUID();
         UsuarioPrincipal principal = principalDoTenant(tenantId);
         SecurityContextHolder.getContext().setAuthentication(
-                UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
+            UsernamePasswordAuthenticationToken.authenticated(principal, null, principal.getAuthorities()));
         TenantTemaProjection tema = mock(TenantTemaProjection.class);
         when(tema.getAtivo()).thenReturn(false);
         TenantTemaCache cache = mock(TenantTemaCache.class);
@@ -61,7 +61,7 @@ class TemaEIsolamentoDeSessaoTest {
         AtomicBoolean cadeiaExecutada = new AtomicBoolean();
 
         new TenantObrigatorioFilter(cache).doFilter(request, response,
-                (req, res) -> cadeiaExecutada.set(true));
+            (req, res) -> cadeiaExecutada.set(true));
 
         assertThat(cadeiaExecutada).isFalse();
         assertThat(response.getRedirectedUrl()).isEqualTo("/login?suspenso");
@@ -72,12 +72,12 @@ class TemaEIsolamentoDeSessaoTest {
         Tenant tenant = new Tenant();
         tenant.setId(tenantId);
         Usuario usuario = Usuario.builder()
-                .id(UUID.randomUUID())
-                .email("cliente@teste.local")
-                .password("hash")
-                .perfil(Perfil.USER)
-                .tenant(tenant)
-                .build();
+            .id(UUID.randomUUID())
+            .email("cliente@teste.local")
+            .password("hash")
+            .perfil(Perfil.USER)
+            .tenant(tenant)
+            .build();
         return new UsuarioPrincipal(usuario);
     }
 }

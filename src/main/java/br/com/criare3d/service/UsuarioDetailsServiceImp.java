@@ -1,4 +1,3 @@
-
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Usuario;
@@ -16,6 +15,7 @@ import java.util.Locale;
 public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
 
     private final UsuarioRepository usuarioRepository;
+
     public UsuarioDetailsServiceImp(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
@@ -26,7 +26,7 @@ public class UsuarioDetailsServiceImp implements UsuarioDetailsService {
         String emailNormalizado = email.trim().toLowerCase(Locale.ROOT);
 
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
+            .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado."));
 
         return new br.com.criare3d.security.UsuarioPrincipal(usuario);
     }

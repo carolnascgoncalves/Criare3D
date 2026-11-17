@@ -1,16 +1,23 @@
 package br.com.criare3d.controller;
 
 import br.com.criare3d.security.AvisoLogin;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import java.time.*;
+
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 
 @Controller
 public class LoginController {
     private final Clock clock;
-    public LoginController(Clock clock) { this.clock = clock; }
+
+    public LoginController(Clock clock) {
+        this.clock = clock;
+    }
 
     @GetMapping("/login")
     public String login(HttpServletRequest request, HttpServletResponse response, Model model) {

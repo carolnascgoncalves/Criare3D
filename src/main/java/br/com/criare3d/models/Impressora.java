@@ -18,65 +18,81 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Impressora {
     @Column(nullable = false)
-    private @Getter @Setter boolean arquivado;
+    private @Getter
+    @Setter boolean arquivado;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
     private @Getter UUID tenantId;
 
-    @NotBlank(message="O nome da impressora é obrigatório")
+    @NotBlank(message = "O nome da impressora é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_imp", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_imp", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
-    @NotBlank(message="O modelo da impressora é obrigatório")
+    @NotBlank(message = "O modelo da impressora é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
-    @Column(name="modelo_imp", nullable = false, length = 150)
-    private @Getter @Setter String modelo;
+    @Column(name = "modelo_imp", nullable = false, length = 150)
+    private @Getter
+    @Setter String modelo;
 
     @NotNull(message = "A potencia da impressora é obrigatória")
-    @Column(name="potencia_imp", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal potenciaWatts;
+    @Column(name = "potencia_imp", nullable = false, precision = 10, scale = 2)
+    private @Getter
+    @Setter BigDecimal potenciaWatts;
 
     @Column(name = "valor_compra_imp", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal valorCompra;
+    private @Getter
+    @Setter BigDecimal valorCompra;
 
     @Column(name = "vida_util_horas_imp", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal vidaUtilHoras;
+    private @Getter
+    @Setter BigDecimal vidaUtilHoras;
 
     @Column(name = "depreciacao_hora_imp", precision = 12, scale = 8)
-    private @Getter @Setter BigDecimal depreciacaoPorHora;
+    private @Getter
+    @Setter BigDecimal depreciacaoPorHora;
 
     @Column(name = "depreciacao_origem_imp", length = 30)
-    private @Getter @Setter String depreciacaoOrigem;
+    private @Getter
+    @Setter String depreciacaoOrigem;
 
     @Column(name = "anuncios_novos_imp")
-    private @Getter @Setter Integer anunciosNovos;
+    private @Getter
+    @Setter Integer anunciosNovos;
 
     @Column(name = "anuncios_usados_imp")
-    private @Getter @Setter Integer anunciosUsados;
+    private @Getter
+    @Setter Integer anunciosUsados;
 
     @Column(name = "depreciacao_manual_imp", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean depreciacaoManual = false;
+    private @Getter
+    @Setter Boolean depreciacaoManual = false;
 
     @Column(name = "horas_mensais_uso_imp", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal horasMensaisUso;
+    private @Getter
+    @Setter BigDecimal horasMensaisUso;
 
     @Column(name = "horas_mensais_manual_imp", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean horasMensaisManual = false;
+    private @Getter
+    @Setter Boolean horasMensaisManual = false;
 
     @Column(name = "manutencao_hora_imp", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal manutencaoPorHora;
+    private @Getter
+    @Setter BigDecimal manutencaoPorHora;
 
     @Column(name = "tempo_aquecimento_min_imp", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
+    private @Getter
+    @Setter Integer tempoAquecimentoMinutos = 0;
 
 
     @OneToMany(mappedBy = "impressora")
@@ -84,5 +100,6 @@ public class Impressora {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private @Getter @Setter Usuario usuario;
+    private @Getter
+    @Setter Usuario usuario;
 }

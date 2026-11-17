@@ -1,14 +1,20 @@
 package br.com.criare3d.controller;
-import br.com.criare3d.service.*;
+
 import br.com.criare3d.models.PedidoOrcamento;
+import br.com.criare3d.service.*;
 import org.junit.jupiter.api.Test;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class NovoOrcamentoTest {
- @Test void novoOrcamentoAbreDiretoNaPrimeiraEtapaSemGravarRascunhoVazio(){
-  var service=mock(OrcamentoPedidoService.class);var controller=new PedidoOrcamentoController(service,mock(OperacaoPedidoService.class),mock(PlanejamentoPedidoService.class),mock(FotoPedidoService.class),mock(FotoRascunhoService.class));
-  var mv=controller.novo(null,null);assertThat(mv.getViewName()).isEqualTo("orcamentos/editar");assertThat(mv.getModel().get("etapa")).isEqualTo(1);
-  assertThat(((PedidoOrcamento)mv.getModel().get("pedido")).getId()).isNull();
- }
+    @Test
+    void novoOrcamentoAbreDiretoNaPrimeiraEtapaSemGravarRascunhoVazio() {
+        var service = mock(OrcamentoPedidoService.class);
+        var controller = new PedidoOrcamentoController(service, mock(OperacaoPedidoService.class), mock(PlanejamentoPedidoService.class), mock(FotoPedidoService.class), mock(FotoRascunhoService.class));
+        var mv = controller.novo(null, null);
+        assertThat(mv.getViewName()).isEqualTo("orcamentos/editar");
+        assertThat(mv.getModel().get("etapa")).isEqualTo(1);
+        assertThat(((PedidoOrcamento) mv.getModel().get("pedido")).getId()).isNull();
+    }
 }

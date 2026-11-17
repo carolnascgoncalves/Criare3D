@@ -10,23 +10,31 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.*;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
 import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.time.*;
-import java.util.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Clock;
+import java.util.Base64;
+import java.util.HexFormat;
+import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class RecuperacaoSenhaService {
     public RecuperacaoSenhaService(
-            UsuarioRepository usuarios,
-            JdbcTemplate jdbc,
-            Clock clock,
-            PasswordEncoder encoder,
-            EmailAcessoService emailService,
-            PlatformTransactionManager transactions,
-            ThreadPoolTaskExecutor notificacoesExecutor,
-            SessionRegistry sessoes) {
+        UsuarioRepository usuarios,
+        JdbcTemplate jdbc,
+        Clock clock,
+        PasswordEncoder encoder,
+        EmailAcessoService emailService,
+        PlatformTransactionManager transactions,
+        ThreadPoolTaskExecutor notificacoesExecutor,
+        SessionRegistry sessoes) {
         this.usuarios = java.util.Objects.requireNonNull(usuarios, "usuarios");
         this.jdbc = java.util.Objects.requireNonNull(jdbc, "jdbc");
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
@@ -50,7 +58,9 @@ public class RecuperacaoSenhaService {
     private final LimiteLogin limite;
     private final SecureRandom random = new SecureRandom();
 
-    public boolean habilitado() { return emailService.habilitado(); }
+    public boolean habilitado() {
+        return emailService.habilitado();
+    }
 
     public void solicitar(String email, String ip) {
         if (!habilitado() || limite.esperaSegundos(email, ip) > 0) return;
@@ -60,13 +70,15 @@ public class RecuperacaoSenhaService {
                 try {
                     Entrega entrega = new TransactionTemplate(transactions).execute(status -> {
                         var usuario = usuarios.findByEmail(email.strip().toLowerCase(Locale.ROOT)).orElse(null);
-                        if (usuario == null || (usuario.getTenant() != null && !usuario.getTenant().isAtivo())) return null;
-                        byte[] bytes = new byte[32]; random.nextBytes(bytes);
+                        if (usuario == null || (usuario.getTenant() != null && !usuario.getTenant().isAtivo()))
+                            return null;
+                        byte[] bytes = new byte[32];
+                        random.nextBytes(bytes);
                         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
                         // Uma nova solicitação revoga os links anteriores desta conta.
                         jdbc.update("DELETE FROM recuperacao_senha WHERE usuario_id = ?", usuario.getId());
                         jdbc.update("INSERT INTO recuperacao_senha(token_hash, usuario_id, expira_em) VALUES (?, ?, ?)",
-                                hash(token), usuario.getId(), java.sql.Timestamp.from(clock.instant().plusSeconds(900)));
+                            hash(token), usuario.getId(), java.sql.Timestamp.from(clock.instant().plusSeconds(900)));
                         return new Entrega(usuario.getEmail(), token);
                     });
                     if (entrega != null) emailService.enviarRecuperacao(entrega.email(), entrega.token());
@@ -83,9 +95,9 @@ public class RecuperacaoSenhaService {
     @Transactional
     public void redefinir(String token, String senha) {
         if (token == null || !token.matches("[A-Za-z0-9_-]{43}") || senha == null || senha.length() < 12
-                || senha.getBytes(StandardCharsets.UTF_8).length > 72) throw invalido();
+            || senha.getBytes(StandardCharsets.UTF_8).length > 72) throw invalido();
         var ids = jdbc.query("SELECT usuario_id FROM recuperacao_senha WHERE token_hash = ? AND expira_em > ? FOR UPDATE",
-                (rs, linha) -> rs.getObject(1, UUID.class), hash(token), java.sql.Timestamp.from(clock.instant()));
+            (rs, linha) -> rs.getObject(1, UUID.class), hash(token), java.sql.Timestamp.from(clock.instant()));
         if (ids.size() != 1) throw invalido();
         UUID id = ids.getFirst();
         var usuario = usuarios.findById(id).orElseThrow(RecuperacaoSenhaService::invalido);
@@ -95,17 +107,26 @@ public class RecuperacaoSenhaService {
         usuarios.save(usuario);
         jdbc.update("DELETE FROM recuperacao_senha WHERE usuario_id = ?", id);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() {
+            @Override
+            public void afterCommit() {
                 sessoes.getAllPrincipals().stream().filter(p -> p instanceof UsuarioPrincipal u && id.equals(u.getUsuarioId()))
-                        .forEach(p -> sessoes.getAllSessions(p, false).forEach(s -> s.expireNow()));
+                    .forEach(p -> sessoes.getAllSessions(p, false).forEach(s -> s.expireNow()));
             }
         });
     }
 
     static String hash(String token) {
-        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8))); }
-        catch (NoSuchAlgorithmException erro) { throw new IllegalStateException(erro); }
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException erro) {
+            throw new IllegalStateException(erro);
+        }
     }
-    private static IllegalArgumentException invalido() { return new IllegalArgumentException("Link inválido ou expirado. Solicite uma nova recuperação de senha."); }
-    private record Entrega(String email, String token) {}
+
+    private static IllegalArgumentException invalido() {
+        return new IllegalArgumentException("Link inválido ou expirado. Solicite uma nova recuperação de senha.");
+    }
+
+    private record Entrega(String email, String token) {
+    }
 }

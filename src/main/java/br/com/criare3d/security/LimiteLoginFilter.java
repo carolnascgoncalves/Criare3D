@@ -10,7 +10,10 @@ import java.io.IOException;
 
 public class LimiteLoginFilter extends OncePerRequestFilter {
     private final LimiteLogin limite;
-    public LimiteLoginFilter(LimiteLogin limite) { this.limite = limite; }
+
+    public LimiteLoginFilter(LimiteLogin limite) {
+        this.limite = limite;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -20,7 +23,7 @@ public class LimiteLoginFilter extends OncePerRequestFilter {
             long espera = limite.esperaSegundos(request.getParameter("email"), request.getRemoteAddr());
             if (espera > 0) {
                 AvisoLogin.bloquear(request, response,
-                        limite.bloqueadoAte(request.getParameter("email"), request.getRemoteAddr()), espera);
+                    limite.bloqueadoAte(request.getParameter("email"), request.getRemoteAddr()), espera);
                 return;
             }
         }

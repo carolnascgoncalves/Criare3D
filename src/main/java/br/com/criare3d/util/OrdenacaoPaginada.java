@@ -6,7 +6,9 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Map;
 
-/** Cria paginação usando apenas opções de ordenação definidas pelo servidor. */
+/**
+ * Cria paginação usando apenas opções de ordenação definidas pelo servidor.
+ */
 public final class OrdenacaoPaginada {
     private static final int TAMANHO_MAXIMO = 50;
 

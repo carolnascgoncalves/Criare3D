@@ -14,27 +14,29 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class EmbalagemDadosRequest {
-    @NotBlank(message="O nome da embalagem é obrigatório")
+    @NotBlank(message = "O nome da embalagem é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da embalagem deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_emb", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_emb", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
-    @NotNull(message="O custo unitário da embalagem é obrigatorio")
-    @Column(name="custoUni_emb", nullable = false, precision = 10, scale = 2)
+    @NotNull(message = "O custo unitário da embalagem é obrigatorio")
+    @Column(name = "custoUni_emb", nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.01", message = "O custo deve ser maior que zero.")
-    private @Getter @Setter BigDecimal custoUnitario;
+    private @Getter
+    @Setter BigDecimal custoUnitario;
 
-    public static EmbalagemDadosRequest toDto(Embalagem embalagem){
+    public static EmbalagemDadosRequest toDto(Embalagem embalagem) {
         return EmbalagemDadosRequest.builder()
-                .nome(embalagem.getNome())
-                .custoUnitario(embalagem.getCustoUnitario())
-                .build();
+            .nome(embalagem.getNome())
+            .custoUnitario(embalagem.getCustoUnitario())
+            .build();
     }
 
-    public static Embalagem toEntity(EmbalagemDadosRequest dto){
+    public static Embalagem toEntity(EmbalagemDadosRequest dto) {
         return Embalagem.builder()
-                .nome(dto.getNome())
-                .custoUnitario(dto.getCustoUnitario())
-                .build();
+            .nome(dto.getNome())
+            .custoUnitario(dto.getCustoUnitario())
+            .build();
     }
 }

@@ -3,10 +3,13 @@ package br.com.criare3d.service;
 import br.com.criare3d.models.CalculoFoto;
 import br.com.criare3d.repository.CalculoFotoRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+
 import java.util.Optional;
 import java.util.UUID;
 
-/** Armazenamento de fotos e geração de miniaturas em transação própria. */
+/**
+ * Armazenamento de fotos e geração de miniaturas em transação própria.
+ */
 @org.springframework.stereotype.Service
 @org.springframework.transaction.annotation.Transactional
 public class FotoCalculoService {
@@ -25,7 +28,7 @@ public class FotoCalculoService {
         foto.setTipo(tipo);
         foto.setBytes(bytes);
         calculoFotoRepository.save(foto);
-        historicos.findById(id).ifPresent(h->h.setTemFoto(true));
+        historicos.findById(id).ifPresent(h -> h.setTemFoto(true));
     }
 
     public Optional<CalculoFoto> buscarFoto(UUID calculoId) {
@@ -37,7 +40,8 @@ public class FotoCalculoService {
         if (!historicos.existsById(calculoId)) return Optional.empty();
         if (miniatura) {
             var miniSalva = calculoFotoRepository.buscarMiniatura(calculoId);
-            if (miniSalva.isPresent()) return Optional.of(new br.com.criare3d.dto.FotoConteudo("image/jpeg", miniSalva.get()));
+            if (miniSalva.isPresent())
+                return Optional.of(new br.com.criare3d.dto.FotoConteudo("image/jpeg", miniSalva.get()));
         }
         return calculoFotoRepository.findById(calculoId).map(foto -> {
             if (!miniatura) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
@@ -52,13 +56,13 @@ public class FotoCalculoService {
     private byte[] gerarMiniatura(byte[] originalBytes) {
         try {
             java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(
-                    new java.io.ByteArrayInputStream(originalBytes));
+                new java.io.ByteArrayInputStream(originalBytes));
             if (original == null) return null;
             double escala = Math.min(1d, 320d / Math.max(original.getWidth(), original.getHeight()));
             int largura = Math.max(1, (int) Math.round(original.getWidth() * escala));
             int altura = Math.max(1, (int) Math.round(original.getHeight() * escala));
             java.awt.image.BufferedImage mini = new java.awt.image.BufferedImage(
-                    largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
             java.awt.Graphics2D g = mini.createGraphics();
             g.setColor(java.awt.Color.WHITE);
             g.fillRect(0, 0, largura, altura);

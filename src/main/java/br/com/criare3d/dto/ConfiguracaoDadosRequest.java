@@ -13,36 +13,40 @@ import java.math.BigDecimal;
 @Builder
 public class ConfiguracaoDadosRequest {
     @NotNull(message = "A porcentagem de markup da configuracao é obrigatoria")
-    @Column(name="markup_conf",nullable = false, precision = 10, scale = 2)
+    @Column(name = "markup_conf", nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
-    private @Getter @Setter BigDecimal markupPercentual;
+    private @Getter
+    @Setter BigDecimal markupPercentual;
 
     @NotNull(message = "A tarifa de energia da configuracao é obrigatoria")
-    @Column(name="tarEner_conf",nullable = false, precision = 10, scale = 2)
+    @Column(name = "tarEner_conf", nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.0", message = "O valor não pode ser negativo.")
-    private @Getter @Setter BigDecimal tarifaEnergiaKwh;
+    private @Getter
+    @Setter BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "A embalagemFixa é obrigatoria")
-    @Column(name="embFixa_conf", nullable = false)
-    private @Getter @Setter Boolean embalagemFixa;
+    @Column(name = "embFixa_conf", nullable = false)
+    private @Getter
+    @Setter Boolean embalagemFixa;
 
     @DecimalMin(value = "0.0", message = "O custo não pode ser negativo.")
-    @Column(name="custoEmbFixa_conf", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal custoEmbalagemFixa;
+    @Column(name = "custoEmbFixa_conf", precision = 10, scale = 2)
+    private @Getter
+    @Setter BigDecimal custoEmbalagemFixa;
 
-    public static ConfiguracaoDadosRequest toDto(Configuracao configuracao){
+    public static ConfiguracaoDadosRequest toDto(Configuracao configuracao) {
         return ConfiguracaoDadosRequest.builder()
-                .tarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh())
-                .embalagemFixa(configuracao.getEmbalagemFixa())
-                .custoEmbalagemFixa(configuracao.getCustoEmbalagemFixa())
-                .build();
+            .tarifaEnergiaKwh(configuracao.getTarifaEnergiaKwh())
+            .embalagemFixa(configuracao.getEmbalagemFixa())
+            .custoEmbalagemFixa(configuracao.getCustoEmbalagemFixa())
+            .build();
     }
 
-    public static Configuracao toEntity(ConfiguracaoDadosRequest dto){
+    public static Configuracao toEntity(ConfiguracaoDadosRequest dto) {
         return Configuracao.builder()
-                .tarifaEnergiaKwh(dto.getTarifaEnergiaKwh())
-                .embalagemFixa(dto.getEmbalagemFixa())
-                .custoEmbalagemFixa(dto.getCustoEmbalagemFixa())
-                .build();
+            .tarifaEnergiaKwh(dto.getTarifaEnergiaKwh())
+            .embalagemFixa(dto.getEmbalagemFixa())
+            .custoEmbalagemFixa(dto.getCustoEmbalagemFixa())
+            .build();
     }
 }

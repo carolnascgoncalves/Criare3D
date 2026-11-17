@@ -22,7 +22,8 @@ public class CalculoHistorico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
@@ -31,274 +32,350 @@ public class CalculoHistorico {
     @NotBlank(message = "O nome da peça é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomePeca_hist", nullable = false, length = 150)
-    private @Getter @Setter String nomePeca;
+    private @Getter
+    @Setter String nomePeca;
 
     @Column(name = "categoria_peca_hist", length = 60)
-    private @Getter @Setter String categoriaPeca;
+    private @Getter
+    @Setter String categoriaPeca;
 
     @Column(name = "tem_foto_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean temFoto = false;
+    private @Getter
+    @Setter Boolean temFoto = false;
 
     @NotBlank(message = "O nome do filamento é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomeFil_hist", nullable = false, length = 150)
-    private @Getter @Setter String nomeFilamento;
+    private @Getter
+    @Setter String nomeFilamento;
 
     @NotNull(message = "O preço do rolo é obrigatório")
     @Column(name = "precoRolo_hist", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal precoRoloFilamento;
+    private @Getter
+    @Setter BigDecimal precoRoloFilamento;
 
     @NotNull(message = "O peso do rolo é obrigatório")
     @Column(name = "pesoRolo_fil", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal pesoRoloGramas;
+    private @Getter
+    @Setter BigDecimal pesoRoloGramas;
 
     @NotNull(message = "A quantidade de filamento é obrigatória")
     @Column(name = "qntdFil_hist", nullable = false, precision = 12, scale = 6)
-    private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
+    private @Getter
+    @Setter BigDecimal quantidadeFilamentoGramas;
 
     @Column(name = "gramas_totais_lote_hist", nullable = false, precision = 14, scale = 6)
     @Builder.Default
-    private @Getter @Setter BigDecimal gramasTotaisLote = BigDecimal.ZERO;
+    private @Getter
+    @Setter BigDecimal gramasTotaisLote = BigDecimal.ZERO;
 
     @NotBlank(message = "O nome da impressora é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomeImp_hist", nullable = false, length = 150)
-    private @Getter @Setter String nomeImpressora;
+    private @Getter
+    @Setter String nomeImpressora;
 
     @NotNull(message = "A potência é obrigatória")
     @Column(name = "pot_hist", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal potenciaWatts;
+    private @Getter
+    @Setter BigDecimal potenciaWatts;
 
     @NotNull(message = "O tempo da impressão é obrigatório")
     @Column(name = "temp_hist", nullable = false)
-    private @Getter @Setter Long tempoImpressaoMinutos;
+    private @Getter
+    @Setter Long tempoImpressaoMinutos;
 
     @Column(name = "minutos_maquina_lote_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Long minutosMaquinaLote = 0L;
+    private @Getter
+    @Setter Long minutosMaquinaLote = 0L;
 
     @Column(name = "pecas_por_impressao_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer pecasPorImpressao = 1;
+    private @Getter
+    @Setter Integer pecasPorImpressao = 1;
 
     @Column(name = "tempo_aquecimento_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer tempoAquecimentoMinutos = 0;
+    private @Getter
+    @Setter Integer tempoAquecimentoMinutos = 0;
 
     @Column(name = "purga_gramas_hist", nullable = false, precision = 12, scale = 6)
     @Builder.Default
-    private @Getter @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
+    private @Getter
+    @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
 
     @NotNull(message = "A tarifa de energia é obrigatória")
     @Column(name = "tarifa_hist", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal tarifaEnergiaKwh;
+    private @Getter
+    @Setter BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "O custo do filamento é obrigatório")
     @Column(name = "custoFil_hist", nullable = false, precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoFilamento;
+    private @Getter
+    @Setter BigDecimal custoFilamento;
 
     @NotNull(message = "O custo da energia é obrigatório")
     @Column(name = "custoEnergia_hist", nullable = false, precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoEnergia;
+    private @Getter
+    @Setter BigDecimal custoEnergia;
 
     @Column(name = "custo_mao_obra_hist", precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoMaoObra;
+    private @Getter
+    @Setter BigDecimal custoMaoObra;
 
     @Column(name = "custo_depreciacao_hist", precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoDepreciacao;
+    private @Getter
+    @Setter BigDecimal custoDepreciacao;
 
     @Column(name = "custo_manutencao_hist", precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoManutencao;
+    private @Getter
+    @Setter BigDecimal custoManutencao;
 
     @Column(name = "custo_falha_hist", precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoFalha;
+    private @Getter
+    @Setter BigDecimal custoFalha;
 
     @Column(name = "custo_purga_hist", nullable = false, precision = 16, scale = 8)
     @Builder.Default
-    private @Getter @Setter BigDecimal custoPurga = BigDecimal.ZERO;
+    private @Getter
+    @Setter BigDecimal custoPurga = BigDecimal.ZERO;
 
     @Column(name = "mao_obra_ativada_hist")
-    private @Getter @Setter Boolean maoObraAtivada;
+    private @Getter
+    @Setter Boolean maoObraAtivada;
 
     @Column(name = "valor_mao_obra_hora_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal valorMaoObraHora;
+    private @Getter
+    @Setter BigDecimal valorMaoObraHora;
 
     @Column(name = "depreciacao_ativada_hist")
-    private @Getter @Setter Boolean depreciacaoAtivada;
+    private @Getter
+    @Setter Boolean depreciacaoAtivada;
 
     @Column(name = "tempo_trabalho_minutos_hist")
-    private @Getter @Setter Long tempoTrabalhoMinutos;
+    private @Getter
+    @Setter Long tempoTrabalhoMinutos;
 
     @Column(name = "valor_compra_impressora_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal valorCompraImpressora;
+    private @Getter
+    @Setter BigDecimal valorCompraImpressora;
 
     @Column(name = "vida_util_impressora_horas_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal vidaUtilImpressoraHoras;
+    private @Getter
+    @Setter BigDecimal vidaUtilImpressoraHoras;
 
     @Column(name = "depreciacao_hora_impressora_hist", precision = 12, scale = 8)
-    private @Getter @Setter BigDecimal depreciacaoHoraImpressora;
+    private @Getter
+    @Setter BigDecimal depreciacaoHoraImpressora;
 
     @Column(name = "depreciacao_origem_impressora_hist", length = 30)
-    private @Getter @Setter String depreciacaoOrigemImpressora;
+    private @Getter
+    @Setter String depreciacaoOrigemImpressora;
 
     @Column(name = "anuncios_novos_depreciacao_hist")
-    private @Getter @Setter Integer anunciosNovosDepreciacao;
+    private @Getter
+    @Setter Integer anunciosNovosDepreciacao;
 
     @Column(name = "anuncios_usados_depreciacao_hist")
-    private @Getter @Setter Integer anunciosUsadosDepreciacao;
+    private @Getter
+    @Setter Integer anunciosUsadosDepreciacao;
 
     @Column(name = "manutencao_hora_impressora_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal manutencaoHoraImpressora;
+    private @Getter
+    @Setter BigDecimal manutencaoHoraImpressora;
 
     @Column(name = "taxa_falha_ativada_hist")
-    private @Getter @Setter Boolean taxaFalhaAtivada;
+    private @Getter
+    @Setter Boolean taxaFalhaAtivada;
 
     @Column(name = "percentual_falha_hist", precision = 5, scale = 2)
-    private @Getter @Setter BigDecimal percentualFalha;
+    private @Getter
+    @Setter BigDecimal percentualFalha;
 
     @NotBlank(message = "O nome da embalagem é obrigatório")
     @Size(min = 2, max = 150)
     @Column(name = "nomeEmb_hist", nullable = false, length = 150)
-    private @Getter @Setter String nomeEmbalagem;
+    private @Getter
+    @Setter String nomeEmbalagem;
 
     @NotNull(message = "O custo da embalagem é obrigatório")
     @Column(name = "custoEmb_hist", nullable = false, precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoEmbalagem;
+    private @Getter
+    @Setter BigDecimal custoEmbalagem;
 
-    @Column(name = "custo_loja_hist", nullable=false, precision=16, scale=8)
+    @Column(name = "custo_loja_hist", nullable = false, precision = 16, scale = 8)
     @Builder.Default
-    private @Getter @Setter BigDecimal custoLoja = BigDecimal.ZERO;
+    private @Getter
+    @Setter BigDecimal custoLoja = BigDecimal.ZERO;
 
-    @OneToMany(mappedBy="calculo", cascade=CascadeType.ALL, orphanRemoval=true)
+    @OneToMany(mappedBy = "calculo", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private @Getter @Setter List<RateioCustoHistorico> rateiosCustos = new ArrayList<>();
+    private @Getter
+    @Setter List<RateioCustoHistorico> rateiosCustos = new ArrayList<>();
 
     @NotNull(message = "O custo total é obrigatório")
     @Column(name = "custoTotal_hist", nullable = false, precision = 16, scale = 8)
-    private @Getter @Setter BigDecimal custoTotal;
+    private @Getter
+    @Setter BigDecimal custoTotal;
 
     @NotNull(message = "O markup é obrigatório")
     @Column(name = "markup_hist", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal markupPercentual;
+    private @Getter
+    @Setter BigDecimal markupPercentual;
 
     @NotNull(message = "O preço sugerido é obrigatório")
     @Column(name = "precoSug_hist", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal precoSugerido;
+    private @Getter
+    @Setter BigDecimal precoSugerido;
 
     @NotNull(message = "A data é obrigatória")
     @Column(name = "data_hist", nullable = false)
-    private @Getter @Setter LocalDateTime dataCalculo;
+    private @Getter
+    @Setter LocalDateTime dataCalculo;
 
     @Version
-    private @Getter @Setter Long versao;
+    private @Getter
+    @Setter Long versao;
 
     @Column(name = "data_producao_hist")
-    private @Getter @Setter LocalDateTime dataProducao;
+    private @Getter
+    @Setter LocalDateTime dataProducao;
 
     @Column(name = "data_venda_hist")
-    private @Getter @Setter LocalDateTime dataVenda;
+    private @Getter
+    @Setter LocalDateTime dataVenda;
 
     @Column(name = "unidades_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer unidades = 1;
+    private @Getter
+    @Setter Integer unidades = 1;
 
     @Column(name = "unidades_vendidas_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer unidadesVendidas = 0;
+    private @Getter
+    @Setter Integer unidadesVendidas = 0;
 
     @Column(name = "fornadas_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Integer fornadas = 1;
+    private @Getter
+    @Setter Integer fornadas = 1;
 
     // Dados da plataforma: snapshots do momento do cálculo
 
     @Column(name = "plataformaVenda_hist", length = 30)
-    private @Getter @Setter String plataformaVenda;
+    private @Getter
+    @Setter String plataformaVenda;
 
     @Column(name = "tipoAnuncio_hist", length = 30)
-    private @Getter @Setter String tipoAnuncio;
+    private @Getter
+    @Setter String tipoAnuncio;
 
     @Column(name = "percentualComissao_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal percentualComissaoPlataforma;
+    private @Getter
+    @Setter BigDecimal percentualComissaoPlataforma;
 
     @Column(name = "custoAdicionalPlataforma_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal custoAdicionalPlataforma;
+    private @Getter
+    @Setter BigDecimal custoAdicionalPlataforma;
 
     @Column(name = "percentualImposto_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal percentualImposto;
+    private @Getter
+    @Setter BigDecimal percentualImposto;
 
     @Column(name = "freteVendedor_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal freteVendedor;
+    private @Getter
+    @Setter BigDecimal freteVendedor;
 
     @Column(name = "taxaCpfShopee_hist")
-    private @Getter @Setter Boolean taxaCpfShopee;
+    private @Getter
+    @Setter Boolean taxaCpfShopee;
 
     @Column(name = "freteGratisTikTok_hist")
-    private @Getter @Setter Boolean freteGratisTikTok;
+    private @Getter
+    @Setter Boolean freteGratisTikTok;
 
     @Column(name = "percentualAfiliado_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal percentualAfiliado;
+    private @Getter
+    @Setter BigDecimal percentualAfiliado;
 
     @Column(name = "precoVendaPlataforma_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal precoVendaPlataforma;
+    private @Getter
+    @Setter BigDecimal precoVendaPlataforma;
 
     @Column(name = "taxasPlataforma_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal taxasPlataforma;
+    private @Getter
+    @Setter BigDecimal taxasPlataforma;
 
     @Column(name = "lucroLiquido_hist", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal lucroLiquido;
+    private @Getter
+    @Setter BigDecimal lucroLiquido;
 
     @Column(name = "tipoPessoaShopee_hist", length = 10)
-    private @Getter @Setter String tipoPessoaShopee;
+    private @Getter
+    @Setter String tipoPessoaShopee;
 
     @Column(name = "mais450PedidosShopee_hist")
-    private @Getter @Setter Boolean mais450PedidosShopee;
+    private @Getter
+    @Setter Boolean mais450PedidosShopee;
 
     @Column(name = "isencaoComissaoTikTok_hist")
-    private @Getter @Setter Boolean isencaoComissaoTikTok;
+    private @Getter
+    @Setter Boolean isencaoComissaoTikTok;
 
     @Column(name = "faixaPesoPacote_hist", length = 30)
-    private @Getter @Setter String faixaPesoPacote;
+    private @Getter
+    @Setter String faixaPesoPacote;
 
     @Column(name = "formularioAvancado_hist")
-    private @Getter @Setter Boolean formularioAvancado;
+    private @Getter
+    @Setter Boolean formularioAvancado;
 
     @Column(name = "produzido_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean produzido = false;
+    private @Getter
+    @Setter Boolean produzido = false;
 
     @Column(name = "vendido_hist", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean vendido = false;
+    private @Getter
+    @Setter Boolean vendido = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_filamento_fk")
-    private @Getter @Setter Filamento filamento;
+    private @Getter
+    @Setter Filamento filamento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_impressora_fk")
-    private @Getter @Setter Impressora impressora;
+    private @Getter
+    @Setter Impressora impressora;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_embalagem_fk")
-    private @Getter @Setter Embalagem embalagem;
+    private @Getter
+    @Setter Embalagem embalagem;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_peca_fk")
-    private @Getter @Setter Peca peca;
+    private @Getter
+    @Setter Peca peca;
 
     @OneToMany(
-            mappedBy = "calculoHistorico",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+        mappedBy = "calculoHistorico",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
     )
     @Builder.Default
-    private @Getter @Setter List<ItemCalculoHistorico> itensFilamento = new ArrayList<>();
+    private @Getter
+    @Setter List<ItemCalculoHistorico> itensFilamento = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private @Getter @Setter Usuario usuario;
+    private @Getter
+    @Setter Usuario usuario;
+
     public String getNomePeca() {
         if (nomePeca == null) return null;
         return org.springframework.web.util.HtmlUtils.htmlUnescape(org.springframework.web.util.HtmlUtils.htmlUnescape(nomePeca));

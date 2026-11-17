@@ -3,10 +3,15 @@ package br.com.criare3d.service;
 import br.com.criare3d.dto.FotoConteudo;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import java.time.Clock;
-import java.util.*;
 
-/** Um rascunho por usuário, fora da sessão HTTP e com expiração de 30 minutos. */
+import java.time.Clock;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+/**
+ * Um rascunho por usuário, fora da sessão HTTP e com expiração de 30 minutos.
+ */
 @Service
 public class FotoRascunhoService {
     public FotoRascunhoService(JdbcTemplate jdbc, UsuarioLogadoService usuario, Clock clock) {
@@ -30,19 +35,20 @@ public class FotoRascunhoService {
                 ON CONFLICT (usuario_id) DO UPDATE SET id = EXCLUDED.id, tipo = EXCLUDED.tipo,
                     bytes = EXCLUDED.bytes, atualizado_em = EXCLUDED.atualizado_em
                 """, id, usuario.buscarIdUsuarioAtual(), usuario.buscarTenantIdAtual(), tipo, bytes,
-                java.sql.Timestamp.from(clock.instant()));
+            java.sql.Timestamp.from(clock.instant()));
         return id;
     }
 
     public Optional<FotoConteudo> buscar(Object id) {
         if (!(id instanceof UUID)) return Optional.empty();
         return jdbc.query("SELECT tipo, bytes FROM foto_rascunho WHERE id = ? AND usuario_id = ? AND tenant_id = ? AND atualizado_em > ?",
-                (rs, n) -> new FotoConteudo(rs.getString(1), rs.getBytes(2)), id, usuario.buscarIdUsuarioAtual(),
-                usuario.buscarTenantIdAtual(), java.sql.Timestamp.from(clock.instant().minusSeconds(1800))).stream().findFirst();
+            (rs, n) -> new FotoConteudo(rs.getString(1), rs.getBytes(2)), id, usuario.buscarIdUsuarioAtual(),
+            usuario.buscarTenantIdAtual(), java.sql.Timestamp.from(clock.instant().minusSeconds(1800))).stream().findFirst();
     }
 
     public void excluir(Object id) {
-        if (id instanceof UUID) jdbc.update("DELETE FROM foto_rascunho WHERE id = ? AND usuario_id = ? AND tenant_id = ?",
+        if (id instanceof UUID)
+            jdbc.update("DELETE FROM foto_rascunho WHERE id = ? AND usuario_id = ? AND tenant_id = ?",
                 id, usuario.buscarIdUsuarioAtual(), usuario.buscarTenantIdAtual());
     }
 }

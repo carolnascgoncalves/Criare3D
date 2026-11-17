@@ -1,11 +1,9 @@
-
 package br.com.criare3d.controller;
 
 import br.com.criare3d.dto.ConfiguracaoRequest;
 import br.com.criare3d.models.Configuracao;
 import br.com.criare3d.service.interfaces.ConfiguracaoService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -35,8 +33,8 @@ public class ConfiguracaoController {
 
     @PostMapping("/configuracao/salvar")
     public ModelAndView salvarConfiguracao(
-            @Valid @ModelAttribute("configuracao") ConfiguracaoRequest request,
-            BindingResult bd) {
+        @Valid @ModelAttribute("configuracao") ConfiguracaoRequest request,
+        BindingResult bd) {
 
         Configuracao atual = configuracaoService.buscarOuCriarConfiguracao();
 
@@ -45,17 +43,17 @@ public class ConfiguracaoController {
             mv.setStatus(HttpStatusCode.valueOf(422));
             mv.addObject("configuracao", request);
             mv.addObject("mensagemErro", bd.getAllErrors().stream()
-                    .map(org.springframework.validation.ObjectError::getDefaultMessage)
-                    .filter(java.util.Objects::nonNull)
-                    .findFirst()
-                    .orElse("Revise os campos destacados antes de salvar."));
+                .map(org.springframework.validation.ObjectError::getDefaultMessage)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse("Revise os campos destacados antes de salvar."));
             return mv;
         }
 
         // O campo fica recolhido no modo variável; manter o valor anterior evita
         // bloquear o salvamento de outras opções ou perder um percentual já definido.
         if (request.getMarkupPercentual() == null) request.setMarkupPercentual(
-                atual.getMarkupPercentual() != null ? atual.getMarkupPercentual() : java.math.BigDecimal.ZERO);
+            atual.getMarkupPercentual() != null ? atual.getMarkupPercentual() : java.math.BigDecimal.ZERO);
         Configuracao dados = ConfiguracaoRequest.toEntity(request);
         configuracaoService.update(atual.getId(), dados);
 

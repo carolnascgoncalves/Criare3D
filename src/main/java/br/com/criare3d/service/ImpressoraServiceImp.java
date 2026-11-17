@@ -1,8 +1,8 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Impressora;
-import br.com.criare3d.repository.ImpressoraRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.ImpressoraRepository;
 import br.com.criare3d.repository.ManutencaoImpressoraRepository;
 import br.com.criare3d.service.interfaces.ImpressoraService;
 import org.springframework.data.domain.Page;
@@ -10,11 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Transactional
@@ -63,7 +59,7 @@ public class ImpressoraServiceImp implements ImpressoraService {
             existing.setHorasMensaisUso(patch.getHorasMensaisUso());
             existing.setHorasMensaisManual(Boolean.TRUE.equals(patch.getHorasMensaisManual()));
             existing.setTempoAquecimentoMinutos(patch.getTempoAquecimentoMinutos() == null
-                    ? 0 : patch.getTempoAquecimentoMinutos());
+                ? 0 : patch.getTempoAquecimentoMinutos());
             // A taxa direta tem prioridade; preço de compra e horas continuam como fallback legado.
 
             return impressoraRepository.save(existing);
@@ -81,7 +77,7 @@ public class ImpressoraServiceImp implements ImpressoraService {
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
         List<UUID> existentes = impressoraRepository.findAllByIdIn(solicitados)
-                .stream().map(Impressora::getId).toList();
+            .stream().map(Impressora::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueadas = new java.util.HashSet<>(calculoHistoricoRepository.buscarIdsImpressoraComHistorico(existentes));
         bloqueadas.addAll(manutencaoImpressoraRepository.buscarIdsImpressoraComManutencao(existentes));

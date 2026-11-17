@@ -4,7 +4,7 @@ import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
 import br.com.criare3d.dto.CalculoRecenteResponse;
 import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
 import br.com.criare3d.dto.HistoricoExportacaoResponse;
-import br.com.criare3d.models.*;
+import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.repository.ItemCalculoHistoricoRepository;
 import br.com.criare3d.repository.VendaCalculoRepository;
@@ -12,11 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -24,9 +20,11 @@ import java.util.UUID;
 public class HistoricoCalculoService {
     public java.util.Map<UUID, Long> usosEmbalagens(java.util.Collection<UUID> ids) {
         var usos = new java.util.HashMap<UUID, Long>();
-        if (!ids.isEmpty()) calculoHistoricoRepository.contarUsosEmbalagens(ids).forEach(e -> usos.put(e.getEmbalagemId(), e.getUsos()));
+        if (!ids.isEmpty())
+            calculoHistoricoRepository.contarUsosEmbalagens(ids).forEach(e -> usos.put(e.getEmbalagemId(), e.getUsos()));
         return usos;
     }
+
     public java.util.Map<UUID, java.math.BigDecimal> ultimosPrecosPecas(java.util.Collection<UUID> ids) {
         var precos = new java.util.HashMap<UUID, java.math.BigDecimal>();
         if (!ids.isEmpty()) calculoHistoricoRepository.ultimosPrecosPecas(ids).forEach(p -> {
@@ -34,6 +32,7 @@ public class HistoricoCalculoService {
         });
         return precos;
     }
+
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final ItemCalculoHistoricoRepository itemCalculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
@@ -43,16 +42,17 @@ public class HistoricoCalculoService {
     private final br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository;
     private final br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository;
     private final br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository;
+
     public HistoricoCalculoService(
-            CalculoHistoricoRepository calculoHistoricoRepository,
-            ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
-            VendaCalculoRepository vendaCalculoRepository,
-            UsuarioLogadoService usuarioLogadoService,
-            FotoCalculoService fotos,
-            br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository,
-            br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository,
-            br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository, br.com.criare3d.repository.ItemPedidoRepository reservas) {
-        this.reservas=reservas;
+        CalculoHistoricoRepository calculoHistoricoRepository,
+        ItemCalculoHistoricoRepository itemCalculoHistoricoRepository,
+        VendaCalculoRepository vendaCalculoRepository,
+        UsuarioLogadoService usuarioLogadoService,
+        FotoCalculoService fotos,
+        br.com.criare3d.repository.FalhaProducaoRepository falhaProducaoRepository,
+        br.com.criare3d.repository.PlanejamentoProducaoRepository planejamentoProducaoRepository,
+        br.com.criare3d.repository.CustoPersonalizadoRepository custoPersonalizadoRepository, br.com.criare3d.repository.ItemPedidoRepository reservas) {
+        this.reservas = reservas;
         this.falhaProducaoRepository = java.util.Objects.requireNonNull(falhaProducaoRepository, "falhaProducaoRepository");
         this.planejamentoProducaoRepository = java.util.Objects.requireNonNull(planejamentoProducaoRepository, "planejamentoProducaoRepository");
         this.custoPersonalizadoRepository = java.util.Objects.requireNonNull(custoPersonalizadoRepository, "custoPersonalizadoRepository");
@@ -65,7 +65,7 @@ public class HistoricoCalculoService {
 
     public long contarPorFilamento(UUID filamentoId) {
         return calculoHistoricoRepository.contarUsosDosItensPorFilamento(filamentoId)
-                + falhaProducaoRepository.countByFilamento_Id(filamentoId);
+            + falhaProducaoRepository.countByFilamento_Id(filamentoId);
     }
 
     public List<FilamentoHistoricoUsoResponse> listarUsosPorFilamento(UUID filamentoId) {
@@ -76,7 +76,7 @@ public class HistoricoCalculoService {
     public Set<UUID> buscarFilamentosComHistoricoProduzido(Collection<UUID> filamentoIds) {
         if (filamentoIds == null || filamentoIds.isEmpty()) return Set.of();
         return Set.copyOf(calculoHistoricoRepository.buscarIdsFilamentoComHistoricoProduzido(
-                List.copyOf(filamentoIds)));
+            List.copyOf(filamentoIds)));
     }
 
     public long contarPorEmbalagem(UUID embalagemId) {
@@ -84,11 +84,11 @@ public class HistoricoCalculoService {
     }
 
     public long contarPorImpressora(UUID impressoraId) {
-        return calculoHistoricoRepository.countByImpressora_Id(impressoraId)+reservas.countByImpressoraId(impressoraId);
+        return calculoHistoricoRepository.countByImpressora_Id(impressoraId) + reservas.countByImpressoraId(impressoraId);
     }
 
     public long contarPorPeca(UUID pecaId) {
-        return calculoHistoricoRepository.countByPeca_Id(pecaId)+reservas.countByPecaId(pecaId);
+        return calculoHistoricoRepository.countByPeca_Id(pecaId) + reservas.countByPecaId(pecaId);
     }
 
     public CalculoHistorico create(CalculoHistorico calculoHistorico) {
@@ -120,21 +120,22 @@ public class HistoricoCalculoService {
         if (solicitados.isEmpty()) return;
         for (UUID id : solicitados.stream().sorted().toList()) {
             var h = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
-            if (reservas.vinculado(id)) throw new IllegalArgumentException("Este cálculo está vinculado a um orçamento ou pedido. Preserve o registro.");
+            if (reservas.vinculado(id))
+                throw new IllegalArgumentException("Este cálculo está vinculado a um orçamento ou pedido. Preserve o registro.");
             if (h != null && (Boolean.TRUE.equals(h.getProduzido()) || vendaCalculoRepository.existsByCalculo_Id(id)
-                    || (!falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(id).isEmpty())
-                    || (custoPersonalizadoRepository.existsByCalculo_Id(id))
-                    || (planejamentoProducaoRepository.existsByCalculo_Id(id)))) {
+                || (!falhaProducaoRepository.findByCalculo_IdOrderByDataRegistroDesc(id).isEmpty())
+                || (custoPersonalizadoRepository.existsByCalculo_Id(id))
+                || (planejamentoProducaoRepository.existsByCalculo_Id(id)))) {
                 throw new IllegalArgumentException("Este cálculo possui produção, vendas, perdas ou planejamento. Preserve o histórico e gerencie as operações em Vendas e estoque.");
             }
         }
 
         List<AjusteEstoqueCalculoResponse> dados =
-                calculoHistoricoRepository.buscarDadosParaExclusaoEmLote(solicitados);
+            calculoHistoricoRepository.buscarDadosParaExclusaoEmLote(solicitados);
         if (dados.isEmpty()) return;
 
         List<UUID> encontrados = dados.stream()
-                .map(AjusteEstoqueCalculoResponse::calculoId).distinct().toList();
+            .map(AjusteEstoqueCalculoResponse::calculoId).distinct().toList();
         itemCalculoHistoricoRepository.excluirItensDosCalculos(encontrados);
         calculoHistoricoRepository.deleteAllByIdInBatch(encontrados);
     }
@@ -143,7 +144,7 @@ public class HistoricoCalculoService {
     public java.util.List<CalculoRecenteResponse> fetchRecentes(int limite) {
         if (limite <= 0) return java.util.List.of();
         return calculoHistoricoRepository.buscarCalculosRecentes(
-                PageRequest.of(0, limite)
+            PageRequest.of(0, limite)
         );
     }
 

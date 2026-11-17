@@ -1,14 +1,14 @@
 package br.com.criare3d.repository;
 
-import br.com.criare3d.models.Tenant;
-import br.com.criare3d.dto.TenantTemaProjection;
 import br.com.criare3d.dto.ClienteAdminResumo;
+import br.com.criare3d.dto.TenantTemaProjection;
+import br.com.criare3d.models.Tenant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface TenantRepository extends JpaRepository<Tenant, UUID> {

@@ -3,7 +3,8 @@ package br.com.criare3d.util;
 import java.math.BigDecimal;
 
 public final class Csv {
-    private Csv() {}
+    private Csv() {
+    }
 
     public static String campo(String valor) {
         if (valor == null) return "\"\"";

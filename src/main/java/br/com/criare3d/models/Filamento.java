@@ -19,11 +19,13 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Filamento {
     @Column(nullable = false)
-    private @Getter @Setter boolean arquivado;
+    private @Getter
+    @Setter boolean arquivado;
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
@@ -33,37 +35,45 @@ public class Filamento {
     @Column(name = "versao", nullable = false)
     private @Getter long versao;
 
-    @NotBlank(message="O nome do filamento é obrigatório")
+    @NotBlank(message = "O nome do filamento é obrigatório")
     @Size(min = 2, max = 150, message = "O nome do filamento deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_fil", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_fil", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
-    @NotBlank(message="A cor do filamento é obrigatória")
+    @NotBlank(message = "A cor do filamento é obrigatória")
     @Size(min = 2, max = 80, message = "A cor do filamento deve ter entre 2 à 80 caracteres")
-    @Column(name= "cor_fil", nullable = false, length = 80)
-    private @Getter @Setter String cor;
+    @Column(name = "cor_fil", nullable = false, length = 80)
+    private @Getter
+    @Setter String cor;
 
     @Column(name = "codigo_cor_fil", length = 7)
-    private @Getter @Setter String codigoCor;
+    private @Getter
+    @Setter String codigoCor;
 
     @Size(min = 0, max = 150, message = "A marca do filamento deve ter entre 2 à 150 caracteres")
-    @Column(name= "marca_fil", length = 150)
-    private @Getter @Setter String marca;
+    @Column(name = "marca_fil", length = 150)
+    private @Getter
+    @Setter String marca;
 
     @NotNull(message = "O peso do rolo comprado do filamento é obrigatorio")
-    @Column(name="pesoRolo_fil", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal pesoRoloGramas;
+    @Column(name = "pesoRolo_fil", precision = 10, scale = 2)
+    private @Getter
+    @Setter BigDecimal pesoRoloGramas;
 
     @NotNull
     @Column(name = "estoque_gramas", nullable = false, precision = 12, scale = 6)
-    private @Getter @Setter BigDecimal estoqueGramas;
+    private @Getter
+    @Setter BigDecimal estoqueGramas;
 
     @Column(name = "data_cadastro", nullable = false, updatable = false)
-    private @Getter @Setter LocalDateTime dataCadastro;
+    private @Getter
+    @Setter LocalDateTime dataCadastro;
 
     @NotNull(message = "O preco do filamento do filamento é obrigatorio")
-    @Column(name="precoRolo_fil", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal precoRolo;
+    @Column(name = "precoRolo_fil", precision = 10, scale = 2)
+    private @Getter
+    @Setter BigDecimal precoRolo;
 
 
     @OneToMany(mappedBy = "filamento")
@@ -71,7 +81,8 @@ public class Filamento {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private @Getter @Setter Usuario usuario;
+    private @Getter
+    @Setter Usuario usuario;
 
     @PrePersist
     private void definirDataCadastro() {

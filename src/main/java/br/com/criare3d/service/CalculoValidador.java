@@ -1,18 +1,23 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
-import br.com.criare3d.models.*;
+import br.com.criare3d.models.Configuracao;
+import br.com.criare3d.models.Impressora;
+import br.com.criare3d.models.Peca;
+
 import java.math.BigDecimal;
 
 public final class CalculoValidador {
-    private CalculoValidador() {}
+    private CalculoValidador() {
+    }
 
     public static void validarRequisicao(CalculoRequest request) {
         if (request == null || request.getPecaId() == null) throw new IllegalArgumentException("Selecione uma peça.");
         if (request.getImpressoraId() == null) throw new IllegalArgumentException("Selecione uma impressora.");
         if (request.getFilamentos() == null || request.getFilamentos().isEmpty())
             throw new IllegalArgumentException("Adicione pelo menos um filamento");
-        if (request.getFilamentos().size() > 100) throw new IllegalArgumentException("Use até 100 filamentos por cálculo.");
+        if (request.getFilamentos().size() > 100)
+            throw new IllegalArgumentException("Use até 100 filamentos por cálculo.");
         if (request.getFilamentos().stream().anyMatch(i -> i == null || i.getFilamentoId() == null))
             throw new IllegalArgumentException("Selecione todos os filamentos");
     }

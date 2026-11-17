@@ -18,11 +18,11 @@ public class TratamentoErroGlobal {
     private static final Logger log = LoggerFactory.getLogger(TratamentoErroGlobal.class);
 
     @ExceptionHandler({org.springframework.dao.OptimisticLockingFailureException.class,
-            org.springframework.dao.PessimisticLockingFailureException.class})
+        org.springframework.dao.PessimisticLockingFailureException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public String conflitoDeEstoque(Model model) {
-        model.addAttribute("codigo",409);
-        model.addAttribute("mensagem","Os dados foram atualizados em outra operação. Nenhuma alteração desta tentativa foi salva. Atualize a página e confira o saldo antes de tentar novamente.");
+        model.addAttribute("codigo", 409);
+        model.addAttribute("mensagem", "Os dados foram atualizados em outra operação. Nenhuma alteração desta tentativa foi salva. Atualize a página e confira o saldo antes de tentar novamente.");
         return "erro";
     }
 
@@ -31,7 +31,8 @@ public class TratamentoErroGlobal {
         String mensagem = "O arquivo ultrapassa o limite de envio de 100 MB.";
         if (request.getServletPath().equals("/calculo-rapido/analisar-arquivo"))
             return ResponseEntity.status(413).body(java.util.Map.of("erro", mensagem));
-        model.addAttribute("codigo", 413); model.addAttribute("mensagem", mensagem);
+        model.addAttribute("codigo", 413);
+        model.addAttribute("mensagem", mensagem);
         return new org.springframework.web.servlet.ModelAndView("erro", model.asMap(), HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
@@ -55,7 +56,7 @@ public class TratamentoErroGlobal {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<Void> recursoNaoEncontrado(NoResourceFoundException erro,
-                                                       HttpServletRequest request) {
+                                                     HttpServletRequest request) {
         if ("/favicon.ico".equals(request.getRequestURI())) {
             return ResponseEntity.noContent().build();
         }

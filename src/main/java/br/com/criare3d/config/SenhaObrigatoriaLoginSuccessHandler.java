@@ -29,18 +29,18 @@ public class SenhaObrigatoriaLoginSuccessHandler implements AuthenticationSucces
             usuarioRepository.registrarUltimoAcesso(principal.getUsuarioId(), LocalDateTime.now());
         } else {
             trocaObrigatoria = usuarioRepository.findByEmail(authentication.getName())
-                    .map(usuario -> usuario.isTrocaSenhaObrigatoria())
-                    .orElse(false);
+                .map(usuario -> usuario.isTrocaSenhaObrigatoria())
+                .orElse(false);
         }
         if (trocaObrigatoria) {
             request.getSession(true).setAttribute(
-                    PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA, true);
+                PrimeiroAcessoSenhaObrigatoriaFilter.SESSAO_TROCA_OBRIGATORIA, true);
             response.sendRedirect(request.getContextPath() + "/senha/primeiro-acesso");
             return;
         }
         if (authentication.getPrincipal() instanceof UsuarioPrincipal principal
-                && principal.getPerfil() == br.com.criare3d.models.enums.Perfil.ADMIN
-                && principal.getTenantId() == null) {
+            && principal.getPerfil() == br.com.criare3d.models.enums.Perfil.ADMIN
+            && principal.getTenantId() == null) {
             response.sendRedirect(request.getContextPath() + "/clientes/listar");
             return;
         }

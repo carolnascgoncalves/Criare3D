@@ -1,4 +1,3 @@
-
 package br.com.criare3d.dto;
 
 import jakarta.validation.constraints.NotNull;

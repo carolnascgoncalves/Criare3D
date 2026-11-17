@@ -1,49 +1,60 @@
-
 package br.com.criare3d.repository;
 
+import br.com.criare3d.dto.*;
 import br.com.criare3d.models.CalculoHistorico;
-import br.com.criare3d.dto.FilamentoHistoricoUsoResponse;
-import br.com.criare3d.dto.CalculoRecenteResponse;
-import br.com.criare3d.dto.AjusteEstoqueCalculoResponse;
-import br.com.criare3d.dto.HistoricoListaResponse;
-import br.com.criare3d.dto.HistoricoExportacaoResponse;
-import br.com.criare3d.dto.DashboardResumoProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.List;
-import java.math.BigDecimal;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
-    interface UsoEmbalagem { UUID getEmbalagemId(); Long getUsos(); }
+    interface UsoEmbalagem {
+        UUID getEmbalagemId();
+
+        Long getUsos();
+    }
+
     @Query("select h.embalagem.id as embalagemId, count(h) as usos from CalculoHistorico h where h.embalagem.id in :ids group by h.embalagem.id")
     List<UsoEmbalagem> contarUsosEmbalagens(@Param("ids") Collection<UUID> ids);
-    interface PrecoPeca { UUID getPecaId(); BigDecimal getPreco(); }
-    @Query("""
-      select h.peca.id as pecaId, h.precoSugerido as preco from CalculoHistorico h
-      where h.peca.id in :ids and h.dataCalculo =
-        (select max(c.dataCalculo) from CalculoHistorico c where c.peca=h.peca)
-      order by h.id
-      """)
-    List<PrecoPeca> ultimosPrecosPecas(@Param("ids") Collection<UUID> ids);
-    interface FluxoProducao {
-        Long getCalculadas(); Long getProduzidas(); Long getVendidas();
+
+    interface PrecoPeca {
+        UUID getPecaId();
+
+        BigDecimal getPreco();
     }
+
+    @Query("""
+        select h.peca.id as pecaId, h.precoSugerido as preco from CalculoHistorico h
+        where h.peca.id in :ids and h.dataCalculo =
+          (select max(c.dataCalculo) from CalculoHistorico c where c.peca=h.peca)
+        order by h.id
+        """)
+    List<PrecoPeca> ultimosPrecosPecas(@Param("ids") Collection<UUID> ids);
+
+    interface FluxoProducao {
+        Long getCalculadas();
+
+        Long getProduzidas();
+
+        Long getVendidas();
+    }
+
     @Query("""
         select coalesce(sum(h.unidades),0) as calculadas,
           coalesce(sum(case when h.produzido=true then h.unidades else 0 end),0) as produzidas,
           coalesce(sum(case when h.produzido=true then h.unidadesVendidas else 0 end),0) as vendidas
         from CalculoHistorico h where h.dataCalculo>=:inicio and h.dataCalculo<:fim
         """)
-    FluxoProducao resumirFluxoProducao(@Param("inicio") LocalDateTime inicio,@Param("fim") LocalDateTime fim);
+    FluxoProducao resumirFluxoProducao(@Param("inicio") LocalDateTime inicio, @Param("fim") LocalDateTime fim);
 
     Optional<CalculoHistorico> findFirstByPeca_IdOrderByDataCalculoDesc(UUID pecaId);
 
@@ -53,13 +64,13 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
 
     @Query("SELECT COALESCE(SUM(h.minutosMaquinaLote), 0) FROM CalculoHistorico h " +
-            "WHERE h.produzido = true AND h.dataProducao >= :inicio")
+        "WHERE h.produzido = true AND h.dataProducao >= :inicio")
     Long somarMinutosMaquinaProduzidosDesde(@Param("inicio") LocalDateTime inicio);
 
     @Query("SELECT COALESCE(SUM(h.minutosMaquinaLote), 0) FROM CalculoHistorico h " +
-            "WHERE h.produzido = true AND h.dataProducao >= :inicio AND h.impressora.id = :impressoraId")
+        "WHERE h.produzido = true AND h.dataProducao >= :inicio AND h.impressora.id = :impressoraId")
     Long somarMinutosMaquinaProduzidosDaImpressoraDesde(
-            @Param("inicio") LocalDateTime inicio, @Param("impressoraId") UUID impressoraId);
+        @Param("inicio") LocalDateTime inicio, @Param("impressoraId") UUID impressoraId);
 
     @Query(value = """
         SELECT
@@ -91,8 +102,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
           )
         """, nativeQuery = true)
     DashboardResumoProjection resumirDashboard(@Param("tenantId") UUID tenantId,
-                                                @Param("inicio") LocalDateTime inicio,
-                                                @Param("fim") LocalDateTime fim);
+                                               @Param("inicio") LocalDateTime inicio,
+                                               @Param("fim") LocalDateTime fim);
 
     @Query("""
         SELECT item.filamento.id, COUNT(DISTINCT item.calculoHistorico.id)
@@ -122,7 +133,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
           AND (h.filamento.id IN :filamentoIds OR item.filamento.id IN :filamentoIds)
         """)
     List<UUID> buscarIdsFilamentoComHistoricoProduzido(
-            @Param("filamentoIds") List<UUID> filamentoIds
+        @Param("filamentoIds") List<UUID> filamentoIds
     );
 
     @Query("""
@@ -135,7 +146,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         WHERE (h.filamento.id IN :filamentoIds OR item.filamento.id IN :filamentoIds)
         """)
     List<UUID> buscarIdsFilamentoComHistorico(
-            @Param("filamentoIds") List<UUID> filamentoIds
+        @Param("filamentoIds") List<UUID> filamentoIds
     );
 
     @Query("""
@@ -165,7 +176,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         ORDER BY h.dataCalculo DESC
         """)
     List<CalculoRecenteResponse> buscarCalculosRecentes(
-            Pageable pageable);
+        Pageable pageable);
 
     @Query("""
         SELECT new br.com.criare3d.dto.HistoricoExportacaoResponse(
@@ -224,7 +235,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         ORDER BY YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda)
         """)
     List<Object[]> somarLucroVendidoPorDia(@Param("inicio") LocalDateTime inicio,
-                                          @Param("fim") LocalDateTime fim);
+                                           @Param("fim") LocalDateTime fim);
 
     @Query("""
         SELECT MIN(v.dataVenda)
@@ -299,55 +310,55 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     List<Object[]> somarHorasPorImpressoraDesde(@Param("inicio") LocalDateTime inicio);
 
     @Query(value = """
-    SELECT new br.com.criare3d.dto.HistoricoListaResponse(
-        h.id, h.nomePeca, h.dataCalculo, h.plataformaVenda,
-        h.precoVendaPlataforma, h.precoSugerido, h.produzido, h.vendido,
-        h.temFoto, h.unidades, h.custoTotal, h.lucroLiquido, h.dataVenda, h.unidadesVendidas
-    )
-    FROM CalculoHistorico h
-    WHERE (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
-      AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
-      AND (
-          :plataforma = ''
-          OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
-          OR h.plataformaVenda = :plataforma
-      )
-      AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
-      AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
-      AND (:statusLote = '' OR
-           (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
-           (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
-           (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
-    """,
-            countQuery = """
-    SELECT COUNT(h)
-    FROM CalculoHistorico h
-    WHERE (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
-      AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
-      AND (
-          :plataforma = ''
-          OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
-          OR h.plataformaVenda = :plataforma
-      )
-      AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
-      AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
-      AND (:statusLote = '' OR
-           (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
-           (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
-           (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
-    """)
+        SELECT new br.com.criare3d.dto.HistoricoListaResponse(
+            h.id, h.nomePeca, h.dataCalculo, h.plataformaVenda,
+            h.precoVendaPlataforma, h.precoSugerido, h.produzido, h.vendido,
+            h.temFoto, h.unidades, h.custoTotal, h.lucroLiquido, h.dataVenda, h.unidadesVendidas
+        )
+        FROM CalculoHistorico h
+        WHERE (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
+          AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
+          AND (
+              :plataforma = ''
+              OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
+              OR h.plataformaVenda = :plataforma
+          )
+          AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
+          AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
+          AND (:statusLote = '' OR
+               (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
+               (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
+               (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
+        """,
+        countQuery = """
+            SELECT COUNT(h)
+            FROM CalculoHistorico h
+            WHERE (:nome = '' OR LOWER(h.nomePeca) LIKE LOWER(CONCAT(CONCAT('%', :nome), '%')))
+              AND (:filtrarData = false OR (h.dataCalculo >= :inicio AND h.dataCalculo < :fim))
+              AND (
+                  :plataforma = ''
+                  OR (:plataforma = 'SEM_PLATAFORMA' AND (h.plataformaVenda IS NULL OR h.plataformaVenda = 'NENHUMA'))
+                  OR h.plataformaVenda = :plataforma
+              )
+              AND (:filtrarProduzido = false OR h.produzido = :valorProduzido)
+              AND (:filtrarVendido = false OR (:valorVendido = true AND h.unidadesVendidas > 0) OR (:valorVendido = false AND h.unidadesVendidas = 0))
+              AND (:statusLote = '' OR
+                   (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
+                   (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
+                   (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
+            """)
     Page<HistoricoListaResponse> buscarHistoricoFiltrado(
-            @Param("nome") String nome,
-            @Param("filtrarData") boolean filtrarData,
-            @Param("inicio") LocalDateTime inicio,
-            @Param("fim") LocalDateTime fim,
-            @Param("plataforma") String plataforma,
-            @Param("filtrarProduzido") boolean filtrarProduzido,
-            @Param("valorProduzido") boolean valorProduzido,
-            @Param("filtrarVendido") boolean filtrarVendido,
-            @Param("valorVendido") boolean valorVendido,
-            @Param("statusLote") String statusLote,
-            Pageable pageable
+        @Param("nome") String nome,
+        @Param("filtrarData") boolean filtrarData,
+        @Param("inicio") LocalDateTime inicio,
+        @Param("fim") LocalDateTime fim,
+        @Param("plataforma") String plataforma,
+        @Param("filtrarProduzido") boolean filtrarProduzido,
+        @Param("valorProduzido") boolean valorProduzido,
+        @Param("filtrarVendido") boolean filtrarVendido,
+        @Param("valorVendido") boolean valorVendido,
+        @Param("statusLote") String statusLote,
+        Pageable pageable
     );
 
     long countByEmbalagem_Id(UUID embalagemId);
@@ -355,12 +366,12 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
     long countByImpressora_Id(UUID impressoraId);
 
     @Query("""
-    SELECT COALESCE(SUM(CASE WHEN c.minutosMaquinaLote > 0 THEN c.minutosMaquinaLote
-        ELSE (c.tempoImpressaoMinutos + c.tempoAquecimentoMinutos) * c.fornadas END), 0)
-    FROM CalculoHistorico c
-    WHERE c.impressora.id = :impressoraId
-      AND c.produzido = true
-    """)
+        SELECT COALESCE(SUM(CASE WHEN c.minutosMaquinaLote > 0 THEN c.minutosMaquinaLote
+            ELSE (c.tempoImpressaoMinutos + c.tempoAquecimentoMinutos) * c.fornadas END), 0)
+        FROM CalculoHistorico c
+        WHERE c.impressora.id = :impressoraId
+          AND c.produzido = true
+        """)
     Long somarMinutosPorImpressora(@Param("impressoraId") UUID impressoraId);
 
     long countByPeca_Id(UUID pecaId);

@@ -1,5 +1,8 @@
 package br.com.criare3d.service;
-/** Resultados de domínio; códigos textuais ficam restritos às URLs e mensagens existentes. */
+
+/**
+ * Resultados de domínio; códigos textuais ficam restritos às URLs e mensagens existentes.
+ */
 public enum ResultadoOperacao {
     NAO_ENCONTRADO("naoEncontrado"),
     OK("ok"),
@@ -14,6 +17,12 @@ public enum ResultadoOperacao {
     PEDIDO_VINCULADO("pedidoVinculado"),
     ACAO_INVALIDA("acaoInvalida");
     private final String codigo;
-    ResultadoOperacao(String codigo) { this.codigo = codigo; }
-    public String codigo() { return codigo; }
+
+    ResultadoOperacao(String codigo) {
+        this.codigo = codigo;
+    }
+
+    public String codigo() {
+        return codigo;
+    }
 }

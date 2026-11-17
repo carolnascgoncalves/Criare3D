@@ -1,6 +1,8 @@
 package br.com.criare3d.models.enums;
 
-/** Tipos de movimentação do extrato, com o texto e o ícone exibidos na tela. */
+/**
+ * Tipos de movimentação do extrato, com o texto e o ícone exibidos na tela.
+ */
 public enum TipoMovimentacao {
     SALDO_INICIAL("Saldo de abertura", "bi-flag"),
     COMPRA("Compra", "bi-bag-plus"),
@@ -23,17 +25,32 @@ public enum TipoMovimentacao {
         this.icone = icone;
     }
 
-    public String getRotulo() { return rotulo; }
-    public String getIcone() { return icone; }
+    public String getRotulo() {
+        return rotulo;
+    }
 
-    /** Tipos desconhecidos (gravados por versões futuras) caem em OUTRO em vez de quebrar a tela. */
+    public String getIcone() {
+        return icone;
+    }
+
+    /**
+     * Tipos desconhecidos (gravados por versões futuras) caem em OUTRO em vez de quebrar a tela.
+     */
     public static TipoMovimentacao de(String nome) {
         if (nome == null) return OUTRO;
-        try { return valueOf(nome); } catch (IllegalArgumentException e) { return OUTRO; }
+        try {
+            return valueOf(nome);
+        } catch (IllegalArgumentException e) {
+            return OUTRO;
+        }
     }
 
     public static boolean valido(String nome) {
         if (nome == null || nome.isBlank()) return false;
-        try { return valueOf(nome) != OUTRO; } catch (IllegalArgumentException e) { return false; }
+        try {
+            return valueOf(nome) != OUTRO;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 }

@@ -1,33 +1,45 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.models.*;
-import br.com.criare3d.repository.*;
-import java.math.BigDecimal;
-import java.time.*;
-import java.util.*;
-
+import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.VendaCalculo;
+import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.ItemPedidoRepository;
+import br.com.criare3d.repository.PlanejamentoProducaoRepository;
+import br.com.criare3d.repository.VendaCalculoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Transactional
 public class VendaService {
-    @org.springframework.beans.factory.annotation.Autowired private IdempotenciaService idempotencia;
-    public ResultadoOperacao registrarVenda(UUID id,Integer unidades,BigDecimal preco,BigDecimal desconto,BigDecimal taxas,UUID chave) {
-        return ResultadoOperacao.valueOf(idempotencia.executar(chave,"VENDA_3D",Arrays.asList(id,unidades,preco,desconto,taxas).toString(),()->registrarVenda(id,unidades,preco,desconto,taxas).name()));
+    @org.springframework.beans.factory.annotation.Autowired
+    private IdempotenciaService idempotencia;
+
+    public ResultadoOperacao registrarVenda(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas, UUID chave) {
+        return ResultadoOperacao.valueOf(idempotencia.executar(chave, "VENDA_3D", Arrays.asList(id, unidades, preco, desconto, taxas).toString(), () -> registrarVenda(id, unidades, preco, desconto, taxas).name()));
     }
-    @org.springframework.beans.factory.annotation.Autowired private MovimentacaoService movimentos;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private MovimentacaoService movimentos;
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final VendaCalculoRepository vendaCalculoRepository;
     private final Clock clock;
     private final ItemPedidoRepository reservas;
     private final PlanejamentoProducaoRepository planejamentoProducaoRepository;
+
     public VendaService(
-            CalculoHistoricoRepository calculoHistoricoRepository,
-            VendaCalculoRepository vendaCalculoRepository,
-            Clock clock,
-            PlanejamentoProducaoRepository planejamentoProducaoRepository, ItemPedidoRepository reservas) {
+        CalculoHistoricoRepository calculoHistoricoRepository,
+        VendaCalculoRepository vendaCalculoRepository,
+        Clock clock,
+        PlanejamentoProducaoRepository planejamentoProducaoRepository, ItemPedidoRepository reservas) {
         this.reservas = java.util.Objects.requireNonNull(reservas);
         this.clock = java.util.Objects.requireNonNull(clock, "clock");
         this.planejamentoProducaoRepository = java.util.Objects.requireNonNull(planejamentoProducaoRepository, "planejamentoProducaoRepository");
@@ -57,7 +69,8 @@ public class VendaService {
 
     private ResultadoOperacao registrar(UUID id, Integer unidades, BigDecimal preco, BigDecimal desconto, BigDecimal taxas, UUID pedidoId) {
         for (BigDecimal valor : new BigDecimal[]{preco, desconto, taxas}) {
-            if (valor != null && (valor.signum() < 0 || valor.compareTo(new BigDecimal("99999999")) > 0)) return ResultadoOperacao.VALOR_VENDA_INVALIDO;
+            if (valor != null && (valor.signum() < 0 || valor.compareTo(new BigDecimal("99999999")) > 0))
+                return ResultadoOperacao.VALOR_VENDA_INVALIDO;
         }
         if (unidades == null || unidades < 1) return ResultadoOperacao.QUANTIDADE_VENDA_INVALIDA;
         CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
@@ -79,16 +92,18 @@ public class VendaService {
         BigDecimal sugerido = calculo.getPrecoVendaPlataforma() != null ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
         BigDecimal descontoAplicado = desconto == null ? ZERO : desconto;
         BigDecimal precoAplicado = preco == null ? sugerido : preco;
-        if (precoAplicado == null || descontoAplicado.compareTo(precoAplicado) > 0) return ResultadoOperacao.VALOR_VENDA_INVALIDO;
+        if (precoAplicado == null || descontoAplicado.compareTo(precoAplicado) > 0)
+            return ResultadoOperacao.VALOR_VENDA_INVALIDO;
         BigDecimal taxasAplicadas = taxas == null ? (calculo.getTaxasPlataforma() == null ? ZERO : calculo.getTaxasPlataforma()) : taxas;
         venda.setPrecoUnitario(precoAplicado);
         venda.setDescontoUnitario(descontoAplicado);
         venda.setTaxasUnitarias(taxasAplicadas);
         venda.setValoresReais(preco != null && taxas != null);
         venda.setLucroUnitario(precoAplicado.subtract(descontoAplicado).subtract(taxasAplicadas)
-                .subtract(calculo.getCustoTotal()));
+            .subtract(calculo.getCustoTotal()));
         vendaCalculoRepository.save(venda);
-        if(movimentos!=null)movimentos.registrar("VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(unidades).negate(),"un.","lote",id);
+        if (movimentos != null)
+            movimentos.registrar("VENDA_3D", calculo.getNomePeca(), BigDecimal.valueOf(unidades).negate(), "un.", "lote", id);
 
         int totalVendido = vendidas + unidades;
         calculo.setUnidadesVendidas(totalVendido);
@@ -104,10 +119,12 @@ public class VendaService {
         CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(id).orElse(null);
         if (calculo == null) return ResultadoOperacao.NAO_ENCONTRADO;
         var registros = vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(id);
-        if (registros.stream().anyMatch(v -> v.getPedidoId()!=null && v.getUnidadesAtivas()>0)) return ResultadoOperacao.PEDIDO_VINCULADO;
+        if (registros.stream().anyMatch(v -> v.getPedidoId() != null && v.getUnidadesAtivas() > 0))
+            return ResultadoOperacao.PEDIDO_VINCULADO;
         for (VendaCalculo venda : registros) {
-            int devolvidas=venda.getUnidadesAtivas();
-            if(movimentos!=null)movimentos.registrar("CANCELAR_VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(devolvidas),"un.","lote",id);
+            int devolvidas = venda.getUnidadesAtivas();
+            if (movimentos != null)
+                movimentos.registrar("CANCELAR_VENDA_3D", calculo.getNomePeca(), BigDecimal.valueOf(devolvidas), "un.", "lote", id);
             venda.setUnidadesCanceladas(venda.getUnidades());
             venda.setDataCancelamento(LocalDateTime.now(clock));
         }
@@ -120,23 +137,27 @@ public class VendaService {
     }
 
     public ResultadoOperacao cancelarVenda(UUID calculoId, UUID vendaId, Integer unidades) {
-        return cancelarVenda(calculoId,vendaId,unidades,false);
+        return cancelarVenda(calculoId, vendaId, unidades, false);
     }
+
     public void cancelarPedido(UUID pedidoId) {
         for (var v : vendaCalculoRepository.findByPedidoId(pedidoId)) {
-            if (v.getUnidadesAtivas()>0 && cancelarVenda(v.getCalculo().getId(),v.getId(),v.getUnidadesAtivas(),true)!=ResultadoOperacao.OK)
+            if (v.getUnidadesAtivas() > 0 && cancelarVenda(v.getCalculo().getId(), v.getId(), v.getUnidadesAtivas(), true) != ResultadoOperacao.OK)
                 throw new IllegalArgumentException("Não foi possível cancelar as vendas do pedido.");
         }
     }
+
     private ResultadoOperacao cancelarVenda(UUID calculoId, UUID vendaId, Integer unidades, boolean peloPedido) {
         CalculoHistorico calculo = calculoHistoricoRepository.bloquearPorId(calculoId).orElse(null);
         if (calculo == null) return ResultadoOperacao.NAO_ENCONTRADO;
         VendaCalculo venda = vendaCalculoRepository.findById(vendaId).orElse(null);
         if (venda == null || !calculoId.equals(venda.getCalculo().getId())) return ResultadoOperacao.NAO_ENCONTRADO;
-        if (venda.getPedidoId()!=null && !peloPedido) return ResultadoOperacao.PEDIDO_VINCULADO;
-        if (unidades == null || unidades < 1 || unidades > venda.getUnidadesAtivas()) return ResultadoOperacao.QUANTIDADE_VENDA_INVALIDA;
+        if (venda.getPedidoId() != null && !peloPedido) return ResultadoOperacao.PEDIDO_VINCULADO;
+        if (unidades == null || unidades < 1 || unidades > venda.getUnidadesAtivas())
+            return ResultadoOperacao.QUANTIDADE_VENDA_INVALIDA;
         venda.setUnidadesCanceladas(venda.getUnidadesCanceladas() + unidades);
-        if(movimentos!=null)movimentos.registrar("CANCELAR_VENDA_3D",calculo.getNomePeca(),BigDecimal.valueOf(unidades),"un.","lote",calculoId);
+        if (movimentos != null)
+            movimentos.registrar("CANCELAR_VENDA_3D", calculo.getNomePeca(), BigDecimal.valueOf(unidades), "un.", "lote", calculoId);
         venda.setDataCancelamento(LocalDateTime.now(clock));
         recalcularVendas(calculo);
         return ResultadoOperacao.OK;
@@ -148,6 +169,6 @@ public class VendaService {
         calculo.setUnidadesVendidas(ativas);
         calculo.setVendido(ativas > 0);
         calculo.setDataVenda(vendas.stream().filter(v -> v.getUnidadesAtivas() > 0)
-                .map(VendaCalculo::getDataVenda).max(LocalDateTime::compareTo).orElse(null));
+            .map(VendaCalculo::getDataVenda).max(LocalDateTime::compareTo).orElse(null));
     }
 }

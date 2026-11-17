@@ -1,7 +1,10 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.models.*;
 import br.com.criare3d.dto.HistoricoListaResponse;
+import br.com.criare3d.models.Embalagem;
+import br.com.criare3d.models.Filamento;
+import br.com.criare3d.models.Impressora;
+import br.com.criare3d.models.Peca;
 import br.com.criare3d.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +23,11 @@ public class CatalogoBuscaService {
     private final CalculoHistoricoRepository calculoHistoricoRepository;
 
     public CatalogoBuscaService(
-            PecaRepository pecaRepository,
-            ImpressoraRepository impressoraRepository,
-            FilamentoRepository filamentoRepository,
-            EmbalagemRepository embalagemRepository,
-            CalculoHistoricoRepository calculoHistoricoRepository) {
+        PecaRepository pecaRepository,
+        ImpressoraRepository impressoraRepository,
+        FilamentoRepository filamentoRepository,
+        EmbalagemRepository embalagemRepository,
+        CalculoHistoricoRepository calculoHistoricoRepository) {
 
         this.pecaRepository = pecaRepository;
         this.impressoraRepository = impressoraRepository;
@@ -50,23 +53,23 @@ public class CatalogoBuscaService {
     }
 
     public Page<HistoricoListaResponse> buscarHistorico(
-            String nome,
-            LocalDate data,
-            String plataforma,
-            String produzido,
-            String vendido,
-            Pageable pageable) {
+        String nome,
+        LocalDate data,
+        String plataforma,
+        String produzido,
+        String vendido,
+        Pageable pageable) {
         return buscarHistorico(nome, data, plataforma, produzido, vendido, "", pageable);
     }
 
     public Page<HistoricoListaResponse> buscarHistorico(
-            String nome,
-            LocalDate data,
-            String plataforma,
-            String produzido,
-            String vendido,
-            String statusLote,
-            Pageable pageable) {
+        String nome,
+        LocalDate data,
+        String plataforma,
+        String produzido,
+        String vendido,
+        String statusLote,
+        Pageable pageable) {
 
         String nomeFiltro = nome == null ? "" : nome.trim();
 
@@ -86,17 +89,17 @@ public class CatalogoBuscaService {
         boolean valorVendido = "SIM".equals(vendidoFiltro);
 
         return calculoHistoricoRepository.buscarHistoricoFiltrado(
-                nomeFiltro,
-                filtrarData,
-                inicio,
-                fim,
-                plataformaFiltro,
-                filtrarProduzido,
-                valorProduzido,
-                filtrarVendido,
-                valorVendido,
-                statusLote == null ? "" : statusLote,
-                pageable
+            nomeFiltro,
+            filtrarData,
+            inicio,
+            fim,
+            plataformaFiltro,
+            filtrarProduzido,
+            valorProduzido,
+            filtrarVendido,
+            valorVendido,
+            statusLote == null ? "" : statusLote,
+            pageable
         );
     }
 

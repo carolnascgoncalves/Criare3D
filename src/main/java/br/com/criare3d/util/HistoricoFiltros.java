@@ -10,20 +10,21 @@ import java.util.Set;
 
 public final class HistoricoFiltros {
     public static final Map<String, Sort> ORDENACOES = Map.ofEntries(
-            Map.entry("nomeAsc", Sort.by(Sort.Direction.ASC, "nomePeca")),
-            Map.entry("nomeDesc", Sort.by(Sort.Direction.DESC, "nomePeca")),
-            Map.entry("dataAsc", Sort.by(Sort.Direction.ASC, "dataCalculo")),
-            Map.entry("dataDesc", Sort.by(Sort.Direction.DESC, "dataCalculo")),
-            Map.entry("custoAsc", Sort.by(Sort.Direction.ASC, "custoTotal")),
-            Map.entry("custoDesc", Sort.by(Sort.Direction.DESC, "custoTotal")),
-            Map.entry("precoAsc", JpaSort.unsafe(Sort.Direction.ASC, "coalesce(precoVendaPlataforma, precoSugerido)")),
-            Map.entry("precoDesc", JpaSort.unsafe(Sort.Direction.DESC, "coalesce(precoVendaPlataforma, precoSugerido)"))
+        Map.entry("nomeAsc", Sort.by(Sort.Direction.ASC, "nomePeca")),
+        Map.entry("nomeDesc", Sort.by(Sort.Direction.DESC, "nomePeca")),
+        Map.entry("dataAsc", Sort.by(Sort.Direction.ASC, "dataCalculo")),
+        Map.entry("dataDesc", Sort.by(Sort.Direction.DESC, "dataCalculo")),
+        Map.entry("custoAsc", Sort.by(Sort.Direction.ASC, "custoTotal")),
+        Map.entry("custoDesc", Sort.by(Sort.Direction.DESC, "custoTotal")),
+        Map.entry("precoAsc", JpaSort.unsafe(Sort.Direction.ASC, "coalesce(precoVendaPlataforma, precoSugerido)")),
+        Map.entry("precoDesc", JpaSort.unsafe(Sort.Direction.DESC, "coalesce(precoVendaPlataforma, precoSugerido)"))
     );
 
     private static final Set<String> PLATAFORMAS = Set.of(
-            "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "AMAZON", "SEM_PLATAFORMA");
+        "", "SHOPEE", "TIKTOK", "MERCADO_LIVRE", "AMAZON", "SEM_PLATAFORMA");
 
-    private HistoricoFiltros() { }
+    private HistoricoFiltros() {
+    }
 
     public static String normalizarPlataforma(String plataforma) {
         String valor = plataforma == null ? "" : plataforma.trim().toUpperCase();
@@ -37,8 +38,8 @@ public final class HistoricoFiltros {
     }
 
     public static ModelAndView redirecionarComFiltros(
-            String tipoMensagem, String mensagem, String busca, LocalDate data,
-            String plataforma, String produzido, String vendido, String ordem, int page) {
+        String tipoMensagem, String mensagem, String busca, LocalDate data,
+        String plataforma, String produzido, String vendido, String ordem, int page) {
         ModelAndView mv = new ModelAndView("redirect:/historico/listar");
         mv.addObject("busca", busca == null ? "" : busca);
         if (data != null) mv.addObject("data", data.toString());

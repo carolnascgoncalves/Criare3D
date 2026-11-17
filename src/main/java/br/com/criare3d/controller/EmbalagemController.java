@@ -1,14 +1,11 @@
-
 package br.com.criare3d.controller;
 
-import br.com.criare3d.service.HistoricoCalculoService;
-
+import br.com.criare3d.dto.EmbalagemDadosRequest;
 import br.com.criare3d.dto.EmbalagemRequest;
 import br.com.criare3d.dto.EmbalagemResponse;
-import br.com.criare3d.dto.EmbalagemDadosRequest;
 import br.com.criare3d.models.Embalagem;
 import br.com.criare3d.service.CatalogoBuscaService;
-
+import br.com.criare3d.service.HistoricoCalculoService;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
@@ -16,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -24,18 +20,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.UUID;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class EmbalagemController {
 
     private static final Map<String, Sort> ORDENACOES = Map.of(
-            "nomeAsc", Sort.by(Sort.Direction.ASC, "nome"),
-            "nomeDesc", Sort.by(Sort.Direction.DESC, "nome"),
-            "custoAsc", Sort.by(Sort.Direction.ASC, "custoUnitario"),
-            "custoDesc", Sort.by(Sort.Direction.DESC, "custoUnitario")
+        "nomeAsc", Sort.by(Sort.Direction.ASC, "nome"),
+        "nomeDesc", Sort.by(Sort.Direction.DESC, "nome"),
+        "custoAsc", Sort.by(Sort.Direction.ASC, "custoUnitario"),
+        "custoDesc", Sort.by(Sort.Direction.DESC, "custoUnitario")
     );
 
     private final EmbalagemService embalagemService;
@@ -61,8 +57,8 @@ public class EmbalagemController {
         ModelAndView mv = new ModelAndView("embalagem/listar");
 
         Page<Embalagem> pagina = busca.isBlank()
-                ? embalagemService.fetchAll(pageable)
-                : catalogoBuscaService.buscarEmbalagens(busca.trim(), pageable);
+            ? embalagemService.fetchAll(pageable)
+            : catalogoBuscaService.buscarEmbalagens(busca.trim(), pageable);
 
         mv.addObject("embalagens", pagina.getContent());
         mv.addObject("usosEmbalagem", historicoCalculoService.usosEmbalagens(pagina.getContent().stream().map(Embalagem::getId).toList()));
@@ -104,31 +100,31 @@ public class EmbalagemController {
     @GetMapping("/embalagem/detalhes/{id}")
     public ModelAndView fetchById(@PathVariable UUID id) {
         return embalagemService.fetchById(id)
-                .map(entidade -> {
-                    ModelAndView mv = new ModelAndView("embalagem/detalhes");
-                    mv.addObject("embalagem", entidade);
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/embalagem/listar"));
+            .map(entidade -> {
+                ModelAndView mv = new ModelAndView("embalagem/detalhes");
+                mv.addObject("embalagem", entidade);
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/embalagem/listar"));
     }
 
     @GetMapping("/embalagem/editar/{id}")
     public ModelAndView retornarPaginaEdicao(@PathVariable UUID id) {
         return embalagemService.fetchById(id)
-                .map(entidade -> {
-                    ModelAndView mv = new ModelAndView("embalagem/edicao");
-                    mv.addObject("embalagem", EmbalagemResponse.toDto(entidade));
-                    mv.addObject("id", id);
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/embalagem/listar"));
+            .map(entidade -> {
+                ModelAndView mv = new ModelAndView("embalagem/edicao");
+                mv.addObject("embalagem", EmbalagemResponse.toDto(entidade));
+                mv.addObject("id", id);
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/embalagem/listar"));
     }
 
     @PostMapping("/embalagem/atualizar/{id}")
     public ModelAndView atualizarEmbalagem(
-            @PathVariable UUID id,
-            @Valid @ModelAttribute("embalagem") EmbalagemDadosRequest request,
-            BindingResult bd) {
+        @PathVariable UUID id,
+        @Valid @ModelAttribute("embalagem") EmbalagemDadosRequest request,
+        BindingResult bd) {
 
         if (bd.hasErrors()) {
             if (!embalagemService.existsById(id)) return new ModelAndView("redirect:/embalagem/listar");
@@ -155,7 +151,7 @@ public class EmbalagemController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/embalagem/listar?erro=embalagemEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
+                "redirect:/embalagem/listar?erro=embalagemEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
         }
 
         embalagemService.delete(id);
@@ -164,18 +160,19 @@ public class EmbalagemController {
 
     @PostMapping("/embalagem/remover-lote")
     public ModelAndView deleteSelected(
-            @RequestParam(name = "ids", required = false) List<UUID> ids,
-            @RequestParam(name = "busca", defaultValue = "") String busca,
-            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
-            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
-            RedirectAttributes redirect) {
-        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/embalagem/listar?erro=nenhumaEmbalagemSelecionada");
+        @RequestParam(name = "ids", required = false) List<UUID> ids,
+        @RequestParam(name = "busca", defaultValue = "") String busca,
+        @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+        @RequestParam(name = "page", defaultValue = "0") int page,
+        @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+        @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
+        RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty())
+            return new ModelAndView("redirect:/embalagem/listar?erro=nenhumaEmbalagemSelecionada");
         List<UUID> bloqueadas = embalagemService.deleteUnused(ids);
         if (!bloqueadas.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueadas);
         page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
-                page, totalRegistros, ids.size() - bloqueadas.size(), tamanhoPagina);
+            page, totalRegistros, ids.size() - bloqueadas.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);
         redirect.addAttribute("page", page);

@@ -14,15 +14,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 class ProducaoLoteVendidoTest {
     private final CalculoHistoricoRepository historicos = mock(CalculoHistoricoRepository.class);
     private final VendaCalculoRepository vendas = mock(VendaCalculoRepository.class);
     private final FilamentoService filamentos = mock(FilamentoService.class);
-    private final br.com.criare3d.repository.ItemPedidoRepository reservas=mock(br.com.criare3d.repository.ItemPedidoRepository.class);
-    private final ProducaoService service = new ProducaoService(historicos, vendas, filamentos, java.time.Clock.systemUTC(),reservas);
+    private final br.com.criare3d.repository.ItemPedidoRepository reservas = mock(br.com.criare3d.repository.ItemPedidoRepository.class);
+    private final ProducaoService service = new ProducaoService(historicos, vendas, filamentos, java.time.Clock.systemUTC(), reservas);
     private final UUID id = UUID.randomUUID();
     private final UUID filamentoId = UUID.randomUUID();
 
@@ -35,8 +36,8 @@ class ProducaoLoteVendidoTest {
         when(historicos.bloquearPorId(id)).thenReturn(Optional.of(calculo));
         // A flag legado pode estar falsa mesmo havendo venda parcial.
         when(historicos.buscarDadosParaAtualizarStatus(id)).thenReturn(List.of(
-                new AjusteEstoqueCalculoResponse(id, true, false, filamentoId,
-                        new BigDecimal("30"), null, null)));
+            new AjusteEstoqueCalculoResponse(id, true, false, filamentoId,
+                new BigDecimal("30"), null, null)));
         return calculo;
     }
 
@@ -48,10 +49,14 @@ class ProducaoLoteVendidoTest {
         verify(historicos, never()).atualizarStatus(any(), anyBoolean(), anyBoolean());
         verifyNoInteractions(filamentos, vendas);
     }
-    @Test void naoDesfazProducaoDePecasReservadasMesmoSemVendas() {
-        var c=preparar(0);when(reservas.reservadas(id)).thenReturn(2L);
-        assertThat(service.atualizarProduzido(id,false)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
-        assertThat(c.getProduzido()).isTrue();verifyNoInteractions(filamentos,vendas);
+
+    @Test
+    void naoDesfazProducaoDePecasReservadasMesmoSemVendas() {
+        var c = preparar(0);
+        when(reservas.reservadas(id)).thenReturn(2L);
+        assertThat(service.atualizarProduzido(id, false)).isEqualTo(ResultadoOperacao.RESERVA_ATIVA);
+        assertThat(c.getProduzido()).isTrue();
+        verifyNoInteractions(filamentos, vendas);
     }
 
     @Test
@@ -76,13 +81,14 @@ class ProducaoLoteVendidoTest {
         assertThat(calculo.getDataProducao()).isNull();
         verify(vendas, never()).deleteByCalculo_Id(any());
     }
+
     @Test
     void estoqueInsuficienteNaoProduzNemConsomeSaldo() {
         CalculoHistorico calculo = preparar(0);
         calculo.setProduzido(false);
         when(historicos.buscarDadosParaAtualizarStatus(id)).thenReturn(List.of(
-                new AjusteEstoqueCalculoResponse(id, false, false, filamentoId,
-                        new BigDecimal("30"), null, null)));
+            new AjusteEstoqueCalculoResponse(id, false, false, filamentoId,
+                new BigDecimal("30"), null, null)));
         Filamento filamento = new Filamento();
         filamento.setId(filamentoId);
         filamento.setEstoqueGramas(new BigDecimal("10"));

@@ -1,11 +1,6 @@
 package br.com.criare3d.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,21 +14,26 @@ import java.util.UUID;
 public class PecaArquivoPlaca {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
     private @Getter UUID tenantId;
 
     @Column(name = "peca_id", nullable = false, updatable = false)
-    private @Getter @Setter UUID pecaId;
+    private @Getter
+    @Setter UUID pecaId;
 
     @Column(name = "numero", nullable = false)
-    private @Getter @Setter int numero;
+    private @Getter
+    @Setter int numero;
 
     @Column(name = "mime_type", nullable = false, length = 30)
-    private @Getter @Setter String mimeType;
+    private @Getter
+    @Setter String mimeType;
 
     @Column(name = "preview", nullable = false)
-    private @Getter @Setter byte[] preview;
+    private @Getter
+    @Setter byte[] preview;
 }

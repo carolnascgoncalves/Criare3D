@@ -1,7 +1,4 @@
-
 package br.com.criare3d.service;
-
-import br.com.criare3d.service.CalculoService;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.dto.CalculoResponse;
@@ -9,27 +6,21 @@ import br.com.criare3d.dto.ComparacaoPlataforma;
 import br.com.criare3d.dto.ItemCalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.enums.PlataformaVenda;
-import br.com.criare3d.service.VerificacaoTarifasPlataforma;
-import br.com.criare3d.service.interfaces.*;
-import org.springframework.web.bind.annotation.*;
+import br.com.criare3d.service.interfaces.ConfiguracaoService;
+import br.com.criare3d.service.interfaces.FilamentoService;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @org.springframework.stereotype.Service
 public class ResultadoCalculoPresenter {
     public ResultadoCalculoPresenter(
-            CalculoService calculoService,
-            FilamentoService filamentoService,
-            ConfiguracaoService configuracaoService,
-            VerificacaoTarifasPlataforma verificacaoTarifas) {
+        CalculoService calculoService,
+        FilamentoService filamentoService,
+        ConfiguracaoService configuracaoService,
+        VerificacaoTarifasPlataforma verificacaoTarifas) {
         this.calculoService = java.util.Objects.requireNonNull(calculoService, "calculoService");
         this.filamentoService = java.util.Objects.requireNonNull(filamentoService, "filamentoService");
         this.configuracaoService = java.util.Objects.requireNonNull(configuracaoService, "configuracaoService");
@@ -42,7 +33,7 @@ public class ResultadoCalculoPresenter {
     private final VerificacaoTarifasPlataforma verificacaoTarifas;
 
     public ModelAndView resultado(CalculoRequest request, CalculoResponse resultado,
-            String modoComparacao, BigDecimal precoVendaFixo, boolean valoresAtualizados) {
+                                  String modoComparacao, BigDecimal precoVendaFixo, boolean valoresAtualizados) {
         if (!"PRECO_FIXO".equals(modoComparacao)) modoComparacao = "LUCRO_DESEJADO";
         ModelAndView mv = new ModelAndView("historico/resultado");
         mv.addObject("calculo", request);
@@ -59,19 +50,19 @@ public class ResultadoCalculoPresenter {
     }
 
     public List<ComparacaoPlataforma> compararPlataformas(
-            CalculoRequest base,
-            CalculoResponse resultadoBase,
-            String modoComparacao,
-            BigDecimal precoVendaFixo
+        CalculoRequest base,
+        CalculoResponse resultadoBase,
+        String modoComparacao,
+        BigDecimal precoVendaFixo
     ) {
         record Opcao(PlataformaVenda plataforma, String nome) {
         }
 
         List<Opcao> opcoes = List.of(
-                new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
-                new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
-                new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre"),
-                new Opcao(PlataformaVenda.AMAZON, "Amazon")
+            new Opcao(PlataformaVenda.SHOPEE, "Shopee"),
+            new Opcao(PlataformaVenda.TIKTOK, "TikTok Shop"),
+            new Opcao(PlataformaVenda.MERCADO_LIVRE, "Mercado Livre"),
+            new Opcao(PlataformaVenda.AMAZON, "Amazon")
         );
 
         boolean precoFixo = "PRECO_FIXO".equals(modoComparacao);
@@ -86,15 +77,15 @@ public class ResultadoCalculoPresenter {
             linha.setCodigo(opcao.plataforma().name());
 
             linha.setSelecionada(
-                    base.getPlataformaVenda() == opcao.plataforma()
-                            || (opcao.plataforma() == PlataformaVenda.TIKTOK
-                            && "TIKTOK_SHOP".equals(
-                            String.valueOf(base.getPlataformaVenda())
-                    ))
+                base.getPlataformaVenda() == opcao.plataforma()
+                    || (opcao.plataforma() == PlataformaVenda.TIKTOK
+                    && "TIKTOK_SHOP".equals(
+                    String.valueOf(base.getPlataformaVenda())
+                ))
             );
 
             if (precoFixo && (precoVendaFixo == null
-                    || precoVendaFixo.compareTo(BigDecimal.ZERO) <= 0)) {
+                || precoVendaFixo.compareTo(BigDecimal.ZERO) <= 0)) {
 
                 linha.setAviso("Informe um preço de venda maior que zero.");
 
@@ -107,7 +98,7 @@ public class ResultadoCalculoPresenter {
             // da peça, impressora, filamentos e configuração nessa linha.
             if (!precoFixo && linha.isSelecionada()) {
                 preencherValoresComparacao(linha, resultadoBase.getPrecoVendaPlataforma(),
-                        resultadoBase.getTaxasPlataforma(), resultadoBase.getLucroLiquido());
+                    resultadoBase.getTaxasPlataforma(), resultadoBase.getLucroLiquido());
                 linhas.add(linha);
                 continue;
             }
@@ -120,8 +111,8 @@ public class ResultadoCalculoPresenter {
 
                 if (precoFixo) {
                     calculo = calculoService.calcularComPrecoFixo(
-                            copia,
-                            precoVendaFixo
+                        copia,
+                        precoVendaFixo
                     );
                 } else {
                     calculo = calculoService.calcular(copia);
@@ -141,33 +132,33 @@ public class ResultadoCalculoPresenter {
 
         if (precoFixo) {
             linhas.stream()
-                    .filter(ComparacaoPlataforma::isCalculada)
-                    .filter(l -> l.getLucro() != null)
-                    .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
-                    .ifPresent(l -> {
-                        l.setMelhor(true);
-                        l.setEtiquetaMelhor("maior lucro");
-                    });
+                .filter(ComparacaoPlataforma::isCalculada)
+                .filter(l -> l.getLucro() != null)
+                .max(Comparator.comparing(ComparacaoPlataforma::getLucro))
+                .ifPresent(l -> {
+                    l.setMelhor(true);
+                    l.setEtiquetaMelhor("maior lucro");
+                });
 
         } else {
             linhas.stream()
-                    .filter(ComparacaoPlataforma::isCalculada)
-                    .filter(l -> l.getPrecoVenda() != null)
-                    .min(Comparator.comparing(ComparacaoPlataforma::getPrecoVenda))
-                    .ifPresent(l -> {
-                        l.setMelhor(true);
-                        l.setEtiquetaMelhor("menor preço");
-                    });
+                .filter(ComparacaoPlataforma::isCalculada)
+                .filter(l -> l.getPrecoVenda() != null)
+                .min(Comparator.comparing(ComparacaoPlataforma::getPrecoVenda))
+                .ifPresent(l -> {
+                    l.setMelhor(true);
+                    l.setEtiquetaMelhor("menor preço");
+                });
         }
 
         return linhas;
     }
 
     private void preencherValoresComparacao(
-            ComparacaoPlataforma linha,
-            BigDecimal preco,
-            BigDecimal taxas,
-            BigDecimal lucro
+        ComparacaoPlataforma linha,
+        BigDecimal preco,
+        BigDecimal taxas,
+        BigDecimal lucro
     ) {
         linha.setPrecoVenda(preco);
         linha.setTaxas(taxas);
@@ -175,7 +166,7 @@ public class ResultadoCalculoPresenter {
 
         if (preco != null && preco.compareTo(BigDecimal.ZERO) > 0 && lucro != null) {
             linha.setMargem(lucro.multiply(new BigDecimal("100"))
-                    .divide(preco, 1, RoundingMode.HALF_UP));
+                .divide(preco, 1, RoundingMode.HALF_UP));
         }
     }
 
@@ -201,7 +192,7 @@ public class ResultadoCalculoPresenter {
 
                 novo.setFilamentoId(item.getFilamentoId());
                 novo.setQuantidadeFilamentoGramas(
-                        item.getQuantidadeFilamentoGramas()
+                    item.getQuantidadeFilamentoGramas()
                 );
 
                 itens.add(novo);
@@ -212,10 +203,10 @@ public class ResultadoCalculoPresenter {
 
         copia.setTipoAnuncio(original.getTipoAnuncio());
         copia.setPercentualComissaoPlataforma(
-                original.getPercentualComissaoPlataforma()
+            original.getPercentualComissaoPlataforma()
         );
         copia.setCustoAdicionalPlataforma(
-                original.getCustoAdicionalPlataforma()
+            original.getCustoAdicionalPlataforma()
         );
         copia.setPercentualImposto(original.getPercentualImposto());
         copia.setFreteVendedor(original.getFreteVendedor());
@@ -251,21 +242,21 @@ public class ResultadoCalculoPresenter {
 
                 if (item.getQuantidadeFilamentoGramas() != null) {
                     pesoImpressao = pesoImpressao.add(
-                            item.getQuantidadeFilamentoGramas()
+                        item.getQuantidadeFilamentoGramas()
                     );
                 }
             }
         }
 
         if (pesoImpressao.compareTo(BigDecimal.ZERO) == 0
-                && request.getQuantidadeFilamentoGramas() != null) {
+            && request.getQuantidadeFilamentoGramas() != null) {
 
             pesoImpressao = request.getQuantidadeFilamentoGramas();
         }
 
         // Margem estimada para a embalagem.
         BigDecimal pesoEstimado = pesoImpressao.add(
-                new BigDecimal("100")
+            new BigDecimal("100")
         );
 
         if (pesoEstimado.compareTo(new BigDecimal("300")) <= 0) {
@@ -301,8 +292,8 @@ public class ResultadoCalculoPresenter {
         }
 
         throw new IllegalArgumentException(
-                "O peso estimado do pacote ultrapassa 5 kg. "
-                        + "Não foi possível calcular o frete do Mercado Livre."
+            "O peso estimado do pacote ultrapassa 5 kg. "
+                + "Não foi possível calcular o frete do Mercado Livre."
         );
     }
 
@@ -310,14 +301,14 @@ public class ResultadoCalculoPresenter {
         int unidades = calculo.getUnidades() == null ? 1 : calculo.getUnidades();
         int fornadas = calculo.getFornadas() == null ? unidades : calculo.getFornadas();
         BigDecimal precoUnitario = calculo.getPrecoVendaPlataforma() != null
-                ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
+            ? calculo.getPrecoVendaPlataforma() : calculo.getPrecoSugerido();
         BigDecimal lucroUnitario = calculo.getLucroLiquido() != null
-                ? calculo.getLucroLiquido() : calculo.getLucroEstimado();
+            ? calculo.getLucroLiquido() : calculo.getLucroEstimado();
         mv.addObject("unidades", unidades);
         mv.addObject("fornadas", fornadas);
         BigDecimal purgaGramasTotal = calculo.getPurgaGramasPorImpressao() == null
-                ? BigDecimal.ZERO
-                : calculo.getPurgaGramasPorImpressao().multiply(BigDecimal.valueOf((long) fornadas));
+            ? BigDecimal.ZERO
+            : calculo.getPurgaGramasPorImpressao().multiply(BigDecimal.valueOf((long) fornadas));
         mv.addObject("purgaGramasTotal", purgaGramasTotal);
         mv.addObject("custoTotalLote", calculo.getCustoTotal().multiply(BigDecimal.valueOf(unidades)));
         mv.addObject("precoUnitario", precoUnitario);
@@ -331,41 +322,41 @@ public class ResultadoCalculoPresenter {
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
         int impressoes = Math.max(1, (unidades + pecasPorImpressao - 1) / pecasPorImpressao);
         BigDecimal gramasBaseTotal = request.getFilamentos() == null ? BigDecimal.ZERO : request.getFilamentos().stream()
-                .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
-                .map(ItemCalculoRequest::getQuantidadeFilamentoGramas)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+            .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
+            .map(ItemCalculoRequest::getQuantidadeFilamentoGramas)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
         if (request.getFilamentos() != null) {
             request.getFilamentos().forEach(item -> {
                 if (item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null) {
                     consumo.merge(item.getFilamentoId(), item.getQuantidadeFilamentoGramas()
                             .multiply(BigDecimal.valueOf(unidades)),
-                            BigDecimal::add);
+                        BigDecimal::add);
                 }
             });
             if (gramasBaseTotal.signum() > 0) {
                 BigDecimal purgaLote = configuracaoService.buscarOuCriarConfiguracao()
-                        .getPurgaGramasPorImpressao();
+                    .getPurgaGramasPorImpressao();
                 if (purgaLote != null && purgaLote.signum() > 0) {
                     purgaLote = purgaLote.multiply(BigDecimal.valueOf(impressoes));
                     BigDecimal purgaTotal = purgaLote;
                     request.getFilamentos().stream()
-                            .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
-                            .forEach(item -> consumo.merge(item.getFilamentoId(), purgaTotal
-                                    .multiply(item.getQuantidadeFilamentoGramas())
-                                    .divide(gramasBaseTotal, 8, java.math.RoundingMode.HALF_UP), BigDecimal::add));
+                        .filter(item -> item.getFilamentoId() != null && item.getQuantidadeFilamentoGramas() != null)
+                        .forEach(item -> consumo.merge(item.getFilamentoId(), purgaTotal
+                            .multiply(item.getQuantidadeFilamentoGramas())
+                            .divide(gramasBaseTotal, 8, java.math.RoundingMode.HALF_UP), BigDecimal::add));
                 }
             }
         }
         List<String> avisos = new ArrayList<>();
         filamentoService.fetchByIds(consumo.keySet()).forEach(filamento -> {
             BigDecimal disponivel = filamento.getEstoqueGramas() == null
-                    ? BigDecimal.ZERO : filamento.getEstoqueGramas();
+                ? BigDecimal.ZERO : filamento.getEstoqueGramas();
             BigDecimal necessario = consumo.get(filamento.getId());
             if (necessario.compareTo(disponivel) > 0) {
                 avisos.add("Estoque de " + filamento.getNome() + ": este lote usa "
-                        + necessario.stripTrailingZeros().toPlainString().replace('.', ',')
-                        + " g e há " + disponivel.stripTrailingZeros().toPlainString().replace('.', ',')
-                        + " g disponíveis. O orçamento pode ser calculado; será preciso ajustar o estoque antes de marcar como produzido.");
+                    + necessario.stripTrailingZeros().toPlainString().replace('.', ',')
+                    + " g e há " + disponivel.stripTrailingZeros().toPlainString().replace('.', ',')
+                    + " g disponíveis. O orçamento pode ser calculado; será preciso ajustar o estoque antes de marcar como produzido.");
             }
         });
         return avisos;

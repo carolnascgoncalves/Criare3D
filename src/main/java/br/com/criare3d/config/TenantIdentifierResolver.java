@@ -16,8 +16,8 @@ public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver
     public UUID resolveCurrentTenantIdentifier() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
-                || !(authentication.getPrincipal() instanceof UsuarioPrincipal principal)
-                || principal.getTenantId() == null) {
+            || !(authentication.getPrincipal() instanceof UsuarioPrincipal principal)
+            || principal.getTenantId() == null) {
             return TENANT_INEXISTENTE;
         }
         return principal.getTenantId();

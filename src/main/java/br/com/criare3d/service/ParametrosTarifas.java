@@ -1,18 +1,23 @@
 package br.com.criare3d.service;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
-/** Configuração global da instalação, carregada uma vez; não consulta banco nem rede. */
+/**
+ * Configuração global da instalação, carregada uma vez; não consulta banco nem rede.
+ */
 final class ParametrosTarifas {
     private final Properties valores = new Properties();
 
     ParametrosTarifas(Properties padrao, Properties substituicoes) {
         valores.putAll(padrao);
         for (String chave : substituicoes.stringPropertyNames()) {
-            if (!padrao.containsKey(chave)) throw new IllegalArgumentException("Parâmetro de tarifa desconhecido: " + chave);
+            if (!padrao.containsKey(chave))
+                throw new IllegalArgumentException("Parâmetro de tarifa desconhecido: " + chave);
             valores.setProperty(chave, substituicoes.getProperty(chave));
         }
         validar();
@@ -25,13 +30,19 @@ final class ParametrosTarifas {
             padrao.load(entrada);
             String caminho = System.getProperty("criare.tarifas.arquivo", System.getenv("CRIARE_TARIFAS_ARQUIVO"));
             if (caminho != null && !caminho.isBlank()) {
-                try (InputStream arquivo = Files.newInputStream(Path.of(caminho))) { externo.load(arquivo); }
+                try (InputStream arquivo = Files.newInputStream(Path.of(caminho))) {
+                    externo.load(arquivo);
+                }
             }
-        } catch (IOException erro) { throw new IllegalStateException("Não foi possível carregar a configuração de tarifas", erro); }
+        } catch (IOException erro) {
+            throw new IllegalStateException("Não foi possível carregar a configuração de tarifas", erro);
+        }
         return new ParametrosTarifas(padrao, externo);
     }
 
-    BigDecimal decimal(String chave) { return numero(chave, valores.getProperty(chave)); }
+    BigDecimal decimal(String chave) {
+        return numero(chave, valores.getProperty(chave));
+    }
 
     BigDecimal[] lista(String chave, int tamanho) {
         String valor = valores.getProperty(chave);
@@ -78,7 +89,7 @@ final class ParametrosTarifas {
         for (int i = 0; i < finais.length; i++) {
             BigDecimal fim = decimal(finais[i]);
             if (fim.signum() <= 0 || fim.add(new BigDecimal("0.01")).compareTo(decimal(inicios[i])) != 0
-                    || (i > 0 && fim.compareTo(decimal(finais[i - 1])) <= 0))
+                || (i > 0 && fim.compareTo(decimal(finais[i - 1])) <= 0))
                 throw new IllegalArgumentException("Faixas de preço da Shopee inconsistentes");
         }
     }

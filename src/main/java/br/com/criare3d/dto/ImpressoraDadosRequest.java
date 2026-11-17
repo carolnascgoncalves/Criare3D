@@ -14,34 +14,37 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class ImpressoraDadosRequest {
-    @NotBlank(message="O nome da impressora é obrigatório")
+    @NotBlank(message = "O nome da impressora é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_imp", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_imp", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
-    @NotBlank(message="O modelo da impressora é obrigatório")
+    @NotBlank(message = "O modelo da impressora é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da impressora deve ter entre 2 à 150 caracteres")
-    @Column(name="modelo_imp", nullable = false, length = 150)
-    private @Getter @Setter String modelo;
+    @Column(name = "modelo_imp", nullable = false, length = 150)
+    private @Getter
+    @Setter String modelo;
 
     @NotNull(message = "A potencia da impressora é obrigatória")
-    @Column(name="potencia_imp", nullable = false, precision = 10, scale = 2)
+    @Column(name = "potencia_imp", nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.0", message = "A potência não pode ser negativa.")
-    private @Getter @Setter BigDecimal potenciaWatts;
+    private @Getter
+    @Setter BigDecimal potenciaWatts;
 
-    public static Impressora toEntity(ImpressoraDadosRequest dto){
+    public static Impressora toEntity(ImpressoraDadosRequest dto) {
         return Impressora.builder()
-                .nome(dto.getNome())
-                .modelo(dto.getModelo())
-                .potenciaWatts(dto.getPotenciaWatts())
-                .build();
+            .nome(dto.getNome())
+            .modelo(dto.getModelo())
+            .potenciaWatts(dto.getPotenciaWatts())
+            .build();
     }
 
-    public static ImpressoraDadosRequest toDto(Impressora impressora){
+    public static ImpressoraDadosRequest toDto(Impressora impressora) {
         return ImpressoraDadosRequest.builder()
-                .nome(impressora.getNome())
-                .modelo(impressora.getModelo())
-                .potenciaWatts(impressora.getPotenciaWatts())
-                .build();
+            .nome(impressora.getNome())
+            .modelo(impressora.getModelo())
+            .potenciaWatts(impressora.getPotenciaWatts())
+            .build();
     }
 }

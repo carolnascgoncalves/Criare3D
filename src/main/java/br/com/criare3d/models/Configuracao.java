@@ -17,7 +17,8 @@ public class Configuracao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private @Getter @Setter UUID id;
+    private @Getter
+    @Setter UUID id;
 
     @TenantId
     @Column(name = "tenant_id", nullable = false, updatable = false)
@@ -25,70 +26,88 @@ public class Configuracao {
 
     @NotNull(message = "A porcentagem de markup da configuração é obrigatória")
     @Column(name = "markup_conf", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal markupPercentual;
+    private @Getter
+    @Setter BigDecimal markupPercentual;
 
     @Column(name = "markup_fixo_conf", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean markupFixo = false;
+    private @Getter
+    @Setter Boolean markupFixo = false;
 
     @Column(name = "markup_opcao_1_conf", nullable = false, precision = 10, scale = 2)
     @Builder.Default
-    private @Getter @Setter BigDecimal markupOpcao1 = new BigDecimal("30.00");
+    private @Getter
+    @Setter BigDecimal markupOpcao1 = new BigDecimal("30.00");
 
     @Column(name = "markup_opcao_2_conf", nullable = false, precision = 10, scale = 2)
     @Builder.Default
-    private @Getter @Setter BigDecimal markupOpcao2 = new BigDecimal("40.00");
+    private @Getter
+    @Setter BigDecimal markupOpcao2 = new BigDecimal("40.00");
 
     @Column(name = "markup_opcao_3_conf", nullable = false, precision = 10, scale = 2)
     @Builder.Default
-    private @Getter @Setter BigDecimal markupOpcao3 = new BigDecimal("50.00");
+    private @Getter
+    @Setter BigDecimal markupOpcao3 = new BigDecimal("50.00");
 
     @NotNull(message = "A tarifa de energia da configuração é obrigatória")
     @Column(name = "qntFil_peca", nullable = false, precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal tarifaEnergiaKwh;
+    private @Getter
+    @Setter BigDecimal tarifaEnergiaKwh;
 
     @NotNull(message = "A opção de embalagem fixa é obrigatória")
     @Column(name = "embFixa_conf", nullable = false)
-    private @Getter @Setter Boolean embalagemFixa;
+    private @Getter
+    @Setter Boolean embalagemFixa;
 
     @Column(name = "custoEmbFixa_conf", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal custoEmbalagemFixa;
+    private @Getter
+    @Setter BigDecimal custoEmbalagemFixa;
 
     @Column(name = "formulario_avancado_conf", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean formularioAvancado = false;
+    private @Getter
+    @Setter Boolean formularioAvancado = false;
 
     @Column(name = "mao_obra_ativada", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean maoObraAtivada = false;
+    private @Getter
+    @Setter Boolean maoObraAtivada = false;
 
     @Column(name = "valor_mao_obra_hora", precision = 10, scale = 2)
-    private @Getter @Setter BigDecimal valorMaoObraHora;
+    private @Getter
+    @Setter BigDecimal valorMaoObraHora;
 
     @Column(name = "mao_obra_tempo_fixo", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean maoObraTempoFixo = false;
+    private @Getter
+    @Setter Boolean maoObraTempoFixo = false;
 
     @Column(name = "tempo_mao_obra_fixo_minutos", nullable = false)
     @Builder.Default
-    private @Getter @Setter Long tempoMaoObraFixoMinutos = 0L;
+    private @Getter
+    @Setter Long tempoMaoObraFixoMinutos = 0L;
 
     @Column(name = "depreciacao_ativada", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean depreciacaoAtivada = false;
+    private @Getter
+    @Setter Boolean depreciacaoAtivada = false;
 
     @Column(name = "taxa_falha_ativada", nullable = false)
     @Builder.Default
-    private @Getter @Setter Boolean taxaFalhaAtivada = false;
+    private @Getter
+    @Setter Boolean taxaFalhaAtivada = false;
 
     @Column(name = "percentual_falha", precision = 5, scale = 2)
-    private @Getter @Setter BigDecimal percentualFalha;
+    private @Getter
+    @Setter BigDecimal percentualFalha;
 
     @Column(name = "purga_gramas_por_impressao", nullable = false, precision = 12, scale = 6)
     @Builder.Default
-    private @Getter @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
+    private @Getter
+    @Setter BigDecimal purgaGramasPorImpressao = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
-    private @Getter @Setter Usuario usuario;
+    private @Getter
+    @Setter Usuario usuario;
 }

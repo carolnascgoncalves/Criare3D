@@ -1,4 +1,3 @@
-
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Usuario;
@@ -27,7 +26,7 @@ public class UsuarioServiceImp implements UsuarioService {
     @Override
     public void alterarSenhaAtual(String senhaAtual, String novaSenha) {
         Usuario usuario = usuarioRepository.findById(usuarioLogadoService.buscarIdUsuarioAtual())
-                .orElseThrow(() -> new IllegalStateException("Não foi possível localizar a conta autenticada."));
+            .orElseThrow(() -> new IllegalStateException("Não foi possível localizar a conta autenticada."));
         if (!passwordEncoder.matches(senhaAtual, usuario.getPassword())) {
             throw new IllegalArgumentException("A senha atual está incorreta.");
         }
@@ -42,7 +41,7 @@ public class UsuarioServiceImp implements UsuarioService {
     @Override
     public void redefinirSenhaPorAdmin(java.util.UUID usuarioId, String senhaTemporaria) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+            .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
         if (usuario.getPerfil() != Perfil.USER) {
             throw new IllegalArgumentException("A senha da conta administradora não pode ser redefinida por esta operação.");
         }

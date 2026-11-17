@@ -6,16 +6,19 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
-/** Distribui a purga de cada impressão entre os filamentos usados no lote. */
+/**
+ * Distribui a purga de cada impressão entre os filamentos usados no lote.
+ */
 public final class DistribuidorPurga {
-    private DistribuidorPurga() {}
+    private DistribuidorPurga() {
+    }
 
     public static void distribuir(BigDecimal purgaPorUnidade,
                                   BigDecimal gramasBasePorUnidade,
                                   List<ItemCalculoHistorico> itens) {
         if (purgaPorUnidade == null || purgaPorUnidade.signum() < 0
-                || gramasBasePorUnidade == null || gramasBasePorUnidade.signum() < 0
-                || itens == null || itens.isEmpty()) {
+            || gramasBasePorUnidade == null || gramasBasePorUnidade.signum() < 0
+            || itens == null || itens.isEmpty()) {
             throw new IllegalArgumentException("Informe filamentos e quantidades válidas para distribuir a purga.");
         }
         if (gramasBasePorUnidade.signum() == 0) {
@@ -26,10 +29,10 @@ public final class DistribuidorPurga {
         for (int i = 0; i < itens.size(); i++) {
             ItemCalculoHistorico item = itens.get(i);
             BigDecimal parcela = i == itens.size() - 1
-                    ? CalculoFinanceiro.precisao(purgaPorUnidade.subtract(alocada))
-                    : CalculoFinanceiro.precisao(purgaPorUnidade
-                        .multiply(item.getQuantidadeFilamentoGramas())
-                        .divide(gramasBasePorUnidade, 8, RoundingMode.HALF_UP));
+                ? CalculoFinanceiro.precisao(purgaPorUnidade.subtract(alocada))
+                : CalculoFinanceiro.precisao(purgaPorUnidade
+                .multiply(item.getQuantidadeFilamentoGramas())
+                .divide(gramasBasePorUnidade, 8, RoundingMode.HALF_UP));
             item.setPurgaGramas(parcela);
             alocada = alocada.add(parcela);
         }

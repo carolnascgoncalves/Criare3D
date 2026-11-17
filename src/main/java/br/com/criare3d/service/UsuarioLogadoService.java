@@ -22,12 +22,12 @@ public class UsuarioLogadoService {
         }
 
         return Usuario.builder()
-                .id(principal.getUsuarioId())
-                .email(principal.getUsername())
-                .perfil(principal.getPerfil())
-                .trocaSenhaObrigatoria(principal.isTrocaSenhaObrigatoria())
-                .tenant(tenant)
-                .build();
+            .id(principal.getUsuarioId())
+            .email(principal.getUsername())
+            .perfil(principal.getPerfil())
+            .trocaSenhaObrigatoria(principal.isTrocaSenhaObrigatoria())
+            .tenant(tenant)
+            .build();
     }
 
     public UUID buscarIdUsuarioAtual() {
@@ -45,7 +45,7 @@ public class UsuarioLogadoService {
     private UsuarioPrincipal buscarPrincipalAtual() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao == null || !autenticacao.isAuthenticated()
-                || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
+            || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
             throw new IllegalStateException("Não foi possível identificar a conta autenticada.");
         }
         return principal;

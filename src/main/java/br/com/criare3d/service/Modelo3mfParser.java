@@ -1,8 +1,8 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.dto.Modelo3mfResponse;
 import br.com.criare3d.dto.Modelo3mfFilamentoResponse;
 import br.com.criare3d.dto.Modelo3mfPlacaResponse;
+import br.com.criare3d.dto.Modelo3mfResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
@@ -18,17 +18,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
-import java.util.Base64;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.LinkedHashMap;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -68,11 +60,13 @@ public class Modelo3mfParser {
             arquivo.transferTo(temporario);
             try (ZipFile zip = new ZipFile(temporario.toFile())) {
                 ZipEntry modelo = zip.getEntry("3D/3dmodel.model");
-                if (modelo == null) throw new IllegalArgumentException("Esse arquivo não parece ser um projeto 3MF válido.");
+                if (modelo == null)
+                    throw new IllegalArgumentException("Esse arquivo não parece ser um projeto 3MF válido.");
                 DocumentoModelo dadosModelo = lerModeloStreaming(zip, modelo, consulta ? 128L * 1024 * 1024 : MAX_METADATA_BYTES);
                 JsonNode configuracoes = null;
                 ZipEntry settings = zip.getEntry("Metadata/project_settings.config");
-                if (settings != null) configuracoes = jsonMapper.readTree(lerLimitado(zip, settings, consulta ? 16 * 1024 * 1024 : MAX_METADATA_BYTES));
+                if (settings != null)
+                    configuracoes = jsonMapper.readTree(lerLimitado(zip, settings, consulta ? 16 * 1024 * 1024 : MAX_METADATA_BYTES));
                 Map<Integer, String> previews = lerPreviewsPlacas(zip);
                 Map<Integer, DadosEstatisticaPlaca> estatisticas = lerEstatisticas(zip, configuracoes);
                 // Bambu Studio grava as estatísticas em slice_info.config (XML). Orca
@@ -87,28 +81,28 @@ public class Modelo3mfParser {
                 List<Modelo3mfPlacaResponse> placas = montarPlacas(numeroPlacas, previews, estatisticas, contarPecasPorPlaca(zip, numeroPlacas, dadosModelo.quantidadePecas()));
                 List<Modelo3mfFilamentoResponse> filamentosUsados = somarFilamentos(estatisticas);
                 Double tempoTotalSegundos = estatisticas.isEmpty() ? null : estatisticas.values().stream()
-                        .mapToDouble(DadosEstatisticaPlaca::tempoSegundos).sum();
+                    .mapToDouble(DadosEstatisticaPlaca::tempoSegundos).sum();
                 Double pesoTotalGramas = estatisticas.isEmpty() ? null : estatisticas.values().stream()
-                        .mapToDouble(DadosEstatisticaPlaca::pesoGramas).sum();
+                    .mapToDouble(DadosEstatisticaPlaca::pesoGramas).sum();
 
                 return new Modelo3mfResponse(
-                        limitar(primeiro(dadosModelo.nome(), removerExtensao(nomeArquivo)), 150),
-                        texto(configuracoes, "printer_model"),
-                        vetor(configuracoes, "filament_type"),
-                        vetor(configuracoes, "filament_colour"),
-                        texto(configuracoes, "layer_height"),
-                        vetor(configuracoes, "nozzle_diameter"),
-                        primeiro(dadosModelo.perfil(), texto(configuracoes, "print_settings_id")),
-                        primeiro(dadosModelo.fatiador(), "Bambu Studio / OrcaSlicer"),
-                        jaFatiado,
-                        !estatisticas.isEmpty(),
-                        !estatisticas.isEmpty() && estatisticas.size() >= numeroPlacas,
-                        estatisticas.size(),
-                        tempoTotalSegundos,
-                        pesoTotalGramas,
-                        filamentosUsados,
-                        numeroPlacas,
-                        placas
+                    limitar(primeiro(dadosModelo.nome(), removerExtensao(nomeArquivo)), 150),
+                    texto(configuracoes, "printer_model"),
+                    vetor(configuracoes, "filament_type"),
+                    vetor(configuracoes, "filament_colour"),
+                    texto(configuracoes, "layer_height"),
+                    vetor(configuracoes, "nozzle_diameter"),
+                    primeiro(dadosModelo.perfil(), texto(configuracoes, "print_settings_id")),
+                    primeiro(dadosModelo.fatiador(), "Bambu Studio / OrcaSlicer"),
+                    jaFatiado,
+                    !estatisticas.isEmpty(),
+                    !estatisticas.isEmpty() && estatisticas.size() >= numeroPlacas,
+                    estatisticas.size(),
+                    tempoTotalSegundos,
+                    pesoTotalGramas,
+                    filamentosUsados,
+                    numeroPlacas,
+                    placas
                 );
             } catch (IllegalArgumentException e) {
                 throw e;
@@ -130,15 +124,18 @@ public class Modelo3mfParser {
             Matcher matcher = padrao.matcher(entrada.getName());
             if (!matcher.matches()) continue;
             int numero = Integer.parseInt(matcher.group(1));
-            if (numero < 1 || numero > 100 || imagens.containsKey(numero) || imagens.size() >= MAX_PLACAS_PREVIEW) continue;
+            if (numero < 1 || numero > 100 || imagens.containsKey(numero) || imagens.size() >= MAX_PLACAS_PREVIEW)
+                continue;
             String imagem = imagemComoDataUri(zip, entrada);
             if (imagem != null && totalCaracteres + imagem.length() <= 24 * 1024 * 1024) {
-                imagens.put(numero, imagem);totalCaracteres += imagem.length();
+                imagens.put(numero, imagem);
+                totalCaracteres += imagem.length();
             }
         }
         if (imagens.isEmpty()) {
             String imagemGeral = imagemComoDataUri(zip, zip.getEntry("Auxiliaries/.thumbnails/thumbnail_middle.png"));
-            if (imagemGeral == null) imagemGeral = imagemComoDataUri(zip, zip.getEntry("Auxiliaries/.thumbnails/thumbnail_3mf.png"));
+            if (imagemGeral == null)
+                imagemGeral = imagemComoDataUri(zip, zip.getEntry("Auxiliaries/.thumbnails/thumbnail_3mf.png"));
             if (imagemGeral != null) imagens.put(1, imagemGeral);
         }
         return imagens;
@@ -198,7 +195,7 @@ public class Modelo3mfParser {
                 double pesoDeclarado = numero(metadados.get("weight"));
                 List<Modelo3mfFilamentoResponse> filamentos = lerFilamentosBambu(placa, configuracoes);
                 double peso = pesoDeclarado > 0 ? pesoDeclarado
-                        : filamentos.stream().mapToDouble(Modelo3mfFilamentoResponse::pesoGramas).sum();
+                    : filamentos.stream().mapToDouble(Modelo3mfFilamentoResponse::pesoGramas).sum();
                 if (tempo <= 0 || peso < 0) continue;
                 resultado.put(numero, new DadosEstatisticaPlaca(tempo, peso, filamentos));
             }
@@ -254,28 +251,31 @@ public class Modelo3mfParser {
         }
     }
 
-    /** Instâncias da placa são peças; subpartes/malhas do objeto não são contadas. */
-    private Map<Integer,Integer> contarPecasPorPlaca(ZipFile zip, int numeroPlacas, int quantidadeModelo) {
-        Map<Integer,Integer> resultado = new HashMap<>();
+    /**
+     * Instâncias da placa são peças; subpartes/malhas do objeto não são contadas.
+     */
+    private Map<Integer, Integer> contarPecasPorPlaca(ZipFile zip, int numeroPlacas, int quantidadeModelo) {
+        Map<Integer, Integer> resultado = new HashMap<>();
         for (String caminho : List.of("Metadata/model_settings.config", "Metadata/slice_info.config")) {
             var entrada = zip.getEntry(caminho);
             if (entrada == null) continue;
             try {
                 var doc = criarDocumentoXml(lerLimitado(zip, entrada));
                 var placas = doc.getElementsByTagName("plate");
-                for (int i=0; i<placas.getLength(); i++) {
+                for (int i = 0; i < placas.getLength(); i++) {
                     var placa = (Element) placas.item(i);
-                    int numero = i+1;
+                    int numero = i + 1;
                     var filhos = placa.getChildNodes();
-                    for (int j=0; j<filhos.getLength(); j++) {
+                    for (int j = 0; j < filhos.getLength(); j++) {
                         if (filhos.item(j) instanceof Element m && m.getTagName().equals("metadata")
-                                && (m.getAttribute("key").equals("plater_id") || m.getAttribute("key").equals("index")))
+                            && (m.getAttribute("key").equals("plater_id") || m.getAttribute("key").equals("index")))
                             numero = inteiroPositivo(m.getAttribute("value"), numero);
                     }
                     int quantidade = placa.getElementsByTagName("model_instance").getLength();
                     if (quantidade == 0 && caminho.endsWith("slice_info.config"))
                         quantidade = placa.getElementsByTagName("object").getLength();
-                    if (numero <= 100 && quantidade > 0 && quantidade <= 10000) resultado.putIfAbsent(numero, quantidade);
+                    if (numero <= 100 && quantidade > 0 && quantidade <= 10000)
+                        resultado.putIfAbsent(numero, quantidade);
                 }
             } catch (Exception ignorado) { /* Contagem ausente não invalida as estatísticas. */ }
         }
@@ -285,42 +285,43 @@ public class Modelo3mfParser {
     }
 
     private List<Modelo3mfPlacaResponse> montarPlacas(
-            int quantidade,
-            Map<Integer, String> previews,
-            Map<Integer, DadosEstatisticaPlaca> estatisticas,
-            Map<Integer, Integer> pecasPorPlaca
+        int quantidade,
+        Map<Integer, String> previews,
+        Map<Integer, DadosEstatisticaPlaca> estatisticas,
+        Map<Integer, Integer> pecasPorPlaca
     ) {
         List<Modelo3mfPlacaResponse> placas = new ArrayList<>();
         for (int numero = 1; numero <= Math.min(quantidade, 100); numero++) {
             DadosEstatisticaPlaca dados = estatisticas.get(numero);
             placas.add(new Modelo3mfPlacaResponse(
-                    numero,
-                    previews.getOrDefault(numero, ""),
-                    dados == null ? null : dados.tempoSegundos(),
-                    dados == null ? null : dados.pesoGramas(),
-                    dados == null ? List.of() : dados.filamentos(),
-                    pecasPorPlaca.get(numero)
+                numero,
+                previews.getOrDefault(numero, ""),
+                dados == null ? null : dados.tempoSegundos(),
+                dados == null ? null : dados.pesoGramas(),
+                dados == null ? List.of() : dados.filamentos(),
+                pecasPorPlaca.get(numero)
             ));
         }
         return placas;
     }
 
     private List<Modelo3mfFilamentoResponse> somarFilamentos(
-            Map<Integer, DadosEstatisticaPlaca> estatisticas
+        Map<Integer, DadosEstatisticaPlaca> estatisticas
     ) {
         Map<Integer, Modelo3mfFilamentoResponse> soma = new HashMap<>();
         for (DadosEstatisticaPlaca placa : estatisticas.values()) {
             for (Modelo3mfFilamentoResponse filamento : placa.filamentos()) {
                 Modelo3mfFilamentoResponse atual = soma.get(filamento.id());
                 soma.put(filamento.id(), new Modelo3mfFilamentoResponse(
-                        filamento.id(),
-                        primeiro(filamento.material(), atual == null ? "" : atual.material()),
-                        primeiro(filamento.cor(), atual == null ? "" : atual.cor()),
-                        filamento.pesoGramas() + (atual == null ? 0 : atual.pesoGramas())
+                    filamento.id(),
+                    primeiro(filamento.material(), atual == null ? "" : atual.material()),
+                    primeiro(filamento.cor(), atual == null ? "" : atual.cor()),
+                    filamento.pesoGramas() + (atual == null ? 0 : atual.pesoGramas())
                 ));
             }
         }
-        if (!soma.isEmpty()) return soma.values().stream().sorted(java.util.Comparator.comparingInt(Modelo3mfFilamentoResponse::id)).toList();
+        if (!soma.isEmpty())
+            return soma.values().stream().sorted(java.util.Comparator.comparingInt(Modelo3mfFilamentoResponse::id)).toList();
         return List.of();
     }
 
@@ -332,10 +333,10 @@ public class Modelo3mfParser {
             int id = (int) valorNumerico(item, "id");
             if (id < 1 || id > 100) continue;
             resultado.add(new Modelo3mfFilamentoResponse(
-                    id,
-                    valorVetor(configuracoes, "filament_type", id - 1),
-                    valorVetor(configuracoes, "filament_colour", id - 1),
-                    valorNumerico(item, "weight")
+                id,
+                valorVetor(configuracoes, "filament_type", id - 1),
+                valorVetor(configuracoes, "filament_colour", id - 1),
+                valorNumerico(item, "weight")
             ));
         }
         return resultado;
@@ -355,8 +356,11 @@ public class Modelo3mfParser {
         JsonNode valor = raiz.path(chave);
         if (valor.isNumber()) return valor.asDouble();
         if (valor.isTextual()) {
-            try { return Double.parseDouble(valor.asText()); }
-            catch (NumberFormatException ignored) { return 0; }
+            try {
+                return Double.parseDouble(valor.asText());
+            } catch (NumberFormatException ignored) {
+                return 0;
+            }
         }
         return 0;
     }
@@ -377,14 +381,17 @@ public class Modelo3mfParser {
                     for (int j = 0; j < metadados.getLength(); j++) {
                         Element metadata = (Element) metadados.item(j);
                         if ("plater_id".equals(metadata.getAttribute("key"))) {
-                            try { numero = Integer.parseInt(metadata.getAttribute("value")); }
-                            catch (NumberFormatException ignored) { }
+                            try {
+                                numero = Integer.parseInt(metadata.getAttribute("value"));
+                            } catch (NumberFormatException ignored) {
+                            }
                             break;
                         }
                     }
                     maiorNumero = Math.max(maiorNumero, Math.min(numero, 100));
                 }
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) {
+            }
         }
         return maiorNumero;
     }
@@ -393,7 +400,7 @@ public class Modelo3mfParser {
         if (entrada == null || entrada.isDirectory() || entrada.getSize() > MAX_PREVIEW_BYTES) return null;
         String caminho = entrada.getName().toLowerCase(Locale.ROOT);
         if (!(caminho.endsWith(".png") || caminho.endsWith(".jpg")
-                || caminho.endsWith(".jpeg") || caminho.endsWith(".webp"))) return null;
+            || caminho.endsWith(".jpeg") || caminho.endsWith(".webp"))) return null;
         try {
             byte[] bytes = lerLimitado(zip, entrada, MAX_PREVIEW_BYTES);
             String mime = detectarMimeImagem(bytes);
@@ -406,65 +413,85 @@ public class Modelo3mfParser {
 
     private String detectarMimeImagem(byte[] bytes) {
         if (bytes.length >= 8 && (bytes[0] & 0xff) == 0x89 && bytes[1] == 0x50
-                && bytes[2] == 0x4e && bytes[3] == 0x47) return "image/png";
+            && bytes[2] == 0x4e && bytes[3] == 0x47) return "image/png";
         if (bytes.length >= 3 && (bytes[0] & 0xff) == 0xff
-                && (bytes[1] & 0xff) == 0xd8 && (bytes[2] & 0xff) == 0xff) return "image/jpeg";
+            && (bytes[1] & 0xff) == 0xd8 && (bytes[2] & 0xff) == 0xff) return "image/jpeg";
         if (bytes.length >= 12 && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
-                && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') return "image/webp";
+            && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') return "image/webp";
         return null;
     }
 
-    /** Lê os metadados sem carregar a geometria inteira na memória. */
+    /**
+     * Lê os metadados sem carregar a geometria inteira na memória.
+     */
     private DocumentoModelo lerModeloStreaming(ZipFile zip, ZipEntry entrada, long limite) throws Exception {
-        if (entrada.getSize() > limite) throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar. Limite de leitura do modelo: " + limite / 1024 / 1024 + " MB.");
+        if (entrada.getSize() > limite)
+            throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar. Limite de leitura do modelo: " + limite / 1024 / 1024 + " MB.");
         var fabrica = javax.xml.stream.XMLInputFactory.newFactory();
         fabrica.setProperty(javax.xml.stream.XMLInputFactory.SUPPORT_DTD, false);
         fabrica.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
-        String nome="", perfil="", fatiador="";
-        int pecas=0, profundidadeBuild=0;
+        String nome = "", perfil = "", fatiador = "";
+        int pecas = 0, profundidadeBuild = 0;
         try (var input = new java.io.FilterInputStream(zip.getInputStream(entrada)) {
             long total;
+
             private void contar(int quantidade) throws IOException {
                 if (quantidade > 0 && (total += quantidade) > limite)
                     throw new IOException("Os metadados do arquivo são grandes demais para analisar.");
             }
-            @Override public int read() throws IOException { int valor=super.read();contar(valor < 0 ? 0 : 1);return valor; }
-            @Override public int read(byte[] bytes,int offset,int tamanho) throws IOException { int lidos=in.read(bytes,offset,tamanho);contar(lidos);return lidos; }
+
+            @Override
+            public int read() throws IOException {
+                int valor = super.read();
+                contar(valor < 0 ? 0 : 1);
+                return valor;
+            }
+
+            @Override
+            public int read(byte[] bytes, int offset, int tamanho) throws IOException {
+                int lidos = in.read(bytes, offset, tamanho);
+                contar(lidos);
+                return lidos;
+            }
         }) {
-            var xml=fabrica.createXMLStreamReader(input);
+            var xml = fabrica.createXMLStreamReader(input);
             try {
-                while(xml.hasNext()) {
-                    int evento=xml.next();
-                    if(evento==javax.xml.stream.XMLStreamConstants.DTD) throw new IllegalArgumentException("O arquivo 3MF contém uma declaração XML não permitida.");
-                    if(evento==javax.xml.stream.XMLStreamConstants.START_ELEMENT) {
-                        String tag=xml.getLocalName();
-                        if(tag.equals("build")) profundidadeBuild++;
-                        if(tag.equals("item") && profundidadeBuild > 0) {
-                            String imprimivel=xml.getAttributeValue(null,"printable");
-                            if(!"0".equals(imprimivel) && !"false".equalsIgnoreCase(imprimivel)) pecas++;
+                while (xml.hasNext()) {
+                    int evento = xml.next();
+                    if (evento == javax.xml.stream.XMLStreamConstants.DTD)
+                        throw new IllegalArgumentException("O arquivo 3MF contém uma declaração XML não permitida.");
+                    if (evento == javax.xml.stream.XMLStreamConstants.START_ELEMENT) {
+                        String tag = xml.getLocalName();
+                        if (tag.equals("build")) profundidadeBuild++;
+                        if (tag.equals("item") && profundidadeBuild > 0) {
+                            String imprimivel = xml.getAttributeValue(null, "printable");
+                            if (!"0".equals(imprimivel) && !"false".equalsIgnoreCase(imprimivel)) pecas++;
                         }
-                        if(tag.equals("metadata")) {
-                            String chave=xml.getAttributeValue(null,"name");
-                            if("Title".equalsIgnoreCase(chave) || "ProfileTitle".equalsIgnoreCase(chave) || "Application".equalsIgnoreCase(chave)) {
-                                String valor=xml.getElementText().trim();
-                                if(valor.length()>4096) valor=valor.substring(0,4096);
-                                if("Title".equalsIgnoreCase(chave)) nome=valor;
-                                if("ProfileTitle".equalsIgnoreCase(chave)) perfil=valor;
-                                if("Application".equalsIgnoreCase(chave)) fatiador=valor;
+                        if (tag.equals("metadata")) {
+                            String chave = xml.getAttributeValue(null, "name");
+                            if ("Title".equalsIgnoreCase(chave) || "ProfileTitle".equalsIgnoreCase(chave) || "Application".equalsIgnoreCase(chave)) {
+                                String valor = xml.getElementText().trim();
+                                if (valor.length() > 4096) valor = valor.substring(0, 4096);
+                                if ("Title".equalsIgnoreCase(chave)) nome = valor;
+                                if ("ProfileTitle".equalsIgnoreCase(chave)) perfil = valor;
+                                if ("Application".equalsIgnoreCase(chave)) fatiador = valor;
                             }
                         }
-                    } else if(evento==javax.xml.stream.XMLStreamConstants.END_ELEMENT && xml.getLocalName().equals("build")) profundidadeBuild--;
+                    } else if (evento == javax.xml.stream.XMLStreamConstants.END_ELEMENT && xml.getLocalName().equals("build"))
+                        profundidadeBuild--;
                 }
-            } finally {xml.close();}
+            } finally {
+                xml.close();
+            }
         }
-        return new DocumentoModelo(nome,perfil,fatiador,pecas);
+        return new DocumentoModelo(nome, perfil, fatiador, pecas);
     }
 
     private boolean temResultadoFatiamento(ZipFile zip) {
         boolean possuiGcode = zip.stream().anyMatch(entrada ->
-                entrada.getName().matches("(?i)Metadata/plate_\\d+\\.gcode"));
+            entrada.getName().matches("(?i)Metadata/plate_\\d+\\.gcode"));
         boolean possuiEstatisticas = zip.stream().anyMatch(entrada ->
-                entrada.getName().matches("(?i)Metadata/plate_\\d+\\.statistics\\.json"));
+            entrada.getName().matches("(?i)Metadata/plate_\\d+\\.statistics\\.json"));
         if (possuiGcode || possuiEstatisticas) return true;
         ZipEntry resumo = zip.getEntry("Metadata/slice_info.config");
         if (resumo == null) return false;
@@ -481,14 +508,16 @@ public class Modelo3mfParser {
     }
 
     private byte[] lerLimitado(ZipFile zip, ZipEntry entrada, int limite) throws IOException {
-        if (entrada.getSize() > limite) throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar.");
+        if (entrada.getSize() > limite)
+            throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar.");
         try (var input = zip.getInputStream(entrada); var output = new ByteArrayOutputStream()) {
             byte[] buffer = new byte[8192];
             int total = 0;
             int lidos;
             while ((lidos = input.read(buffer)) != -1) {
                 total += lidos;
-                if (total > limite) throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar.");
+                if (total > limite)
+                    throw new IllegalArgumentException("Os metadados do arquivo são grandes demais para analisar.");
                 output.write(buffer, 0, lidos);
             }
             return output.toByteArray();
@@ -531,10 +560,13 @@ public class Modelo3mfParser {
         return valor.length() <= limite ? valor : valor.substring(0, limite).trim();
     }
 
-    private record DocumentoModelo(String nome, String perfil, String fatiador, int quantidadePecas) { }
+    private record DocumentoModelo(String nome, String perfil, String fatiador, int quantidadePecas) {
+    }
+
     private record DadosEstatisticaPlaca(
-            double tempoSegundos,
-            double pesoGramas,
-            List<Modelo3mfFilamentoResponse> filamentos
-    ) { }
+        double tempoSegundos,
+        double pesoGramas,
+        List<Modelo3mfFilamentoResponse> filamentos
+    ) {
+    }
 }

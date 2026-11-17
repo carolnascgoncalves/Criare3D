@@ -11,34 +11,37 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class PecaDadosRequest {
-    @NotBlank(message="O nome da peca é obrigatório")
+    @NotBlank(message = "O nome da peca é obrigatório")
     @Size(min = 2, max = 150, message = "O nome da peca deve ter entre 2 à 150 caracteres")
-    @Column(name= "nome_peca", nullable = false, length = 150)
-    private @Getter @Setter String nome;
+    @Column(name = "nome_peca", nullable = false, length = 150)
+    private @Getter
+    @Setter String nome;
 
     @NotNull(message = "A quantidade de filamento utilizado na peca é obrigatorio")
-    @Column(name="qntFil_peca",nullable = false, precision = 10, scale = 2)
+    @Column(name = "qntFil_peca", nullable = false, precision = 10, scale = 2)
     @DecimalMin(value = "0.0", message = "A quantidade não pode ser negativa.")
-    private @Getter @Setter BigDecimal quantidadeFilamentoGramas;
+    private @Getter
+    @Setter BigDecimal quantidadeFilamentoGramas;
 
     @NotNull(message = "O Tempo de impressão da peca é obrigatorio")
-    @Column(name= "tmp_peca",nullable = false)
+    @Column(name = "tmp_peca", nullable = false)
     @PositiveOrZero(message = "O tempo deve ser maior ou igual a zero.")
-    private @Getter @Setter Long tempoImpressaoMinutos;
+    private @Getter
+    @Setter Long tempoImpressaoMinutos;
 
-    public static PecaDadosRequest toDto(final Peca peca){
+    public static PecaDadosRequest toDto(final Peca peca) {
         return PecaDadosRequest.builder()
-                .nome(peca.getNome())
-                .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
-                .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
-                .build();
+            .nome(peca.getNome())
+            .quantidadeFilamentoGramas(peca.getQuantidadeFilamentoGramas())
+            .tempoImpressaoMinutos(peca.getTempoImpressaoMinutos())
+            .build();
     }
 
-    public static Peca toEntity(final PecaDadosRequest dto){
+    public static Peca toEntity(final PecaDadosRequest dto) {
         return Peca.builder()
-                .nome(dto.getNome())
-                .quantidadeFilamentoGramas(dto.getQuantidadeFilamentoGramas())
-                .tempoImpressaoMinutos(dto.getTempoImpressaoMinutos())
-                .build();
+            .nome(dto.getNome())
+            .quantidadeFilamentoGramas(dto.getQuantidadeFilamentoGramas())
+            .tempoImpressaoMinutos(dto.getTempoImpressaoMinutos())
+            .build();
     }
 }

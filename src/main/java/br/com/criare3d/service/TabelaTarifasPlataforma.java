@@ -2,7 +2,9 @@ package br.com.criare3d.service;
 
 import java.math.BigDecimal;
 
-/** Reúne os parâmetros das estimativas de tarifas usadas pelos dois modos de cálculo. */
+/**
+ * Reúne os parâmetros das estimativas de tarifas usadas pelos dois modos de cálculo.
+ */
 final class TabelaTarifasPlataforma {
     private static final ParametrosTarifas PARAMETROS = ParametrosTarifas.carregar();
     static final BigDecimal SHOPEE_COMISSAO_ATE_79_99 = PARAMETROS.decimal("SHOPEE_COMISSAO_ATE_79_99");
@@ -41,19 +43,22 @@ final class TabelaTarifasPlataforma {
 
     private static final BigDecimal[] LIMITES_PRECO_ML = PARAMETROS.lista("ML_LIMITES_PRECO", 4);
     private static final BigDecimal[][] FRETES_ML = {
-            PARAMETROS.lista("ML_FRETES_ATE_300G", 4),
-            PARAMETROS.lista("ML_FRETES_DE_300G_500G", 4),
-            PARAMETROS.lista("ML_FRETES_DE_500G_1KG", 4),
-            PARAMETROS.lista("ML_FRETES_DE_1KG_1_5KG", 4),
-            PARAMETROS.lista("ML_FRETES_DE_1_5KG_2KG", 4),
-            PARAMETROS.lista("ML_FRETES_DE_2KG_3KG", 4),
-            PARAMETROS.lista("ML_FRETES_DE_3KG_4KG", 4),
-            PARAMETROS.lista("ML_FRETES_DE_4KG_5KG", 4)
+        PARAMETROS.lista("ML_FRETES_ATE_300G", 4),
+        PARAMETROS.lista("ML_FRETES_DE_300G_500G", 4),
+        PARAMETROS.lista("ML_FRETES_DE_500G_1KG", 4),
+        PARAMETROS.lista("ML_FRETES_DE_1KG_1_5KG", 4),
+        PARAMETROS.lista("ML_FRETES_DE_1_5KG_2KG", 4),
+        PARAMETROS.lista("ML_FRETES_DE_2KG_3KG", 4),
+        PARAMETROS.lista("ML_FRETES_DE_3KG_4KG", 4),
+        PARAMETROS.lista("ML_FRETES_DE_4KG_5KG", 4)
     };
 
-    private TabelaTarifasPlataforma() { }
+    private TabelaTarifasPlataforma() {
+    }
 
-    static void validar() { PARAMETROS.validar(); }
+    static void validar() {
+        PARAMETROS.validar();
+    }
 
     static BigDecimal freteMercadoLivre(String faixaPeso, BigDecimal preco) {
         int coluna = 0;
@@ -62,7 +67,7 @@ final class TabelaTarifasPlataforma {
         }
         if (coluna == LIMITES_PRECO_ML.length) {
             throw new FreteManualNecessarioException(
-                    "O preço calculado passou de R$ " + LIMITES_PRECO_ML[LIMITES_PRECO_ML.length - 1].toPlainString().replace('.', ',') + ". Informe o frete manualmente.");
+                "O preço calculado passou de R$ " + LIMITES_PRECO_ML[LIMITES_PRECO_ML.length - 1].toPlainString().replace('.', ',') + ". Informe o frete manualmente.");
         }
 
         int linha = switch (faixaPeso) {
@@ -75,7 +80,7 @@ final class TabelaTarifasPlataforma {
             case "DE_3KG_4KG" -> 6;
             case "DE_4KG_5KG" -> 7;
             default -> throw new IllegalArgumentException(
-                    "Faixa de peso do Mercado Livre ainda não configurada.");
+                "Faixa de peso do Mercado Livre ainda não configurada.");
         };
         return FRETES_ML[linha][coluna];
     }

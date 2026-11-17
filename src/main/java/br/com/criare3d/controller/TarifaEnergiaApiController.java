@@ -4,11 +4,7 @@ import br.com.criare3d.dto.TarifaEnergiaReferenciaResponse;
 import br.com.criare3d.service.TarifaEnergiaReferenciaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +14,9 @@ import java.util.Map;
 public class TarifaEnergiaApiController {
     private final TarifaEnergiaReferenciaService service;
 
-    public TarifaEnergiaApiController(TarifaEnergiaReferenciaService service) { this.service = service; }
+    public TarifaEnergiaApiController(TarifaEnergiaReferenciaService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity<?> listar() {
@@ -27,7 +25,7 @@ public class TarifaEnergiaApiController {
             return ResponseEntity.ok(Map.of("tarifas", tarifas, "fonte", "ANEEL"));
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("erro", e.getMessage()));
+                .body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -39,9 +37,10 @@ public class TarifaEnergiaApiController {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("erro", "Não foi possível identificar a cidade agora."));
+                .body(Map.of("erro", "Não foi possível identificar a cidade agora."));
         }
     }
 
-    public record LocalizacaoRequest(double latitude, double longitude) { }
+    public record LocalizacaoRequest(double latitude, double longitude) {
+    }
 }

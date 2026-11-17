@@ -16,7 +16,7 @@ class CalculoResponseTest {
         calculo.setPrecoSugerido(new BigDecimal("100.00"));
 
         assertThat(CalculoResponse.toDto(calculo).getMargemSobrePreco())
-                .isEqualByComparingTo("25.0000");
+            .isEqualByComparingTo("25.0000");
     }
 
     @Test

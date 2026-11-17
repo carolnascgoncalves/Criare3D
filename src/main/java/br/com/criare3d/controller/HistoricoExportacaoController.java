@@ -1,11 +1,8 @@
 package br.com.criare3d.controller;
 
-import br.com.criare3d.util.Csv;
-
-import br.com.criare3d.service.HistoricoCalculoService;
-
 import br.com.criare3d.dto.HistoricoExportacaoResponse;
-
+import br.com.criare3d.service.HistoricoCalculoService;
+import br.com.criare3d.util.Csv;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +10,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -21,7 +17,7 @@ import java.util.Locale;
 @Controller
 public class HistoricoExportacaoController {
     private static final DateTimeFormatter FORMATO_DATA =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"));
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"));
 
     private final HistoricoCalculoService historicoCalculoService;
 
@@ -35,20 +31,20 @@ public class HistoricoExportacaoController {
         StringBuilder csv = new StringBuilder("\uFEFFPeça;Data do cálculo;Plataforma;Custo unitário;Preço sugerido por unidade;Lucro líquido por unidade;Unidades;Impressões;Produzido;Vendido\r\n");
         for (HistoricoExportacaoResponse item : historicoCalculoService.exportarHistorico()) {
             csv.append(Csv.campo(item.nomePeca())).append(';')
-                    .append(Csv.campo(item.dataCalculo() == null ? "" : item.dataCalculo().format(FORMATO_DATA))).append(';')
-                    .append(Csv.campo(nomePlataforma(item.plataforma()))).append(';')
-                    .append(Csv.numero(item.custoTotal())).append(';')
-                    .append(Csv.numero(item.precoSugerido())).append(';')
-                    .append(Csv.numero(item.lucroLiquido())).append(';')
-                    .append(item.unidades() == null ? 1 : item.unidades()).append(';')
-                    .append(item.fornadas() == null ? (item.unidades() == null ? 1 : item.unidades()) : item.fornadas()).append(';')
-                    .append(Boolean.TRUE.equals(item.produzido()) ? "Sim" : "Não").append(';')
-                    .append(Boolean.TRUE.equals(item.vendido()) ? "Sim" : "Não").append("\r\n");
+                .append(Csv.campo(item.dataCalculo() == null ? "" : item.dataCalculo().format(FORMATO_DATA))).append(';')
+                .append(Csv.campo(nomePlataforma(item.plataforma()))).append(';')
+                .append(Csv.numero(item.custoTotal())).append(';')
+                .append(Csv.numero(item.precoSugerido())).append(';')
+                .append(Csv.numero(item.lucroLiquido())).append(';')
+                .append(item.unidades() == null ? 1 : item.unidades()).append(';')
+                .append(item.fornadas() == null ? (item.unidades() == null ? 1 : item.unidades()) : item.fornadas()).append(';')
+                .append(Boolean.TRUE.equals(item.produzido()) ? "Sim" : "Não").append(';')
+                .append(Boolean.TRUE.equals(item.vendido()) ? "Sim" : "Não").append("\r\n");
         }
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"historico-calculos.csv\"")
-                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(csv.toString().getBytes(StandardCharsets.UTF_8));
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"historico-calculos.csv\"")
+            .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+            .body(csv.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     private String nomePlataforma(String plataforma) {

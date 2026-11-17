@@ -19,16 +19,18 @@ public class FilamentoHistoricoUsoResponse {
     private final BigDecimal pesoRoloGramas;
     private final Boolean vendido;
 
-    /** Construtor explícito para a projeção JPQL do histórico de uso. */
+    /**
+     * Construtor explícito para a projeção JPQL do histórico de uso.
+     */
     public FilamentoHistoricoUsoResponse(
-            UUID historicoId,
-            String nomePeca,
-            LocalDateTime dataCalculo,
-            BigDecimal quantidadeGramas,
-            String corFilamento,
-            String codigoCor,
-            BigDecimal pesoRoloGramas,
-            Boolean vendido
+        UUID historicoId,
+        String nomePeca,
+        LocalDateTime dataCalculo,
+        BigDecimal quantidadeGramas,
+        String corFilamento,
+        String codigoCor,
+        BigDecimal pesoRoloGramas,
+        Boolean vendido
     ) {
         this.historicoId = historicoId;
         this.nomePeca = nomePeca;
@@ -42,7 +44,7 @@ public class FilamentoHistoricoUsoResponse {
 
     public String getCorHexadecimal() {
         return codigoCor != null && codigoCor.matches("#[0-9A-Fa-f]{6}")
-                ? codigoCor : "#b18e7b";
+            ? codigoCor : "#b18e7b";
     }
 
     public int getPercentualDoRolo() {
@@ -50,9 +52,9 @@ public class FilamentoHistoricoUsoResponse {
             return 0;
         }
         return quantidadeGramas.multiply(BigDecimal.valueOf(100))
-                .divide(pesoRoloGramas, 0, RoundingMode.HALF_UP)
-                .min(BigDecimal.valueOf(100))
-                .max(BigDecimal.ZERO)
-                .intValue();
+            .divide(pesoRoloGramas, 0, RoundingMode.HALF_UP)
+            .min(BigDecimal.valueOf(100))
+            .max(BigDecimal.ZERO)
+            .intValue();
     }
 }

@@ -7,9 +7,10 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record ResumoManutencaoImpressora(
-        Impressora impressora,
-        List<ManutencaoImpressora> registros,
-        BigDecimal totalGasto,
-        long minutosImpressos,
-        BigDecimal custoPorHora
-) {}
+    Impressora impressora,
+    List<ManutencaoImpressora> registros,
+    BigDecimal totalGasto,
+    long minutosImpressos,
+    BigDecimal custoPorHora
+) {
+}

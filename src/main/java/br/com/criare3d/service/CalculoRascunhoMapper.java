@@ -2,11 +2,15 @@ package br.com.criare3d.service;
 
 import br.com.criare3d.dto.CalculoRequest;
 import br.com.criare3d.models.CalculoHistorico;
+
 import java.math.BigDecimal;
 
-/** Copia parâmetros editáveis; preços, custos e estados operacionais são recalculados. */
+/**
+ * Copia parâmetros editáveis; preços, custos e estados operacionais são recalculados.
+ */
 public final class CalculoRascunhoMapper {
-    private CalculoRascunhoMapper() {}
+    private CalculoRascunhoMapper() {
+    }
 
     public static CalculoRequest copiar(CalculoHistorico origem) {
         var destino = new CalculoRequest();

@@ -5,9 +5,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 @Getter
 @Setter
@@ -60,7 +60,9 @@ public class CalculoResponse {
     private BigDecimal custoTotal;
     private BigDecimal custoLoja;
     private List<RateioResumo> rateiosCustos;
-    public record RateioResumo(String descricao, BigDecimal valorUnitario) {}
+
+    public record RateioResumo(String descricao, BigDecimal valorUnitario) {
+    }
 
     private BigDecimal markupPercentual;
     private BigDecimal precoSugerido;
@@ -93,83 +95,83 @@ public class CalculoResponse {
     public static CalculoResponse toDto(CalculoHistorico calculo) {
 
         List<ItemCalculoResponse> itens = calculo.getItensFilamento() == null
-                ? new ArrayList<>()
-                : calculo.getItensFilamento()
-                .stream()
-                .map(ItemCalculoResponse::toDto)
-                .collect(Collectors.toList());
+            ? new ArrayList<>()
+            : calculo.getItensFilamento()
+            .stream()
+            .map(ItemCalculoResponse::toDto)
+            .collect(Collectors.toList());
 
         BigDecimal lucroEstimado = calculo.getPrecoSugerido() == null || calculo.getCustoTotal() == null
-                ? null : calculo.getPrecoSugerido().subtract(calculo.getCustoTotal());
+            ? null : calculo.getPrecoSugerido().subtract(calculo.getCustoTotal());
         BigDecimal margemSobrePreco = lucroEstimado == null || calculo.getPrecoSugerido() == null
-                || calculo.getPrecoSugerido().signum() <= 0
-                ? null
-                : lucroEstimado.multiply(BigDecimal.valueOf(100))
-                    .divide(calculo.getPrecoSugerido(), 4, java.math.RoundingMode.HALF_UP);
+            || calculo.getPrecoSugerido().signum() <= 0
+            ? null
+            : lucroEstimado.multiply(BigDecimal.valueOf(100))
+            .divide(calculo.getPrecoSugerido(), 4, java.math.RoundingMode.HALF_UP);
 
         return CalculoResponse.builder()
-                .id(calculo.getId())
-                .nomePeca(calculo.getNomePeca())
-                .nomeFilamento(calculo.getNomeFilamento())
-                .precoRoloFilamento(calculo.getPrecoRoloFilamento())
-                .pesoRoloGramas(calculo.getPesoRoloGramas())
-                .quantidadeFilamentoGramas(calculo.getQuantidadeFilamentoGramas())
-                .unidades(calculo.getUnidades() == null ? 1 : calculo.getUnidades())
-                .fornadas(calculo.getFornadas() == null ? 1 : calculo.getFornadas())
-                .pecasPorImpressao(calculo.getPecasPorImpressao() == null ? 1 : calculo.getPecasPorImpressao())
-                .nomeImpressora(calculo.getNomeImpressora())
-                .potenciaWatts(calculo.getPotenciaWatts())
-                .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
-                .minutosMaquinaLote(calculo.getMinutosMaquinaLote())
-                .tempoAquecimentoMinutos(calculo.getTempoAquecimentoMinutos() == null ? 0 : calculo.getTempoAquecimentoMinutos())
-                .purgaGramasPorImpressao(calculo.getPurgaGramasPorImpressao())
-                .tempoTrabalhoMinutos(calculo.getTempoTrabalhoMinutos())
-                .tarifaEnergiaKwh(calculo.getTarifaEnergiaKwh())
-                .custoFilamento(calculo.getCustoFilamento())
-                .custoEnergia(calculo.getCustoEnergia())
-                .custoMaoObra(calculo.getCustoMaoObra())
-                .custoDepreciacao(calculo.getCustoDepreciacao())
-                .custoManutencao(calculo.getCustoManutencao())
-                .custoFalha(calculo.getCustoFalha())
-                .custoPurga(calculo.getCustoPurga())
-                .maoObraAtivada(calculo.getMaoObraAtivada())
-                .depreciacaoAtivada(calculo.getDepreciacaoAtivada())
-                .taxaFalhaAtivada(calculo.getTaxaFalhaAtivada())
-                .valorMaoObraHora(calculo.getValorMaoObraHora())
-                .percentualFalha(calculo.getPercentualFalha())
-                .valorCompraImpressora(calculo.getValorCompraImpressora())
-                .vidaUtilImpressoraHoras(calculo.getVidaUtilImpressoraHoras())
-                .depreciacaoHoraImpressora(calculo.getDepreciacaoHoraImpressora())
-                .depreciacaoOrigemImpressora(calculo.getDepreciacaoOrigemImpressora())
-                .anunciosNovosDepreciacao(calculo.getAnunciosNovosDepreciacao())
-                .anunciosUsadosDepreciacao(calculo.getAnunciosUsadosDepreciacao())
-                .manutencaoHoraImpressora(calculo.getManutencaoHoraImpressora())
-                .nomeEmbalagem(calculo.getNomeEmbalagem())
-                .custoEmbalagem(calculo.getCustoEmbalagem())
-                .custoTotal(calculo.getCustoTotal())
-                .custoLoja(calculo.getCustoLoja())
-                .rateiosCustos(calculo.getRateiosCustos().stream().map(r -> new RateioResumo(r.getDescricao(), r.getValorUnitario())).toList())
-                .markupPercentual(calculo.getMarkupPercentual())
-                .precoSugerido(calculo.getPrecoSugerido())
-                .dataCalculo(calculo.getDataCalculo())
-                .itensFilamento(itens)
-                .lucroEstimado(lucroEstimado)
-                .margemSobrePreco(margemSobrePreco)
-                .temFoto(Boolean.TRUE.equals(calculo.getTemFoto()))
-                .plataformaVenda(calculo.getPlataformaVenda())
-                .tipoAnuncio(calculo.getTipoAnuncio())
-                .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())
-                .custoAdicionalPlataforma(calculo.getCustoAdicionalPlataforma())
-                .percentualImposto(calculo.getPercentualImposto())
-                .freteVendedor(calculo.getFreteVendedor())
-                .taxaCpfShopee(calculo.getTaxaCpfShopee())
-                .freteGratisTikTok(calculo.getFreteGratisTikTok())
-                .percentualAfiliado(calculo.getPercentualAfiliado())
-                .faixaPesoPacote(calculo.getFaixaPesoPacote())
-                .formularioAvancado(calculo.getFormularioAvancado())
-                .precoVendaPlataforma(calculo.getPrecoVendaPlataforma())
-                .taxasPlataforma(calculo.getTaxasPlataforma())
-                .lucroLiquido(calculo.getLucroLiquido())
-                .build();
+            .id(calculo.getId())
+            .nomePeca(calculo.getNomePeca())
+            .nomeFilamento(calculo.getNomeFilamento())
+            .precoRoloFilamento(calculo.getPrecoRoloFilamento())
+            .pesoRoloGramas(calculo.getPesoRoloGramas())
+            .quantidadeFilamentoGramas(calculo.getQuantidadeFilamentoGramas())
+            .unidades(calculo.getUnidades() == null ? 1 : calculo.getUnidades())
+            .fornadas(calculo.getFornadas() == null ? 1 : calculo.getFornadas())
+            .pecasPorImpressao(calculo.getPecasPorImpressao() == null ? 1 : calculo.getPecasPorImpressao())
+            .nomeImpressora(calculo.getNomeImpressora())
+            .potenciaWatts(calculo.getPotenciaWatts())
+            .tempoImpressaoMinutos(calculo.getTempoImpressaoMinutos())
+            .minutosMaquinaLote(calculo.getMinutosMaquinaLote())
+            .tempoAquecimentoMinutos(calculo.getTempoAquecimentoMinutos() == null ? 0 : calculo.getTempoAquecimentoMinutos())
+            .purgaGramasPorImpressao(calculo.getPurgaGramasPorImpressao())
+            .tempoTrabalhoMinutos(calculo.getTempoTrabalhoMinutos())
+            .tarifaEnergiaKwh(calculo.getTarifaEnergiaKwh())
+            .custoFilamento(calculo.getCustoFilamento())
+            .custoEnergia(calculo.getCustoEnergia())
+            .custoMaoObra(calculo.getCustoMaoObra())
+            .custoDepreciacao(calculo.getCustoDepreciacao())
+            .custoManutencao(calculo.getCustoManutencao())
+            .custoFalha(calculo.getCustoFalha())
+            .custoPurga(calculo.getCustoPurga())
+            .maoObraAtivada(calculo.getMaoObraAtivada())
+            .depreciacaoAtivada(calculo.getDepreciacaoAtivada())
+            .taxaFalhaAtivada(calculo.getTaxaFalhaAtivada())
+            .valorMaoObraHora(calculo.getValorMaoObraHora())
+            .percentualFalha(calculo.getPercentualFalha())
+            .valorCompraImpressora(calculo.getValorCompraImpressora())
+            .vidaUtilImpressoraHoras(calculo.getVidaUtilImpressoraHoras())
+            .depreciacaoHoraImpressora(calculo.getDepreciacaoHoraImpressora())
+            .depreciacaoOrigemImpressora(calculo.getDepreciacaoOrigemImpressora())
+            .anunciosNovosDepreciacao(calculo.getAnunciosNovosDepreciacao())
+            .anunciosUsadosDepreciacao(calculo.getAnunciosUsadosDepreciacao())
+            .manutencaoHoraImpressora(calculo.getManutencaoHoraImpressora())
+            .nomeEmbalagem(calculo.getNomeEmbalagem())
+            .custoEmbalagem(calculo.getCustoEmbalagem())
+            .custoTotal(calculo.getCustoTotal())
+            .custoLoja(calculo.getCustoLoja())
+            .rateiosCustos(calculo.getRateiosCustos().stream().map(r -> new RateioResumo(r.getDescricao(), r.getValorUnitario())).toList())
+            .markupPercentual(calculo.getMarkupPercentual())
+            .precoSugerido(calculo.getPrecoSugerido())
+            .dataCalculo(calculo.getDataCalculo())
+            .itensFilamento(itens)
+            .lucroEstimado(lucroEstimado)
+            .margemSobrePreco(margemSobrePreco)
+            .temFoto(Boolean.TRUE.equals(calculo.getTemFoto()))
+            .plataformaVenda(calculo.getPlataformaVenda())
+            .tipoAnuncio(calculo.getTipoAnuncio())
+            .percentualComissaoPlataforma(calculo.getPercentualComissaoPlataforma())
+            .custoAdicionalPlataforma(calculo.getCustoAdicionalPlataforma())
+            .percentualImposto(calculo.getPercentualImposto())
+            .freteVendedor(calculo.getFreteVendedor())
+            .taxaCpfShopee(calculo.getTaxaCpfShopee())
+            .freteGratisTikTok(calculo.getFreteGratisTikTok())
+            .percentualAfiliado(calculo.getPercentualAfiliado())
+            .faixaPesoPacote(calculo.getFaixaPesoPacote())
+            .formularioAvancado(calculo.getFormularioAvancado())
+            .precoVendaPlataforma(calculo.getPrecoVendaPlataforma())
+            .taxasPlataforma(calculo.getTaxasPlataforma())
+            .lucroLiquido(calculo.getLucroLiquido())
+            .build();
     }
 }

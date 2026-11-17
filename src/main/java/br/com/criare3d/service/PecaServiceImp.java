@@ -1,19 +1,15 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Peca;
-import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
+import br.com.criare3d.repository.PecaRepository;
 import br.com.criare3d.service.interfaces.PecaService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -63,7 +59,7 @@ public class PecaServiceImp implements PecaService {
         List<UUID> solicitados = ids.stream().filter(java.util.Objects::nonNull).distinct().toList();
         if (solicitados.isEmpty()) return List.of();
         List<UUID> existentes = pecaRepository.findAllByIdIn(solicitados)
-                .stream().map(Peca::getId).toList();
+            .stream().map(Peca::getId).toList();
         if (existentes.isEmpty()) return List.of();
         Set<UUID> bloqueadas = Set.copyOf(calculoHistoricoRepository.buscarIdsPecaComHistorico(existentes));
         List<UUID> removiveis = existentes.stream().filter(id -> !bloqueadas.contains(id)).toList();

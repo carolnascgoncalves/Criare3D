@@ -1,8 +1,11 @@
 package br.com.criare3d.service;
 
-/** Regras puras para distribuir unidades entre impressões. */
+/**
+ * Regras puras para distribuir unidades entre impressões.
+ */
 public final class ModeloImpressao {
-    private ModeloImpressao() {}
+    private ModeloImpressao() {
+    }
 
     public static int quantidadeImpressoes(int unidades, int pecasPorImpressao) {
         if (unidades < 1 || pecasPorImpressao < 1) {
@@ -17,7 +20,7 @@ public final class ModeloImpressao {
             throw new IllegalArgumentException("Informe tempos e quantidade de impressões válidos.");
         }
         return Math.multiplyExact(Math.addExact(minutosPorImpressao, tempoAquecimentoMinutos),
-                (long) quantidadeImpressoes);
+            (long) quantidadeImpressoes);
     }
 
     /**
@@ -27,7 +30,7 @@ public final class ModeloImpressao {
     public static long minutosTotais(long minutosImpressaoCheia, int aquecimentoPorImpressao,
                                      int unidades, int pecasPorImpressao) {
         if (minutosImpressaoCheia < 0 || aquecimentoPorImpressao < 0
-                || unidades < 1 || pecasPorImpressao < 1) {
+            || unidades < 1 || pecasPorImpressao < 1) {
             throw new IllegalArgumentException("Informe tempos, unidades e capacidade válidos.");
         }
 

@@ -1,111 +1,139 @@
 package br.com.criare3d.controller;
-import br.com.criare3d.dto.*;
-import br.com.criare3d.models.*;
+
+import br.com.criare3d.dto.CalculoRequest;
+import br.com.criare3d.dto.PedidoClienteRequest;
+import br.com.criare3d.dto.PedidoDadosRequest;
+import br.com.criare3d.dto.SelecaoPedidoRequest;
+import br.com.criare3d.models.PedidoOrcamento;
 import br.com.criare3d.service.*;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.validation.BindingResult;
-import org.springframework.http.*;
+
 import java.math.BigDecimal;
-import java.util.*;
-@Controller @RequestMapping("/orcamentos")
-public class PedidoOrcamentoController  {
-    @org.springframework.beans.factory.annotation.Autowired private EntradaPedidoService entradas;
-    @org.springframework.beans.factory.annotation.Autowired private br.com.criare3d.repository.CompradorRepository compradores;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+@Controller
+@RequestMapping("/orcamentos")
+public class PedidoOrcamentoController {
+    @org.springframework.beans.factory.annotation.Autowired
+    private EntradaPedidoService entradas;
+    @org.springframework.beans.factory.annotation.Autowired
+    private br.com.criare3d.repository.CompradorRepository compradores;
     private final OrcamentoPedidoService service;
     private final OperacaoPedidoService operacoes;
     private final PlanejamentoPedidoService planejamento;
     private final FotoPedidoService fotos;
     private final FotoRascunhoService rascunho;
-    public PedidoOrcamentoController(OrcamentoPedidoService service,OperacaoPedidoService operacoes,PlanejamentoPedidoService planejamento,FotoPedidoService fotos,FotoRascunhoService rascunho) {
-        this.service=service;
-        this.operacoes=operacoes;
-        this.planejamento=planejamento;
-        this.fotos=fotos;
-        this.rascunho=rascunho;
+
+    public PedidoOrcamentoController(OrcamentoPedidoService service, OperacaoPedidoService operacoes, PlanejamentoPedidoService planejamento, FotoPedidoService fotos, FotoRascunhoService rascunho) {
+        this.service = service;
+        this.operacoes = operacoes;
+        this.planejamento = planejamento;
+        this.fotos = fotos;
+        this.rascunho = rascunho;
     }
-    @GetMapping public ModelAndView listar(@RequestParam(defaultValue="")String busca,@RequestParam(defaultValue="0")int page,@RequestParam(defaultValue="false")boolean arquivados,@RequestParam(required=false)br.com.criare3d.models.enums.StatusPedido status,@RequestParam(required=false)UUID comprador) {
-        return new ModelAndView("orcamentos/listar").addObject("pagina",comprador==null?service.listar(busca,page,arquivados,status):service.listarDoComprador(comprador,busca,page,arquivados,status)).addObject("busca",busca).addObject("arquivados",arquivados).addObject("compradorFiltro",comprador).addObject("statusFiltro",status).addObject("statusOpcoes",br.com.criare3d.models.enums.StatusPedido.values());
+
+    @GetMapping
+    public ModelAndView listar(@RequestParam(defaultValue = "") String busca, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "false") boolean arquivados, @RequestParam(required = false) br.com.criare3d.models.enums.StatusPedido status, @RequestParam(required = false) UUID comprador) {
+        return new ModelAndView("orcamentos/listar").addObject("pagina", comprador == null ? service.listar(busca, page, arquivados, status) : service.listarDoComprador(comprador, busca, page, arquivados, status)).addObject("busca", busca).addObject("arquivados", arquivados).addObject("compradorFiltro", comprador).addObject("statusFiltro", status).addObject("statusOpcoes", br.com.criare3d.models.enums.StatusPedido.values());
     }
-    @GetMapping("/novo") public ModelAndView novo(@RequestParam(required=false)UUID calculo,@RequestParam(required=false)UUID comprador) {
-        var p=new PedidoOrcamento();
-        if(comprador!=null) {
-            var c=compradores.findById(comprador).filter(cliente->!cliente.isArquivado()).orElseThrow(()->new IllegalArgumentException("Cliente não encontrado ou arquivado."));
-            p.setCompradorId(c.getId());p.setCliente(c.getNome());p.setContato(c.getTelefone());p.setEmail(c.getEmail());
+
+    @GetMapping("/novo")
+    public ModelAndView novo(@RequestParam(required = false) UUID calculo, @RequestParam(required = false) UUID comprador) {
+        var p = new PedidoOrcamento();
+        if (comprador != null) {
+            var c = compradores.findById(comprador).filter(cliente -> !cliente.isArquivado()).orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado ou arquivado."));
+            p.setCompradorId(c.getId());
+            p.setCliente(c.getNome());
+            p.setContato(c.getTelefone());
+            p.setEmail(c.getEmail());
         }
-        return tela(p,1,null).addObject("referenciaSelecionada",calculo);
+        return tela(p, 1, null).addObject("referenciaSelecionada", calculo);
     }
-    @PostMapping( {
-        "/iniciar-varios","/{id}/itens-varios"
+
+    @PostMapping({
+        "/iniciar-varios", "/{id}/itens-varios"
     }
-    ) public String varios(@PathVariable(required=false)UUID id,@Valid @ModelAttribute SelecaoPedidoRequest dados,BindingResult erros,RedirectAttributes flash) {
+    )
+    public String varios(@PathVariable(required = false) UUID id, @Valid @ModelAttribute SelecaoPedidoRequest dados, BindingResult erros, RedirectAttributes flash) {
         try {
-            if(erros.hasErrors())throw new IllegalArgumentException("Confira as peças selecionadas.");
-            var p=service.adicionarVarios(id,dados);
-            return "redirect:/orcamentos/"+p.getId()+"?etapa=1";
-        }
-        catch(IllegalArgumentException e) {
-            flash.addFlashAttribute("mensagemErro",e.getMessage());
-            return id==null?"redirect:/orcamentos/novo":"redirect:/orcamentos/"+id+"?etapa=1";
+            if (erros.hasErrors()) throw new IllegalArgumentException("Confira as peças selecionadas.");
+            var p = service.adicionarVarios(id, dados);
+            return "redirect:/orcamentos/" + p.getId() + "?etapa=1";
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro", e.getMessage());
+            return id == null ? "redirect:/orcamentos/novo" : "redirect:/orcamentos/" + id + "?etapa=1";
         }
     }
-    @PostMapping("/iniciar") public String iniciar(@RequestParam UUID referencia,@RequestParam(defaultValue="1")int quantidade,@RequestParam(defaultValue="0")int estoque,RedirectAttributes flash) {
+
+    @PostMapping("/iniciar")
+    public String iniciar(@RequestParam UUID referencia, @RequestParam(defaultValue = "1") int quantidade, @RequestParam(defaultValue = "0") int estoque, RedirectAttributes flash) {
         try {
-            return "redirect:/orcamentos/"+service.iniciar(referencia,quantidade,estoque).getId()+"?etapa=1";
-        }
-        catch(IllegalArgumentException e) {
-            flash.addFlashAttribute("mensagemErro",e.getMessage());
+            return "redirect:/orcamentos/" + service.iniciar(referencia, quantidade, estoque).getId() + "?etapa=1";
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro", e.getMessage());
             return "redirect:/orcamentos/novo";
         }
     }
-    @PostMapping("/do-calculo") public String doCalculo(HttpSession session,@RequestParam(required=false)UUID pedido,RedirectAttributes flash) {
-        var entrada=(CalculoRequest)session.getAttribute("requestCalculo");
-        if(entrada==null) {
-            flash.addFlashAttribute("mensagemErro","O cálculo expirou. Calcule a peça novamente.");
+
+    @PostMapping("/do-calculo")
+    public String doCalculo(HttpSession session, @RequestParam(required = false) UUID pedido, RedirectAttributes flash) {
+        var entrada = (CalculoRequest) session.getAttribute("requestCalculo");
+        if (entrada == null) {
+            flash.addFlashAttribute("mensagemErro", "O cálculo expirou. Calcule a peça novamente.");
             return "redirect:/historico/novo";
         }
-        try  {
+        try {
             UUID destino;
             UUID itemId;
-            if(pedido==null) {
-                var p=service.doCalculo(entrada);
-                destino=p.getId();
-                itemId=p.getItens().getFirst().getId();
+            if (pedido == null) {
+                var p = service.doCalculo(entrada);
+                destino = p.getId();
+                itemId = p.getItens().getFirst().getId();
+            } else {
+                var i = service.adicionarCalculo(pedido, entrada);
+                destino = pedido;
+                itemId = i.getId();
             }
-            else {
-                var i=service.adicionarCalculo(pedido,entrada);
-                destino=pedido;
-                itemId=i.getId();
-            }
-            rascunho.buscar(session.getAttribute("fotoCalculoId")).ifPresent(f->fotos.salvar(itemId,f));
+            rascunho.buscar(session.getAttribute("fotoCalculoId")).ifPresent(f -> fotos.salvar(itemId, f));
             session.removeAttribute("orcamentoDestino");
-            return "redirect:/orcamentos/"+destino+"?etapa=1";
-        }
-        catch(IllegalArgumentException e) {
-            flash.addFlashAttribute("mensagemErro",e.getMessage());
+            return "redirect:/orcamentos/" + destino + "?etapa=1";
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro", e.getMessage());
             return "redirect:/historico/resultado";
         }
     }
-    @GetMapping("/{id}") public ModelAndView abrir(@PathVariable UUID id,@RequestParam(defaultValue="1")int etapa,@RequestParam(defaultValue="false")boolean simular) {
-        var p=service.buscar(id);
-        return tela(p,etapa,null);
+
+    @GetMapping("/{id}")
+    public ModelAndView abrir(@PathVariable UUID id, @RequestParam(defaultValue = "1") int etapa, @RequestParam(defaultValue = "false") boolean simular) {
+        var p = service.buscar(id);
+        return tela(p, etapa, null);
     }
-    private ModelAndView tela(PedidoOrcamento p,int etapa,PedidoDadosRequest dados) {
-        if(p.getItens().isEmpty())etapa=1;
-        etapa=Math.min(4,Math.max(1,etapa));
-        boolean editando=p.getStatus().isEditavel() && !p.isArquivado();
-        var mv=new ModelAndView(editando?"orcamentos/editar":"orcamentos/detalhes");
-        mv.addObject("pedido",p);
-        mv.addObject("etapa",Math.min(4,Math.max(1,etapa)));
-        mv.addObject("referencias",editando && etapa==1?service.referencias():List.of());
-        if(dados==null) {
-            dados=new PedidoDadosRequest();
+
+    private ModelAndView tela(PedidoOrcamento p, int etapa, PedidoDadosRequest dados) {
+        if (p.getItens().isEmpty()) etapa = 1;
+        etapa = Math.min(4, Math.max(1, etapa));
+        boolean editando = p.getStatus().isEditavel() && !p.isArquivado();
+        var mv = new ModelAndView(editando ? "orcamentos/editar" : "orcamentos/detalhes");
+        mv.addObject("pedido", p);
+        mv.addObject("etapa", Math.min(4, Math.max(1, etapa)));
+        mv.addObject("referencias", editando && etapa == 1 ? service.referencias() : List.of());
+        if (dados == null) {
+            dados = new PedidoDadosRequest();
             dados.setTitulo(p.getTitulo());
-            dados.setCliente(p.getCliente());dados.setCompradorId(p.getCompradorId());
+            dados.setCliente(p.getCliente());
+            dados.setCompradorId(p.getCompradorId());
             dados.setContato(p.getContato());
             dados.setEmail(p.getEmail());
             dados.setObservacoes(p.getObservacoes());
@@ -116,173 +144,213 @@ public class PedidoOrcamentoController  {
             dados.setIntervalo(p.getIntervalo());
             dados.setFolga(p.getFolga());
             dados.setDesconto(p.getDesconto());
-            dados.setDescontoInformado(p.getDescontoPercentual()==null?p.getDesconto().setScale(2).toPlainString():p.getDescontoPercentual().stripTrailingZeros().toPlainString()+"%");
+            dados.setDescontoInformado(p.getDescontoPercentual() == null ? p.getDesconto().setScale(2).toPlainString() : p.getDescontoPercentual().stripTrailingZeros().toPlainString() + "%");
             dados.setFrete(p.getFrete());
             dados.setCustoFrete(p.getCustoFrete());
         }
-        mv.addObject("dados",dados);
-        if(entradas!=null){var origens=new java.util.HashMap<UUID,String>();p.getItens().forEach(i->origens.put(i.getId(),entradas.origemCustos(i)));mv.addObject("origensCustos",origens);}
-        if(editando && etapa==2)mv.addObject("ocupacoesAgenda",planejamento.ocupacoes(p));
-        var saldos=new HashMap<UUID,Long>();
-        p.getItens().forEach(i->saldos.put(i.getId(),i.getLoteEstoque()==null?0:service.disponivel(i.getLoteEstoque())));
-        mv.addObject("saldosEstoque",saldos);
-        if(!editando || etapa==2 || etapa==4)try {
-            var linhas=planejamento.prever(p);
-            mv.addObject("iniciarSimulacao",editando && etapa==2 && p.getQuantidadeProduzir()>0 && !linhas.isEmpty());
-            mv.addObject("previsoes",linhas);
-            mv.addObject("previsaoAtual",linhas.stream().map(PlanejamentoPedidoService.Linha::fim).max(java.time.LocalDateTime::compareTo).orElse(null));
+        mv.addObject("dados", dados);
+        if (entradas != null) {
+            var origens = new java.util.HashMap<UUID, String>();
+            p.getItens().forEach(i -> origens.put(i.getId(), entradas.origemCustos(i)));
+            mv.addObject("origensCustos", origens);
         }
-        catch(IllegalArgumentException e) {
-            mv.addObject("erroPrevisao",e.getMessage());
-            mv.addObject("previsoes",List.of());
+        if (editando && etapa == 2) mv.addObject("ocupacoesAgenda", planejamento.ocupacoes(p));
+        var saldos = new HashMap<UUID, Long>();
+        p.getItens().forEach(i -> saldos.put(i.getId(), i.getLoteEstoque() == null ? 0 : service.disponivel(i.getLoteEstoque())));
+        mv.addObject("saldosEstoque", saldos);
+        if (!editando || etapa == 2 || etapa == 4) try {
+            var linhas = planejamento.prever(p);
+            mv.addObject("iniciarSimulacao", editando && etapa == 2 && p.getQuantidadeProduzir() > 0 && !linhas.isEmpty());
+            mv.addObject("previsoes", linhas);
+            mv.addObject("previsaoAtual", linhas.stream().map(PlanejamentoPedidoService.Linha::fim).max(java.time.LocalDateTime::compareTo).orElse(null));
+        } catch (IllegalArgumentException e) {
+            mv.addObject("erroPrevisao", e.getMessage());
+            mv.addObject("previsoes", List.of());
         }
-        if(!editando || etapa==1 || etapa==4)try {
-            mv.addObject("materiaisPedido",service.materiais(p));
-        }
-        catch(IllegalArgumentException e) {
-            mv.addObject("erroMateriais",e.getMessage());
+        if (!editando || etapa == 1 || etapa == 4) try {
+            mv.addObject("materiaisPedido", service.materiais(p));
+        } catch (IllegalArgumentException e) {
+            mv.addObject("erroMateriais", e.getMessage());
         }
         return mv;
     }
-    @PostMapping("/{id}/itens") public String adicionar(@PathVariable UUID id,@RequestParam UUID referencia,@RequestParam int quantidade,@RequestParam(defaultValue="0")int estoque,RedirectAttributes flash) {
-        return executar(id,flash,()->service.adicionar(id,referencia,quantidade,estoque),"Peça adicionada.",1);
+
+    @PostMapping("/{id}/itens")
+    public String adicionar(@PathVariable UUID id, @RequestParam UUID referencia, @RequestParam int quantidade, @RequestParam(defaultValue = "0") int estoque, RedirectAttributes flash) {
+        return executar(id, flash, () -> service.adicionar(id, referencia, quantidade, estoque), "Peça adicionada.", 1);
     }
-    @PostMapping("/{id}/itens/{itemId}") public String alterar(@PathVariable UUID id,@PathVariable UUID itemId,@RequestParam int quantidade,@RequestParam(defaultValue="0")int estoque,@RequestParam BigDecimal preco,@RequestParam(defaultValue="1")int etapa,RedirectAttributes flash) {
-        return executar(id,flash,()->service.alterarItem(id,itemId,quantidade,estoque,preco),null,etapa);
+
+    @PostMapping("/{id}/itens/{itemId}")
+    public String alterar(@PathVariable UUID id, @PathVariable UUID itemId, @RequestParam int quantidade, @RequestParam(defaultValue = "0") int estoque, @RequestParam BigDecimal preco, @RequestParam(defaultValue = "1") int etapa, RedirectAttributes flash) {
+        return executar(id, flash, () -> service.alterarItem(id, itemId, quantidade, estoque, preco), null, etapa);
     }
-    @PostMapping("/{id}/itens/{itemId}/remover") public String remover(@PathVariable UUID id,@PathVariable UUID itemId,RedirectAttributes flash) {
-        return executar(id,flash,()->service.remover(id,itemId),"Item removido.",1);
+
+    @PostMapping("/{id}/itens/{itemId}/remover")
+    public String remover(@PathVariable UUID id, @PathVariable UUID itemId, RedirectAttributes flash) {
+        return executar(id, flash, () -> service.remover(id, itemId), "Item removido.", 1);
     }
-    @PostMapping("/{id}/dados") public ModelAndView salvar(@PathVariable UUID id,@Valid @ModelAttribute("dados")PedidoDadosRequest dados,BindingResult erros,@RequestParam(defaultValue="2")int etapa,@RequestParam(required=false)Integer proxima,@RequestParam(defaultValue="false")boolean enviar,@RequestParam(defaultValue="false")boolean simular,@RequestParam(defaultValue="false")boolean cotarFrete,RedirectAttributes flash) {
-        if(enviar && (dados.getCliente()==null || dados.getCliente().isBlank()))erros.rejectValue("cliente","obrigatorio","Informe o nome do cliente antes de enviar.");
-        if(!erros.hasErrors())try {
-            service.salvarDados(id,dados);
-            if(cotarFrete)return new ModelAndView("redirect:/orcamentos/"+id+"/frete");
-            if(enviar)service.enviar(id);
-            return new ModelAndView("redirect:/orcamentos/"+id+"?etapa="+Math.min(4,Math.max(1,simular?2:(proxima==null?etapa:proxima)))+(simular?"&simular=true":""));
+
+    @PostMapping("/{id}/dados")
+    public ModelAndView salvar(@PathVariable UUID id, @Valid @ModelAttribute("dados") PedidoDadosRequest dados, BindingResult erros, @RequestParam(defaultValue = "2") int etapa, @RequestParam(required = false) Integer proxima, @RequestParam(defaultValue = "false") boolean enviar, @RequestParam(defaultValue = "false") boolean simular, @RequestParam(defaultValue = "false") boolean cotarFrete, RedirectAttributes flash) {
+        if (enviar && (dados.getCliente() == null || dados.getCliente().isBlank()))
+            erros.rejectValue("cliente", "obrigatorio", "Informe o nome do cliente antes de enviar.");
+        if (!erros.hasErrors()) try {
+            service.salvarDados(id, dados);
+            if (cotarFrete) return new ModelAndView("redirect:/orcamentos/" + id + "/frete");
+            if (enviar) service.enviar(id);
+            return new ModelAndView("redirect:/orcamentos/" + id + "?etapa=" + Math.min(4, Math.max(1, simular ? 2 : (proxima == null ? etapa : proxima))) + (simular ? "&simular=true" : ""));
+        } catch (IllegalArgumentException e) {
+            erros.reject("pedido.invalido", e.getMessage());
         }
-        catch(IllegalArgumentException e) {
-            erros.reject("pedido.invalido",e.getMessage());
-        }
-        var mv=tela(service.buscar(id),etapa,dados);
+        var mv = tela(service.buscar(id), etapa, dados);
         mv.addAllObjects(erros.getModel());
-        mv.addObject("mensagemErro",erros.getGlobalError()==null?"Confira os campos destacados antes de continuar.":erros.getGlobalError().getDefaultMessage());
+        mv.addObject("mensagemErro", erros.getGlobalError() == null ? "Confira os campos destacados antes de continuar." : erros.getGlobalError().getDefaultMessage());
         mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
         return mv;
     }
-    @PostMapping("/{id}/autosave") @ResponseBody
-    public ResponseEntity<?> autosave(@PathVariable UUID id,@Valid @ModelAttribute PedidoDadosRequest dados,BindingResult erros)  {
-        if(erros.hasErrors())return ResponseEntity.unprocessableEntity().body(Map.of("erro","Confira os campos antes de salvar."));
+
+    @PostMapping("/{id}/autosave")
+    @ResponseBody
+    public ResponseEntity<?> autosave(@PathVariable UUID id, @Valid @ModelAttribute PedidoDadosRequest dados, BindingResult erros) {
+        if (erros.hasErrors())
+            return ResponseEntity.unprocessableEntity().body(Map.of("erro", "Confira os campos antes de salvar."));
         try {
-            service.salvarDados(id,dados);
+            service.salvarDados(id, dados);
             return respostaSalva(id);
-        }
-        catch(IllegalArgumentException e) {
-            return ResponseEntity.unprocessableEntity().body(Map.of("erro",e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.unprocessableEntity().body(Map.of("erro", e.getMessage()));
         }
     }
-    @PostMapping("/{id}/itens/{itemId}/autosave") @ResponseBody
-    public ResponseEntity<?> autosaveItem(@PathVariable UUID id,@PathVariable UUID itemId,@RequestParam int quantidade,@RequestParam(defaultValue="0")int estoque,@RequestParam BigDecimal preco,@RequestParam(defaultValue="1")int etapa)  {
+
+    @PostMapping("/{id}/itens/{itemId}/autosave")
+    @ResponseBody
+    public ResponseEntity<?> autosaveItem(@PathVariable UUID id, @PathVariable UUID itemId, @RequestParam int quantidade, @RequestParam(defaultValue = "0") int estoque, @RequestParam BigDecimal preco, @RequestParam(defaultValue = "1") int etapa) {
         try {
-            service.alterarItem(id,itemId,quantidade,estoque,preco);
-            return respostaSalva(id,etapa==1);
-        }
-        catch(IllegalArgumentException e) {
-            return ResponseEntity.unprocessableEntity().body(Map.of("erro",e.getMessage()));
+            service.alterarItem(id, itemId, quantidade, estoque, preco);
+            return respostaSalva(id, etapa == 1);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.unprocessableEntity().body(Map.of("erro", e.getMessage()));
         }
     }
+
     private ResponseEntity<?> respostaSalva(UUID id) {
-        return respostaSalva(id,false);
+        return respostaSalva(id, false);
     }
-    private ResponseEntity<?> respostaSalva(UUID id,boolean materiais) {
-        var p=service.buscar(id);
-        var resposta=new HashMap<String,Object>(Map.of("total",p.getTotal(),"revisao",p.getRevisao(),"rentabilidade",p.getRentabilidade(),"itens",p.getItens().stream().map(i->Map.of("id",i.getId(),"total",i.getTotal(),"estoque",i.getUsarEstoque(),"produzir",i.getProduzir())).toList()));
-        if(materiais)try {
-            resposta.put("materiais",service.materiais(p).materiais().stream().filter(m->m.falta().signum()>0).map(m->"Falta "+m.falta().setScale(2,java.math.RoundingMode.HALF_UP).toPlainString().replace('.',',')+" g de "+m.nome()+" · "+m.cor()).toList());
-        }
-        catch(IllegalArgumentException e) {
-            resposta.put("materiais",List.of(e.getMessage()));
+
+    private ResponseEntity<?> respostaSalva(UUID id, boolean materiais) {
+        var p = service.buscar(id);
+        var resposta = new HashMap<String, Object>(Map.of("total", p.getTotal(), "revisao", p.getRevisao(), "rentabilidade", p.getRentabilidade(), "itens", p.getItens().stream().map(i -> Map.of("id", i.getId(), "total", i.getTotal(), "estoque", i.getUsarEstoque(), "produzir", i.getProduzir())).toList()));
+        if (materiais) try {
+            resposta.put("materiais", service.materiais(p).materiais().stream().filter(m -> m.falta().signum() > 0).map(m -> "Falta " + m.falta().setScale(2, java.math.RoundingMode.HALF_UP).toPlainString().replace('.', ',') + " g de " + m.nome() + " · " + m.cor()).toList());
+        } catch (IllegalArgumentException e) {
+            resposta.put("materiais", List.of(e.getMessage()));
         }
         return ResponseEntity.ok(resposta);
     }
-    @PostMapping("/{id}/arquivar") public String arquivar(@PathVariable UUID id,@RequestParam(defaultValue="true")boolean arquivar,RedirectAttributes flash) {
+
+    @PostMapping("/{id}/arquivar")
+    public String arquivar(@PathVariable UUID id, @RequestParam(defaultValue = "true") boolean arquivar, RedirectAttributes flash) {
         try {
-            service.arquivar(id,arquivar);
-            flash.addFlashAttribute("mensagemSucesso",arquivar?"Orçamento arquivado. Nenhum saldo foi alterado.":"Orçamento restaurado.");
+            service.arquivar(id, arquivar);
+            flash.addFlashAttribute("mensagemSucesso", arquivar ? "Orçamento arquivado. Nenhum saldo foi alterado." : "Orçamento restaurado.");
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro", e.getMessage());
         }
-        catch(IllegalArgumentException e) {
-            flash.addFlashAttribute("mensagemErro",e.getMessage());
-        }
-        return "redirect:/orcamentos?arquivados="+!arquivar;
+        return "redirect:/orcamentos?arquivados=" + !arquivar;
     }
-    @PostMapping("/{id}/rascunho") public ModelAndView rascunho(@PathVariable UUID id,@Valid @ModelAttribute("clienteDados")PedidoClienteRequest dados,BindingResult erros,@RequestParam(defaultValue="false")boolean enviar,RedirectAttributes flash)  {
-        if(enviar && (dados.getCliente()==null || dados.getCliente().isBlank()))erros.rejectValue("cliente","obrigatorio","Informe o nome do cliente antes de enviar.");
-        if(!erros.hasErrors())try {
-            service.salvarCliente(id,dados);
-            if(enviar)service.enviar(id);
-            flash.addFlashAttribute("mensagemSucesso",enviar?"Proposta marcada como enviada.":"Rascunho salvo.");
-            return new ModelAndView("redirect:/orcamentos/"+id+"?etapa=4");
+
+    @PostMapping("/{id}/rascunho")
+    public ModelAndView rascunho(@PathVariable UUID id, @Valid @ModelAttribute("clienteDados") PedidoClienteRequest dados, BindingResult erros, @RequestParam(defaultValue = "false") boolean enviar, RedirectAttributes flash) {
+        if (enviar && (dados.getCliente() == null || dados.getCliente().isBlank()))
+            erros.rejectValue("cliente", "obrigatorio", "Informe o nome do cliente antes de enviar.");
+        if (!erros.hasErrors()) try {
+            service.salvarCliente(id, dados);
+            if (enviar) service.enviar(id);
+            flash.addFlashAttribute("mensagemSucesso", enviar ? "Proposta marcada como enviada." : "Rascunho salvo.");
+            return new ModelAndView("redirect:/orcamentos/" + id + "?etapa=4");
+        } catch (IllegalArgumentException e) {
+            erros.reject("pedido.invalido", e.getMessage());
         }
-        catch(IllegalArgumentException e) {
-            erros.reject("pedido.invalido",e.getMessage());
-        }
-        var dto=new PedidoDadosRequest();
+        var dto = new PedidoDadosRequest();
         dto.setTitulo(dados.getTitulo());
-        dto.setCliente(dados.getCliente());dto.setCompradorId(dados.getCompradorId());
+        dto.setCliente(dados.getCliente());
+        dto.setCompradorId(dados.getCompradorId());
         dto.setContato(dados.getContato());
         dto.setEmail(dados.getEmail());
         dto.setObservacoes(dados.getObservacoes());
-        var mv=tela(service.buscar(id),4,null);
-        var existente=(PedidoDadosRequest)mv.getModel().get("dados");
+        var mv = tela(service.buscar(id), 4, null);
+        var existente = (PedidoDadosRequest) mv.getModel().get("dados");
         existente.setTitulo(dto.getTitulo());
-        existente.setCliente(dto.getCliente());existente.setCompradorId(dto.getCompradorId());
+        existente.setCliente(dto.getCliente());
+        existente.setCompradorId(dto.getCompradorId());
         existente.setContato(dto.getContato());
         existente.setEmail(dto.getEmail());
         existente.setObservacoes(dto.getObservacoes());
-        var binding=new org.springframework.validation.BeanPropertyBindingResult(existente,"dados");
-        for(var erro:erros.getFieldErrors())binding.rejectValue(erro.getField(),"invalido",erro.getDefaultMessage());
+        var binding = new org.springframework.validation.BeanPropertyBindingResult(existente, "dados");
+        for (var erro : erros.getFieldErrors())
+            binding.rejectValue(erro.getField(), "invalido", erro.getDefaultMessage());
         mv.addAllObjects(binding.getModel());
-        mv.addObject("mensagemErro",erros.getGlobalError()==null?"Confira os campos destacados.":erros.getGlobalError().getDefaultMessage());
+        mv.addObject("mensagemErro", erros.getGlobalError() == null ? "Confira os campos destacados." : erros.getGlobalError().getDefaultMessage());
         mv.setStatus(HttpStatus.UNPROCESSABLE_ENTITY);
         return mv;
     }
-    @PostMapping("/{id}/enviar") public String enviar(@PathVariable UUID id,RedirectAttributes flash) {
-        return executar(id,flash,()->service.enviar(id),"Proposta marcada como enviada. Nenhum estoque foi movimentado.",4);
+
+    @PostMapping("/{id}/enviar")
+    public String enviar(@PathVariable UUID id, RedirectAttributes flash) {
+        return executar(id, flash, () -> service.enviar(id), "Proposta marcada como enviada. Nenhum estoque foi movimentado.", 4);
     }
-    @PostMapping("/{id}/revisar") public String revisar(@PathVariable UUID id,RedirectAttributes flash) {
-        return executar(id,flash,()->service.revisar(id),"Proposta em edição. Os custos foram conferidos novamente; revise antes de reenviar.",1);
+
+    @PostMapping("/{id}/revisar")
+    public String revisar(@PathVariable UUID id, RedirectAttributes flash) {
+        return executar(id, flash, () -> service.revisar(id), "Proposta em edição. Os custos foram conferidos novamente; revise antes de reenviar.", 1);
     }
-    @PostMapping("/{id}/aprovar") public String aprovar(@PathVariable UUID id,@RequestParam long revisao,RedirectAttributes flash) {
-        return executar(id,flash,()->operacoes.aprovar(id,revisao),"Pedido aprovado. Estoque reservado e produção planejada.",4);
+
+    @PostMapping("/{id}/aprovar")
+    public String aprovar(@PathVariable UUID id, @RequestParam long revisao, RedirectAttributes flash) {
+        return executar(id, flash, () -> operacoes.aprovar(id, revisao), "Pedido aprovado. Estoque reservado e produção planejada.", 4);
     }
-    @PostMapping("/{id}/produzir/{itemId}") public String produzir(@PathVariable UUID id,@PathVariable UUID itemId,@RequestParam long revisao,RedirectAttributes flash) {
-        return executar(id,flash,()->operacoes.produzir(id,itemId,revisao),"Produção confirmada e filamento descontado.",4);
+
+    @PostMapping("/{id}/produzir/{itemId}")
+    public String produzir(@PathVariable UUID id, @PathVariable UUID itemId, @RequestParam long revisao, RedirectAttributes flash) {
+        return executar(id, flash, () -> operacoes.produzir(id, itemId, revisao), "Produção confirmada e filamento descontado.", 4);
     }
-    @PostMapping("/{id}/pagar") public String pagar(@PathVariable UUID id,@RequestParam long revisao,RedirectAttributes flash) {
-        return executar(id,flash,()->operacoes.pagar(id,revisao),"Pagamento integral registrado.",4);
+
+    @PostMapping("/{id}/pagar")
+    public String pagar(@PathVariable UUID id, @RequestParam long revisao, RedirectAttributes flash) {
+        return executar(id, flash, () -> operacoes.pagar(id, revisao), "Pagamento integral registrado.", 4);
     }
-    @PostMapping("/{id}/entregar") public String entregar(@PathVariable UUID id,@RequestParam long revisao,RedirectAttributes flash) {
-        return executar(id,flash,()->operacoes.entregar(id,revisao),"Entrega e vendas registradas.",4);
+
+    @PostMapping("/{id}/entregar")
+    public String entregar(@PathVariable UUID id, @RequestParam long revisao, RedirectAttributes flash) {
+        return executar(id, flash, () -> operacoes.entregar(id, revisao), "Entrega e vendas registradas.", 4);
     }
-    @PostMapping("/{id}/cancelar") public String cancelar(@PathVariable UUID id,@RequestParam long revisao,RedirectAttributes flash) {
-        return executar(id,flash,()->operacoes.cancelar(id,revisao),"Cancelado. Reservas liberadas; peças já produzidas permanecem no estoque. Confira eventual reembolso ao cliente.",4);
+
+    @PostMapping("/{id}/cancelar")
+    public String cancelar(@PathVariable UUID id, @RequestParam long revisao, RedirectAttributes flash) {
+        return executar(id, flash, () -> operacoes.cancelar(id, revisao), "Cancelado. Reservas liberadas; peças já produzidas permanecem no estoque. Confira eventual reembolso ao cliente.", 4);
     }
-    @GetMapping("/{id}/proposta") public ModelAndView proposta(@PathVariable UUID id) {
-        var p=service.buscar(id);
-        if(p.getStatus().isEditavel())p.setPrevisao(planejamento.prever(p).stream().map(PlanejamentoPedidoService.Linha::fim).max(java.time.LocalDateTime::compareTo).orElse(null));
-        return new ModelAndView("orcamentos/proposta").addObject("pedido",p).addObject("enviarComoTexto",true);
+
+    @GetMapping("/{id}/proposta")
+    public ModelAndView proposta(@PathVariable UUID id) {
+        var p = service.buscar(id);
+        if (p.getStatus().isEditavel())
+            p.setPrevisao(planejamento.prever(p).stream().map(PlanejamentoPedidoService.Linha::fim).max(java.time.LocalDateTime::compareTo).orElse(null));
+        return new ModelAndView("orcamentos/proposta").addObject("pedido", p).addObject("enviarComoTexto", true);
     }
-    @GetMapping("/itens/{itemId}/foto") @ResponseBody public ResponseEntity<byte[]> foto(@PathVariable UUID itemId) {
-        return fotos.buscar(itemId).map(f->ResponseEntity.ok().header("Cache-Control","private, no-store").contentType(MediaType.parseMediaType(f.tipo())).body(f.bytes())).orElseGet(()->ResponseEntity.notFound().build());
+
+    @GetMapping("/itens/{itemId}/foto")
+    @ResponseBody
+    public ResponseEntity<byte[]> foto(@PathVariable UUID itemId) {
+        return fotos.buscar(itemId).map(f -> ResponseEntity.ok().header("Cache-Control", "private, no-store").contentType(MediaType.parseMediaType(f.tipo())).body(f.bytes())).orElseGet(() -> ResponseEntity.notFound().build());
     }
-    private String executar(UUID id,RedirectAttributes flash,Runnable acao,String mensagem,int etapa) {
+
+    private String executar(UUID id, RedirectAttributes flash, Runnable acao, String mensagem, int etapa) {
         try {
             acao.run();
-            if(mensagem!=null)flash.addFlashAttribute("mensagemSucesso",mensagem);
+            if (mensagem != null) flash.addFlashAttribute("mensagemSucesso", mensagem);
+        } catch (IllegalArgumentException e) {
+            flash.addFlashAttribute("mensagemErro", e.getMessage());
         }
-        catch(IllegalArgumentException e) {
-            flash.addFlashAttribute("mensagemErro",e.getMessage());
-        }
-        return "redirect:/orcamentos/"+id+"?etapa="+etapa;
+        return "redirect:/orcamentos/" + id + "?etapa=" + etapa;
     }
 }

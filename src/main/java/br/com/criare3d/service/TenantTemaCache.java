@@ -11,23 +11,25 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
-/** Cache local de tema e logos, sempre separado pela identidade do tenant. */
+/**
+ * Cache local de tema e logos, sempre separado pela identidade do tenant.
+ */
 @Service
 public class TenantTemaCache {
     private static final int LOGO_CACHE_MAX_BYTES = 32 * 1024 * 1024;
 
     private final TenantRepository tenantRepository;
     private final Cache<UUID, Optional<TenantTemaProjection>> temas = Caffeine.newBuilder()
-            .maximumSize(1_000)
-            .expireAfterWrite(Duration.ofMinutes(10))
-            .build();
+        .maximumSize(1_000)
+        .expireAfterWrite(Duration.ofMinutes(10))
+        .build();
     private final Cache<LogoChave, Optional<byte[]>> logos = Caffeine.<LogoChave, Optional<byte[]>>newBuilder()
-            .maximumWeight(LOGO_CACHE_MAX_BYTES)
-            .weigher((LogoChave chave, Optional<byte[]> bytes) -> bytes
-                    .map(valor -> valor.length)
-                    .orElse(1))
-            .expireAfterAccess(Duration.ofHours(1))
-            .build();
+        .maximumWeight(LOGO_CACHE_MAX_BYTES)
+        .weigher((LogoChave chave, Optional<byte[]> bytes) -> bytes
+            .map(valor -> valor.length)
+            .orElse(1))
+        .expireAfterAccess(Duration.ofHours(1))
+        .build();
 
     public TenantTemaCache(TenantRepository tenantRepository) {
         this.tenantRepository = tenantRepository;
@@ -39,10 +41,10 @@ public class TenantTemaCache {
 
     public Optional<byte[]> buscarLogo(UUID tenantId, long versao) {
         Optional<byte[]> encontrado = logos.get(new LogoChave(tenantId, versao), chave ->
-                tenantRepository.findById(chave.tenantId())
-                        .map(Tenant::getLogo)
-                        .filter(bytes -> bytes != null && bytes.length > 0)
-                        .map(bytes -> bytes.clone()));
+            tenantRepository.findById(chave.tenantId())
+                .map(Tenant::getLogo)
+                .filter(bytes -> bytes != null && bytes.length > 0)
+                .map(bytes -> bytes.clone()));
         return encontrado.map(bytes -> bytes.clone());
     }
 
@@ -52,5 +54,6 @@ public class TenantTemaCache {
         logos.asMap().keySet().removeIf(chave -> chave.tenantId().equals(tenantId));
     }
 
-    private record LogoChave(UUID tenantId, long versao) { }
+    private record LogoChave(UUID tenantId, long versao) {
+    }
 }

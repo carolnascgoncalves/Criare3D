@@ -1,6 +1,7 @@
 package br.com.criare3d.dto;
 
 import br.com.criare3d.models.CalculoHistorico;
+import br.com.criare3d.models.enums.PlataformaVenda;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -10,7 +11,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import br.com.criare3d.models.enums.PlataformaVenda;
 
 @Getter
 @Setter
@@ -56,8 +56,8 @@ public class CalculoRequest {
     private CustosPreservados custosPreservados;
     private boolean precosAtuaisNoOrcamento;
 
-    @DecimalMin(value="0.0", message="O valor da embalagem não pode ser negativo.")
-    @jakarta.validation.constraints.DecimalMax(value="99999999", message="O valor da embalagem é muito alto.")
+    @DecimalMin(value = "0.0", message = "O valor da embalagem não pode ser negativo.")
+    @jakarta.validation.constraints.DecimalMax(value = "99999999", message = "O valor da embalagem é muito alto.")
     private BigDecimal custoEmbalagemPersonalizada;
 
     @NotNull(message = "Selecione o markup do cálculo")
@@ -99,11 +99,11 @@ public class CalculoRequest {
 
     public static CalculoHistorico toEntity(CalculoRequest request) {
         return CalculoHistorico.builder()
-                .quantidadeFilamentoGramas(request.getQuantidadeFilamentoGramas())
-                .tempoImpressaoMinutos(request.getTempoImpressaoMinutos())
-                .unidades(request.getUnidades())
-                .pecasPorImpressao(request.getPecasPorImpressao())
-                .markupPercentual(request.getMarkupPercentual())
-                .build();
+            .quantidadeFilamentoGramas(request.getQuantidadeFilamentoGramas())
+            .tempoImpressaoMinutos(request.getTempoImpressaoMinutos())
+            .unidades(request.getUnidades())
+            .pecasPorImpressao(request.getPecasPorImpressao())
+            .markupPercentual(request.getMarkupPercentual())
+            .build();
     }
 }

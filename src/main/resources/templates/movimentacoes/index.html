@@ -5,27 +5,28 @@
 <section class="extrato-filtros">
 <div class="extrato-barra">
 <div class="extrato-chips" role="group" aria-label="Período">
-<a th:each="a:${atalhos}" class="extrato-chip" th:classappend="${a.ativo}?' ativo'" th:href="@{/movimentacoes(inicio=${a.inicio},fim=${a.fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento})}" th:text="${a.rotulo}"></a>
+<a th:each="a:${atalhos}" class="extrato-chip" th:classappend="${a.ativo}?' ativo'" th:href="@{/movimentacoes(inicio=${a.inicio},fim=${a.fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${a.tudo})}" th:text="${a.rotulo}"></a>
 </div>
-<a class="botao botao-secundario" data-turbo="false" th:href="@{/movimentacoes/exportar.csv(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento})}"><i class="bi bi-download" aria-hidden="true"></i> Exportar CSV</a>
+<a class="botao botao-secundario" data-turbo="false" th:href="@{/movimentacoes/exportar.csv(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${tudo})}"><i class="bi bi-download" aria-hidden="true"></i> Exportar CSV</a>
 </div>
 <div class="extrato-pesquisa">
 <form method="get" class="lista-busca" role="search">
 <i class="bi bi-search" aria-hidden="true"></i><input type="search" name="busca" th:value="${busca}" placeholder="Peça ou filamento" aria-label="Buscar movimentações">
-<input type="hidden" name="inicio" th:value="${inicio}"><input type="hidden" name="fim" th:value="${fim}"><input type="hidden" name="tipo" th:value="${tipo}"><input type="hidden" name="direcao" th:value="${direcao}"><input type="hidden" name="saldo" th:value="${saldo}"><input type="hidden" name="filamento" th:value="${filamento}">
+<input type="hidden" name="tudo" th:value="${tudo}"><input type="hidden" name="inicio" th:value="${inicio}"><input type="hidden" name="fim" th:value="${fim}"><input type="hidden" name="tipo" th:value="${tipo}"><input type="hidden" name="direcao" th:value="${direcao}"><input type="hidden" name="saldo" th:value="${saldo}"><input type="hidden" name="filamento" th:value="${filamento}">
 <button type="submit" class="busca-enviar" aria-label="Pesquisar movimentações"><i class="bi bi-arrow-return-left" aria-hidden="true"></i></button>
 </form>
 <a class="botao botao-secundario extrato-limpar" th:href="@{/movimentacoes}">Limpar</a>
 
 <div class="extrato-chips" role="group" aria-label="Entradas e saídas">
-<a class="extrato-chip" th:classappend="${#strings.isEmpty(direcao) and tipo!='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},busca=${busca},saldo=${saldo},filamento=${filamento})}">Todos</a>
-<a class="extrato-chip" th:classappend="${direcao=='entrada'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao='entrada',busca=${busca},saldo=${saldo},filamento=${filamento})}">Entradas</a>
-<a class="extrato-chip" th:classappend="${direcao=='saida'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao='saida',busca=${busca},saldo=${saldo},filamento=${filamento})}">Saídas</a>
-<a class="extrato-chip" th:classappend="${tipo=='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='AJUSTE',busca=${busca},saldo=${saldo},filamento=${filamento})}">Ajustes</a>
+<a class="extrato-chip" th:classappend="${#strings.isEmpty(direcao) and #strings.isEmpty(tipo)}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='',busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Todos</a>
+<a class="extrato-chip" th:classappend="${direcao=='entrada'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='',direcao='entrada',busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Entradas</a>
+<a class="extrato-chip" th:classappend="${direcao=='saida'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='',direcao='saida',busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Saídas</a>
+<a class="extrato-chip" th:classappend="${tipo=='AJUSTE'}?' ativo'" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo='AJUSTE',busca=${busca},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Ajustes</a>
 </div>
 </div>
 <details class="extrato-avancados"><summary>Mais filtros</summary><form method="get" class="extrato-form">
 <input type="hidden" name="direcao" th:value="${direcao}">
+<label class="extrato-saldo"><input type="checkbox" name="tudo" value="true" th:checked="${tudo}"> Todo o período (ignorar datas)</label>
 <label class="campo">De<input type="date" name="inicio" th:value="${inicio}" required></label>
 <label class="campo">Até<input type="date" name="fim" th:value="${fim}" required></label>
 <input type="hidden" name="busca" th:value="${busca}">
@@ -36,6 +37,7 @@
 </form></details>
 </section>
 
+<p class="texto-apoio" role="status" th:if="${exportacaoLimitada}">Este filtro tem mais de 5.000 registros. O CSV incluirá somente os 5.000 mais recentes; reduza o período ou refine os filtros para exportar os demais.</p>
 <section class="extrato-resumo" aria-label="Resumo do período">
 <div><span>Entrou no estoque</span><strong class="entrada" th:text="${resumoEntrou}">—</strong></div>
 <div><span>Saiu do estoque</span><strong class="saida" th:text="${resumoSaiu}">—</strong></div>
@@ -54,16 +56,16 @@
 </article>
 </th:block>
 <nav class="extrato-paginas" aria-label="Páginas do extrato" th:if="${pagina.totalPages>1}">
-<a class="botao botao-secundario" th:if="${pagina.hasPrevious()}" th:href="@{/movimentacoes(page=${pagina.number-1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento})}">Anterior</a>
+<a class="botao botao-secundario" th:if="${pagina.hasPrevious()}" th:href="@{/movimentacoes(page=${pagina.number-1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Anterior</a>
 <span th:text="|Página ${pagina.number+1} de ${pagina.totalPages}|"></span>
-<a class="botao botao-secundario" th:if="${pagina.hasNext()}" th:href="@{/movimentacoes(page=${pagina.number+1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento})}">Próxima</a>
+<a class="botao botao-secundario" th:if="${pagina.hasNext()}" th:href="@{/movimentacoes(page=${pagina.number+1},inicio=${inicio},fim=${fim},busca=${busca},tipo=${tipo},direcao=${direcao},saldo=${saldo},filamento=${filamento},tudo=${tudo})}">Próxima</a>
 </nav>
 </section>
 
 <aside class="extrato-abertura" th:if="${aberturaTotal!=null}">
 <i class="bi bi-flag" aria-hidden="true"></i>
 <div><strong>Saldo de abertura</strong><span th:text="|${aberturaTotal} filamentos · ${aberturaGramas} registrados quando o extrato começou|"></span></div>
-<a class="botao botao-secundario" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=true,filamento=${filamento})}">Mostrar na lista</a>
+<a class="botao botao-secundario" th:href="@{/movimentacoes(inicio=${inicio},fim=${fim},tipo=${tipo},direcao=${direcao},busca=${busca},saldo=true,filamento=${filamento},tudo=${tudo})}">Mostrar na lista</a>
 </aside>
 <p class="texto-apoio extrato-nota">A exportação inclui até 5.000 registros dos filtros selecionados. Quantidades positivas entram no estoque; negativas saem. Operações anteriores ao extrato continuam no histórico de cada peça e venda.</p>
 </main></body></html>

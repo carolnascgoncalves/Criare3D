@@ -1,11 +1,6 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.dto.Modelo3mfFilamentoResponse;
-import br.com.criare3d.dto.Modelo3mfPlacaResponse;
-import br.com.criare3d.dto.Modelo3mfResponse;
-import br.com.criare3d.dto.PecaArquivoResumo;
-import br.com.criare3d.dto.PecaMaterialResumo;
-import br.com.criare3d.dto.PecaModeloImportacaoRequest;
+import br.com.criare3d.dto.*;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.models.PecaArquivoPlaca;
 import br.com.criare3d.repository.PecaArquivoPlacaReferencia;
@@ -14,18 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,10 +31,12 @@ public class PecaArquivoService {
 
     public Optional<Preparacao> preparar(String json) {
         if (json == null || json.isBlank()) return Optional.empty();
-        if (json.length() > MAX_JSON_CHARS) throw new IllegalArgumentException("As prévias do arquivo ficaram grandes demais. Tente ler o .3mf novamente.");
+        if (json.length() > MAX_JSON_CHARS)
+            throw new IllegalArgumentException("As prévias do arquivo ficaram grandes demais. Tente ler o .3mf novamente.");
         try {
             PecaModeloImportacaoRequest pedido = jsonMapper.readValue(json, PecaModeloImportacaoRequest.class);
-            if (pedido == null || pedido.dados() == null) throw new IllegalArgumentException("Os dados do arquivo 3MF estão incompletos.");
+            if (pedido == null || pedido.dados() == null)
+                throw new IllegalArgumentException("Os dados do arquivo 3MF estão incompletos.");
             Modelo3mfResponse dados = pedido.dados();
             int placasDeclaradas = Math.max(1, Math.min(dados.numeroPlacas(), 100));
             List<Modelo3mfPlacaResponse> placasOriginais = dados.placas() == null ? List.of() : dados.placas().stream().limit(8).toList();
@@ -67,7 +53,7 @@ public class PecaArquivoService {
                     if (matcher.matches()) {
                         byte[] bytes = Base64.getDecoder().decode(matcher.group(2));
                         if (bytes.length <= MAX_PREVIEW_BYTES && totalBytes + bytes.length <= MAX_TOTAL_PREVIEW_BYTES
-                                && imagemValida(bytes, matcher.group(1))) {
+                            && imagemValida(bytes, matcher.group(1))) {
                             String mime = matcher.group(1).toLowerCase(Locale.ROOT);
                             imagens.add(new ImagemPreparada(numero, mime, bytes));
                             totalBytes += bytes.length;
@@ -75,17 +61,17 @@ public class PecaArquivoService {
                     }
                 }
                 placasSemImagem.add(new Modelo3mfPlacaResponse(
-                        numero, null, numeroSeguro(placa.tempoSegundos()), numeroSeguro(placa.pesoGramas()),
-                        limitarFilamentos(placa.filamentos())));
+                    numero, null, numeroSeguro(placa.tempoSegundos()), numeroSeguro(placa.pesoGramas()),
+                    limitarFilamentos(placa.filamentos())));
             }
 
             Modelo3mfResponse metadados = new Modelo3mfResponse(
-                    texto(dados.nome(), 150), texto(dados.modeloImpressora(), 150), texto(dados.material(), 500),
-                    texto(dados.corMaterial(), 500), texto(dados.alturaCamada(), 40), texto(dados.diametroBico(), 100),
-                    texto(dados.perfil(), 150), texto(dados.fatiador(), 80), dados.jaFatiado(), dados.temEstatisticas(),
-                    dados.estatisticasCompletas(), Math.max(0, Math.min(dados.numeroPlacasComEstatisticas(), 100)),
-                    numeroSeguro(dados.tempoTotalSegundos()), numeroSeguro(dados.pesoTotalGramas()),
-                    limitarFilamentos(dados.filamentosUsados()), placasDeclaradas, List.copyOf(placasSemImagem));
+                texto(dados.nome(), 150), texto(dados.modeloImpressora(), 150), texto(dados.material(), 500),
+                texto(dados.corMaterial(), 500), texto(dados.alturaCamada(), 40), texto(dados.diametroBico(), 100),
+                texto(dados.perfil(), 150), texto(dados.fatiador(), 80), dados.jaFatiado(), dados.temEstatisticas(),
+                dados.estatisticasCompletas(), Math.max(0, Math.min(dados.numeroPlacasComEstatisticas(), 100)),
+                numeroSeguro(dados.tempoTotalSegundos()), numeroSeguro(dados.pesoTotalGramas()),
+                limitarFilamentos(dados.filamentosUsados()), placasDeclaradas, List.copyOf(placasSemImagem));
             PecaModeloImportacaoRequest guardado = new PecaModeloImportacaoRequest(texto(pedido.nomeArquivo(), 255), metadados);
             return Optional.of(new Preparacao(jsonMapper.writeValueAsString(guardado), List.copyOf(imagens)));
         } catch (IllegalArgumentException e) {
@@ -112,17 +98,20 @@ public class PecaArquivoService {
     @Transactional(readOnly = true)
     public Optional<ImagemPeca> buscarImagem(UUID pecaId, int numero) {
         return placaRepository.findByPecaIdAndNumero(pecaId, numero)
-                .map(imagem -> new ImagemPeca(imagem.getMimeType(), imagem.getPreview()));
+            .map(imagem -> new ImagemPeca(imagem.getMimeType(), imagem.getPreview()));
     }
 
     @Transactional(readOnly = true)
     public Optional<PecaArquivoResumo> buscarResumo(Peca peca) {
-        if (peca == null || peca.getDadosArquivo3mf() == null || peca.getDadosArquivo3mf().isBlank()) return Optional.empty();
+        if (peca == null || peca.getDadosArquivo3mf() == null || peca.getDadosArquivo3mf().isBlank())
+            return Optional.empty();
         List<PecaArquivoPlacaReferencia> referencias = placaRepository.listarReferenciasPorPecaIds(List.of(peca.getId()));
         return resumo(peca, referencias);
     }
 
-    /** Materiais e gramagens do arquivo para sugerir os itens do próximo cálculo. */
+    /**
+     * Materiais e gramagens do arquivo para sugerir os itens do próximo cálculo.
+     */
     @Transactional(readOnly = true)
     public List<PecaMaterialResumo> buscarMateriaisParaCalculo(Peca peca) {
         if (peca == null || peca.getDadosArquivo3mf() == null || peca.getDadosArquivo3mf().isBlank()) {
@@ -130,7 +119,7 @@ public class PecaArquivoService {
         }
         try {
             PecaModeloImportacaoRequest pedido = jsonMapper.readValue(
-                    peca.getDadosArquivo3mf(), PecaModeloImportacaoRequest.class);
+                peca.getDadosArquivo3mf(), PecaModeloImportacaoRequest.class);
             Modelo3mfResponse dados = pedido == null ? null : pedido.dados();
             if (dados == null || !dados.estatisticasCompletas()) return List.of();
             List<PecaMaterialResumo> materiais = resumirFilamentos(dados.filamentosUsados());
@@ -145,8 +134,8 @@ public class PecaArquivoService {
     public Map<UUID, PecaArquivoResumo> buscarResumos(Collection<Peca> pecas) {
         if (pecas == null || pecas.isEmpty()) return Map.of();
         List<Peca> comArquivo = pecas.stream()
-                .filter(peca -> peca.getDadosArquivo3mf() != null && !peca.getDadosArquivo3mf().isBlank())
-                .toList();
+            .filter(peca -> peca.getDadosArquivo3mf() != null && !peca.getDadosArquivo3mf().isBlank())
+            .toList();
         if (comArquivo.isEmpty()) return Map.of();
         List<UUID> ids = comArquivo.stream().map(Peca::getId).toList();
         List<PecaArquivoPlacaReferencia> referencias = placaRepository.listarReferenciasPorPecaIds(ids);
@@ -166,13 +155,13 @@ public class PecaArquivoService {
                     boolean temImagem = referencias.stream().anyMatch(ref -> ref.getPecaId().equals(peca.getId()) && ref.getNumero() == placa.numero());
                     String url = temImagem ? "/peca/" + peca.getId() + "/arquivo/placa/" + placa.numero() : null;
                     placas.add(new PecaArquivoResumo.PlacaResumo(placa.numero(), url, placa.tempoSegundos(),
-                            placa.pesoGramas(), resumirFilamentos(placa.filamentos())));
+                        placa.pesoGramas(), resumirFilamentos(placa.filamentos())));
                 }
             }
             List<PecaMaterialResumo> materiais = resumirFilamentos(dados.filamentosUsados());
             if (materiais.isEmpty()) materiais = materiaisConfigurados(dados.material(), dados.corMaterial());
             return Optional.of(new PecaArquivoResumo(peca.getId(), pedido.nomeArquivo(), dados.modeloImpressora(),
-                    dados.fatiador(), dados.numeroPlacas(), materiais, List.copyOf(placas)));
+                dados.fatiador(), dados.numeroPlacas(), materiais, List.copyOf(placas)));
         } catch (tools.jackson.core.JacksonException e) {
             log.warn("Metadados 3MF inválidos na peça {}: {}", peca.getId(), e.getClass().getSimpleName());
             return Optional.empty();
@@ -208,10 +197,10 @@ public class PecaArquivoService {
     private List<Modelo3mfFilamentoResponse> limitarFilamentos(List<Modelo3mfFilamentoResponse> origem) {
         if (origem == null) return List.of();
         return origem.stream().filter(java.util.Objects::nonNull).limit(64)
-                .map(item -> new Modelo3mfFilamentoResponse(Math.max(0, Math.min(item.id(), 255)),
-                        texto(item.material(), 60), corSegura(item.cor()),
-                        numeroSeguro(item.pesoGramas()) == null ? 0 : Math.max(0, item.pesoGramas())))
-                .toList();
+            .map(item -> new Modelo3mfFilamentoResponse(Math.max(0, Math.min(item.id(), 255)),
+                texto(item.material(), 60), corSegura(item.cor()),
+                numeroSeguro(item.pesoGramas()) == null ? 0 : Math.max(0, item.pesoGramas())))
+            .toList();
     }
 
     private String texto(String valor, int max) {
@@ -235,22 +224,31 @@ public class PecaArquivoService {
         if (bytes == null || bytes.length < 12) return false;
         return switch (mime.toLowerCase(Locale.ROOT)) {
             case "image/png" -> bytes.length >= 8 && bytes[0] == (byte) 0x89 && bytes[1] == 0x50
-                    && bytes[2] == 0x4E && bytes[3] == 0x47;
+                && bytes[2] == 0x4E && bytes[3] == 0x47;
             case "image/jpeg" -> bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8;
             case "image/webp" -> bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
-                    && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
+                && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P';
             default -> false;
         };
     }
 
-    public record Preparacao(String json, List<ImagemPreparada> imagens) { }
-    public record ImagemPreparada(int numero, String mimeType, byte[] bytes) { }
-    public record ImagemPeca(String mimeType, byte[] bytes) { }
+    public record Preparacao(String json, List<ImagemPreparada> imagens) {
+    }
+
+    public record ImagemPreparada(int numero, String mimeType, byte[] bytes) {
+    }
+
+    public record ImagemPeca(String mimeType, byte[] bytes) {
+    }
 
     private static final class MaterialAcumulado {
         private final String material;
         private final String cor;
         private double peso;
-        private MaterialAcumulado(String material, String cor) { this.material = material; this.cor = cor; }
+
+        private MaterialAcumulado(String material, String cor) {
+            this.material = material;
+            this.cor = cor;
+        }
     }
 }

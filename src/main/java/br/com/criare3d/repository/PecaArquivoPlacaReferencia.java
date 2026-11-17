@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public interface PecaArquivoPlacaReferencia {
     UUID getPecaId();
+
     int getNumero();
 }

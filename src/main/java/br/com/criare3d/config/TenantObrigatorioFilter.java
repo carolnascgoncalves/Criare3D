@@ -1,9 +1,9 @@
 package br.com.criare3d.config;
 
+import br.com.criare3d.dto.TenantTemaProjection;
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.service.TenantTemaCache;
-import br.com.criare3d.dto.TenantTemaProjection;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,7 +14,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/** Impede contas sem tenant de acessar telas que consultam ou gravam dados de cliente. */
+/**
+ * Impede contas sem tenant de acessar telas que consultam ou gravam dados de cliente.
+ */
 public class TenantObrigatorioFilter extends OncePerRequestFilter {
 
     private final TenantTemaCache tenantTemaCache;
@@ -28,7 +30,7 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         if (autenticacao == null || !autenticacao.isAuthenticated()
-                || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
+            || !(autenticacao.getPrincipal() instanceof UsuarioPrincipal principal)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,21 +67,21 @@ public class TenantObrigatorioFilter extends OncePerRequestFilter {
 
     private boolean rotaPermitidaSemTenant(String caminho) {
         return caminho.equals("/login")
-                || caminho.equals("/actuator/health")
-                || caminho.startsWith("/actuator/")
-                || caminho.equals("/recuperar-senha")
-                || caminho.startsWith("/recuperar-senha/")
-                || caminho.equals("/logout")
-                || caminho.equals("/favicon.ico")
-                || caminho.equals("/conta")
-                || caminho.equals("/senha")
-                || caminho.startsWith("/senha/")
-                || caminho.startsWith("/usuarios/")
-                || caminho.equals("/clientes")
-                || caminho.startsWith("/clientes/")
-                || caminho.startsWith("/vendor/")
-                || caminho.startsWith("/css/")
-                || caminho.startsWith("/js/")
-                || caminho.startsWith("/images/");
+            || caminho.equals("/actuator/health")
+            || caminho.startsWith("/actuator/")
+            || caminho.equals("/recuperar-senha")
+            || caminho.startsWith("/recuperar-senha/")
+            || caminho.equals("/logout")
+            || caminho.equals("/favicon.ico")
+            || caminho.equals("/conta")
+            || caminho.equals("/senha")
+            || caminho.startsWith("/senha/")
+            || caminho.startsWith("/usuarios/")
+            || caminho.equals("/clientes")
+            || caminho.startsWith("/clientes/")
+            || caminho.startsWith("/vendor/")
+            || caminho.startsWith("/css/")
+            || caminho.startsWith("/js/")
+            || caminho.startsWith("/images/");
     }
 }

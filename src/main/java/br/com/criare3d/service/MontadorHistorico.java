@@ -8,45 +8,51 @@ import java.time.LocalDateTime;
 
 import static br.com.criare3d.service.CalculoFinanceiro.precisao;
 
-/** Monta snapshots sem persistir ou consultar dados. */
+/**
+ * Monta snapshots sem persistir ou consultar dados.
+ */
 public final class MontadorHistorico {
-    private MontadorHistorico() {}
+    private MontadorHistorico() {
+    }
+
     public record DadosLote(BigDecimal quantidadeFilamentoTotal, BigDecimal purgaGramasLote,
-            long minutosMaquinaLote, BigDecimal manutencaoPorHora, Long tempoTrabalhoMinutos,
-            String nomeEmbalagem, BigDecimal custoEmbalagem, LocalDateTime dataCalculo) {}
+                            long minutosMaquinaLote, BigDecimal manutencaoPorHora, Long tempoTrabalhoMinutos,
+                            String nomeEmbalagem, BigDecimal custoEmbalagem, LocalDateTime dataCalculo) {
+    }
 
     public static ItemCalculoHistorico item(CalculoHistorico historico, Filamento filamento,
-                                             BigDecimal quantidade, BigDecimal custoIndividual) {
+                                            BigDecimal quantidade, BigDecimal custoIndividual) {
         return ItemCalculoHistorico.builder()
-                    .calculoHistorico(historico)
-                    .filamento(filamento)
-                    .nomeFilamento(filamento.getNome())
-                    .corFilamento(filamento.getCor())
-                    .codigoCor(filamento.getCodigoCor())
-                    .precoRoloFilamento(filamento.getPrecoRolo())
-                    .pesoRoloGramas(filamento.getPesoRoloGramas())
-                    .quantidadeFilamentoGramas(quantidade)
-                    .custoFilamento(custoIndividual)
-                    .build();
+            .calculoHistorico(historico)
+            .filamento(filamento)
+            .nomeFilamento(filamento.getNome())
+            .corFilamento(filamento.getCor())
+            .codigoCor(filamento.getCodigoCor())
+            .precoRoloFilamento(filamento.getPrecoRolo())
+            .pesoRoloGramas(filamento.getPesoRoloGramas())
+            .quantidadeFilamentoGramas(quantidade)
+            .custoFilamento(custoIndividual)
+            .build();
 
     }
 
     public static void preencher(CalculoHistorico historico, CalculoRequest request, Peca peca,
-            Impressora impressora, Embalagem embalagem, Configuracao configuracao,
-            CalculadoraProducao.Resultado custos, DadosLote dados) {
+                                 Impressora impressora, Embalagem embalagem, Configuracao configuracao,
+                                 CalculadoraProducao.Resultado custos, DadosLote dados) {
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null ? 0 : impressora.getTempoAquecimentoMinutos();
         BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null ? BigDecimal.ZERO : configuracao.getPurgaGramasPorImpressao();
         historico.setPeca(peca);
         historico.setCategoriaPeca(peca.getCategoria());
         historico.setImpressora(impressora);
-        if (embalagem != null && embalagem.isArquivado()) throw new IllegalArgumentException("Restaure a embalagem antes de calcular.");
+        if (embalagem != null && embalagem.isArquivado())
+            throw new IllegalArgumentException("Restaure a embalagem antes de calcular.");
         historico.setEmbalagem(embalagem);
 
         historico.setNomePeca(peca.getNome());
         historico.setUnidades(request.getUnidades());
         historico.setGramasTotaisLote(precisao(dados.quantidadeFilamentoTotal().multiply(BigDecimal.valueOf(request.getUnidades()))
-                .add(dados.purgaGramasLote())));
+            .add(dados.purgaGramasLote())));
         historico.setFornadas(ModeloImpressao.quantidadeImpressoes(request.getUnidades(), pecasPorImpressao));
         historico.setPecasPorImpressao(pecasPorImpressao);
         historico.setTempoAquecimentoMinutos(tempoAquecimentoMinutos);
@@ -84,7 +90,7 @@ public final class MontadorHistorico {
         historico.setPrecoSugerido(custos.precoSugerido());
 
         historico.setDataCalculo(
-                dados.dataCalculo()
+            dados.dataCalculo()
         );
 
     }

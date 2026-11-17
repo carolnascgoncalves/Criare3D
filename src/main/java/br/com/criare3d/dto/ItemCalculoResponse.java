@@ -1,4 +1,3 @@
-
 package br.com.criare3d.dto;
 
 import br.com.criare3d.models.ItemCalculoHistorico;
@@ -28,23 +27,23 @@ public class ItemCalculoResponse {
 
     public static ItemCalculoResponse toDto(ItemCalculoHistorico item) {
         return ItemCalculoResponse.builder()
-                .id(item.getId())
-                .nomeFilamento(item.getNomeFilamento())
-                .corFilamento(item.getCorFilamento())
-                .codigoCor(item.getCodigoCor())
-                .precoRoloFilamento(item.getPrecoRoloFilamento())
-                .pesoRoloGramas(item.getPesoRoloGramas())
-                .quantidadeFilamentoGramas(item.getQuantidadeFilamentoGramas())
-                .purgaGramas(item.getPurgaGramas())
-                .custoFilamento(item.getCustoFilamento())
-                .precoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPrecoRolo())
-                .pesoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPesoRoloGramas())
-                .build();
+            .id(item.getId())
+            .nomeFilamento(item.getNomeFilamento())
+            .corFilamento(item.getCorFilamento())
+            .codigoCor(item.getCodigoCor())
+            .precoRoloFilamento(item.getPrecoRoloFilamento())
+            .pesoRoloGramas(item.getPesoRoloGramas())
+            .quantidadeFilamentoGramas(item.getQuantidadeFilamentoGramas())
+            .purgaGramas(item.getPurgaGramas())
+            .custoFilamento(item.getCustoFilamento())
+            .precoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPrecoRolo())
+            .pesoRoloAtual(item.getFilamento() == null ? null : item.getFilamento().getPesoRoloGramas())
+            .build();
     }
 
     public boolean isPrecoAtualizado() {
         return precoRoloAtual != null && pesoRoloAtual != null
-                && (precoRoloAtual.compareTo(precoRoloFilamento) != 0
-                || pesoRoloAtual.compareTo(pesoRoloGramas) != 0);
+            && (precoRoloAtual.compareTo(precoRoloFilamento) != 0
+            || pesoRoloAtual.compareTo(pesoRoloGramas) != 0);
     }
 }

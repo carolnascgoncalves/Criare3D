@@ -13,50 +13,59 @@ import java.util.UUID;
 import static br.com.criare3d.service.CalculoFinanceiro.precisao;
 import static br.com.criare3d.service.CalculoFinanceiro.ratear;
 
-/** Motor sem banco, sessão ou gravação: todos os dados são fornecidos pelo chamador. */
+/**
+ * Motor sem banco, sessão ou gravação: todos os dados são fornecidos pelo chamador.
+ */
 public final class MotorCalculo {
     private static final BigDecimal ZERO = BigDecimal.ZERO;
     private static final BigDecimal CEM = new BigDecimal("100");
     private final CalculoPlataformaService calculoPlataformaService;
-    public MotorCalculo(CalculoPlataformaService plataformas) { this.calculoPlataformaService = plataformas; }
+
+    public MotorCalculo(CalculoPlataformaService plataformas) {
+        this.calculoPlataformaService = plataformas;
+    }
+
     public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo) {
+                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo) {
 
         return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
-                embalagemSelecionada, manutencaoPorHora, dataCalculo, List.of());
+            embalagemSelecionada, manutencaoPorHora, dataCalculo, List.of());
     }
+
     public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-            List<CustoLoja> custosLoja) {
+                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+                                     List<CustoLoja> custosLoja) {
         return calcular(request, peca, impressora, configuracao, filamentosCadastrados,
-                embalagemSelecionada, manutencaoPorHora, dataCalculo, custosLoja, false);
+            embalagemSelecionada, manutencaoPorHora, dataCalculo, custosLoja, false);
     }
+
     public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-            List<CustoLoja> custosLoja, boolean tempoPorPlaca) {
-        return calcular(request,peca,impressora,configuracao,filamentosCadastrados,embalagemSelecionada,
-                manutencaoPorHora,dataCalculo,custosLoja,tempoPorPlaca,0);
+                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+                                     List<CustoLoja> custosLoja, boolean tempoPorPlaca) {
+        return calcular(request, peca, impressora, configuracao, filamentosCadastrados, embalagemSelecionada,
+            manutencaoPorHora, dataCalculo, custosLoja, tempoPorPlaca, 0);
     }
+
     public CalculoHistorico calcular(CalculoRequest request, Peca peca, Impressora impressora,
-            Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
-            Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
-            List<CustoLoja> custosLoja, boolean tempoPorPlaca, int placasConsulta) {
+                                     Configuracao configuracao, Map<UUID, Filamento> filamentosCadastrados,
+                                     Embalagem embalagemSelecionada, BigDecimal manutencaoPorHora, LocalDateTime dataCalculo,
+                                     List<CustoLoja> custosLoja, boolean tempoPorPlaca, int placasConsulta) {
         CalculoValidador.validar(request, peca, impressora, configuracao);
         int unidades = request.getUnidades();
         int pecasPorImpressao = request.getPecasPorImpressao() == null ? 1 : request.getPecasPorImpressao();
         int fornadas = placasConsulta > 0 ? placasConsulta : ModeloImpressao.quantidadeImpressoes(unidades, pecasPorImpressao);
         int tempoAquecimentoMinutos = impressora.getTempoAquecimentoMinutos() == null
-                ? 0 : impressora.getTempoAquecimentoMinutos();
+            ? 0 : impressora.getTempoAquecimentoMinutos();
         long minutosMaquinaLote;
         try {
             minutosMaquinaLote = placasConsulta > 0
-                    ? Math.addExact(request.getTempoImpressaoMinutos(), Math.multiplyExact((long)tempoAquecimentoMinutos, fornadas))
-                    : tempoPorPlaca
-                    ? ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas)
-                    : ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, unidades, pecasPorImpressao);
+                ? Math.addExact(request.getTempoImpressaoMinutos(), Math.multiplyExact((long) tempoAquecimentoMinutos, fornadas))
+                : tempoPorPlaca
+                ? ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, fornadas)
+                : ModeloImpressao.minutosTotais(request.getTempoImpressaoMinutos(), tempoAquecimentoMinutos, unidades, pecasPorImpressao);
         } catch (ArithmeticException e) {
             throw new IllegalArgumentException("O tempo total de impressão ultrapassa o limite permitido.");
         }
@@ -64,8 +73,8 @@ public final class MotorCalculo {
         BigDecimal markup = request.getMarkupPercentual();
 
         CalculoHistorico historico = CalculoHistorico.builder()
-                .itensFilamento(new java.util.ArrayList<>())
-                .build();
+            .itensFilamento(new java.util.ArrayList<>())
+            .build();
 
         BigDecimal custoFilamentoTotal = ZERO;
         BigDecimal quantidadeFilamentoTotal = ZERO;
@@ -80,7 +89,7 @@ public final class MotorCalculo {
 
             if (quantidade == null || quantidade.compareTo(ZERO) <= 0) {
                 throw new IllegalArgumentException(
-                        "A quantidade de cada filamento deve ser maior que zero");
+                    "A quantidade de cada filamento deve ser maior que zero");
             }
 
             Filamento filamento = filamentosCadastrados.get(itemRequest.getFilamentoId());
@@ -89,19 +98,19 @@ public final class MotorCalculo {
             }
 
             if (filamento.getPesoRoloGramas() == null
-                    || filamento.getPesoRoloGramas().compareTo(ZERO) <= 0) {
+                || filamento.getPesoRoloGramas().compareTo(ZERO) <= 0) {
                 throw new IllegalArgumentException(
-                        "O peso do rolo deve ser maior que zero: " + filamento.getNome());
+                    "O peso do rolo deve ser maior que zero: " + filamento.getNome());
             }
 
             if (filamento.getPrecoRolo() == null
-                    || filamento.getPrecoRolo().compareTo(ZERO) < 0) {
+                || filamento.getPrecoRolo().compareTo(ZERO) < 0) {
                 throw new IllegalArgumentException(
-                        "O preço do rolo é inválido: " + filamento.getNome());
+                    "O preço do rolo é inválido: " + filamento.getNome());
             }
 
             BigDecimal custoIndividual = CalculoFinanceiro.filamento(
-                    quantidade, filamento.getPrecoRolo(), filamento.getPesoRoloGramas());
+                quantidade, filamento.getPrecoRolo(), filamento.getPesoRoloGramas());
 
             ItemCalculoHistorico item = MontadorHistorico.item(historico, filamento, quantidade, custoIndividual);
 
@@ -122,13 +131,13 @@ public final class MotorCalculo {
         historico.setCustoFilamento(custoFilamentoTotal);
 
         BigDecimal purgaGramasPorImpressao = configuracao.getPurgaGramasPorImpressao() == null
-                ? ZERO : configuracao.getPurgaGramasPorImpressao();
+            ? ZERO : configuracao.getPurgaGramasPorImpressao();
 
         Long tempoTrabalhoMinutos = Boolean.TRUE.equals(configuracao.getMaoObraTempoFixo())
-                ? configuracao.getTempoMaoObraFixoMinutos()
-                : (request.getTempoTrabalhoMinutos() != null
-                    ? request.getTempoTrabalhoMinutos()
-                    : 0L);
+            ? configuracao.getTempoMaoObraFixoMinutos()
+            : (request.getTempoTrabalhoMinutos() != null
+            ? request.getTempoTrabalhoMinutos()
+            : 0L);
         if (tempoTrabalhoMinutos == null || tempoTrabalhoMinutos < 0) {
             throw new IllegalArgumentException("Informe um tempo de trabalho manual válido.");
         }
@@ -149,10 +158,10 @@ public final class MotorCalculo {
             BigDecimal depreciacaoPorHora = impressora.getDepreciacaoPorHora();
             boolean taxaDiretaValida = depreciacaoPorHora != null && depreciacaoPorHora.signum() >= 0;
             boolean dadosLegadosValidos = valorImpressora != null && valorImpressora.signum() >= 0
-                    && vidaUtilHoras != null && vidaUtilHoras.signum() > 0;
+                && vidaUtilHoras != null && vidaUtilHoras.signum() > 0;
             if (!taxaDiretaValida && !dadosLegadosValidos) {
                 throw new IllegalArgumentException(
-                        "A depreciação está ativada nas Configurações, mas faltam dados na impressora selecionada. " +
+                    "A depreciação está ativada nas Configurações, mas faltam dados na impressora selecionada. " +
                         "Informe o custo estimado de depreciação por hora em Impressoras; a calculadora usará " +
                         "esse valor e o tempo de impressão para incluir o custo."
                 );
@@ -161,14 +170,14 @@ public final class MotorCalculo {
 
         // As entradas já estão validadas; a calculadora concentra as fórmulas e o rateio do lote.
         CalculadoraProducao.CustosOperacionaisLote custosOperacionais =
-                CalculadoraProducao.calcularCustosOperacionaisLote(
-                        impressora.getPotenciaWatts(), minutosMaquinaLote,
-                        configuracao.getTarifaEnergiaKwh(), purgaGramasPorImpressao, fornadas,
-                        custoFilamentoTotal, quantidadeFilamentoTotal,
-                        Boolean.TRUE.equals(configuracao.getMaoObraAtivada()),
-                        configuracao.getValorMaoObraHora(), tempoTrabalhoMinutos,
-                        manutencaoPorHora, Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()),
-                        impressora.getValorCompra(), impressora.getVidaUtilHoras(), impressora.getDepreciacaoPorHora());
+            CalculadoraProducao.calcularCustosOperacionaisLote(
+                impressora.getPotenciaWatts(), minutosMaquinaLote,
+                configuracao.getTarifaEnergiaKwh(), purgaGramasPorImpressao, fornadas,
+                custoFilamentoTotal, quantidadeFilamentoTotal,
+                Boolean.TRUE.equals(configuracao.getMaoObraAtivada()),
+                configuracao.getValorMaoObraHora(), tempoTrabalhoMinutos,
+                manutencaoPorHora, Boolean.TRUE.equals(configuracao.getDepreciacaoAtivada()),
+                impressora.getValorCompra(), impressora.getVidaUtilHoras(), impressora.getDepreciacaoPorHora());
         BigDecimal energiaLote = custosOperacionais.energia();
         BigDecimal purgaGramasLote = custosOperacionais.gramasPurga();
         BigDecimal purgaGramasUnidade = ratear(purgaGramasLote, unidades);
@@ -183,7 +192,7 @@ public final class MotorCalculo {
         BigDecimal percentualFalha = configuracao.getPercentualFalha();
         if (taxaFalhaAtivada) {
             if (percentualFalha == null || percentualFalha.signum() < 0
-                    || percentualFalha.compareTo(CEM) > 0) {
+                || percentualFalha.compareTo(CEM) > 0) {
                 throw new IllegalArgumentException("Configure um percentual de falhas entre zero e 100.");
             }
         } else if (percentualFalha == null) {
@@ -200,7 +209,7 @@ public final class MotorCalculo {
 
             if (custoEmbalagem == null || custoEmbalagem.compareTo(ZERO) < 0) {
                 throw new IllegalArgumentException(
-                        "O custo fixo da embalagem não pode ser negativo ou nulo");
+                    "O custo fixo da embalagem não pode ser negativo ou nulo");
             }
 
             nomeEmbalagem = "Embalagem (valor fixo)";
@@ -216,7 +225,7 @@ public final class MotorCalculo {
             custoEmbalagem = embalagem.getCustoUnitario();
             if (custoEmbalagem == null || custoEmbalagem.compareTo(ZERO) < 0) {
                 throw new IllegalArgumentException(
-                        "O custo unitário da embalagem deve ser igual ou maior que zero."
+                    "O custo unitário da embalagem deve ser igual ou maior que zero."
                 );
             }
 
@@ -226,9 +235,9 @@ public final class MotorCalculo {
         custoEmbalagem = precisao(custoEmbalagem);
 
         CalculadoraProducao.Resultado custos = CalculadoraProducao.calcular(
-                new CalculadoraProducao.Entrada(unidades, custoFilamentoTotal, custoPurgaLote,
-                        energiaLote, custoEmbalagem, custoMaoObraLote, custoDepreciacaoLote,
-                        custoManutencaoLote, taxaFalhaAtivada, percentualFalha, markup));
+            new CalculadoraProducao.Entrada(unidades, custoFilamentoTotal, custoPurgaLote,
+                energiaLote, custoEmbalagem, custoMaoObraLote, custoDepreciacaoLote,
+                custoManutencaoLote, taxaFalhaAtivada, percentualFalha, markup));
         BigDecimal custoPurga = custos.custoPurga();
         BigDecimal custoEnergia = custos.custoEnergia();
         BigDecimal custoMaoObra = custos.custoMaoObra();
@@ -239,13 +248,13 @@ public final class MotorCalculo {
         BigDecimal precoSugerido = custos.precoSugerido();
 
         MontadorHistorico.preencher(historico, request, peca, impressora, embalagem, configuracao, custos,
-                new MontadorHistorico.DadosLote(quantidadeFilamentoTotal, purgaGramasLote, minutosMaquinaLote,
-                        manutencaoPorHora, tempoTrabalhoMinutos, nomeEmbalagem, custoEmbalagem, dataCalculo));
+            new MontadorHistorico.DadosLote(quantidadeFilamentoTotal, purgaGramasLote, minutosMaquinaLote,
+                manutencaoPorHora, tempoTrabalhoMinutos, nomeEmbalagem, custoEmbalagem, dataCalculo));
 
         if (placasConsulta > 0) historico.setFornadas(placasConsulta);
         if (!custosLoja.isEmpty()) RateioCustos.aplicar(historico, custosLoja);
         calculoPlataformaService.calcularVendaPlataforma(request, historico, historico.getPrecoSugerido(), configuracao);
 
         return historico;
-        }
+    }
 }

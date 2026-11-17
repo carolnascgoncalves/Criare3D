@@ -35,10 +35,10 @@ public class Modelo3mfController {
             return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore()).body(resposta);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(422))
-                    .body(Map.of("erro", e.getMessage() == null ? "Arquivo 3MF inválido." : e.getMessage()));
+                .body(Map.of("erro", e.getMessage() == null ? "Arquivo 3MF inválido." : e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatusCode.valueOf(422))
-                    .body(Map.of("erro", "Não foi possível analisar esse arquivo 3MF."));
+                .body(Map.of("erro", "Não foi possível analisar esse arquivo 3MF."));
         }
     }
 }

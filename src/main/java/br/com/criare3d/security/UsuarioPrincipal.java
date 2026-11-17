@@ -6,10 +6,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 public final class UsuarioPrincipal implements UserDetails, Serializable {
@@ -22,6 +22,7 @@ public final class UsuarioPrincipal implements UserDetails, Serializable {
     private final String password;
     private final Perfil perfil;
     private final boolean trocaSenhaObrigatoria;
+
     public UsuarioPrincipal(Usuario usuario) {
         this.usuarioId = usuario.getId();
         this.tenantId = usuario.getTenant() == null ? null : usuario.getTenant().getId();

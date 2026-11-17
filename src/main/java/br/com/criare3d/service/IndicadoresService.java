@@ -1,6 +1,5 @@
 package br.com.criare3d.service;
 
-import br.com.criare3d.models.*;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +13,7 @@ import java.time.LocalDateTime;
 public class IndicadoresService {
     private final CalculoHistoricoRepository calculoHistoricoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
+
     public IndicadoresService(CalculoHistoricoRepository calculoHistoricoRepository, UsuarioLogadoService usuarioLogadoService) {
         this.calculoHistoricoRepository = calculoHistoricoRepository;
         this.usuarioLogadoService = usuarioLogadoService;

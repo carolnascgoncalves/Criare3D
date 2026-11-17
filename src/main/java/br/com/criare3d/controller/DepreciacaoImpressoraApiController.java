@@ -20,8 +20,8 @@ public class DepreciacaoImpressoraApiController {
 
     @GetMapping("/estimativa")
     public EstimativaDepreciacaoResponse estimar(
-            @RequestParam String modelo,
-            @RequestParam(required = false) UUID impressoraId) {
+        @RequestParam String modelo,
+        @RequestParam(required = false) UUID impressoraId) {
         return service.estimar(modelo, impressoraId);
     }
 }

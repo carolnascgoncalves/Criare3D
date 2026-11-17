@@ -3,13 +3,16 @@ package br.com.criare3d.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/** Fórmulas determinísticas usadas pelo cálculo de produção. */
+/**
+ * Fórmulas determinísticas usadas pelo cálculo de produção.
+ */
 final class CalculoFinanceiro {
     private static final BigDecimal CEM = new BigDecimal("100");
     private static final BigDecimal MIL = new BigDecimal("1000");
     private static final BigDecimal SESSENTA = new BigDecimal("60");
 
-    private CalculoFinanceiro() {}
+    private CalculoFinanceiro() {
+    }
 
     static BigDecimal energia(BigDecimal potenciaWatts, long minutos, BigDecimal tarifaKwh) {
         // Mantém a fração até a divisão final para não arredondar kWh no meio da fórmula.
@@ -20,12 +23,12 @@ final class CalculoFinanceiro {
     static BigDecimal filamento(BigDecimal quantidadeGramas, BigDecimal precoRolo,
                                 BigDecimal pesoRoloGramas) {
         return precisao(quantidadeGramas.multiply(precoRolo).divide(pesoRoloGramas, 8,
-                RoundingMode.HALF_UP));
+            RoundingMode.HALF_UP));
     }
 
     static BigDecimal maoDeObra(BigDecimal valorHora, long minutos) {
         return precisao(valorHora.multiply(BigDecimal.valueOf(minutos))
-                .divide(SESSENTA, 8, RoundingMode.HALF_UP));
+            .divide(SESSENTA, 8, RoundingMode.HALF_UP));
     }
 
     static BigDecimal manutencao(BigDecimal valorHora, long minutos) {
@@ -40,12 +43,12 @@ final class CalculoFinanceiro {
     static BigDecimal depreciacaoPorHora(BigDecimal valorPorHora, long minutos) {
         if (valorPorHora == null || minutos <= 0) return BigDecimal.ZERO.setScale(8);
         return precisao(valorPorHora.multiply(BigDecimal.valueOf(minutos))
-                .divide(SESSENTA, 8, RoundingMode.HALF_UP));
+            .divide(SESSENTA, 8, RoundingMode.HALF_UP));
     }
 
     static BigDecimal falhas(BigDecimal custoFilamento, BigDecimal custoEnergia, BigDecimal percentual) {
         return precisao(custoFilamento.add(custoEnergia).multiply(percentual)
-                .divide(CEM, 8, RoundingMode.HALF_UP));
+            .divide(CEM, 8, RoundingMode.HALF_UP));
     }
 
     static BigDecimal ratear(BigDecimal custoTotal, int unidades) {

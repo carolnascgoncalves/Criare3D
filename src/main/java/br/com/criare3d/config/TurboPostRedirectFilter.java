@@ -1,4 +1,3 @@
-
 package br.com.criare3d.config;
 
 import jakarta.servlet.FilterChain;
@@ -16,9 +15,9 @@ public class TurboPostRedirectFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
+        HttpServletRequest request,
+        HttpServletResponse response,
+        FilterChain filterChain
     ) throws ServletException, IOException {
 
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
@@ -27,15 +26,15 @@ public class TurboPostRedirectFilter extends OncePerRequestFilter {
         }
 
         HttpServletResponseWrapper responseWrapper =
-                new HttpServletResponseWrapper(response) {
+            new HttpServletResponseWrapper(response) {
 
-                    @Override
-                    public void sendRedirect(String location) throws IOException {
-                        resetBuffer();
-                        setStatus(HttpServletResponse.SC_SEE_OTHER);
-                        setHeader("Location", encodeRedirectURL(location));
-                    }
-                };
+                @Override
+                public void sendRedirect(String location) throws IOException {
+                    resetBuffer();
+                    setStatus(HttpServletResponse.SC_SEE_OTHER);
+                    setHeader("Location", encodeRedirectURL(location));
+                }
+            };
 
         filterChain.doFilter(request, responseWrapper);
     }

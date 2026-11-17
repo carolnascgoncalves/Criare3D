@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,7 +24,7 @@ public interface ManutencaoImpressoraRepository extends JpaRepository<Manutencao
         WHERE m.impressora.id IN :ids
         """)
     List<UUID> buscarIdsImpressoraComManutencao(
-            @Param("ids") Collection<UUID> ids);
+        @Param("ids") Collection<UUID> ids);
 
     @Query("""
         SELECT COALESCE(SUM(m.valor), 0)

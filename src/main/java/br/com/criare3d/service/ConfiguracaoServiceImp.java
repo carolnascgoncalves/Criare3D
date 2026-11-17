@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,9 +23,9 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
     private final ConfiguracaoRepository configuracaoRepository;
     private final UsuarioLogadoService usuarioLogadoService;
     private final Cache<UUID, Optional<Configuracao>> configuracoesPorTenant = Caffeine.newBuilder()
-            .maximumSize(1_000)
-            .expireAfterWrite(Duration.ofMinutes(10))
-            .build();
+        .maximumSize(1_000)
+        .expireAfterWrite(Duration.ofMinutes(10))
+        .build();
 
     public ConfiguracaoServiceImp(ConfiguracaoRepository configuracaoRepository,
                                   UsuarioLogadoService usuarioLogadoService) {
@@ -136,7 +135,7 @@ public class ConfiguracaoServiceImp implements ConfiguracaoService {
         UUID tenantId = usuarioLogadoService.buscarTenantIdAtual();
         if (tenantId == null) return Optional.empty();
         return configuracoesPorTenant.get(tenantId,
-                ignorado -> configuracaoRepository.findFirstByTenantId(tenantId));
+            ignorado -> configuracaoRepository.findFirstByTenantId(tenantId));
     }
 
     @Override

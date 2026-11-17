@@ -1,14 +1,11 @@
-
 package br.com.criare3d.controller;
 
-import br.com.criare3d.service.HistoricoCalculoService;
-
+import br.com.criare3d.dto.CompraFilamentoRequest;
+import br.com.criare3d.dto.FilamentoDadosRequest;
 import br.com.criare3d.dto.FilamentoRequest;
 import br.com.criare3d.dto.FilamentoResponse;
-import br.com.criare3d.dto.FilamentoDadosRequest;
-import br.com.criare3d.dto.CompraFilamentoRequest;
 import br.com.criare3d.models.Filamento;
-
+import br.com.criare3d.service.HistoricoCalculoService;
 import br.com.criare3d.service.interfaces.FilamentoService;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import jakarta.validation.Valid;
@@ -16,7 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -24,21 +20,21 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.UUID;
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Controller
 public class FilamentoController {
 
     private static final Map<String, Sort> ORDENACOES = Map.of(
-            "nomeAsc", Sort.by(Sort.Direction.ASC, "nome"),
-            "nomeDesc", Sort.by(Sort.Direction.DESC, "nome"),
-            "corAsc", Sort.by(Sort.Direction.ASC, "cor"),
-            "corDesc", Sort.by(Sort.Direction.DESC, "cor")
+        "nomeAsc", Sort.by(Sort.Direction.ASC, "nome"),
+        "nomeDesc", Sort.by(Sort.Direction.DESC, "nome"),
+        "corAsc", Sort.by(Sort.Direction.ASC, "cor"),
+        "corDesc", Sort.by(Sort.Direction.DESC, "cor")
     );
 
     private final FilamentoService filamentoService;
@@ -52,9 +48,9 @@ public class FilamentoController {
 
     @GetMapping("/filamento/listar")
     public ModelAndView fetchAll(
-            @RequestParam(name = "busca", required = false) String busca,
-            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
-            @PageableDefault(page = 0, size = 10) Pageable pageable) {
+        @RequestParam(name = "busca", required = false) String busca,
+        @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+        @PageableDefault(page = 0, size = 10) Pageable pageable) {
 
         ordem = OrdenacaoPaginada.validarOrdem(ordem, "nomeAsc", ORDENACOES);
         pageable = OrdenacaoPaginada.aplicar(pageable, ordem, ORDENACOES);
@@ -70,8 +66,8 @@ public class FilamentoController {
 
         for (Filamento filamento : pagina.getContent()) {
             filamentosComHistoricoProduzido.put(
-                    filamento.getId(),
-                    idsComHistoricoProduzido.contains(filamento.getId())
+                filamento.getId(),
+                idsComHistoricoProduzido.contains(filamento.getId())
             );
 
             BigDecimal pesoRolo = filamento.getPesoRoloGramas();
@@ -80,7 +76,7 @@ public class FilamentoController {
             if (pesoRolo != null && pesoRolo.signum() > 0 && estoque != null) {
                 BigDecimal rolos = estoque.divide(pesoRolo, 0, RoundingMode.CEILING).max(BigDecimal.ONE);
                 percentual = estoque.multiply(BigDecimal.valueOf(100))
-                        .divide(pesoRolo.multiply(rolos), 0, RoundingMode.HALF_UP).intValue();
+                    .divide(pesoRolo.multiply(rolos), 0, RoundingMode.HALF_UP).intValue();
                 percentual = Math.max(0, Math.min(100, percentual));
             }
             percentualEstoque.put(filamento.getId(), percentual);
@@ -128,42 +124,42 @@ public class FilamentoController {
     @GetMapping("/filamento/detalhes/{id}")
     public ModelAndView fetchById(@PathVariable UUID id) {
         return filamentoService.fetchById(id)
-                .map(entidade -> {
-                    ModelAndView mv = new ModelAndView("filamento/detalhes");
-                    mv.addObject("filamento", entidade);
-                    mv.addObject("compra", new CompraFilamentoRequest());
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
+            .map(entidade -> {
+                ModelAndView mv = new ModelAndView("filamento/detalhes");
+                mv.addObject("filamento", entidade);
+                mv.addObject("compra", new CompraFilamentoRequest());
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
     }
 
     @GetMapping("/filamento/{id}/historico")
     public ModelAndView historicoDoFilamento(@PathVariable UUID id) {
         return filamentoService.fetchById(id)
-                .map(filamento -> {
-                    ModelAndView mv = new ModelAndView("filamento/historico");
-                    mv.addObject("filamento", filamento);
-                    mv.addObject("usos", historicoCalculoService.listarUsosPorFilamento(id));
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
+            .map(filamento -> {
+                ModelAndView mv = new ModelAndView("filamento/historico");
+                mv.addObject("filamento", filamento);
+                mv.addObject("usos", historicoCalculoService.listarUsosPorFilamento(id));
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
     }
 
     @PostMapping("/filamento/estoque/{id}")
     public ModelAndView atualizarEstoqueRapido(
-            @PathVariable UUID id,
-            @RequestParam(name = "estoqueGramas", required = false) java.math.BigDecimal estoqueGramas,
-            @RequestParam(name = "busca", defaultValue = "") String busca,
-            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
-            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
-            RedirectAttributes redirect) {
+        @PathVariable UUID id,
+        @RequestParam(name = "estoqueGramas", required = false) java.math.BigDecimal estoqueGramas,
+        @RequestParam(name = "busca", defaultValue = "") String busca,
+        @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+        @RequestParam(name = "page", defaultValue = "0") int page,
+        @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+        @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
+        RedirectAttributes redirect) {
 
         if (estoqueGramas == null || estoqueGramas.signum() < 0
-                || estoqueGramas.scale() > 2 || estoqueGramas.precision() - estoqueGramas.scale() > 8) {
+            || estoqueGramas.scale() > 2 || estoqueGramas.precision() - estoqueGramas.scale() > 8) {
             redirect.addAttribute("erro", filamentoService.existsById(id)
-                    ? "estoqueInvalido" : "filamentoNaoEncontrado");
+                ? "estoqueInvalido" : "filamentoNaoEncontrado");
         } else {
             Filamento atualizacao = new Filamento();
             atualizacao.setEstoqueGramas(estoqueGramas);
@@ -183,20 +179,20 @@ public class FilamentoController {
     @GetMapping({"/filamento/compra/{id}", "/filamento/{id}/compra"})
     public ModelAndView abrirRegistroCompra(@PathVariable UUID id) {
         return filamentoService.fetchById(id)
-                .map(filamento -> {
-                    ModelAndView mv = new ModelAndView("filamento/compra");
-                    mv.addObject("filamento", filamento);
-                    mv.addObject("compra", new CompraFilamentoRequest());
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
+            .map(filamento -> {
+                ModelAndView mv = new ModelAndView("filamento/compra");
+                mv.addObject("filamento", filamento);
+                mv.addObject("compra", new CompraFilamentoRequest());
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado"));
     }
 
     @PostMapping({"/filamento/compra/{id}", "/filamento/{id}/compra"})
     public ModelAndView registrarCompra(
-            @PathVariable UUID id,
-            @Valid @ModelAttribute("compra") CompraFilamentoRequest compra,
-            BindingResult erros) {
+        @PathVariable UUID id,
+        @Valid @ModelAttribute("compra") CompraFilamentoRequest compra,
+        BindingResult erros) {
         var filamento = filamentoService.fetchById(id);
         if (filamento.isEmpty()) {
             return new ModelAndView("redirect:/filamento/listar?erro=filamentoNaoEncontrado");
@@ -224,20 +220,20 @@ public class FilamentoController {
     @GetMapping("/filamento/editar/{id}")
     public ModelAndView retornarPaginaEdicao(@PathVariable UUID id) {
         return filamentoService.fetchById(id)
-                .map(entidade -> {
-                    ModelAndView mv = new ModelAndView("filamento/edicao");
-                    mv.addObject("filamento", FilamentoResponse.toDto(entidade));
-                    mv.addObject("id", id);
-                    return mv;
-                })
-                .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
+            .map(entidade -> {
+                ModelAndView mv = new ModelAndView("filamento/edicao");
+                mv.addObject("filamento", FilamentoResponse.toDto(entidade));
+                mv.addObject("id", id);
+                return mv;
+            })
+            .orElseGet(() -> new ModelAndView("redirect:/filamento/listar"));
     }
 
     @PostMapping("/filamento/atualizar/{id}")
     public ModelAndView atualizarFilamento(
-            @PathVariable UUID id,
-            @Valid @ModelAttribute("filamento") FilamentoDadosRequest request,
-            BindingResult bd) {
+        @PathVariable UUID id,
+        @Valid @ModelAttribute("filamento") FilamentoDadosRequest request,
+        BindingResult bd) {
 
         if (bd.hasErrors()) {
             if (!filamentoService.existsById(id)) return new ModelAndView("redirect:/filamento/listar");
@@ -264,7 +260,7 @@ public class FilamentoController {
 
         if (quantidade > 0) {
             return new ModelAndView(
-                    "redirect:/filamento/listar?erro=filamentoEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
+                "redirect:/filamento/listar?erro=filamentoEmUso&bloqueado=" + id + "&quantidade=" + quantidade);
         }
 
         filamentoService.delete(id);
@@ -273,18 +269,19 @@ public class FilamentoController {
 
     @PostMapping("/filamento/remover-lote")
     public ModelAndView deleteSelected(
-            @RequestParam(name = "ids", required = false) List<UUID> ids,
-            @RequestParam(name = "busca", defaultValue = "") String busca,
-            @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
-            @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
-            @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
-            RedirectAttributes redirect) {
-        if (ids == null || ids.isEmpty()) return new ModelAndView("redirect:/filamento/listar?erro=nenhumFilamentoSelecionado");
+        @RequestParam(name = "ids", required = false) List<UUID> ids,
+        @RequestParam(name = "busca", defaultValue = "") String busca,
+        @RequestParam(name = "ordem", defaultValue = "nomeAsc") String ordem,
+        @RequestParam(name = "page", defaultValue = "0") int page,
+        @RequestParam(name = "totalRegistros", defaultValue = "0") long totalRegistros,
+        @RequestParam(name = "tamanhoPagina", defaultValue = "10") int tamanhoPagina,
+        RedirectAttributes redirect) {
+        if (ids == null || ids.isEmpty())
+            return new ModelAndView("redirect:/filamento/listar?erro=nenhumFilamentoSelecionado");
         List<UUID> bloqueados = filamentoService.deleteUnused(ids);
         if (!bloqueados.isEmpty()) redirect.addFlashAttribute("idsNaoExcluidos", bloqueados);
         page = OrdenacaoPaginada.ajustarPaginaAposExclusao(
-                page, totalRegistros, ids.size() - bloqueados.size(), tamanhoPagina);
+            page, totalRegistros, ids.size() - bloqueados.size(), tamanhoPagina);
         redirect.addAttribute("busca", busca);
         redirect.addAttribute("ordem", ordem);
         redirect.addAttribute("page", page);

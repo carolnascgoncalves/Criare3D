@@ -1,7 +1,7 @@
 package br.com.criare3d.controller;
 
-import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.dto.TenantTemaProjection;
+import br.com.criare3d.security.UsuarioPrincipal;
 import br.com.criare3d.service.TenantTemaCache;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,46 +39,46 @@ public class TemaController {
         String textoDestaque = textoContraste(destaque);
         String textoPrimaria = textoContraste(primaria);
         String css = """
-                :root {
-                  --cor-primaria: %s;
-                  --cor-destaque: %s;
-                  --cor-fundo: %s;
-                  --texto-sobre-destaque: %s;
-                  --texto-sobre-primaria: %s;
-                  --marrom: var(--cor-primaria);
-                  --destaque: var(--cor-destaque);
-                  --fundo: var(--cor-fundo);
-                  --marrom-claro: color-mix(in srgb, var(--cor-primaria) 72%%, var(--cor-fundo));
-                  --borda: color-mix(in srgb, var(--cor-primaria) 15%%, var(--cor-fundo));
-                  --superficie-suave: color-mix(in srgb, var(--cor-fundo) 22%%, white);
-                  --superficie: color-mix(in srgb, var(--cor-fundo) 8%%, white);
-                  --destaque-suave: color-mix(in srgb, var(--cor-destaque) 22%%, white);
-                  --destaque-medio: color-mix(in srgb, var(--cor-destaque) 42%%, white);
-                  --destaque-escuro: color-mix(in srgb, var(--cor-destaque) 70%%, var(--cor-primaria));
-                  --marrom-medio: color-mix(in srgb, var(--cor-primaria) 72%%, var(--cor-destaque));
-                  --dashboard-tiktok: var(--cor-primaria);
-                  --dashboard-shopee: var(--cor-destaque);
-                  --dashboard-mercado-livre: color-mix(in srgb, var(--cor-primaria) 48%%, var(--cor-destaque));
-                  --dashboard-sem-plataforma: color-mix(in srgb, var(--cor-primaria) 25%%, var(--cor-fundo));
-                  --dashboard-outro: color-mix(in srgb, var(--cor-primaria) 60%%, var(--cor-fundo));
-                  --dashboard-custo-filamento: var(--cor-primaria);
-                  --dashboard-custo-falhas: color-mix(in srgb, var(--cor-destaque) 22%%, white);
-                  --dashboard-custo-energia: color-mix(in srgb, var(--cor-destaque) 35%%, var(--cor-fundo));
-                  --dashboard-custo-depreciacao: color-mix(in srgb, var(--cor-destaque) 68%%, var(--cor-primaria));
-                  --dashboard-custo-embalagem: var(--cor-destaque);
-                  --dashboard-custo-mao-obra: color-mix(in srgb, var(--cor-primaria) 68%%, var(--cor-destaque));
-                  --dashboard-custo-manutencao: color-mix(in srgb, var(--cor-primaria) 42%%, var(--cor-destaque));
-                  --dashboard-chart-fill: color-mix(in srgb, var(--cor-destaque) 25%%, transparent);
-                  --dashboard-chart-grid: var(--borda);
-                  --dashboard-chart-text: var(--marrom-claro);
-                }
-                """.formatted(primaria, destaque, fundo, textoDestaque, textoPrimaria);
+            :root {
+              --cor-primaria: %s;
+              --cor-destaque: %s;
+              --cor-fundo: %s;
+              --texto-sobre-destaque: %s;
+              --texto-sobre-primaria: %s;
+              --marrom: var(--cor-primaria);
+              --destaque: var(--cor-destaque);
+              --fundo: var(--cor-fundo);
+              --marrom-claro: color-mix(in srgb, var(--cor-primaria) 72%%, var(--cor-fundo));
+              --borda: color-mix(in srgb, var(--cor-primaria) 15%%, var(--cor-fundo));
+              --superficie-suave: color-mix(in srgb, var(--cor-fundo) 22%%, white);
+              --superficie: color-mix(in srgb, var(--cor-fundo) 8%%, white);
+              --destaque-suave: color-mix(in srgb, var(--cor-destaque) 22%%, white);
+              --destaque-medio: color-mix(in srgb, var(--cor-destaque) 42%%, white);
+              --destaque-escuro: color-mix(in srgb, var(--cor-destaque) 70%%, var(--cor-primaria));
+              --marrom-medio: color-mix(in srgb, var(--cor-primaria) 72%%, var(--cor-destaque));
+              --dashboard-tiktok: var(--cor-primaria);
+              --dashboard-shopee: var(--cor-destaque);
+              --dashboard-mercado-livre: color-mix(in srgb, var(--cor-primaria) 48%%, var(--cor-destaque));
+              --dashboard-sem-plataforma: color-mix(in srgb, var(--cor-primaria) 25%%, var(--cor-fundo));
+              --dashboard-outro: color-mix(in srgb, var(--cor-primaria) 60%%, var(--cor-fundo));
+              --dashboard-custo-filamento: var(--cor-primaria);
+              --dashboard-custo-falhas: color-mix(in srgb, var(--cor-destaque) 22%%, white);
+              --dashboard-custo-energia: color-mix(in srgb, var(--cor-destaque) 35%%, var(--cor-fundo));
+              --dashboard-custo-depreciacao: color-mix(in srgb, var(--cor-destaque) 68%%, var(--cor-primaria));
+              --dashboard-custo-embalagem: var(--cor-destaque);
+              --dashboard-custo-mao-obra: color-mix(in srgb, var(--cor-primaria) 68%%, var(--cor-destaque));
+              --dashboard-custo-manutencao: color-mix(in srgb, var(--cor-primaria) 42%%, var(--cor-destaque));
+              --dashboard-chart-fill: color-mix(in srgb, var(--cor-destaque) 25%%, transparent);
+              --dashboard-chart-grid: var(--borda);
+              --dashboard-chart-text: var(--marrom-claro);
+            }
+            """.formatted(primaria, destaque, fundo, textoDestaque, textoPrimaria);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.valueOf("text/css; charset=UTF-8"))
-                .header("Cache-Control", CACHE_TEMA)
-                .eTag(etag(tenantId, versao, "css"))
-                .body(css);
+            .contentType(MediaType.valueOf("text/css; charset=UTF-8"))
+            .header("Cache-Control", CACHE_TEMA)
+            .eTag(etag(tenantId, versao, "css"))
+            .body(css);
     }
 
     @GetMapping(value = "/tema/{tenantId}/{versao}/logo")
@@ -94,10 +94,10 @@ public class TemaController {
         if (tipo == null) return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok()
-                .contentType(tipo)
-                .header("Cache-Control", CACHE_TEMA)
-                .eTag(etag(tenantId, versao, "logo"))
-                .body(bytes);
+            .contentType(tipo)
+            .header("Cache-Control", CACHE_TEMA)
+            .eTag(etag(tenantId, versao, "logo"))
+            .body(bytes);
     }
 
     private TenantTemaProjection temaDoUsuario(UUID tenantId, long versao) {
@@ -112,7 +112,7 @@ public class TemaController {
     private UsuarioPrincipal principalAtual() {
         Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
         return autenticacao != null && autenticacao.isAuthenticated()
-                && autenticacao.getPrincipal() instanceof UsuarioPrincipal principal ? principal : null;
+            && autenticacao.getPrincipal() instanceof UsuarioPrincipal principal ? principal : null;
     }
 
     private String corSegura(String cor, String padrao) {
@@ -142,7 +142,7 @@ public class TemaController {
             if (png) return MediaType.IMAGE_PNG;
         }
         if (bytes.length >= 3 && bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8
-                && bytes[2] == (byte) 0xFF) return MediaType.IMAGE_JPEG;
+            && bytes[2] == (byte) 0xFF) return MediaType.IMAGE_JPEG;
         return null;
     }
 

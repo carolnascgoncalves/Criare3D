@@ -1,20 +1,13 @@
-
 package br.com.criare3d.controller;
 
 import br.com.criare3d.service.HistoricoCalculoService;
 import br.com.criare3d.service.IndicadoresService;
-
-
-import br.com.criare3d.service.interfaces.PecaService;
-import br.com.criare3d.service.interfaces.FilamentoService;
-import br.com.criare3d.service.interfaces.ImpressoraService;
-import br.com.criare3d.service.interfaces.ConfiguracaoService;
-import br.com.criare3d.service.interfaces.EmbalagemService;
+import br.com.criare3d.service.interfaces.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.http.ResponseEntity;
 
 
 @Controller
@@ -72,20 +65,20 @@ public class HomeController {
 
         var configuracao = configuracaoService.buscarOuCriarConfiguracao();
         boolean tarifaConfigurada = configuracao.getTarifaEnergiaKwh() != null
-                && configuracao.getTarifaEnergiaKwh().signum() > 0;
+            && configuracao.getTarifaEnergiaKwh().signum() > 0;
         boolean markupFixoConfigurado = !Boolean.TRUE.equals(configuracao.getMarkupFixo())
-                || (configuracao.getMarkupPercentual() != null
-                && configuracao.getMarkupPercentual().signum() > 0);
+            || (configuracao.getMarkupPercentual() != null
+            && configuracao.getMarkupPercentual().signum() > 0);
         model.addAttribute("configuracaoBasicaOk", tarifaConfigurada && markupFixoConfigurado);
         model.addAttribute("tarifaEnergiaConfigurada", tarifaConfigurada);
         model.addAttribute("markupFixoConfigurado", markupFixoConfigurado);
         model.addAttribute("primeiroAcessoConcluido", tarifaConfigurada
-                && totalPecas > 0 && totalFilamentos > 0
-                && totalImpressoras > 0
-                && !historicosRecentes.isEmpty());
+            && totalPecas > 0 && totalFilamentos > 0
+            && totalImpressoras > 0
+            && !historicosRecentes.isEmpty());
 
         boolean valorHoraConfigurado = Boolean.TRUE.equals(configuracao.getMaoObraAtivada())
-                && configuracao.getValorMaoObraHora() != null;
+            && configuracao.getValorMaoObraHora() != null;
         model.addAttribute("valorHoraConfigurado", valorHoraConfigurado);
 
         return "index";

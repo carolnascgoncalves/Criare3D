@@ -5,7 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/** Rotas antigas encaminhadas para o painel atual de clientes. */
+/**
+ * Rotas antigas encaminhadas para o painel atual de clientes.
+ */
 @Controller
 @RequestMapping("/usuarios")
 public class UsuarioController {

@@ -1,13 +1,7 @@
 package br.com.criare3d.controller;
-import br.com.criare3d.service.ResultadoOperacao;
-
-import br.com.criare3d.service.AcaoEmLoteService;
-import br.com.criare3d.service.IndicadoresService;
-import br.com.criare3d.service.VendaService;
 
 import br.com.criare3d.dto.HistoricoListaResponse;
-import br.com.criare3d.service.CatalogoBuscaService;
-
+import br.com.criare3d.service.*;
 import br.com.criare3d.util.HistoricoFiltros;
 import br.com.criare3d.util.OrdenacaoPaginada;
 import org.springframework.data.domain.Page;
@@ -22,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
-import java.util.List;
-import java.util.UUID;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class VendasEstoqueController {
@@ -48,26 +42,26 @@ public class VendasEstoqueController {
 
     @GetMapping("/vendas-estoque")
     public ModelAndView listar(@RequestParam(defaultValue = "") String busca,
-                              @RequestParam(defaultValue = "") String aba,
-                              @RequestParam(defaultValue = "") String erro,
-                              @RequestParam(defaultValue = "") String sucesso,
-                              @PageableDefault(size = 6) Pageable pageable) {
+                               @RequestParam(defaultValue = "") String aba,
+                               @RequestParam(defaultValue = "") String erro,
+                               @RequestParam(defaultValue = "") String sucesso,
+                               @PageableDefault(size = 6) Pageable pageable) {
         aba = normalizarAba(aba);
         Pageable recentes = PageRequest.of(0, 6,
-                Sort.by(Sort.Order.desc("dataCalculo"), Sort.Order.asc("id")));
+            Sort.by(Sort.Order.desc("dataCalculo"), Sort.Order.asc("id")));
         Page<HistoricoListaResponse> paraProduzir = buscarCategoria("PARA_PRODUZIR", "", recentes);
         Page<HistoricoListaResponse> emEstoque = buscarCategoria("ESTOQUE", "", recentes);
         Page<HistoricoListaResponse> vendidos = buscarCategoria("VENDIDOS", "", recentes);
 
         pageable = OrdenacaoPaginada.aplicar(pageable, "dataDesc", HistoricoFiltros.ORDENACOES);
         Page<HistoricoListaResponse> pagina = aba.isBlank()
-                ? Page.empty(pageable)
-                : buscarCategoria(aba, busca, pageable);
+            ? Page.empty(pageable)
+            : buscarCategoria(aba, busca, pageable);
 
         LocalDateTime inicioMes = YearMonth.now(ZoneId.of("America/Sao_Paulo"))
-                .atDay(1).atStartOfDay();
+            .atDay(1).atStartOfDay();
         LocalDateTime fimMes = YearMonth.from(inicioMes)
-                .plusMonths(1).atDay(1).atStartOfDay();
+            .plusMonths(1).atDay(1).atStartOfDay();
         long unidadesProduzidas = indicadoresService.contarProduzidos();
         long unidadesVendidas = indicadoresService.contarVendidos();
         long unidadesVendidasMes = indicadoresService.contarUnidadesVendidasEntre(inicioMes, fimMes);
@@ -113,10 +107,10 @@ public class VendasEstoqueController {
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "20") int size) {
         ResultadoOperacao resultado = "VENDER".equals(acao)
-                ? (ids != null && ids.size() == 1
-                    ? vendaService.registrarVenda(ids.get(0), quantidade)
-                    : acaoEmLoteService.registrarVendasEmLote(ids, quantidade))
-                : acaoEmLoteService.atualizarStatusEmLote(ids, acao);
+            ? (ids != null && ids.size() == 1
+            ? vendaService.registrarVenda(ids.get(0), quantidade)
+            : acaoEmLoteService.registrarVendasEmLote(ids, quantidade))
+            : acaoEmLoteService.atualizarStatusEmLote(ids, acao);
         String mensagemSucesso = switch (acao) {
             case "VENDER" -> "vendasRegistradas";
             case "DESFAZER_PRODUCAO" -> "producoesDesfeitas";
@@ -124,17 +118,17 @@ public class VendasEstoqueController {
             default -> "producoesRegistradas";
         };
         String status = ResultadoOperacao.OK.equals(resultado)
-                ? "sucesso=" + mensagemSucesso
-                : "erro=" + resultado.codigo();
+            ? "sucesso=" + mensagemSucesso
+            : "erro=" + resultado.codigo();
         String destino;
         if (ResultadoOperacao.OK.equals(resultado)) {
             destino = "/vendas-estoque?" + status;
         } else {
             destino = "/vendas-estoque?busca=" + java.net.URLEncoder.encode(
-                    busca == null ? "" : busca, java.nio.charset.StandardCharsets.UTF_8)
-                    + "&aba=" + normalizarAba(aba)
-                    + "&page=" + Math.max(0, page) + "&size=" + Math.min(Math.max(size, 6), 50)
-                    + "&" + status;
+                busca == null ? "" : busca, java.nio.charset.StandardCharsets.UTF_8)
+                + "&aba=" + normalizarAba(aba)
+                + "&page=" + Math.max(0, page) + "&size=" + Math.min(Math.max(size, 6), 50)
+                + "&" + status;
         }
         return new ModelAndView(new RedirectView(destino, true));
     }

@@ -7,8 +7,8 @@ import br.com.criare3d.models.Usuario;
 import br.com.criare3d.models.enums.Perfil;
 import br.com.criare3d.repository.TenantRepository;
 import br.com.criare3d.repository.UsuarioRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -21,11 +21,7 @@ import javax.imageio.stream.ImageInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Transactional
@@ -63,7 +59,7 @@ public class ClienteAdminService {
     public ClienteAdminRequest carregarFormulario(UUID id) {
         Tenant tenant = buscarTenant(id);
         Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
-                .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
+            .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
 
         ClienteAdminRequest request = new ClienteAdminRequest();
         request.setNome(tenant.getNome());
@@ -98,12 +94,12 @@ public class ClienteAdminService {
 
         String senhaTemporaria = gerarSenhaTemporaria();
         Usuario usuario = Usuario.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(senhaTemporaria))
-                .perfil(Perfil.USER)
-                .trocaSenhaObrigatoria(true)
-                .tenant(tenantSalvo)
-                .build();
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(senhaTemporaria))
+            .perfil(Perfil.USER)
+            .trocaSenhaObrigatoria(true)
+            .tenant(tenantSalvo)
+            .build();
         usuarioRepository.save(usuario);
 
         return new ClienteCriado(tenantSalvo.getId(), usuario.getEmail(), senhaTemporaria);
@@ -117,7 +113,7 @@ public class ClienteAdminService {
         validarSlugParaEdicao(request.getSlug(), tenant);
 
         Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
-                .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
+            .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
         validarEmailParaEdicao(request.getEmail(), usuario);
 
         exigirNaoExcluido(tenant);
@@ -127,10 +123,10 @@ public class ClienteAdminService {
         else if (arquivoPresente(arquivoLogo)) logoNovo = lerLogoPng(arquivoLogo);
 
         boolean alterouIdentidade = !mesmo(tenant.getNome(), request.getNome())
-                || !mesmo(tenant.getCorPrimaria(), request.getCorPrimaria())
-                || !mesmo(tenant.getCorDestaque(), request.getCorDestaque())
-                || !mesmo(tenant.getCorFundo(), request.getCorFundo())
-                || !Arrays.equals(logoAnterior, logoNovo);
+            || !mesmo(tenant.getCorPrimaria(), request.getCorPrimaria())
+            || !mesmo(tenant.getCorDestaque(), request.getCorDestaque())
+            || !mesmo(tenant.getCorFundo(), request.getCorFundo())
+            || !Arrays.equals(logoAnterior, logoNovo);
 
         tenant.setNome(request.getNome());
         tenant.setSlug(request.getSlug());
@@ -183,13 +179,14 @@ public class ClienteAdminService {
     }
 
     private void exigirNaoExcluido(Tenant tenant) {
-        if (tenant.getExcluidoEm() != null) throw new IllegalArgumentException("Restaure o cliente antes de alterar a conta.");
+        if (tenant.getExcluidoEm() != null)
+            throw new IllegalArgumentException("Restaure o cliente antes de alterar a conta.");
     }
 
     public String gerarNovaSenhaTemporaria(UUID id) {
         buscarTenant(id);
         Usuario usuario = usuarioRepository.findByTenant_IdAndPerfil(id, Perfil.USER)
-                .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
+            .orElseThrow(() -> new IllegalStateException("Este cliente ainda não possui uma conta de acesso."));
         String senhaTemporaria = gerarSenhaTemporaria();
         usuario.setPassword(passwordEncoder.encode(senhaTemporaria));
         usuario.setTrocaSenhaObrigatoria(true);
@@ -208,7 +205,7 @@ public class ClienteAdminService {
 
     private Tenant buscarTenant(UUID id) {
         return tenantRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado."));
+            .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado."));
     }
 
     private void normalizar(ClienteAdminRequest request) {
@@ -222,19 +219,20 @@ public class ClienteAdminService {
 
     private void validarTema(ClienteAdminRequest request) {
         if (!corValida(request.getCorPrimaria()) || !corValida(request.getCorDestaque())
-                || !corValida(request.getCorFundo())) return;
+            || !corValida(request.getCorFundo())) return;
         if (contraste(request.getCorPrimaria(), request.getCorFundo()) < 4.5) {
             throw new IllegalArgumentException(
-                    "A cor principal e a cor de fundo precisam ter contraste de pelo menos 4,5:1 para o texto ficar legível.");
+                "A cor principal e a cor de fundo precisam ter contraste de pelo menos 4,5:1 para o texto ficar legível.");
         }
         if (contraste(request.getCorDestaque(), request.getCorFundo()) < 3.0) {
             throw new IllegalArgumentException(
-                    "A cor de destaque e a cor de fundo precisam ter contraste de pelo menos 3:1 para os botões ficarem visíveis.");
+                "A cor de destaque e a cor de fundo precisam ter contraste de pelo menos 3:1 para os botões ficarem visíveis.");
         }
     }
 
     private void validarNovoSlug(String slug) {
-        if (tenantRepository.existsBySlug(slug)) throw new IllegalArgumentException("Este identificador já está em uso.");
+        if (tenantRepository.existsBySlug(slug))
+            throw new IllegalArgumentException("Este identificador já está em uso.");
     }
 
     private void validarSlugParaEdicao(String slug, Tenant atual) {
@@ -244,7 +242,8 @@ public class ClienteAdminService {
     }
 
     private void validarNovoEmail(String email) {
-        if (usuarioRepository.existsByEmail(email)) throw new IllegalArgumentException("Este e-mail já está cadastrado.");
+        if (usuarioRepository.existsByEmail(email))
+            throw new IllegalArgumentException("Este e-mail já está cadastrado.");
     }
 
     private void validarEmailParaEdicao(String email, Usuario atual) {
@@ -305,7 +304,7 @@ public class ClienteAdminService {
             if (png) return org.springframework.http.MediaType.IMAGE_PNG;
         }
         if (bytes.length >= 3 && bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8
-                && bytes[2] == (byte) 0xFF) {
+            && bytes[2] == (byte) 0xFF) {
             return org.springframework.http.MediaType.IMAGE_JPEG;
         }
         throw new IllegalArgumentException("Envie uma imagem PNG ou JPG/JPEG válida.");
@@ -360,6 +359,9 @@ public class ClienteAdminService {
         });
     }
 
-    public record ClienteCriado(UUID tenantId, String emailAcesso, String senhaTemporaria) { }
-    public record LogoCliente(byte[] bytes, org.springframework.http.MediaType tipo) { }
+    public record ClienteCriado(UUID tenantId, String emailAcesso, String senhaTemporaria) {
+    }
+
+    public record LogoCliente(byte[] bytes, org.springframework.http.MediaType tipo) {
+    }
 }

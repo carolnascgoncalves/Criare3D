@@ -2,52 +2,60 @@ package br.com.criare3d.service;
 
 import java.math.BigDecimal;
 
-/** Calcula a composição de custos unitários a partir dos custos do lote. */
+/**
+ * Calcula a composição de custos unitários a partir dos custos do lote.
+ */
 public final class CalculadoraProducao {
-    private CalculadoraProducao() {}
-
-    /** Compatibilidade com chamadas e testes que ainda usam o modelo antigo. */
-    public static CustosOperacionaisLote calcularCustosOperacionaisLote(
-            BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
-            BigDecimal gramasPurgaPorImpressao, int impressoes,
-            BigDecimal custoFilamentoLote, BigDecimal gramasFilamentoUnidade,
-            boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
-            BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
-            BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras) {
-        return calcularCustosOperacionaisLote(potenciaWatts, minutosMaquina, tarifaEnergiaKwh,
-                gramasPurgaPorImpressao, impressoes, custoFilamentoLote, gramasFilamentoUnidade,
-                maoDeObraAtivada, valorMaoDeObraHora, minutosTrabalho, manutencaoPorHora,
-                depreciacaoAtivada, valorCompraImpressora, vidaUtilHoras, null);
+    private CalculadoraProducao() {
     }
 
-    /** Centraliza as parcelas variáveis do lote; o serviço fica responsável por buscar e validar os dados. */
+    /**
+     * Compatibilidade com chamadas e testes que ainda usam o modelo antigo.
+     */
     public static CustosOperacionaisLote calcularCustosOperacionaisLote(
-            BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
-            BigDecimal gramasPurgaPorImpressao, int impressoes,
-            BigDecimal custoFilamentoLote, BigDecimal gramasFilamentoUnidade,
-            boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
-            BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
-            BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras,
-            BigDecimal depreciacaoPorHora) {
+        BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
+        BigDecimal gramasPurgaPorImpressao, int impressoes,
+        BigDecimal custoFilamentoLote, BigDecimal gramasFilamentoUnidade,
+        boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
+        BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
+        BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras) {
+        return calcularCustosOperacionaisLote(potenciaWatts, minutosMaquina, tarifaEnergiaKwh,
+            gramasPurgaPorImpressao, impressoes, custoFilamentoLote, gramasFilamentoUnidade,
+            maoDeObraAtivada, valorMaoDeObraHora, minutosTrabalho, manutencaoPorHora,
+            depreciacaoAtivada, valorCompraImpressora, vidaUtilHoras, null);
+    }
+
+    /**
+     * Centraliza as parcelas variáveis do lote; o serviço fica responsável por buscar e validar os dados.
+     */
+    public static CustosOperacionaisLote calcularCustosOperacionaisLote(
+        BigDecimal potenciaWatts, long minutosMaquina, BigDecimal tarifaEnergiaKwh,
+        BigDecimal gramasPurgaPorImpressao, int impressoes,
+        BigDecimal custoFilamentoLote, BigDecimal gramasFilamentoUnidade,
+        boolean maoDeObraAtivada, BigDecimal valorMaoDeObraHora, long minutosTrabalho,
+        BigDecimal manutencaoPorHora, boolean depreciacaoAtivada,
+        BigDecimal valorCompraImpressora, BigDecimal vidaUtilHoras,
+        BigDecimal depreciacaoPorHora) {
         BigDecimal energia = energiaLote(potenciaWatts, minutosMaquina, tarifaEnergiaKwh);
         BigDecimal gramasPurga = gramasPurgaLote(gramasPurgaPorImpressao, impressoes);
         BigDecimal custoPurga = custoPurgaLote(gramasPurga, custoFilamentoLote, gramasFilamentoUnidade);
         BigDecimal maoDeObra = maoDeObraAtivada
-                ? CalculoFinanceiro.maoDeObra(valorMaoDeObraHora, minutosTrabalho)
-                : BigDecimal.ZERO.setScale(8);
+            ? CalculoFinanceiro.maoDeObra(valorMaoDeObraHora, minutosTrabalho)
+            : BigDecimal.ZERO.setScale(8);
         BigDecimal manutencao = manutencaoLote(manutencaoPorHora, minutosMaquina);
         BigDecimal depreciacao = depreciacaoAtivada
-                ? depreciacaoPorHora != null
-                    ? depreciacaoPorHoraLote(depreciacaoPorHora, minutosMaquina)
-                    : depreciacaoLote(valorCompraImpressora, vidaUtilHoras, minutosMaquina)
-                : BigDecimal.ZERO.setScale(8);
+            ? depreciacaoPorHora != null
+            ? depreciacaoPorHoraLote(depreciacaoPorHora, minutosMaquina)
+            : depreciacaoLote(valorCompraImpressora, vidaUtilHoras, minutosMaquina)
+            : BigDecimal.ZERO.setScale(8);
         return new CustosOperacionaisLote(energia, gramasPurga, custoPurga, maoDeObra,
-                manutencao, depreciacao);
+            manutencao, depreciacao);
     }
 
     public record CustosOperacionaisLote(BigDecimal energia, BigDecimal gramasPurga,
-                                          BigDecimal custoPurga, BigDecimal maoDeObra,
-                                          BigDecimal manutencao, BigDecimal depreciacao) {}
+                                         BigDecimal custoPurga, BigDecimal maoDeObra,
+                                         BigDecimal manutencao, BigDecimal depreciacao) {
+    }
 
     public static BigDecimal energiaLote(BigDecimal potenciaWatts, long minutos,
                                          BigDecimal tarifaEnergiaKwh) {
@@ -77,7 +85,7 @@ public final class CalculadoraProducao {
         BigDecimal gramasTotais = gramasFilamentoPorUnidade;
         if (gramasTotais.signum() <= 0) return BigDecimal.ZERO.setScale(8);
         return gramasPurgaLote.multiply(custoFilamentoLote)
-                .divide(gramasTotais, 8, java.math.RoundingMode.HALF_UP);
+            .divide(gramasTotais, 8, java.math.RoundingMode.HALF_UP);
     }
 
     public static Resultado calcular(Entrada entrada) {
@@ -90,17 +98,17 @@ public final class CalculadoraProducao {
         BigDecimal custoDepreciacao = CalculoFinanceiro.ratear(entrada.custoDepreciacaoLote(), unidades);
         BigDecimal custoManutencao = CalculoFinanceiro.ratear(entrada.custoManutencaoLote(), unidades);
         BigDecimal custoFalha = entrada.taxaFalhaAtivada()
-                ? CalculoFinanceiro.falhas(entrada.custoFilamentoUnitario().add(custoPurga),
-                    custoEnergia, entrada.percentualFalha())
-                : BigDecimal.ZERO.setScale(8);
+            ? CalculoFinanceiro.falhas(entrada.custoFilamentoUnitario().add(custoPurga),
+            custoEnergia, entrada.percentualFalha())
+            : BigDecimal.ZERO.setScale(8);
         BigDecimal custoTotal = CalculoFinanceiro.precisao(
-                entrada.custoFilamentoUnitario().add(custoPurga).add(custoEnergia)
-                        .add(entrada.custoEmbalagemUnitario()).add(custoMaoObra)
-                        .add(custoDepreciacao).add(custoManutencao).add(custoFalha));
+            entrada.custoFilamentoUnitario().add(custoPurga).add(custoEnergia)
+                .add(entrada.custoEmbalagemUnitario()).add(custoMaoObra)
+                .add(custoDepreciacao).add(custoManutencao).add(custoFalha));
         BigDecimal precoSugerido = CalculoFinanceiro.markup(custoTotal, entrada.markupPercentual());
 
         return new Resultado(custoPurga, custoEnergia, custoMaoObra, custoDepreciacao,
-                custoManutencao, custoFalha, custoTotal, precoSugerido);
+            custoManutencao, custoFalha, custoTotal, precoSugerido);
     }
 
     public record Entrada(int unidades, BigDecimal custoFilamentoUnitario,
@@ -108,10 +116,12 @@ public final class CalculadoraProducao {
                           BigDecimal custoEmbalagemUnitario, BigDecimal custoMaoObraLote,
                           BigDecimal custoDepreciacaoLote, BigDecimal custoManutencaoLote,
                           boolean taxaFalhaAtivada, BigDecimal percentualFalha,
-                          BigDecimal markupPercentual) {}
+                          BigDecimal markupPercentual) {
+    }
 
     public record Resultado(BigDecimal custoPurga, BigDecimal custoEnergia,
                             BigDecimal custoMaoObra, BigDecimal custoDepreciacao,
                             BigDecimal custoManutencao, BigDecimal custoFalha,
-                            BigDecimal custoTotal, BigDecimal precoSugerido) {}
+                            BigDecimal custoTotal, BigDecimal precoSugerido) {
+    }
 }
