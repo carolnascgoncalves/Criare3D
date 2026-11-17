@@ -168,6 +168,13 @@ VALUES (?,?,?,?,?,?,?)
                 usuario);
     }
 
+    public void revogarPeloRefresh(String refresh) {
+        jdbc.update("""
+            UPDATE api_sessao SET revogado_em=? WHERE revogado_em IS NULL AND id IN
+                (SELECT familia_id FROM api_refresh_token WHERE token_hash=?)
+            """, Timestamp.from(clock.instant()), ApiJwtService.hash(refresh));
+    }
+
     public void revogarUsuario(UUID usuario) {
         jdbc.update(
                 "UPDATE api_sessao SET revogado_em=? WHERE usuario_id=? AND revogado_em IS NULL",
