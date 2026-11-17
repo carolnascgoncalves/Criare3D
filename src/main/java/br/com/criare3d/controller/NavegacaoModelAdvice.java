@@ -36,7 +36,9 @@ public class NavegacaoModelAdvice {
         else if (caminho.startsWith("/impressora")) pagina = "impressoras";
         else if (caminho.startsWith("/embalagem")) pagina = "embalagens";
         else if (caminho.startsWith("/vendas-estoque")) pagina = "vendas-estoque";
-        else if (caminho.equals("/historico/novo") || caminho.equals("/historico/resultado")) pagina = "";
+        else if (caminho.equals("/historico/resultado")) pagina = "resultado-calculo";
+        else if (caminho.equals("/historico/novo") || caminho.equals("/historico/calcular")
+            || caminho.equals("/historico/salvar")) pagina = "calculo";
         else if (caminho.startsWith("/historico")) pagina = "historico";
         else if (caminho.startsWith("/usuarios") || caminho.startsWith("/clientes")) pagina = "clientes";
         if (caminho.startsWith("/compradores")) pagina = "compradores";

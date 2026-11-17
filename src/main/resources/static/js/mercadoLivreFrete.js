@@ -174,3 +174,4 @@ function inicializarFreteMercadoLivre() {
 
 document.addEventListener("DOMContentLoaded", inicializarFreteMercadoLivre);
 document.addEventListener("turbo:load", inicializarFreteMercadoLivre);
+if (document.readyState === "interactive" || document.readyState === "complete") inicializarFreteMercadoLivre();

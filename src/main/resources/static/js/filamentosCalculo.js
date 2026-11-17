@@ -658,6 +658,7 @@ function inicializarFilamentosCalculo() {
             const opcao = select.selectedOptions[0];
 
             if (opcao?.dataset.acao === "cadastrar-filamento") {
+                if (window.abrirCadastroCatalogo?.(select)) return;
                 window.salvarRascunhoCalculo?.();
 
                 const destino = "/filamento/novo?origem=calculo";
@@ -717,3 +718,4 @@ function inicializarFilamentosCalculo() {
 
 document.addEventListener("DOMContentLoaded", inicializarFilamentosCalculo);
 document.addEventListener("turbo:load", inicializarFilamentosCalculo);
+if (document.readyState === "interactive" || document.readyState === "complete") inicializarFilamentosCalculo();

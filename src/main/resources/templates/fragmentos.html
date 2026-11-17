@@ -16,7 +16,9 @@
 
     <link th:href="@{/css/style.css}" rel="stylesheet" data-turbo-track="reload">
     <link th:href="@{/css/navegacao.css}" rel="stylesheet" data-turbo-track="reload">
-    <link rel="stylesheet" th:href="@{/css/cssCalculo.css}">
+    <link rel="stylesheet" th:href="@{/css/paginasCompartilhadas.css}" data-turbo-track="reload">
+    <link th:if="${paginaAtiva != 'inicio' and paginaAtiva != 'dashboard' and paginaAtiva != 'compradores' and paginaAtiva != 'movimentacoes'}"
+          rel="stylesheet" th:href="@{/css/cssCalculo.css}" data-turbo-track="dynamic">
     <link th:href="@{/css/componentes.css}" rel="stylesheet" data-turbo-track="reload">
     <link th:if="${paginaAtiva == 'simulacao' or paginaAtiva == 'orcamentos'}" rel="stylesheet" th:href="@{/css/simulacao.css}" data-turbo-track="dynamic">
     <link th:if="${paginaAtiva == 'compradores' or paginaAtiva == 'movimentacoes'}" rel="stylesheet" th:href="@{/css/clientes-extrato.css}" data-turbo-track="dynamic">
@@ -29,7 +31,7 @@
 
     <script defer th:src="@{/vendor/turbo.es2017-umd.js}"></script>
     <script th:src="@{/js/confirmacaoGlobal.js}" defer></script>
-    <script th:src="@{/js/dashboardCharts.js}" defer></script>
+    <script th:if="${paginaAtiva == 'dashboard'}" th:src="@{/js/dashboardCharts.js}" defer></script>
     <script th:src="@{/js/menuLateral.js}" defer></script>
     <script th:src="@{/js/polimento.js}" defer></script>
     <script th:src="@{/js/catalogoBusca.js}" defer></script>
@@ -45,14 +47,14 @@
     <script th:src="@{/js/restaurarRolagem.js}" defer></script>
     <script th:src="@{/js/validacaoInline.js}" defer></script>
     <script th:src="@{/js/formularioEstado.js}" defer></script>
-    <script th:src="@{/js/calculoEtapas.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/calculoEtapas.js}" defer></script>
     <script th:src="@{/js/modelosImpressora.js}" defer></script>
     <script th:src="@{/js/compraFilamento.js}" defer></script>
-    <script th:src="@{/js/importadorModelo3mf.js}" defer></script>
-    <script th:src="@{/js/filamentosCalculo.js}" defer></script>
-    <script th:src="@{/js/rascunhoCalculo.js}" defer></script>
-    <script th:src="@{/js/pecaSeletor.js}" defer></script>
-    <script th:src="@{/js/mercadoLivreFrete.js}" defer></script>
+    <script th:if="${paginaAtiva == 'pecas'}" th:src="@{/js/importadorModelo3mf.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/filamentosCalculo.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo' or paginaAtiva == 'resultado-calculo'}" th:src="@{/js/rascunhoCalculo.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/pecaSeletor.js}" defer></script>
+    <script th:if="${paginaAtiva == 'calculo'}" th:src="@{/js/mercadoLivreFrete.js}" defer></script>
     <script th:src="@{/js/detalhesHistorico.js}" defer></script>
     <script th:src="@{/js/orcamento.js}" defer></script>
     <script th:if="${paginaAtiva == 'orcamentos'}" th:src="@{/js/pedidos.js}" defer></script>

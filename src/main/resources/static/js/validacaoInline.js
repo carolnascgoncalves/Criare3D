@@ -111,7 +111,8 @@
 
     document.addEventListener('submit', evento => {
         const form = evento.target;
-        if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post' || form.id === 'formCalculo') return;
+        if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post' || form.id === 'formCalculo'
+            || form.dataset?.cadastroCatalogo) return;
         const modeloImpressora = form.querySelector('#modelo[list="modelosBambu"]');
         if (modeloImpressora && modeloImpressora.value.trim().length < 2) {
             evento.preventDefault();
@@ -129,6 +130,7 @@
         visual(invalidos[0]).focus();
     }, true);
     document.addEventListener('invalid', evento => {
+        if (evento.target.closest?.('[data-cadastro-catalogo]')) return;
         evento.preventDefault();
         validar(evento.target);
     }, true);

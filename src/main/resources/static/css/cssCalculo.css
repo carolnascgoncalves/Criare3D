@@ -1,4 +1,3 @@
-
 /* ========================================
    CÁLCULO - ETAPAS
 ======================================== */
@@ -567,17 +566,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     background: var(--cor-erro);
 }
 
-/* MENSAGEM DE SUCESSO */
-
-.alerta-sucesso {
-    margin-bottom: 20px;
-    padding: 15px 18px;
-    border: 1px solid var(--borda);
-    border-radius: 10px;
-    background: var(--destaque-medio);
-    color: var(--marrom);
-}
-
 /* ========================================
    RESPONSIVIDADE
 ======================================== */
@@ -626,11 +614,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
 
     .historico-vazio {
         padding: 32px 12px;
-    }
-
-    .cartao-cabecalho {
-        flex-wrap: wrap;
-        gap: 12px;
     }
 
     .botao-acao-excluir {
@@ -1842,34 +1825,6 @@ main.pagina.lista-catalogo:has(.tabela-historico) {
     }
 }
 
-/* REMOVE COMPLETAMENTE O BOTÃO X DOS CAMPOS DE PESQUISA */
-
-input[type="search"]::-webkit-search-cancel-button,
-input[type="search"]::-webkit-search-results-button,
-input[type="search"]::-webkit-search-results-decoration,
-input[type="search"]::-webkit-search-decoration {
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-input[type="search"]::-ms-clear,
-input[type="search"]::-ms-reveal {
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-}
-
-input[type="search"] {
-    -webkit-appearance: none !important;
-    appearance: none !important;
-    background-image: none !important;
-}
-
 /* ========================================
    RESULTADO - NOVO LAYOUT
 ======================================== */
@@ -2206,71 +2161,11 @@ input[type="search"] {
     background: transparent;
 }
 
-/* GARANTE QUE CAMPOS OCULTOS NÃO SEJAM EXIBIDOS */
-[hidden] {
-    display: none !important;
-}
-
-/* ========================================
-   PADRONIZAÇÃO DOS CABEÇALHOS DAS LISTAGENS
-======================================== */
-
-.pagina-intro {
-    min-height: 145px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 28px;
-}
-
-.pagina-intro > div:first-child {
-    min-width: 0;
-}
-
-.pagina-intro > a {
-    flex-shrink: 0;
-    margin-top: 0;
-}
-
-.pagina-intro .texto-apoio {
-    display: block;
-    margin-bottom: 6px;
-}
-
-.pagina-intro h1 {
-    margin: 8px 0;
-}
-
-.pagina-intro p {
-    margin: 0;
-}
-
-/* Mesmo espaço para o título e a descrição do cartão */
-
-.cartao > .cartao-cabecalho {
-    min-height: 100px;
-    box-sizing: border-box;
-}
-
 /* Padroniza a altura da área de pesquisa */
 
 .cartao > form.busca-filamentos {
     min-height: 36px;
     box-sizing: content-box;
-}
-
-@media (max-width: 650px) {
-    .pagina-intro {
-        min-height: auto;
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .cartao > .cartao-cabecalho {
-        min-height: auto;
-    }
 }
 
 /* Mantém o campo Modelo da impressora no padrão visual do Criare 3D */
@@ -2320,15 +2215,6 @@ main.pagina:has(> .cartao form.busca-filamentos) > .pagina-intro {
 
 main.pagina:has(> .cartao form.busca-filamentos) > .cartao {
     order: 2;
-}
-
-/* =========================================================
-   AJUSTES CONSOLIDADOS — LISTAGENS E ACESSIBILIDADE
-   ========================================================= */
-
-/* Espaço consistente ao redor do conteúdo das páginas. */
-.pagina {
-    padding-bottom: 48px;
 }
 
 /* Cabeçalhos de listagem começam sempre no mesmo alinhamento. */
@@ -2655,19 +2541,10 @@ main.pagina:has(> .cartao form.historico-filtros) .historico-tamanho-pagina labe
     outline-offset: 1px;
 }
 
-@media (min-width: 1251px) {
-
-}
-
-@media (min-width: 701px) and (max-width: 1250px) {
-
-}
-
 @media (max-width: 700px) {
     main.pagina:has(> .cartao form.historico-filtros) .historico-data-icone {
         grid-column: 1 / -1;
     }
-
 }
 
 main.pagina.lista-catalogo > .cartao:has(> form.historico-filtros .historico-ordenar[open]) {
@@ -2679,11 +2556,6 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-erro,
 main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
     order: initial;
     margin: 0 0 18px;
-}
-
-/* Contraste suficiente para textos auxiliares e placeholders. */
-:root {
-    --texto-secundario-acessivel: var(--marrom-claro);
 }
 
 .busca-filamentos-campo input::placeholder,
@@ -2801,15 +2673,6 @@ main.pagina:has(> .cartao form.busca-filamentos) > .alerta-sucesso {
     border-color: var(--destaque);
     background: var(--superficie-suave);
     color: var(--marrom);
-}
-
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-button:focus-visible,
-a:focus-visible {
-    outline: 3px solid rgba(118, 91, 75, 0.55);
-    outline-offset: 2px;
 }
 
 /* Ações do cálculo: navegação de um lado e reinício do outro. */
@@ -3474,58 +3337,6 @@ a:focus-visible {
 .status-venda-historico.status-ativo {
     background: #e8f5e9;
     color: #256b35;
-}
-
-/* NOTIFICAÇÕES */
-
-.notificacao-flutuante {
-    position: fixed;
-    left: 50%;
-    z-index: 1100;
-    width: min(620px, calc(100% - 32px));
-    margin: 0;
-    transform: translateX(-50%);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 14%);
-    transition: opacity 350ms ease, transform 350ms ease;
-}
-
-.notificacao-flutuante.alerta-sucesso {
-    border: 1px solid #b7dfbd;
-    background: #e8f5e9;
-    color: #256b35;
-}
-
-.notificacao-flutuante.alerta-configuracao-ocultando {
-    opacity: 0;
-    transform: translate(-50%, -8px);
-}
-
-/* Botões de retorno com o mesmo tamanho, estilo e alinhamento nas telas internas. */
-.pagina-intro > a.botao-secundario,
-.pagina-intro > a.botao-voltar,
-.detalhes-acoes > a.botao-voltar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-width: 158px;
-    min-height: 46px;
-    padding: 11px 16px;
-    border: 1px solid var(--borda);
-    border-radius: 10px;
-    background: var(--fundo);
-    color: var(--marrom);
-    font-weight: 600;
-    text-align: center;
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.pagina-intro > a.botao-secundario:hover,
-.pagina-intro > a.botao-voltar:hover,
-.detalhes-acoes > a.botao-voltar:hover {
-    background: var(--borda);
-    color: var(--marrom);
 }
 
 .detalhes-acoes { justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }

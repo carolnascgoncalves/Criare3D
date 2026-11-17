@@ -187,7 +187,8 @@
     <footer class="rodape" th:text="|${tenantNome} · Gestão e cálculo de custos de impressão 3D|">Criare 3D · Gestão e cálculo de custos de impressão 3D</footer>
 </main>
 <script th:replace="~{fragmentos :: bootstrap-script}"></script>
-<script type="application/json" id="dashboard-chart-data" th:inline="javascript">
+<script type="application/json" id="dashboard-chart-data" th:inline="javascript"
+        th:attr="data-chart-src=@{/vendor/chart.umd.min.js}">
     {
         "rotulosLucro": [[${rotulosLucro}]],
         "valoresLucro": [[${valoresLucro}]],

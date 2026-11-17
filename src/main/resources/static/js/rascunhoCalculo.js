@@ -366,4 +366,5 @@
 
     document.addEventListener("DOMContentLoaded", inicializarRascunhoCalculo);
     document.addEventListener("turbo:load", inicializarRascunhoCalculo);
+    if (document.readyState === "interactive" || document.readyState === "complete") inicializarRascunhoCalculo();
 })();

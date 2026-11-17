@@ -41,7 +41,7 @@ class OperacaoTemplatesTest {
         contexto.setVariable("tenantNome", "Empresa teste");
         contexto.setVariable("tenantDisponivel", true);
         contexto.setVariable("tenantLogoUrl", "/logo.png");
-        contexto.setVariable("paginaAtiva", "vendas-estoque");
+        contexto.setVariable("paginaAtiva", dados.getOrDefault("paginaAtiva", "vendas-estoque"));
         contexto.setVariable("_csrf", new DefaultCsrfToken("X-CSRF-TOKEN", "_csrf", "teste"));
         return engine.process(pagina, contexto);
     }
@@ -362,6 +362,38 @@ class OperacaoTemplatesTest {
             encontrados++;
         }
         assertThat(encontrados).isEqualTo(3);
+    }
+
+    @Test
+    void paginasSimplesPreservamCssCompartilhadoSemCarregarRecursosDeCalculo() {
+        for (var pagina : List.of("inicio", "dashboard", "compradores", "movimentacoes")) {
+            var dados = modeloExtrato(List.of());
+            dados.put("paginaAtiva", pagina);
+            var html = renderizar("movimentacoes/index", dados);
+            assertThat(html).contains("/css/paginasCompartilhadas.css")
+                .doesNotContain("/css/cssCalculo.css", "/js/calculoEtapas.js", "/js/filamentosCalculo.js",
+                    "/js/rascunhoCalculo.js", "/js/importadorModelo3mf.js", "/js/mercadoLivreFrete.js");
+            if (pagina.equals("dashboard")) assertThat(html).contains("/js/dashboardCharts.js");
+            else assertThat(html).doesNotContain("/js/dashboardCharts.js");
+        }
+    }
+
+    @Test
+    void formularioResultadoECadastroDePecaMantemOsScriptsNecessarios() {
+        var dados = modeloExtrato(List.of());
+        dados.put("paginaAtiva", "calculo");
+        assertThat(renderizar("movimentacoes/index", dados))
+            .contains("/css/cssCalculo.css", "data-turbo-track=\"dynamic\"", "/js/calculoEtapas.js",
+                "/js/filamentosCalculo.js", "/js/rascunhoCalculo.js", "/js/pecaSeletor.js",
+                "/js/mercadoLivreFrete.js");
+        dados.put("paginaAtiva", "resultado-calculo");
+        assertThat(renderizar("movimentacoes/index", dados))
+            .contains("/css/cssCalculo.css", "/js/rascunhoCalculo.js")
+            .doesNotContain("/js/calculoEtapas.js", "/js/filamentosCalculo.js");
+        dados.put("paginaAtiva", "pecas");
+        assertThat(renderizar("movimentacoes/index", dados))
+            .contains("/css/cssCalculo.css", "/js/importadorModelo3mf.js")
+            .doesNotContain("/js/calculoEtapas.js");
     }
 
     @Test

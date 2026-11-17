@@ -503,6 +503,8 @@ function inicializarCalculoEtapas() {
                 return;
             }
 
+            if (window.abrirCadastroCatalogo?.(select)) return;
+
             salvarRascunho();
 
             const destino = `${rota}?origem=calculo`;
@@ -685,3 +687,4 @@ function inicializarCalculoEtapas() {
 
 document.addEventListener("DOMContentLoaded", inicializarCalculoEtapas);
 document.addEventListener("turbo:load", inicializarCalculoEtapas);
+if (document.readyState === "interactive" || document.readyState === "complete") inicializarCalculoEtapas();

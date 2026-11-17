@@ -1,14 +1,21 @@
 (function () {
-    function carregarBibliotecaChart() {
+    function carregarBibliotecaChart(url) {
         if (window.Chart) return Promise.resolve();
         if (window.criareCarregamentoChart) return window.criareCarregamentoChart;
 
         window.criareCarregamentoChart = new Promise(function (resolve, reject) {
             const script = document.createElement('script');
-            script.src = '/vendor/chart.umd.min.js';
+            if (!url) {
+                reject(new Error('URL da biblioteca de gráficos não informada.'));
+                return;
+            }
+            script.src = url;
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);
+        }).catch(function (erro) {
+            window.criareCarregamentoChart = null;
+            throw erro;
         });
         return window.criareCarregamentoChart;
     }
@@ -39,10 +46,10 @@
             return;
         }
 
-        carregarBibliotecaChart()
+        carregarBibliotecaChart(dadosElemento.dataset.chartSrc)
             .then(function () {
                 requestAnimationFrame(function () {
-                    if (document.getElementById('dashboard-chart-data')) {
+                    if (document.getElementById('dashboard-chart-data') === dadosElemento) {
                         desenharGraficosDashboard(dados);
                     }
                 });
@@ -188,4 +195,5 @@
     document.addEventListener('turbo:before-cache', destruirGraficosDashboard);
     window.addEventListener('pageshow', iniciarGraficosDashboard);
     document.addEventListener('DOMContentLoaded', iniciarGraficosDashboard, { once: true });
+    if (document.readyState === 'interactive' || document.readyState === 'complete') iniciarGraficosDashboard();
 })();

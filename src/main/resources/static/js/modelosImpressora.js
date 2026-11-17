@@ -1,98 +1,28 @@
 (() => {
     const camposInicializados = new WeakSet();
-    const modelos = [
-        {
-            nome: "Bambu Lab A1 mini",
-            potenciaMediaPLA: 80,
-            potenciasOutrosMateriais: {PETG: 75},
-            potenciaMaxima: "150 W",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab A1",
-            potenciaMediaPLA: 95,
-            potenciasOutrosMateriais: {ABS: 200, PC: 150},
-            potenciaMaxima: "1300 W em 220 V ou 350 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab P1P",
-            potenciaMediaPLA: 110,
-            potenciasOutrosMateriais: {ABS: 170, PC: 160},
-            potenciaMaxima: "1000 W em 220 V ou 350 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab P1S",
-            potenciaMediaPLA: 105,
-            potenciasOutrosMateriais: {ABS: 140, PC: 135},
-            potenciaMaxima: "1000 W em 220 V ou 350 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab X1 Carbon",
-            potenciaMediaPLA: 105,
-            potenciasOutrosMateriais: {ABS: 150, PC: 135},
-            potenciaMaxima: "1000 W em 220 V ou 350 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab X1E",
-            potenciaMediaPLA: 185,
-            potenciasOutrosMateriais: {ABS: 260, PC: 230},
-            potenciaMaxima: "1350 W em 220 V ou 600 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab H2D",
-            potenciaMediaPLA: 197,
-            potenciasOutrosMateriais: {PETG: 150, PC: 395},
-            potenciaMaxima: "2200 W em 220 V ou 1320 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab H2S",
-            potenciaMediaPLA: 200,
-            potenciasOutrosMateriais: {PETG: 180, PC: 330},
-            potenciaMaxima: "1800 W em 220 V ou 1250 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab H2C",
-            potenciaMediaPLA: 200,
-            potenciasOutrosMateriais: {PETG: 193, PC: 294},
-            potenciaMaxima: "1800 W em 220 V ou 1250 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab A2L",
-            potenciaMediaPLA: 145,
-            potenciaMaxima: "1000 W em 220 V ou 1000 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab P2S",
-            potenciaMediaPLA: 200,
-            potenciaMaxima: "1200 W em 220 V ou 1000 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab X2D",
-            potenciaMediaPLA: 250,
-            potenciasOutrosMateriais: {PC: 550},
-            potenciaMaxima: "1600 W em 220 V ou 1100 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
-        },
-        {
-            nome: "Bambu Lab H3C",
-            potenciaMediaPLA: 240,
-            potenciasOutrosMateriais: {PC: 540},
-            potenciaMaxima: "2250 W em 220 V ou 1850 W em 110 V",
-            fonte: "https://wiki.bambulab.com/en/general/power-consumption"
+    let modelos = [];
+    let carregamento;
+    function carregarModelos() {
+        if (!carregamento) {
+            carregamento = fetch('/catalogo-opcoes/modelos-impressora', {headers: {Accept: 'application/json'}})
+                .then(resposta => {
+                    if (!resposta.ok) throw new Error('Não foi possível carregar os modelos de impressora.');
+                    return resposta.json();
+                })
+                .then(dados => { modelos = dados; return modelos; })
+                .catch(erro => { carregamento = null; throw erro; });
         }
-    ];
+        return carregamento;
+    }
+    window.carregarModelosImpressora = carregarModelos;
 
-    function inicializarModelos() {
+    async function inicializarModelos() {
+        if (!document.querySelectorAll("#modelo[list='modelosBambu']").length) return;
+        try { await carregarModelos(); } catch (erro) {
+            const aviso = document.getElementById('referenciaPotenciaFabricante');
+            if (aviso) { aviso.textContent = erro.message; aviso.hidden = false; }
+            return;
+        }
         document.querySelectorAll("#modelo[list='modelosBambu']").forEach(campo => {
             if (camposInicializados.has(campo)) return;
             camposInicializados.add(campo);

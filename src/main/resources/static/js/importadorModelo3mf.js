@@ -378,3 +378,4 @@ function formatarDecimal(valor) {
 
 document.addEventListener("DOMContentLoaded", inicializarImportadorModelo3mf);
 document.addEventListener("turbo:load", inicializarImportadorModelo3mf);
+if (document.readyState === "interactive" || document.readyState === "complete") inicializarImportadorModelo3mf();
