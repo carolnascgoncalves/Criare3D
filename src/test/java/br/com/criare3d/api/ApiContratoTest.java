@@ -58,6 +58,8 @@ class ApiContratoTest {
         ApiDatas.class,
         ApiProblemas.class,
         ApiAuthController.class,
+        ApiWebOrigins.class,
+        ApiWebAuthController.class,
         ApiClientesController.class,
         ApiExtratoController.class,
         ApiTenantController.class,
@@ -85,6 +87,7 @@ class ApiContratoTest {
     @MockitoBean ApiAuthService auth;
     @Autowired ApiJwtService jwt;
     @MockitoBean CompradorService clientes;
+    @MockitoBean OrcamentoPedidoService pedidos;
     @MockitoBean MovimentacaoService movimentos;
     @MockitoBean UsuarioService usuarios;
     @MockitoBean TenantTemaCache temas;
@@ -274,6 +277,33 @@ class ApiContratoTest {
         mvc.perform(get("/api/v1/rota-inexistente").header("Authorization", "Bearer " + token))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+    }
+
+    @Test
+    void listaOrcamentosDoCompradorNaPaginaESituacaoSolicitadas() throws Exception {
+        var id = UUID.randomUUID();
+        var pedido = new PedidoOrcamento();
+        pedido.setNumero(12L);
+        pedido.setTitulo("Lote azul");
+        pedido.setFrete(new BigDecimal("4.75"));
+        when(pedidos.listarDoComprador(id, "", 1, true, null))
+                .thenReturn(new PageImpl<>(List.of(pedido), PageRequest.of(1, 12), 13));
+        mvc.perform(get("/api/v1/clientes/{id}/orcamentos", id)
+                        .param("arquivados", "true").param("pagina", "1")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pagina").value(1))
+                .andExpect(jsonPath("$.total").value(13))
+                .andExpect(jsonPath("$.itens[0].codigo").value("0012"))
+                .andExpect(jsonPath("$.itens[0].titulo").value("Lote azul"))
+                .andExpect(jsonPath("$.itens[0].situacao").value("Rascunho"))
+                .andExpect(jsonPath("$.itens[0].total").value("4.75"));
+        when(clientes.buscar(id)).thenThrow(new NoSuchElementException());
+        mvc.perform(get("/api/v1/clientes/{id}/orcamentos", id)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+        verify(pedidos).listarDoComprador(id, "", 1, true, null);
+        verifyNoMoreInteractions(pedidos);
     }
 
     @Test

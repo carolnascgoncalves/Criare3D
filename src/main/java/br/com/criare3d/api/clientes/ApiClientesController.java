@@ -5,6 +5,7 @@ import br.com.criare3d.dto.SalvarComprador;
 import br.com.criare3d.exception.RegraNegocioException;
 import br.com.criare3d.models.Comprador;
 import br.com.criare3d.service.CompradorService;
+import br.com.criare3d.service.OrcamentoPedidoService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
@@ -24,11 +25,13 @@ import java.util.UUID;
 @SecurityRequirement(name = "bearerAuth")
 public class ApiClientesController {
     private final CompradorService clientes;
+    private final OrcamentoPedidoService pedidos;
     private final ApiDatas datas;
 
-    public ApiClientesController(CompradorService clientes, ApiDatas datas) {
+    public ApiClientesController(CompradorService clientes, OrcamentoPedidoService pedidos, ApiDatas datas) {
         this.clientes = clientes;
         this.datas = datas;
+        this.pedidos = pedidos;
     }
 
     public record Entrada(
@@ -102,6 +105,21 @@ public class ApiClientesController {
     @GetMapping("/{id}")
     public Cliente buscar(@PathVariable UUID id) {
         return Cliente.de(clientes.buscar(id));
+    }
+
+    public record OrcamentoResumo(
+            UUID id, String codigo, String titulo, String situacao, OffsetDateTime criadoEm, String total) {}
+
+    @GetMapping("/{id}/orcamentos")
+    public PaginaResponse<OrcamentoResumo> orcamentos(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "false") boolean arquivados,
+            @RequestParam(defaultValue = "0") @Min(0) @Max(100000) int pagina) {
+        clientes.buscar(id);
+        var resultado = pedidos.listarDoComprador(id, "", pagina, arquivados, null);
+        return PaginaResponse.de(resultado.map(p -> new OrcamentoResumo(
+                p.getId(), p.getCodigo(), p.getTitulo(), p.getSituacao(),
+                datas.converter(p.getCriadoEm()), p.getTotal().toPlainString())));
     }
 
     @PostMapping

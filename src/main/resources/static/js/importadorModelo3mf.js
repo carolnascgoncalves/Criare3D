@@ -96,7 +96,7 @@ function inicializarImportador3mf(secao, formularioPeca) {
             const campos = [
                 ["Impressora do perfil", corpo.modeloImpressora],
                 ["Material configurado", formatarMateriais(corpo.material)],
-                ["Cor configurada", corpo.corMaterial],
+                ["Cor configurada", coresDoArquivo(corpo)],
                 ["Altura de camada", corpo.alturaCamada ? `${corpo.alturaCamada} mm` : ""],
                 ["Diâmetro do bico", corpo.diametroBico ? `${corpo.diametroBico} mm` : ""],
                 ["Perfil de impressão", corpo.perfil],
@@ -333,6 +333,18 @@ function renderizarPlacas(container, previews, total) {
     container.hidden = false;
 }
 
+function filamentosComConsumo(corpo) {
+    return (corpo.filamentosUsados || []).filter(filamento => filamento.pesoGramas > 0);
+}
+
+function coresDoArquivo(corpo) {
+    if (!corpo.temEstatisticas) return corpo.corMaterial;
+    const cores = filamentosComConsumo(corpo)
+        .map(filamento => filamento.cor?.trim().toUpperCase())
+        .filter(Boolean);
+    return [...new Set(cores)].join(", ");
+}
+
 function renderizarResumoFatiamento(corpo, painel, totais, listaFilamentos) {
     const temDados = Boolean(corpo.temEstatisticas && Number(corpo.tempoTotalSegundos) > 0);
     painel.hidden = !temDados;
@@ -345,7 +357,7 @@ function renderizarResumoFatiamento(corpo, painel, totais, listaFilamentos) {
     if (!temDados) return;
 
     totais.textContent = `${formatarDuracao(corpo.tempoTotalSegundos)} em ${corpo.numeroPlacasComEstatisticas} de ${corpo.numeroPlacas} placas · ${formatarDecimal(corpo.pesoTotalGramas)} g de filamento`;
-    (Array.isArray(corpo.filamentosUsados) ? corpo.filamentosUsados : []).forEach(filamento => {
+    filamentosComConsumo(corpo).forEach(filamento => {
         const item = document.createElement("li");
         const amostra = document.createElement("span");
         amostra.className = "importacao-peca-amostra-cor";
