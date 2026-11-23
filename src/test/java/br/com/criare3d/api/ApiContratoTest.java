@@ -63,6 +63,8 @@ class ApiContratoTest {
         ApiClientesController.class,
         ApiExtratoController.class,
         ApiTenantController.class,
+        ApiPainelController.class,
+        ApiCalculosController.class,
         ApiRotaAusenteController.class
     })
     static class App {
@@ -86,6 +88,18 @@ class ApiContratoTest {
     @MockitoBean ApiContas contas;
     @MockitoBean ApiAuthService auth;
     @Autowired ApiJwtService jwt;
+    @MockitoBean ItemPedidoRepository reservas;
+    @MockitoBean DashboardDadosService dashboard;
+    @MockitoBean CompradorRepository compradores;
+    @MockitoBean CalculoService calculos;
+    @MockitoBean CatalogoBuscaService catalogo;
+    @MockitoBean br.com.criare3d.service.interfaces.PecaService pecas;
+    @MockitoBean br.com.criare3d.service.interfaces.ManutencaoImpressoraService manutencao;
+    @MockitoBean br.com.criare3d.service.PecaArquivoService arquivos;
+    @MockitoBean HistoricoCalculoService historico;
+    @MockitoBean IndicadoresService indicadores;
+    @MockitoBean br.com.criare3d.service.interfaces.ConfiguracaoService configuracoes;
+    @MockitoBean br.com.criare3d.service.interfaces.FilamentoService filamentos;
     @MockitoBean CompradorService clientes;
     @MockitoBean OrcamentoPedidoService pedidos;
     @MockitoBean MovimentacaoService movimentos;
@@ -307,6 +321,140 @@ class ApiContratoTest {
     }
 
     @Test
+    void dashboardIncluiPrejuizoEVendasReaisDoPeriodo() throws Exception {
+        when(dashboard.buscar("7")).thenReturn(Map.ofEntries(
+                Map.entry("totalPecas", 3L), Map.entry("totalImpressoras", 1L), Map.entry("totalFilamentos", 2L),
+                Map.entry("totalEmbalagens", 1L), Map.entry("composicaoCustos", List.of(Map.of("nome", "Energia",
+                        "valor", new BigDecimal("1.20"), "percentual", 20))),
+                Map.entry("rotulosLucro", List.of("22/11")), Map.entry("valoresLucro", List.of(new BigDecimal("-2.50"))),
+                Map.entry("lucrosPorPlataforma", List.of(Map.of("nome", "Shopee", "vendas", 2L, "lucro", new BigDecimal("-2.50"), "cor", "--dashboard-shopee"))),
+                Map.entry("vendasCategorias", List.of(Map.of("nome", "Decoração", "unidades", 2L))),
+                Map.entry("lucroPlataformas", new BigDecimal("-2.50")),
+                Map.entry("estoqueFilamentos", List.of(Map.of("nome", "Preto", "gramas", BigDecimal.TEN, "restante", 1, "cor", "#000000"))),
+                Map.entry("lucroVendido", new BigDecimal("-2.50")), Map.entry("totalVendasLoja", 2L),
+                Map.entry("horasProduzidas", BigDecimal.ONE), Map.entry("filamentoUsadoKg", BigDecimal.ONE),
+                Map.entry("fluxoCalculados", 3L), Map.entry("fluxoProduzidos", 2L), Map.entry("fluxoVendidos", 1L)));
+        mvc.perform(get("/api/v1/dashboard").param("periodo", "7").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.serie[0].valor").value("-2.50"))
+                .andExpect(jsonPath("$.plataformas[0].vendas").value(2))
+                .andExpect(jsonPath("$.plataformas[0].lucro").value("-2.50"))
+                .andExpect(jsonPath("$.lucroPlataformas").value("-2.50"))
+                .andExpect(jsonPath("$.categorias[0].unidades").value(2))
+                .andExpect(jsonPath("$.estoque[0].cor").value("#000000"))
+                .andExpect(jsonPath("$.estoque[0].gramas").value("10"))
+                .andExpect(jsonPath("$.cadastros.pecas").value(3))
+                .andExpect(jsonPath("$.custos[0].valor").value("1.20"));
+    }
+
+    @Test
+    void catalogoUsaPrecoDoHistoricoEExigeAutenticacao() throws Exception {
+        var id = UUID.randomUUID();
+        var peca = Peca.builder().id(id).nome("Vaso").quantidadeFilamentoGramas(new BigDecimal("12.40")).build();
+        when(catalogo.buscarPecas(eq(""), any())).thenReturn(new PageImpl<>(List.of(peca)));
+        when(historico.ultimosPrecosPecas(List.of(id))).thenReturn(Map.of(id, new BigDecimal("14.95")));
+        var resumo = new br.com.criare3d.dto.PecaArquivoResumo(id, "vaso.3mf", "P1S", null, 1,
+                List.of(new br.com.criare3d.dto.PecaMaterialResumo("PLA", "#ff0000", 12.4),
+                        new br.com.criare3d.dto.PecaMaterialResumo("PLA", "#ffffff", 0)),
+                List.of(new br.com.criare3d.dto.PecaArquivoResumo.PlacaResumo(1, "/placa", null, null, List.of())));
+        when(arquivos.buscarResumos(List.of(peca))).thenReturn(Map.of(id, resumo));
+        mvc.perform(get("/api/v1/catalogo/pecas").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens[0].nome").value("Vaso"))
+                .andExpect(jsonPath("$.itens[0].materiais.length()").value(1))
+                .andExpect(jsonPath("$.itens[0].materiais[0].corHex").value("#ff0000"))
+                .andExpect(jsonPath("$.itens[0].placaMiniatura").value(1))
+                .andExpect(jsonPath("$.itens[0].gramas").value("12.40"))
+                .andExpect(jsonPath("$.itens[0].preco").value("14.95"));
+        mvc.perform(get("/api/v1/catalogo/pecas")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/v1/vendas").param("grupo", "invalido").header("Authorization", "Bearer " + token))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void fotoDaPlacaNoCatalogoUsaSessaoETrataAusencia() throws Exception {
+        var id = UUID.randomUUID();
+        var rota = "/api/v1/catalogo/pecas/" + id + "/placas/";
+        when(arquivos.buscarImagem(id, 2)).thenReturn(Optional.of(
+                new br.com.criare3d.service.PecaArquivoService.ImagemPeca("image/png", new byte[]{1, 2, 3})));
+        mvc.perform(get(rota + "2/foto")).andExpect(status().isUnauthorized());
+        mvc.perform(get(rota + "2/foto").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tipo").value("image/png"))
+                .andExpect(jsonPath("$.base64").value("AQID"));
+        mvc.perform(get(rota + "1/foto").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void detalheDistinguePecaSemArquivoDePecaAusente() throws Exception {
+        var id = UUID.randomUUID();
+        var rota = "/api/v1/catalogo/pecas/" + id + "/arquivo";
+        mvc.perform(get(rota).header("Authorization", "Bearer " + token)).andExpect(status().isNotFound());
+        var peca = Peca.builder().id(id).build();
+        when(pecas.fetchById(id)).thenReturn(Optional.of(peca));
+        mvc.perform(get(rota).header("Authorization", "Bearer " + token)).andExpect(status().isNoContent());
+        var placa = new br.com.criare3d.dto.PecaArquivoResumo.PlacaResumo(2, "/placa", 1800d, 10d,
+                List.of(new br.com.criare3d.dto.PecaMaterialResumo("PLA", "#ff0000", 10d),
+                        new br.com.criare3d.dto.PecaMaterialResumo("PLA", "#ffffff", 0d)));
+        when(arquivos.buscarResumo(peca)).thenReturn(Optional.of(new br.com.criare3d.dto.PecaArquivoResumo(
+                id, "modelo.3mf", "P1S", "BambuStudio", 1, List.of(), List.of(placa))));
+        mvc.perform(get(rota).header("Authorization", "Bearer " + token)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.nomeArquivo").value("modelo.3mf"))
+                .andExpect(jsonPath("$.placas[0].numero").value(2))
+                .andExpect(jsonPath("$.placas[0].temImagem").value(true))
+                .andExpect(jsonPath("$.placas[0].materiais.length()").value(1));
+    }
+
+    @Test
+    void detalheDaImpressoraExibeManutencaoDoResumoExistente() throws Exception {
+        var id = UUID.randomUUID();
+        var impressora = new br.com.criare3d.models.Impressora();
+        impressora.setVidaUtilHoras(new BigDecimal("8000"));
+        impressora.setDepreciacaoPorHora(new BigDecimal("0.1250"));
+        when(manutencao.resumo(id)).thenReturn(Optional.of(new br.com.criare3d.dto.ResumoManutencaoImpressora(
+                impressora, List.of(), new BigDecimal("40.00"), 122, new BigDecimal("0.005"))));
+        mvc.perform(get("/api/v1/catalogo/impressoras/" + id + "/custos").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.minutosImpressos").value(122))
+                .andExpect(jsonPath("$.gastoTotal").value("40.00"))
+                .andExpect(jsonPath("$.manutencaoHora").value("0.005"))
+                .andExpect(jsonPath("$.depreciacaoHora").value("0.1250"));
+    }
+
+    @Test
+    void inicioMostraPrecoCustoESituacaoDaMaoDeObra() throws Exception {
+        var config = new br.com.criare3d.models.Configuracao();
+        when(configuracoes.buscarOuCriarConfiguracao()).thenReturn(config);
+        when(historico.fetchRecentes(3)).thenReturn(List.of(new br.com.criare3d.dto.CalculoRecenteResponse(
+                UUID.randomUUID(), "Calendário", new BigDecimal("67.31"), new BigDecimal("77.41"), null, true, true, 2)));
+        mvc.perform(get("/api/v1/inicio").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.valorHoraConfigurado").value(false))
+                .andExpect(jsonPath("$.recentes[0].custoUnitario").value("67.31"))
+                .andExpect(jsonPath("$.recentes[0].precoSugerido").value("77.41"))
+                .andExpect(jsonPath("$.recentes[0].situacao").value("Vendido"));
+        config.setMaoObraAtivada(true);
+        config.setValorMaoObraHora(BigDecimal.TEN);
+        mvc.perform(get("/api/v1/inicio").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$.valorHoraConfigurado").value(true));
+    }
+
+    @Test
+    void pesquisaFilamentosComCorEPesoDoRolo() throws Exception {
+        var pla = new br.com.criare3d.models.Filamento();
+        pla.setNome("PLA");
+        pla.setCodigoCor("#ff0000");
+        pla.setPesoRoloGramas(new BigDecimal("1000"));
+        pla.setEstoqueGramas(new BigDecimal("82.5"));
+        when(catalogo.buscarFilamentos(eq("vermelho"), any())).thenReturn(new PageImpl<>(List.of(pla)));
+        mvc.perform(get("/api/v1/catalogo/filamentos").param("busca", " vermelho ")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.itens[0].codigoCor").value("#ff0000"))
+                .andExpect(jsonPath("$.itens[0].estoque").value("82.5"))
+                .andExpect(jsonPath("$.itens[0].pesoRolo").value("1000"));
+    }
+
+    @Test
     void listaClientesUsaPaginaEstavel() throws Exception {
         var c = new Comprador();
         c.setId(UUID.randomUUID());
@@ -425,6 +573,39 @@ class ApiContratoTest {
         when(contas.porId(usuario.getUsuarioId())).thenReturn(Optional.of(redefinido));
         mvc.perform(get("/api/v1/auth/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void consultaAvulsaNaoGravaEHistoricoUsaConfirmacaoDePreco() throws Exception {
+        var id = UUID.randomUUID();
+        var entrada = """
+                {"impressoraId":"%1$s","embalagemId":"%1$s","filamentos":[{"filamentoId":"%1$s",
+                "quantidadeFilamentoGramas":12}],"minutos":20,"unidades":1}
+                """.formatted(id);
+        var previa = mock(br.com.criare3d.dto.calculo.ResultadoCalculo.class);
+        when(previa.precoSugerido()).thenReturn(BigDecimal.TEN);
+        when(calculos.preverAvulsoTotais(any(), anyString(), eq(1))).thenReturn(previa);
+        mvc.perform(post("/api/v1/calculos/previa").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(entrada))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.precoUnitario").value(10));
+        verifyNoInteractions(historico);
+
+        var h = new CalculoHistorico();
+        h.setCustoTotal(BigDecimal.ONE);
+        h.setPrecoSugerido(BigDecimal.TEN);
+        h.setNomePeca("Suporte");
+        when(calculos.calcular(any())).thenReturn(h);
+        when(historico.create(h)).thenReturn(h);
+        var salvar = "{\"entrada\":" + entrada.replace("{\"impressoraId", "{\"pecaId\":\"" + id + "\",\"impressoraId")
+                + ",\"custoEsperado\":1,\"precoEsperado\":%s}";
+        mvc.perform(post("/api/v1/calculos").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(salvar.formatted(9)))
+                .andExpect(status().isConflict());
+        verifyNoInteractions(historico);
+        mvc.perform(post("/api/v1/calculos").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(salvar.formatted(10)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nome").value("Suporte"));
+        verify(historico).create(h);
     }
 
     @Test

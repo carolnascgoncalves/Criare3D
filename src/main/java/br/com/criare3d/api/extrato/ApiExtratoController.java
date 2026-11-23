@@ -42,7 +42,7 @@ public class ApiExtratoController {
             String saldoApos,
             OffsetDateTime data) {}
 
-    public record Resumo(String medida, String entrou, String saiu, String pecasVendidas) {}
+    public record Resumo(String medida, String entrou, String saiu, String saldo, String pecasVendidas) {}
 
     public record Abertura(long registros, String gramas) {}
 
@@ -93,6 +93,8 @@ public class ApiExtratoController {
                                                 r.getMedida(),
                                                 decimal(r.getEntrou()),
                                                 decimal(r.getSaiu()),
+                                                decimal(java.util.Objects.requireNonNullElse(r.getEntrou(), BigDecimal.ZERO)
+                                                        .add(java.util.Objects.requireNonNullElse(r.getSaiu(), BigDecimal.ZERO))),
                                                 decimal(r.getPecasVendidas())))
                         .toList();
         var abertura =

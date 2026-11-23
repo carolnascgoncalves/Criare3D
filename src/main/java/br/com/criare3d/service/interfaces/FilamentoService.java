@@ -29,6 +29,8 @@ public interface FilamentoService {
 
     List<Filamento> fetchByIds(Collection<UUID> ids);
 
+    List<Filamento> buscarMenoresSaldos(int limite);
+
     List<Filamento> fetchRecentes(int limite);
 
     Optional<Filamento> fetchEstoqueCritico();

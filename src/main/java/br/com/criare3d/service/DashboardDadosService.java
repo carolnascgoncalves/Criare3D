@@ -82,7 +82,7 @@ public class DashboardDadosService {
             .expireAfterWrite(java.time.Duration.ofSeconds(30)).maximumSize(500).build();
 
     public Map<String, Object> buscar(String periodo) {
-        String selecionado = List.of("30", "90", "tudo").contains(periodo) ? periodo : "30";
+        String selecionado = List.of("7", "30", "90", "tudo").contains(periodo) ? periodo : "30";
         UUID tenant = usuarioLogadoService.buscarTenantIdAtual();
         if (tenant == null) throw new IllegalStateException("Conta sem organização.");
         LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
@@ -94,11 +94,12 @@ public class DashboardDadosService {
 
     private Map<String, Object> carregar(String periodo, LocalDate hoje) {
         Model model = new org.springframework.ui.ExtendedModelMap();
-        if (!List.of("30", "90", "tudo").contains(periodo)) {
+        if (!List.of("7", "30", "90", "tudo").contains(periodo)) {
             periodo = "30";
         }
 
         LocalDateTime inicio = switch (periodo) {
+            case "7" -> hoje.minusDays(6).atStartOfDay();
             case "90" -> hoje.minusDays(89).atStartOfDay();
             case "tudo" -> LocalDateTime.of(1900, 1, 1, 0, 0);
             default -> hoje.minusDays(29).atStartOfDay();
@@ -241,7 +242,7 @@ public class DashboardDadosService {
         String comparacao;
 
         if (!"tudo".equals(periodo)) {
-            int dias = "90".equals(periodo) ? 90 : 30;
+            int dias = Integer.parseInt(periodo);
             Map<LocalDate, BigDecimal> lucroPorDia = new LinkedHashMap<>();
             for (Object[] linha : dias(inicio, fim)) {
                 LocalDate data = LocalDate.of((int) numero(linha[0]), (int) numero(linha[1]), (int) numero(linha[2]));
@@ -361,31 +362,8 @@ public class DashboardDadosService {
     }
 
     private List<Map<String, Object>> montarEstoque() {
-        Map<UUID, Long> usosPorFilamento = new HashMap<>();
-        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosEmItens());
-        acumularUsos(usosPorFilamento, historicoRepository.contarUsosDeFilamentosSimples());
-
-        List<Filamento> maisUsados = new ArrayList<>(filamentoService.fetchByIds(usosPorFilamento.keySet()));
-        maisUsados.sort(Comparator
-            .comparingLong((Filamento filamento) -> usosPorFilamento.getOrDefault(filamento.getId(), 0L)).reversed()
-            .thenComparing(Filamento::getDataCadastro, Comparator.reverseOrder())
-            .thenComparing(Filamento::getNome, String.CASE_INSENSITIVE_ORDER));
-
-        List<Filamento> selecionados = new ArrayList<>(maisUsados.stream().limit(8).toList());
-        Set<UUID> idsSelecionados = new HashSet<>();
-        selecionados.forEach(filamento -> idsSelecionados.add(filamento.getId()));
-
-        if (selecionados.size() < 8) {
-            for (Filamento filamento : filamentoService.fetchRecentes(8)) {
-                if (idsSelecionados.add(filamento.getId())) {
-                    selecionados.add(filamento);
-                    if (selecionados.size() == 8) break;
-                }
-            }
-        }
-
         List<Map<String, Object>> resultado = new ArrayList<>();
-        for (Filamento filamento : selecionados) {
+        for (Filamento filamento : filamentoService.buscarMenoresSaldos(6)) {
             BigDecimal estoque = valor(filamento.getEstoqueGramas());
             BigDecimal pesoRolo = valor(filamento.getPesoRoloGramas());
             int restante = pesoRolo.signum() <= 0 ? 0 : estoque.multiply(BigDecimal.valueOf(100))
@@ -403,13 +381,7 @@ public class DashboardDadosService {
         return resultado;
     }
 
-    private void acumularUsos(Map<UUID, Long> usos, List<Object[]> linhas) {
-        for (Object[] linha : linhas) {
-            if (linha[0] instanceof UUID id) {
-                usos.merge(id, numero(linha[1]), Long::sum);
-            }
-        }
-    }
+
 
     private String nomePlataforma(String codigo) {
         if (codigo == null || codigo.isBlank()) return "Sem plataforma";

@@ -158,6 +158,11 @@ public class FilamentoServiceImp implements FilamentoService {
     }
 
     @Override
+    public List<Filamento> buscarMenoresSaldos(int limite) {
+        return filamentoRepository.buscarMenoresSaldos(PageRequest.of(0, limite));
+    }
+
+    @Override
     public List<Filamento> fetchRecentes(int limite) {
         if (limite <= 0) {
             return List.of();

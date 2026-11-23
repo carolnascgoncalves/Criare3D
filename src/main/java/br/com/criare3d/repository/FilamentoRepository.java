@@ -19,6 +19,14 @@ public interface FilamentoRepository extends
 
     @Query("""
         SELECT f FROM Filamento f
+        WHERE f.arquivado = false
+        ORDER BY coalesce(f.estoqueGramas, 0) / nullif(f.pesoRoloGramas, 0) ASC NULLS LAST,
+                 lower(f.cor), lower(f.nome), f.id
+        """)
+    List<Filamento> buscarMenoresSaldos(Pageable pageable);
+
+    @Query("""
+        SELECT f FROM Filamento f
         WHERE f.arquivado = false AND f.estoqueGramas IS NOT NULL
           AND f.pesoRoloGramas IS NOT NULL
           AND f.pesoRoloGramas > 0

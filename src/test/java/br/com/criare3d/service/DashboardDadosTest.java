@@ -9,6 +9,7 @@ import br.com.criare3d.service.interfaces.PecaService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +41,7 @@ class DashboardDadosTest {
         assertThat(service.buscar("30").get("totalPecas")).isEqualTo(1L);
         assertThat(service.buscar("90")).isNotSameAs(primeiro);
         verify(pecas, times(3)).contar();
+        assertThat((List<?>) service.buscar("7").get("valoresLucro")).hasSize(7);
         assertThatThrownBy(() -> primeiro.put("totalPecas", 99L)).isInstanceOf(UnsupportedOperationException.class);
     }
 
