@@ -160,8 +160,11 @@ public class PecaArquivoService {
             }
             List<PecaMaterialResumo> materiais = resumirFilamentos(dados.filamentosUsados());
             if (materiais.isEmpty()) materiais = materiaisConfigurados(dados.material(), dados.corMaterial());
+            var filamentos = dados.filamentosUsados() == null ? List.<PecaMaterialResumo>of()
+                : dados.filamentosUsados().stream().filter(f -> f != null && f.pesoGramas() > 0)
+                    .map(f -> new PecaMaterialResumo(texto(f.material(), 60), corSegura(f.cor()), f.pesoGramas())).toList();
             return Optional.of(new PecaArquivoResumo(peca.getId(), pedido.nomeArquivo(), dados.modeloImpressora(),
-                dados.fatiador(), dados.numeroPlacas(), materiais, List.copyOf(placas)));
+                dados.fatiador(), dados.numeroPlacas(), materiais, List.copyOf(placas), filamentos));
         } catch (tools.jackson.core.JacksonException e) {
             log.warn("Metadados 3MF inválidos na peça {}: {}", peca.getId(), e.getClass().getSimpleName());
             return Optional.empty();

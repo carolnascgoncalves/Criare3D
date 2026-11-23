@@ -10,8 +10,14 @@ public record PecaArquivoResumo(
     String fatiador,
     int numeroPlacas,
     List<PecaMaterialResumo> materiais,
-    List<PlacaResumo> placas
+    List<PlacaResumo> placas,
+    List<PecaMaterialResumo> filamentosUsados
 ) {
+    public PecaArquivoResumo(UUID pecaId, String nomeArquivo, String modeloImpressora, String fatiador,
+                            int numeroPlacas, List<PecaMaterialResumo> materiais, List<PlacaResumo> placas) {
+        this(pecaId, nomeArquivo, modeloImpressora, fatiador, numeroPlacas, materiais, placas, materiais);
+    }
+
     public boolean temMiniatura() {
         return placas != null && placas.stream().anyMatch(PlacaResumo::temImagem);
     }

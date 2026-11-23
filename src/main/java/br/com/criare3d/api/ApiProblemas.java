@@ -66,6 +66,12 @@ public class ApiProblemas {
         return ResponseEntity.unprocessableEntity().body(p);
     }
 
+    @ExceptionHandler(br.com.criare3d.service.FreteManualNecessarioException.class)
+    ResponseEntity<ProblemDetail> freteManual(br.com.criare3d.service.FreteManualNecessarioException e) {
+        return ResponseEntity.unprocessableEntity().body(
+                problema(HttpStatus.UNPROCESSABLE_ENTITY, "frete_manual", e.getMessage()));
+    }
+
     @ExceptionHandler(CompradorDuplicadoException.class)
     ResponseEntity<ProblemDetail> duplicado(CompradorDuplicadoException e) {
         var p = problema(HttpStatus.CONFLICT, "cliente_duplicado", e.getMessage());

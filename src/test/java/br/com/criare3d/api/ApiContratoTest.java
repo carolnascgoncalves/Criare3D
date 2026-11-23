@@ -91,6 +91,8 @@ class ApiContratoTest {
     @MockitoBean ItemPedidoRepository reservas;
     @MockitoBean DashboardDadosService dashboard;
     @MockitoBean CompradorRepository compradores;
+    @MockitoBean Modelo3mfParser parser;
+    @MockitoBean FotoCalculoService fotos;
     @MockitoBean CalculoService calculos;
     @MockitoBean CatalogoBuscaService catalogo;
     @MockitoBean br.com.criare3d.service.interfaces.PecaService pecas;
@@ -576,6 +578,41 @@ class ApiContratoTest {
     }
 
     @Test
+    void previaConsideraDoisFilamentosETaxasDoCanal() throws Exception {
+        var id = UUID.randomUUID();
+        var resultado = mock(br.com.criare3d.dto.calculo.ResultadoCalculo.class);
+        when(resultado.taxasPlataforma()).thenReturn(new BigDecimal("3.25"));
+        when(calculos.prever(any())).thenReturn(resultado);
+        var entrada = """
+                {"pecaId":"%1$s","impressoraId":"%1$s","embalagemId":"%1$s","filamentos":[
+                 {"filamentoId":"%1$s","quantidadeFilamentoGramas":2.5},{"filamentoId":"%2$s","quantidadeFilamentoGramas":7}],
+                 "minutos":10,"unidades":1,"venda":{"plataformaVenda":"TIKTOK","freteGratisTikTok":true}}
+                """.formatted(id, UUID.randomUUID());
+        mvc.perform(post("/api/v1/calculos/previa").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(entrada))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.custos.taxasPlataforma").value(3.25));
+        verify(calculos).prever(argThat(r -> r.getFilamentos().size() == 2 && r.isFreteGratisTikTok()
+                && r.getPlataformaVenda() == br.com.criare3d.models.enums.PlataformaVenda.TIKTOK));
+        verifyNoInteractions(historico);
+    }
+
+    @Test
+    void importarConsultaRapidaDevolveConsumoPorCorSemSalvar() throws Exception {
+        var modelo = mock(br.com.criare3d.dto.Modelo3mfResponse.class);
+        when(modelo.numeroPlacas()).thenReturn(2);
+        when(modelo.filamentosUsados()).thenReturn(List.of(
+                new br.com.criare3d.dto.Modelo3mfFilamentoResponse(1, "PLA", "#ff0000", 13.5),
+                new br.com.criare3d.dto.Modelo3mfFilamentoResponse(2, "PLA", "#ffffff", 6.75)));
+        when(parser.analisarConsulta(any())).thenReturn(modelo);
+        mvc.perform(multipart("/api/v1/calculos/arquivo").file("arquivo3mf",new byte[]{1})
+                        .header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.placas").value(2))
+                .andExpect(jsonPath("$.materiais[1].cor").value("#ffffff"))
+                .andExpect(jsonPath("$.materiais[1].pesoGramas").value(6.75));
+        verifyNoInteractions(historico, calculos);
+    }
+
+    @Test
     void consultaAvulsaNaoGravaEHistoricoUsaConfirmacaoDePreco() throws Exception {
         var id = UUID.randomUUID();
         var entrada = """
@@ -584,7 +621,7 @@ class ApiContratoTest {
                 """.formatted(id);
         var previa = mock(br.com.criare3d.dto.calculo.ResultadoCalculo.class);
         when(previa.precoSugerido()).thenReturn(BigDecimal.TEN);
-        when(calculos.preverAvulsoTotais(any(), anyString(), eq(1))).thenReturn(previa);
+        when(calculos.preverAvulsoTotais(any(), nullable(String.class), eq(1))).thenReturn(previa);
         mvc.perform(post("/api/v1/calculos/previa").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content(entrada))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.precoUnitario").value(10));
@@ -606,6 +643,17 @@ class ApiContratoTest {
                         .contentType(MediaType.APPLICATION_JSON).content(salvar.formatted(10)))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.nome").value("Suporte"));
         verify(historico).create(h);
+        String comFoto = salvar.formatted(10).stripTrailing().replaceFirst("}$", ",\"foto\":\"%s\"}");
+        mvc.perform(post("/api/v1/calculos").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(comFoto.formatted("YWJj")))
+                .andExpect(status().isUnprocessableEntity());
+        byte[] png = Base64.getDecoder().decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+rWaQAAAAASUVORK5CYII=");
+        when(historico.create(h,"image/png",png)).thenReturn(h);
+        mvc.perform(post("/api/v1/calculos").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(comFoto.formatted(Base64.getEncoder().encodeToString(png))))
+                .andExpect(status().isOk());
+        verify(historico).create(h,"image/png",png);
+
     }
 
     @Test

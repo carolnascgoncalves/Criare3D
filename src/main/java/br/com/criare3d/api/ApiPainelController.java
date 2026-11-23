@@ -67,7 +67,7 @@ public class ApiPainelController {
             Integer placa = resumo == null ? null : resumo.placas().stream()
                     .filter(PecaArquivoResumo.PlacaResumo::temImagem).map(PecaArquivoResumo.PlacaResumo::numero)
                     .findFirst().orElse(null);
-            var materiais = resumo == null ? List.<PecaMaterialResumo>of() : resumo.materiais().stream()
+            var materiais = resumo == null ? List.<PecaMaterialResumo>of() : resumo.filamentosUsados().stream()
                     .filter(material -> material.pesoGramas() > 0).toList();
             return new PecaCatalogo(p.getId(), p.getNome(), p.getCategoria(), decimal(p.getQuantidadeFilamentoGramas()),
                     p.getTempoImpressaoMinutos(), decimal(precos.get(p.getId())), placa,
