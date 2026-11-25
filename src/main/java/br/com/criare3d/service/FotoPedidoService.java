@@ -38,6 +38,11 @@ public class FotoPedidoService {
         fotos.save(f);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<byte[]> miniaturaDaProposta(UUID itemId) {
+        return buscar(itemId).map(f -> FotoCalculoService.gerarMiniatura(f.bytes(), true));
+    }
+
     public void copiar(UUID itemId, UUID calculoId) {
         fotosCalculo.buscarConteudoFoto(calculoId, false).ifPresent(f -> salvar(itemId, f));
     }

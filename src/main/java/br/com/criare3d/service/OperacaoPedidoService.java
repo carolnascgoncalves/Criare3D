@@ -36,8 +36,10 @@ public class OperacaoPedidoService {
     private final VendaService vendas;
     private final Clock clock;
     private final FotoPedidoService fotos;
+    private final org.springframework.context.ApplicationEventPublisher eventos;
 
-    public OperacaoPedidoService(PedidoOrcamentoRepository pedidos, ItemPedidoRepository itens, CalculoHistoricoRepository historicos, ImpressoraRepository impressoras, CalculoService calculos, HistoricoCalculoService salvarCalculo, EntradaPedidoService entradas, PlanejamentoPedidoService planejamento, ProducaoService producao, VendaService vendas, Clock clock, FotoPedidoService fotos) {
+    public OperacaoPedidoService(PedidoOrcamentoRepository pedidos, ItemPedidoRepository itens, CalculoHistoricoRepository historicos, ImpressoraRepository impressoras, CalculoService calculos, HistoricoCalculoService salvarCalculo, EntradaPedidoService entradas, PlanejamentoPedidoService planejamento, ProducaoService producao, VendaService vendas, Clock clock, FotoPedidoService fotos, org.springframework.context.ApplicationEventPublisher eventos) {
+        this.eventos=eventos;
         this.fotos = fotos;
         this.pedidos = pedidos;
         this.itens = itens;
@@ -110,7 +112,10 @@ public class OperacaoPedidoService {
         if (!p.isOperacional() && p.getStatus() != StatusPedido.ENTREGUE)
             throw new IllegalArgumentException("Aprove o pedido antes de registrar o pagamento.");
         if (p.getPagoEm() != null) throw new IllegalArgumentException("O pagamento já foi registrado.");
+        if (!pronto(p)) throw new IllegalArgumentException("Conclua a produção de todas as peças antes do pagamento.");
+        registrarVendasSeNecessario(p);
         p.setPagoEm(LocalDateTime.now(clock));
+        eventos.publishEvent(new DashboardDadosService.PedidoAlterado(p.getTenantId()));
         p.setRevisao(p.getRevisao() + 1);
     }
 
@@ -120,6 +125,16 @@ public class OperacaoPedidoService {
         bloquearLotes(p);
         if (!pronto(p))
             throw new IllegalArgumentException("Confirme a produção dos itens pendentes antes de entregar.");
+        registrarVendasSeNecessario(p);
+        p.setStatus(StatusPedido.ENTREGUE);
+        p.setEntregueEm(LocalDateTime.now(clock));
+        eventos.publishEvent(new DashboardDadosService.PedidoAlterado(p.getTenantId()));
+        p.setRevisao(p.getRevisao() + 1);
+    }
+
+    private void registrarVendasSeNecessario(PedidoOrcamento p) {
+        bloquearLotes(p);
+        if (vendas.possuiVendaAtivaDoPedido(p.getId())) return;
         if (p.getSubtotal().signum() <= 0) throw new IllegalArgumentException("Confira o valor das peças.");
         for (var i : p.getItens()) {
             i.setReservaEstoque(0);
@@ -134,9 +149,6 @@ public class OperacaoPedidoService {
             if (i.getUsarEstoque() > 0) vender(p, i.getLoteEstoque(), i.getUsarEstoque(), preco, desconto, taxas);
             if (i.getProduzir() > 0) vender(p, i.getLoteProducao(), i.getProduzir(), preco, desconto, taxas);
         }
-        p.setStatus(StatusPedido.ENTREGUE);
-        p.setEntregueEm(LocalDateTime.now(clock));
-        p.setRevisao(p.getRevisao() + 1);
     }
 
     private void vender(PedidoOrcamento p, CalculoHistorico h, int q, BigDecimal preco, BigDecimal desconto, BigDecimal taxas) {
@@ -149,7 +161,7 @@ public class OperacaoPedidoService {
         if (p.getStatus() == StatusPedido.CANCELADO)
             throw new IllegalArgumentException("Este pedido já foi cancelado.");
         bloquearLotes(p);
-        if (p.getStatus() == StatusPedido.ENTREGUE) vendas.cancelarPedido(id);
+        if (p.getPagoEm() != null || p.getStatus() == StatusPedido.ENTREGUE) vendas.cancelarPedido(id);
         for (var i : p.getItens()) {
             i.setReservaEstoque(0);
             i.setReservaProducao(0);
@@ -160,6 +172,57 @@ public class OperacaoPedidoService {
         }
         p.setStatus(StatusPedido.CANCELADO);
         p.setCanceladoEm(LocalDateTime.now(clock));
+        eventos.publishEvent(new DashboardDadosService.PedidoAlterado(p.getTenantId()));
+        p.setRevisao(p.getRevisao() + 1);
+    }
+
+    public void recuar(UUID id, long revisao, String destino) {
+        var p = bloquear(id, revisao);
+        var fases = java.util.List.of("rascunho", "enviado", "produzir", "pronto", "pago", "entregue");
+        int atual = switch (p.getStatus()) {
+            case ENTREGUE -> 5;
+            case PRONTO, APROVADO -> p.getPagoEm() != null ? 4 : pronto(p) ? 3 : 2;
+            case ENVIADO -> 1;
+            default -> 0;
+        };
+        int alvo = fases.indexOf(destino);
+        if (p.isArquivado() || alvo < 0 || alvo >= atual || alvo == 4 && p.getPagoEm() == null
+            || alvo == 2 && p.getQuantidadeProduzir() == 0 || alvo == 3 && !pronto(p))
+            throw new IllegalArgumentException("Escolha uma fase anterior disponível.");
+        bloquearLotes(p);
+        if (alvo < 4 && (p.getPagoEm() != null || p.getStatus() == StatusPedido.ENTREGUE)) {
+            vendas.cancelarPedido(id);
+            p.setPagoEm(null);
+            for (var i : p.getItens()) {
+                i.setReservaEstoque(i.getUsarEstoque());
+                i.setReservaProducao(i.getProduzir());
+            }
+        }
+        p.setEntregueEm(null);
+        if (alvo <= 2) {
+            for (var i : p.getItens()) {
+                i.setReservaProducao(0);
+                if (alvo < 2) i.setReservaEstoque(0);
+            }
+            itens.flush();
+            for (var i : p.getItens()) {
+                if (alvo == 2 && i.getLoteProducao() != null && i.isPronto()
+                    && producao.atualizarProduzido(i.getLoteProducao().getId(), false) != ResultadoOperacao.OK)
+                    throw new IllegalArgumentException("Não foi possível reabrir a produção deste lote. Confira as vendas e reservas.");
+                if (i.getPlanejamento() != null) {
+                    i.getPlanejamento().setCancelado(alvo < 2);
+                    if (alvo == 2) i.getPlanejamento().setConcluido(false);
+                }
+                if (alvo < 2) {
+                    i.setPlanejamento(null);
+                    i.setLoteProducao(null);
+                } else i.setReservaProducao(i.getProduzir());
+            }
+        }
+        if (alvo < 2) p.setAprovadoEm(null);
+        eventos.publishEvent(new DashboardDadosService.PedidoAlterado(p.getTenantId()));
+        if (alvo == 0) p.setEnviadoEm(null);
+        p.setStatus(alvo < 2 ? StatusPedido.ENVIADO : alvo == 2 || !pronto(p) ? StatusPedido.APROVADO : StatusPedido.PRONTO);
         p.setRevisao(p.getRevisao() + 1);
     }
 

@@ -1,6 +1,8 @@
 package br.com.criare3d.service;
 
 import br.com.criare3d.models.Filamento;
+import br.com.criare3d.models.PedidoOrcamento;
+import br.com.criare3d.repository.PedidoOrcamentoRepository;
 import br.com.criare3d.repository.CalculoHistoricoRepository;
 import br.com.criare3d.service.interfaces.EmbalagemService;
 import br.com.criare3d.service.interfaces.FilamentoService;
@@ -27,6 +29,20 @@ public class DashboardDadosService {
         cache.asMap().keySet().removeIf(chave -> chave.tenant().equals(tenant));
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private PedidoOrcamentoRepository pedidos;
+
+    public record PedidoAlterado(UUID tenant) {}
+    @org.springframework.transaction.event.TransactionalEventListener
+    public void atualizarDepoisDoPedido(PedidoAlterado evento) {
+        invalidar(evento.tenant());
+    }
+
+    private BigDecimal lucroLegado(List<PedidoOrcamento> pagos, LocalDateTime inicio, LocalDateTime fim) {
+        return pagos.stream().filter(p -> !p.getPagoEm().isBefore(inicio) && p.getPagoEm().isBefore(fim))
+            .map(PedidoOrcamento::getLucro).reduce(ZERO, BigDecimal::add);
+    }
+
     private record Outros(long unidades, BigDecimal receita, BigDecimal lucro, long semCusto) {
     }
 
@@ -35,8 +51,8 @@ public class DashboardDadosService {
         return r == null ? new Outros(0, ZERO, ZERO, 0) : new Outros(numero(r.getUnidades()), valor(r.getReceita()), valor(r.getLucro()), numero(r.getSemCusto()));
     }
 
-    private BigDecimal lucroEntre(LocalDateTime inicio, LocalDateTime fim) {
-        return valor(historicoRepository.somarLucroVendidoEntre(inicio, fim)).add(outros(inicio, fim).lucro());
+    private BigDecimal lucroEntre(List<PedidoOrcamento> pagos, LocalDateTime inicio, LocalDateTime fim) {
+        return valor(historicoRepository.somarLucroVendidoEntre(inicio, fim)).add(outros(inicio, fim).lucro()).add(lucroLegado(pagos,inicio,fim));
     }
 
     private List<Object[]> dias(LocalDateTime inicio, LocalDateTime fim) {
@@ -110,7 +126,8 @@ public class DashboardDadosService {
         long calculos = resumo.calculadas();
         long produzidos = resumo.produzidas();
         long vendidos = resumo.vendidas();
-        BigDecimal lucroVendido = resumo.lucroVendido();
+        var pagos = pedidos == null ? List.<PedidoOrcamento>of() : pedidos.pagosAguardandoVendaLegada();
+        BigDecimal lucroVendido = resumo.lucroVendido().add(lucroLegado(pagos,inicio,fim));
         long minutosVendidos = resumo.minutosVendidos();
         long minutosProduzidos = resumo.minutosProduzidos();
         BigDecimal gramasUsadas = resumo.gramasFilamento();
@@ -180,7 +197,7 @@ public class DashboardDadosService {
         model.addAttribute("vendasCategoriaNomes", vendasCategorias.stream().map(item -> item.get("nome")).toList());
         model.addAttribute("vendasCategoriaUnidades", vendasCategorias.stream().map(item -> item.get("unidades")).toList());
         model.addAttribute("vendasCategoriaLucros", vendasCategorias.stream().map(item -> item.get("lucro")).toList());
-        adicionarSerieLucro(model, periodo, hoje, inicio, fim, lucroVendido);
+        adicionarSerieLucro(pagos,model, periodo, hoje, inicio, fim, lucroVendido);
         List<Map<String, Object>> composicao = montarComposicao(
             historicoRepository.somarComposicaoCustosProduzidosDesde(inicio));
         model.addAttribute("composicaoCustos", composicao);
@@ -233,7 +250,7 @@ public class DashboardDadosService {
         return resultado;
     }
 
-    private void adicionarSerieLucro(Model model, String periodo, LocalDate hoje,
+    private void adicionarSerieLucro(List<PedidoOrcamento> pagos,Model model, String periodo, LocalDate hoje,
                                      LocalDateTime inicio, LocalDateTime fim, BigDecimal lucroPeriodoAtual) {
         List<String> rotulos = new ArrayList<>();
         List<BigDecimal> valores = new ArrayList<>();
@@ -248,6 +265,7 @@ public class DashboardDadosService {
                 LocalDate data = LocalDate.of((int) numero(linha[0]), (int) numero(linha[1]), (int) numero(linha[2]));
                 lucroPorDia.merge(data, valor(linha[3]), BigDecimal::add);
             }
+            pagos.forEach(p -> lucroPorDia.merge(p.getPagoEm().toLocalDate(),p.getLucro(),BigDecimal::add));
             DateTimeFormatter formatoDia = DateTimeFormatter.ofPattern("dd/MM");
             LocalDate primeiroDia = inicio.toLocalDate();
             for (int i = 0; i < dias; i++) {
@@ -256,7 +274,7 @@ public class DashboardDadosService {
                 valores.add(lucroPorDia.getOrDefault(dia, ZERO));
             }
             lucroAtual = lucroPeriodoAtual;
-            lucroAnterior = lucroEntre(inicio.minusDays(dias), inicio);
+            lucroAnterior = lucroEntre(pagos,inicio.minusDays(dias), inicio);
             comparacao = "vs período anterior";
         } else {
             YearMonth mesAtual = YearMonth.from(hoje);
@@ -264,6 +282,7 @@ public class DashboardDadosService {
             var primeiraOutra = outrasVendas == null ? null : outrasVendas.primeiraVendaComLucro();
             if (primeiraOutra != null && (primeiraVenda == null || primeiraOutra.isBefore(primeiraVenda)))
                 primeiraVenda = primeiraOutra;
+            for (var p:pagos) if(primeiraVenda==null || p.getPagoEm().isBefore(primeiraVenda)) primeiraVenda=p.getPagoEm();
             YearMonth primeiroMes = primeiraVenda == null
                 ? mesAtual.minusMonths(5)
                 : YearMonth.from(primeiraVenda);
@@ -275,6 +294,7 @@ public class DashboardDadosService {
                 lucroPorMes.merge(chave, valor(linha[2]), BigDecimal::add);
             }
 
+            pagos.forEach(p -> lucroPorMes.merge(p.getPagoEm().getYear()*100+p.getPagoEm().getMonthValue(),p.getLucro(),BigDecimal::add));
             DateTimeFormatter formatoMes = DateTimeFormatter.ofPattern("MMM/yy", Locale.forLanguageTag("pt-BR"));
             for (YearMonth mes = primeiroMes; !mes.isAfter(mesAtual); mes = mes.plusMonths(1)) {
                 String rotulo = mes.format(formatoMes).replace(".", "");
@@ -283,8 +303,8 @@ public class DashboardDadosService {
             }
             LocalDateTime inicioMesAtual = mesAtual.atDay(1).atStartOfDay();
             LocalDateTime inicioMesAnterior = mesAtual.minusMonths(1).atDay(1).atStartOfDay();
-            lucroAtual = lucroEntre(inicioMesAtual, fim);
-            lucroAnterior = lucroEntre(inicioMesAnterior, inicioMesAtual);
+            lucroAtual = lucroEntre(pagos,inicioMesAtual, fim);
+            lucroAnterior = lucroEntre(pagos,inicioMesAnterior, inicioMesAtual);
             comparacao = "vs mês anterior";
         }
 

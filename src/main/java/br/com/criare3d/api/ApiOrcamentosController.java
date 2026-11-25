@@ -21,6 +21,7 @@ import java.time.*;
 @RequiredArgsConstructor
 @Transactional(readOnly=true)
 public class ApiOrcamentosController {
+    private final FotoPedidoService fotos;
     private final OrcamentoPedidoService service;
     private final OperacaoPedidoService operacoes;
     private final PlanejamentoPedidoService agenda;
@@ -48,6 +49,12 @@ public class ApiOrcamentosController {
         return new Lista(page.stream().map(this::resumo).toList(),page.getTotalElements(),page.getSize(),receber,prontos,produzir);
     }
     @GetMapping("/pecas") public List<OrcamentoPedidoService.Referencia> pecas(){return service.referencias();}
+    @GetMapping("/itens/{itemId}/miniatura")
+    public org.springframework.http.ResponseEntity<ApiPainelController.FotoCatalogo> miniatura(@PathVariable UUID itemId) {
+        return fotos.miniaturaDaProposta(itemId)
+            .map(bytes -> org.springframework.http.ResponseEntity.ok(new ApiPainelController.FotoCatalogo("image/jpeg", Base64.getEncoder().encodeToString(bytes))))
+            .orElseGet(() -> org.springframework.http.ResponseEntity.noContent().build());
+    }
     @GetMapping("/{id}") public Detalhe abrir(@PathVariable UUID id){return detalhe(service.buscar(id));}
     private Detalhe detalhe(PedidoOrcamento p){
         PedidoDadosRequest d=new PedidoDadosRequest();
@@ -57,15 +64,23 @@ public class ApiOrcamentosController {
         List<PlanejamentoPedidoService.Linha> linhas=List.of();
         String aviso=null;
         if(editar)try{linhas=agenda.prever(p);}catch(IllegalArgumentException e){aviso=e.getMessage();}
+        if (!editar) linhas=p.getItens().stream().filter(i -> i.getPlanejamento()!=null).map(i ->
+            new PlanejamentoPedidoService.Linha(i.getId(),i.getNome(),i.getPlanejamento().getInicio(),i.getPlanejamento().getFim())).toList();
         var fim=editar?linhas.stream().map(PlanejamentoPedidoService.Linha::fim).filter(Objects::nonNull).max(LocalDateTime::compareTo).orElse(null):p.getPrevisao();
         MateriaisPedido.Resumo materiais=null;
         try{materiais=service.materiais(p);}catch(IllegalArgumentException e){aviso=e.getMessage();}
         return new Detalhe(resumo(p),p.getItens().stream().map(i->new Item(i.getId(),i.getLoteEstoque()==null?null:i.getLoteEstoque().getId(),i.getNome(),i.getMateriais(),i.getQuantidade(),i.getUsarEstoque(),i.getLoteEstoque()==null?0:service.disponivel(i.getLoteEstoque()),i.getPrecoUnitario(),i.getTotal(),i.isPronto())).toList(),
           d,p.getSubtotal(),p.getDesconto(),p.getCusto(),p.getTaxas(),p.getRentabilidade(),fim,linhas,editar?agenda.ocupacoes(p):List.of(),materiais,aviso);
     }
+    private static void validarCliente(String nome,String email,String telefone){
+        if(nome==null || nome.isBlank() || ((email==null || email.isBlank()) && br.com.criare3d.util.ContatoCliente.digitos(telefone).isEmpty()))
+            throw new IllegalArgumentException("Informe o nome do cliente e pelo menos um telefone ou e-mail.");
+    }
+
     @PostMapping @Transactional public Detalhe iniciar(@RequestParam UUID chave,@Valid @RequestBody SelecaoPedidoRequest selecao){
         if (selecao.getItens()==null || selecao.getItens().isEmpty() || selecao.getItens().stream().anyMatch(i -> i==null || i.getReferencia()==null))
             throw new IllegalArgumentException("Escolha uma peça válida para iniciar.");
+        validarCliente(selecao.getCliente(), selecao.getEmail(), selecao.getContato());
         var signature=List.of(String.valueOf(selecao.getCompradorId()),String.valueOf(selecao.getCliente()),String.valueOf(selecao.getContato()),String.valueOf(selecao.getEmail()),selecao.getItens().stream().map(i->List.of(i.getReferencia(),i.getQuantidade(),i.getEstoque(),i.isSelecionado())).toList()).toString();
         var id=chaves.executar(chave,"INICIAR_ORCAMENTO",signature,()->service.adicionarVarios(null,selecao).getId().toString());
         return abrir(UUID.fromString(id));
@@ -75,6 +90,7 @@ public class ApiOrcamentosController {
     @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMobileEdicao")
     public record Edicao(long revisao,@NotNull @Valid PedidoDadosRequest dados,@NotEmpty @Size(max=20) List<@NotNull @Valid LinhaEdicao> itens,boolean enviar){}
     @PutMapping("/{id}") @Transactional public Detalhe salvar(@PathVariable UUID id,@Valid @RequestBody Edicao e){
+        validarCliente(e.dados().getCliente(),e.dados().getEmail(),e.dados().getContato());
         var p=service.editavel(id);
         if(p.getRevisao()!=e.revisao()) throw new IllegalArgumentException("A proposta mudou. Reabra para ver os valores atuais.");
         var manter=new HashSet<UUID>();
@@ -107,6 +123,12 @@ public class ApiOrcamentosController {
     @PostMapping("/{id}/{acao}") @Transactional public Detalhe agir(@PathVariable UUID id,@PathVariable String acao,@RequestParam long revisao,@RequestParam(required=false) UUID item){
         var p=pedidos.bloquear(id).orElseThrow();
         if(p.getRevisao()!=revisao)throw new IllegalArgumentException("A proposta mudou. Reabra o pedido.");
+        if (acao.startsWith("voltar-")) {
+            String destino=acao.substring(7);
+            operacoes.recuar(id,revisao,destino);
+            if(destino.equals("rascunho")) service.revisar(id);
+            return detalhe(p);
+        }
         switch(acao){
             case "arquivar","restaurar" -> service.arquivar(id,acao.equals("arquivar"));
             case "aprovar" -> operacoes.aprovar(id,revisao);

@@ -89,12 +89,14 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
               AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "vendidas",
           COALESCE((SELECT SUM(COALESCE(v.lucro_unitario, ch.lucro_liquido_hist) * (v.unidades - v.unidades_canceladas)) FROM venda_calculo v
               JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
-              WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "lucro",
+              LEFT JOIN pedido_orcamento p ON p.id = v.pedido_id AND p.tenant_id = v.tenant_id
+              WHERE v.tenant_id = :tenantId AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) >= :inicio AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) < :fim), 0) AS "lucro",
           COALESCE((SELECT SUM((CASE WHEN ch.minutos_maquina_lote_hist > 0 THEN ch.minutos_maquina_lote_hist
               ELSE (ch.temp_hist + COALESCE(ch.tempo_aquecimento_hist, 0)) * ch.fornadas_hist END)
               * (v.unidades - v.unidades_canceladas)::numeric / NULLIF(ch.unidades_hist, 0)) FROM venda_calculo v
               JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
-              WHERE v.tenant_id = :tenantId AND v.data_venda >= :inicio AND v.data_venda < :fim), 0) AS "minutosVendidos",
+              LEFT JOIN pedido_orcamento p ON p.id = v.pedido_id AND p.tenant_id = v.tenant_id
+              WHERE v.tenant_id = :tenantId AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) >= :inicio AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) < :fim), 0) AS "minutosVendidos",
           COALESCE(SUM(CASE WHEN h.minutos_maquina_lote_hist > 0 THEN h.minutos_maquina_lote_hist
               ELSE (h.temp_hist + COALESCE(h.tempo_aquecimento_hist, 0)) * h.fornadas_hist END)
               FILTER (WHERE h.produzido_hist = TRUE AND h.data_producao_hist >= :inicio AND h.data_producao_hist < :fim), 0) AS "minutosProduzidos",
@@ -228,35 +230,35 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
 
     @Query("""
         SELECT COALESCE(SUM(COALESCE(v.lucroUnitario, h.lucroLiquido) * (v.unidades - v.unidadesCanceladas)), 0)
-        FROM VendaCalculo v JOIN v.calculo h
-        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim
+        FROM VendaCalculo v JOIN v.calculo h LEFT JOIN PedidoOrcamento p ON p.id = v.pedidoId
+        WHERE (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) >= :inicio AND (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) < :fim
           AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
         """)
     BigDecimal somarLucroVendidoEntre(@Param("inicio") LocalDateTime inicio,
                                       @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda),
+        SELECT YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), DAY((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)),
                COALESCE(SUM(COALESCE(v.lucroUnitario, h.lucroLiquido) * (v.unidades - v.unidadesCanceladas)), 0)
-        FROM VendaCalculo v JOIN v.calculo h
-        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
-        GROUP BY YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda)
-        ORDER BY YEAR(v.dataVenda), MONTH(v.dataVenda), DAY(v.dataVenda)
+        FROM VendaCalculo v JOIN v.calculo h LEFT JOIN PedidoOrcamento p ON p.id = v.pedidoId
+        WHERE (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) >= :inicio AND (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) < :fim AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
+        GROUP BY YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), DAY((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END))
+        ORDER BY YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), DAY((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END))
         """)
     List<Object[]> somarLucroVendidoPorDia(@Param("inicio") LocalDateTime inicio,
                                            @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT MIN(v.dataVenda)
-        FROM VendaCalculo v JOIN v.calculo h
+        SELECT MIN((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END))
+        FROM VendaCalculo v JOIN v.calculo h LEFT JOIN PedidoOrcamento p ON p.id = v.pedidoId
         WHERE v.unidades > v.unidadesCanceladas AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
         """)
     LocalDateTime primeiraVendaComLucro();
 
     @Query("""
         SELECT COALESCE(h.plataformaVenda, 'NENHUMA'), COALESCE(SUM(COALESCE(v.lucroUnitario, h.lucroLiquido) * (v.unidades - v.unidadesCanceladas)), 0), COALESCE(SUM((v.unidades - v.unidadesCanceladas)), 0)
-        FROM VendaCalculo v JOIN v.calculo h
-        WHERE v.dataVenda >= :inicio
+        FROM VendaCalculo v JOIN v.calculo h LEFT JOIN PedidoOrcamento p ON p.id = v.pedidoId
+        WHERE (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) >= :inicio
         GROUP BY COALESCE(h.plataformaVenda, 'NENHUMA')
         """)
     List<Object[]> somarLucroPorPlataformaDesde(@Param("inicio") LocalDateTime inicio);
@@ -267,8 +269,9 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                COALESCE(SUM(COALESCE(v.lucro_unitario, ch.lucro_liquido_hist) * (v.unidades - v.unidades_canceladas)), 0) AS lucro
         FROM venda_calculo v
         JOIN calculo_historico ch ON ch.tenant_id = v.tenant_id AND ch.id = v.calculo_id
+              LEFT JOIN pedido_orcamento p ON p.id = v.pedido_id AND p.tenant_id = v.tenant_id
         WHERE v.tenant_id = :tenantId
-          AND v.data_venda >= :inicio AND v.data_venda < :fim
+          AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) >= :inicio AND (CASE WHEN v.pedido_id IS NULL THEN v.data_venda ELSE p.pago_em END) < :fim
           AND v.unidades > v.unidades_canceladas
         GROUP BY COALESCE(NULLIF(BTRIM(ch.categoria_peca_hist), ''), 'Sem categoria')
         ORDER BY unidades DESC, categoria
@@ -278,11 +281,11 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                            @Param("fim") LocalDateTime fim);
 
     @Query("""
-        SELECT YEAR(v.dataVenda), MONTH(v.dataVenda), COALESCE(SUM(COALESCE(v.lucroUnitario, h.lucroLiquido) * (v.unidades - v.unidadesCanceladas)), 0)
-        FROM VendaCalculo v JOIN v.calculo h
-        WHERE v.dataVenda >= :inicio AND v.dataVenda < :fim AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
-        GROUP BY YEAR(v.dataVenda), MONTH(v.dataVenda)
-        ORDER BY YEAR(v.dataVenda), MONTH(v.dataVenda)
+        SELECT YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), COALESCE(SUM(COALESCE(v.lucroUnitario, h.lucroLiquido) * (v.unidades - v.unidadesCanceladas)), 0)
+        FROM VendaCalculo v JOIN v.calculo h LEFT JOIN PedidoOrcamento p ON p.id = v.pedidoId
+        WHERE (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) >= :inicio AND (CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END) < :fim AND COALESCE(v.lucroUnitario, h.lucroLiquido) IS NOT NULL
+        GROUP BY YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END))
+        ORDER BY YEAR((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END)), MONTH((CASE WHEN v.pedidoId IS NULL THEN v.dataVenda ELSE p.pagoEm END))
         """)
     List<Object[]> somarLucroVendidoPorMes(@Param("inicio") LocalDateTime inicio,
                                            @Param("fim") LocalDateTime fim);

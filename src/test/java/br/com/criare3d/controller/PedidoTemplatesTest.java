@@ -193,11 +193,11 @@ class PedidoTemplatesTest {
     void pedidoEnviadoExibeAprovacaoEProntoExibeEntrega() {
         var p = pedido();
         p.setStatus(StatusPedido.ENVIADO);
-        assertThat(renderizar("orcamentos/detalhes", Map.of("pedido", p, "previsoes", List.of()))).contains("Cliente aprovou").doesNotContain("Confirmar entrega e venda");
+        assertThat(renderizar("orcamentos/detalhes", Map.of("pedido", p, "previsoes", List.of()))).contains("Cliente aprovou").doesNotContain("Confirmar entrega");
         p.setStatus(StatusPedido.APROVADO);
         assertThat(renderizar("orcamentos/detalhes", Map.of("pedido", p, "previsoes", List.of())))
-            .contains("Próxima etapa", "Outras ações", "Confirmar produção concluída").doesNotContain("Confirmar entrega e venda");
+            .contains("Próxima etapa", "Outras ações", "Confirmar produção concluída").doesNotContain("Confirmar entrega");
         p.setStatus(StatusPedido.PRONTO);
-        assertThat(renderizar("orcamentos/detalhes", Map.of("pedido", p, "previsoes", List.of()))).contains("Confirmar entrega e venda").doesNotContain("Cliente aprovou");
+        assertThat(renderizar("orcamentos/detalhes", Map.of("pedido", p, "previsoes", List.of()))).contains("Confirmar entrega").doesNotContain("Cliente aprovou");
     }
 }

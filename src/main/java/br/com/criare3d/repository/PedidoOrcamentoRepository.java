@@ -20,6 +20,13 @@ public interface PedidoOrcamentoRepository extends JpaRepository<PedidoOrcamento
 
     List<PedidoOrcamento> findByArquivadoFalseAndStatusIn(Collection<br.com.criare3d.models.enums.StatusPedido> status);
 
+    @Query("""
+        select distinct p from PedidoOrcamento p left join fetch p.itens
+        where p.pagoEm is not null and p.status in (br.com.criare3d.models.enums.StatusPedido.APROVADO,br.com.criare3d.models.enums.StatusPedido.PRONTO)
+        and not exists(select v.id from VendaCalculo v where v.pedidoId=p.id and v.unidades>v.unidadesCanceladas)
+        """)
+    List<PedidoOrcamento> pagosAguardandoVendaLegada();
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM PedidoOrcamento p WHERE p.id=:id")
     Optional<PedidoOrcamento> bloquear(@Param("id") UUID id);

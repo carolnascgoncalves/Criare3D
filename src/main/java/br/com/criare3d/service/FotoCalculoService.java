@@ -45,7 +45,7 @@ public class FotoCalculoService {
         }
         return calculoFotoRepository.findById(calculoId).map(foto -> {
             if (!miniatura) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
-            byte[] mini = gerarMiniatura(foto.getBytes());
+            byte[] mini = gerarMiniatura(foto.getBytes(), false);
             if (mini == null) return new br.com.criare3d.dto.FotoConteudo(foto.getTipo(), foto.getBytes());
             foto.setMiniatura(mini);
             calculoFotoRepository.save(foto);
@@ -53,7 +53,7 @@ public class FotoCalculoService {
         });
     }
 
-    private byte[] gerarMiniatura(byte[] originalBytes) {
+    static byte[] gerarMiniatura(byte[] originalBytes, boolean quadrada) {
         try {
             java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(
                 new java.io.ByteArrayInputStream(originalBytes));
@@ -62,11 +62,12 @@ public class FotoCalculoService {
             int largura = Math.max(1, (int) Math.round(original.getWidth() * escala));
             int altura = Math.max(1, (int) Math.round(original.getHeight() * escala));
             java.awt.image.BufferedImage mini = new java.awt.image.BufferedImage(
-                largura, altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
+                quadrada ? 320 : largura, quadrada ? 320 : altura, java.awt.image.BufferedImage.TYPE_INT_RGB);
             java.awt.Graphics2D g = mini.createGraphics();
             g.setColor(java.awt.Color.WHITE);
-            g.fillRect(0, 0, largura, altura);
-            g.drawImage(original, 0, 0, largura, altura, null);
+            g.fillRect(0, 0, mini.getWidth(), mini.getHeight());
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(original, (mini.getWidth()-largura)/2, (mini.getHeight()-altura)/2, largura, altura, null);
             g.dispose();
             java.io.ByteArrayOutputStream saida = new java.io.ByteArrayOutputStream();
             javax.imageio.ImageIO.write(mini, "jpg", saida);

@@ -142,6 +142,10 @@ public class VendaService {
         return cancelarVenda(calculoId, vendaId, unidades, false);
     }
 
+    public boolean possuiVendaAtivaDoPedido(UUID pedidoId) {
+        return vendaCalculoRepository.findByPedidoId(pedidoId).stream().anyMatch(v -> v.getUnidadesAtivas() > 0);
+    }
+
     public void cancelarPedido(UUID pedidoId) {
         for (var v : vendaCalculoRepository.findByPedidoId(pedidoId)) {
             if (v.getUnidadesAtivas() > 0 && cancelarVenda(v.getCalculo().getId(), v.getId(), v.getUnidadesAtivas(), true) != ResultadoOperacao.OK)

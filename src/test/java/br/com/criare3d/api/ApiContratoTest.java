@@ -113,6 +113,7 @@ class ApiContratoTest {
     @MockitoBean CompradorRepository compradores;
     @MockitoBean Modelo3mfParser parser;
     @MockitoBean FotoCalculoService fotos;
+    @MockitoBean FotoPedidoService fotosPedido;
     @MockitoBean CalculoService calculos;
     @MockitoBean CatalogoBuscaService catalogo;
     @MockitoBean br.com.criare3d.service.interfaces.PecaService pecas;
