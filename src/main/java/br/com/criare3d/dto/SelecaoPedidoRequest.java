@@ -29,6 +29,7 @@ public class SelecaoPedidoRequest {
 
     @Getter
     @Setter
+    @io.swagger.v3.oas.annotations.media.Schema(name="SelecaoPedidoItem")
     public static class Item {
         private UUID referencia;
         private boolean selecionado;

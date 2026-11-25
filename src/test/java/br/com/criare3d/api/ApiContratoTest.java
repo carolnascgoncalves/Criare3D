@@ -64,7 +64,7 @@ class ApiContratoTest {
         ApiExtratoController.class,
         ApiTenantController.class,
         ApiCatalogoEdicaoController.class, ApiPainelController.class, ApiLotesController.class, ApiCustosLojaController.class,
-        ApiConfiguracaoController.class, ApiCalculosController.class, ApiPlanejamentoController.class,
+        ApiConfiguracaoController.class, ApiCalculosController.class, ApiPlanejamentoController.class, ApiOrcamentosController.class,
         ApiRotaAusenteController.class
     })
     static class App {
@@ -104,6 +104,9 @@ class ApiContratoTest {
     @MockitoBean PlanejamentoProducaoRepository planos;
     @MockitoBean ImpressoraRepository maquinas;
     @MockitoBean PlanejamentoProducaoService planejamento;
+    @MockitoBean OperacaoPedidoService operarMobile;
+    @MockitoBean PlanejamentoPedidoService preverMobile;
+    @MockitoBean PedidoOrcamentoRepository pedidosMobile;
     @MockitoBean ItemPedidoRepository reservas;
     @MockitoBean TarifaEnergiaReferenciaService tarifas;
     @MockitoBean DashboardDadosService dashboard;
@@ -154,6 +157,34 @@ class ApiContratoTest {
         when(contas.porId(usuario.getUsuarioId())).thenReturn(Optional.of(usuario));
         when(auth.familiaAtiva(familia, usuario.getUsuarioId())).thenReturn(true);
         token = jwt.emitir(usuario, familia);
+    }
+
+    @Test
+    void listaOrcamentosComTotaisDaLojaIndependentesDaPagina() throws Exception {
+        var pronto=new PedidoOrcamento();
+        pronto.setId(UUID.randomUUID());
+        pronto.setStatus(br.com.criare3d.models.enums.StatusPedido.PRONTO);
+        var item=new ItemPedido();
+        item.setPrecoUnitario(new BigDecimal("25.50"));
+        item.setQuantidade(2);
+        pronto.getItens().add(item);
+        var entregue=new PedidoOrcamento();
+        entregue.setStatus(br.com.criare3d.models.enums.StatusPedido.ENTREGUE);
+        entregue.setPagoEm(LocalDateTime.now());
+        when(pedidos.listar("",0,false,null)).thenReturn(new PageImpl<>(List.of(pronto)));
+        when(pedidosMobile.findByArquivadoFalseAndStatusIn(any())).thenReturn(List.of(pronto,entregue));
+        mvc.perform(get("/api/v1/orcamentos").header("Authorization","Bearer "+token))
+           .andExpect(status().isOk()).andExpect(jsonPath("$.receber").value(51))
+           .andExpect(jsonPath("$.prontos").value(1)).andExpect(jsonPath("$.itens[0].pago").value(false));
+    }
+
+    @Test
+    void impedePagamentoComRevisaoDesatualizada() throws Exception {
+        var id=UUID.randomUUID();var p=new PedidoOrcamento();p.setRevisao(2);
+        when(pedidosMobile.bloquear(id)).thenReturn(Optional.of(p));
+        mvc.perform(post("/api/v1/orcamentos/"+id+"/pagar").param("revisao","1").header("Authorization","Bearer "+token))
+           .andExpect(status().is4xxClientError());
+        verifyNoInteractions(operarMobile);
     }
 
     @Test

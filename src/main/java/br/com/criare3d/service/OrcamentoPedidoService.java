@@ -100,7 +100,7 @@ public class OrcamentoPedidoService {
     public List<Referencia> referencias() {
         return historicos.findAll(PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "dataCalculo"))).stream()
             .filter(h -> h.getPeca() != null && h.getImpressora() != null && !h.getPeca().isArquivado())
-            .map(h -> new Referencia(h.getId(), h.getNomePeca(), h.getNomeFilamento(), h.getNomeImpressora(), disponivel(h), h.getPeca().getId())).toList();
+            .map(h -> new Referencia(h.getId(), h.getNomePeca(), h.getNomeFilamento(), h.getNomeImpressora(), disponivel(h), h.getPeca().getId(), h.getPrecoVendaPlataforma()==null?h.getPrecoSugerido():h.getPrecoVendaPlataforma())).toList();
     }
 
     public PedidoOrcamento adicionarVarios(UUID id, SelecaoPedidoRequest d) {
@@ -394,6 +394,6 @@ public class OrcamentoPedidoService {
         return MateriaisPedido.resumir(lotes);
     }
 
-    public record Referencia(UUID id, String nome, String material, String impressora, long disponivel, UUID pecaId) {
+    public record Referencia(UUID id, String nome, String material, String impressora, long disponivel, UUID pecaId, BigDecimal preco) {
     }
 }

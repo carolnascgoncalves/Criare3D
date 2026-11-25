@@ -18,6 +18,8 @@ public interface PedidoOrcamentoRepository extends JpaRepository<PedidoOrcamento
     @org.springframework.data.jpa.repository.Query("select p from PedidoOrcamento p where p.compradorId=:id and p.arquivado=:arquivado and (:status is null or p.status=:status) and (lower(p.titulo) like lower(concat('%',:busca,'%')) or lower(p.cliente) like lower(concat('%',:busca,'%'))) order by p.criadoEm desc")
     org.springframework.data.domain.Page<PedidoOrcamento> buscarDoComprador(@org.springframework.data.repository.query.Param("id") java.util.UUID id, @org.springframework.data.repository.query.Param("arquivado") boolean arquivado, @org.springframework.data.repository.query.Param("busca") String busca, @org.springframework.data.repository.query.Param("status") br.com.criare3d.models.enums.StatusPedido status, org.springframework.data.domain.Pageable pagina);
 
+    List<PedidoOrcamento> findByArquivadoFalseAndStatusIn(Collection<br.com.criare3d.models.enums.StatusPedido> status);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM PedidoOrcamento p WHERE p.id=:id")
     Optional<PedidoOrcamento> bloquear(@Param("id") UUID id);

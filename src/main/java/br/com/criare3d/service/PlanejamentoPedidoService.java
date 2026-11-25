@@ -93,6 +93,7 @@ public class PlanejamentoPedidoService {
         if (p.getPrevisao() == null || previa.fim().isAfter(p.getPrevisao())) p.setPrevisao(previa.fim());
     }
 
+    @io.swagger.v3.oas.annotations.media.Schema(name="PedidoPrevisaoLinha")
     public record Linha(UUID itemId, String nome, LocalDateTime inicio, LocalDateTime fim,
                         List<AgendaPedido.Impressao> impressoes, String observacao) {
         public Linha(UUID id, String nome, LocalDateTime inicio, LocalDateTime fim, List<AgendaPedido.Impressao> impressoes) {

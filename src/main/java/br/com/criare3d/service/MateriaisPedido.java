@@ -15,10 +15,12 @@ public final class MateriaisPedido {
     private MateriaisPedido() {
     }
 
+    @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMaterial")
     public record Material(UUID id, String nome, String cor, BigDecimal necessario, BigDecimal estoque,
                            BigDecimal falta, Integer rolos, BigDecimal reposicao) {
     }
 
+    @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMateriais")
     public record Resumo(List<Material> materiais, BigDecimal reposicao, boolean precoIndisponivel) {
         public long getFaltantes() {
             return materiais.stream().filter(m -> m.falta().signum() > 0).count();
