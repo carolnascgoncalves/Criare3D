@@ -17,6 +17,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistorico, UUID> {
+    @Query("""
+        select coalesce((select sum(c.valor) from CustoPersonalizado c
+                         where c.calculo = h and c.cancelado = false), 0)
+             + coalesce((select sum(f.custoMaterial) from FalhaProducao f
+                         where f.calculo = h and f.cancelada = false), 0)
+        from CalculoHistorico h where h.id = :id
+        """)
+    BigDecimal totalAdicionalDoLote(@Param("id") UUID id);
+
     interface UsoEmbalagem {
         UUID getEmbalagemId();
 

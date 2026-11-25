@@ -23,68 +23,23 @@ public class OperacaoLoteController {
     @org.springframework.beans.factory.annotation.Autowired
     private VendaService vendaService;
     @Autowired
-    private CalculoHistoricoRepository repository;
-    @Autowired
-    private VendaCalculoRepository vendas;
+    private ConsultaLoteService consulta;
     @Autowired
     private FilamentoRepository filamentos;
     @Autowired
-    private FalhaProducaoRepository falhas;
-    @Autowired
     private FalhaProducaoService falhaService;
     @Autowired
-    private CustoPersonalizadoRepository custos;
-    @Autowired
     private CustoPersonalizadoService custoService;
-    @Autowired
-    private ItemPedidoRepository reservas;
-
-    public record Material(String nome, BigDecimal gramas, BigDecimal saldo, String cor, String codigoCor,
-                           BigDecimal custo) {
-        public Material(String nome, BigDecimal gramas, BigDecimal saldo) {
-            this(nome, gramas, saldo, null, null, null);
-        }
-
-        public String getCorSegura() {
-            return codigoCor != null && codigoCor.matches("#[0-9a-fA-F]{6}") ? codigoCor : "#cccccc";
-        }
-
-        public boolean isInsuficiente() {
-            return saldo != null && saldo.compareTo(gramas) < 0;
-        }
-
-        public BigDecimal getFalta() {
-            return saldo == null ? BigDecimal.ZERO : gramas.subtract(saldo).max(BigDecimal.ZERO);
-        }
-    }
 
     @GetMapping("/vendas-estoque/lote/{id}")
     @Transactional(readOnly = true)
     public ModelAndView abrir(@PathVariable UUID id) {
-        var c = repository.findById(id).orElse(null);
-        if (c == null) return new ModelAndView("redirect:/vendas-estoque?erro=naoEncontrado");
-        var materiais = new java.util.ArrayList<>(c.getItensFilamento().stream().map(i -> new Material(i.getNomeFilamento(),
-            i.getQuantidadeFilamentoGramas().add(i.getPurgaGramas() == null ? BigDecimal.ZERO : i.getPurgaGramas()).multiply(BigDecimal.valueOf(c.getUnidades())),
-            i.getFilamento() == null ? null : i.getFilamento().getEstoqueGramas(),
-            i.getCorFilamento(), i.getCodigoCor(), i.getCustoFilamento().multiply(BigDecimal.valueOf(c.getUnidades())))).toList());
-        if (materiais.isEmpty()) materiais.add(new Material(c.getNomeFilamento(),
-            c.getQuantidadeFilamentoGramas().multiply(BigDecimal.valueOf(c.getUnidades())),
-            c.getFilamento() == null ? null : c.getFilamento().getEstoqueGramas(),
-            c.getFilamento() == null ? null : c.getFilamento().getCor(),
-            c.getFilamento() == null ? null : c.getFilamento().getCodigoCor(), c.getCustoFilamento().multiply(BigDecimal.valueOf(c.getUnidades()))));
-        c.getRateiosCustos().size();
-        var perdas = falhas.findByCalculo_IdOrderByDataRegistroDesc(id);
-        var custosExtras = custos.findByCalculo_IdOrderByDataRegistroDesc(id);
-        var totalExtras = custosExtras.stream().filter(custo -> !custo.isCancelado()).map(custo -> custo.getValor()).reduce(BigDecimal.ZERO, BigDecimal::add)
-            .add(perdas.stream().filter(f -> !f.isCancelada()).map(f -> f.getCustoMaterial()).reduce(BigDecimal.ZERO, BigDecimal::add));
-        var registrosVenda = vendas.findByCalculo_IdOrderByDataVendaDesc(id);
-        var estimado = c.getLucroLiquido() != null ? c.getLucroLiquido() : c.getPrecoSugerido().subtract(c.getCustoTotal());
-        var resultadoVendas = registrosVenda.stream().map(v -> (v.getLucroUnitario() == null ? estimado : v.getLucroUnitario()).multiply(BigDecimal.valueOf(v.getUnidadesAtivas()))).reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new ModelAndView("vendas-estoque/lote").addObject("lote", c).addObject("reservadas", reservas.reservadas(id)).addObject("materiais", materiais)
-            .addObject("resultadoVendas", resultadoVendas).addObject("estimadoVendas", estimado.multiply(BigDecimal.valueOf(c.getUnidadesVendidas())))
-            .addObject("custosExtras", custosExtras).addObject("totalExtras", totalExtras)
-            .addObject("vendas", registrosVenda).addObject("falhas", perdas)
-            .addObject("perdaMaterial", perdas.stream().filter(f -> !f.isCancelada()).map(f -> f.getCustoMaterial()).reduce(BigDecimal.ZERO, BigDecimal::add))
+        var dados=consulta.buscar(id).orElse(null);
+        if(dados==null)return new ModelAndView("redirect:/vendas-estoque?erro=naoEncontrado");
+        return new ModelAndView("vendas-estoque/lote").addObject("lote", dados.lote()).addObject("reservadas", dados.reservadas())
+            .addObject("materiais", dados.materiais()).addObject("resultadoVendas", dados.lucroVendas()).addObject("estimadoVendas", dados.lucroPrevisto())
+            .addObject("custosExtras", dados.extras()).addObject("totalExtras", dados.totalExtras()).addObject("vendas", dados.vendas())
+            .addObject("falhas", dados.perdas()).addObject("perdaMaterial", dados.perdaMaterial())
             .addObject("filamentos", filamentos.findByArquivadoFalse(PageRequest.of(0, 20)).getContent());
     }
 

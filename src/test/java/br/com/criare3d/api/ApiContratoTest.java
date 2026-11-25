@@ -63,8 +63,8 @@ class ApiContratoTest {
         ApiClientesController.class,
         ApiExtratoController.class,
         ApiTenantController.class,
-        ApiPainelController.class,
-        ApiCalculosController.class,
+        ApiCatalogoEdicaoController.class, ApiPainelController.class, ApiLotesController.class, ApiCustosLojaController.class,
+        ApiConfiguracaoController.class, ApiCalculosController.class,
         ApiRotaAusenteController.class
     })
     static class App {
@@ -88,7 +88,21 @@ class ApiContratoTest {
     @MockitoBean ApiContas contas;
     @MockitoBean ApiAuthService auth;
     @Autowired ApiJwtService jwt;
+    @MockitoBean br.com.criare3d.service.interfaces.ImpressoraService impressoras;
+    @MockitoBean br.com.criare3d.service.interfaces.EmbalagemService embalagens;
+    @MockitoBean CustoLojaRepository custosLoja;
+    @MockitoBean RateioCustoHistoricoRepository rateios;
+    @MockitoBean CatalogoModelosImpressora modelosImpressora;
+    @MockitoBean MercadoLivreDepreciacaoService referenciasDepreciacao;
+    @MockitoBean EstimativaUsoImpressoraService estimativasUso;
+    @MockitoBean ConsultaLoteService consultaLote;
+    @MockitoBean ProducaoService producao;
+    @MockitoBean VendaService venda;
+    @MockitoBean CustoPersonalizadoService custosLote;
+    @MockitoBean FalhaProducaoService falhasLote;
+    @MockitoBean IdempotenciaService operacoes;
     @MockitoBean ItemPedidoRepository reservas;
+    @MockitoBean TarifaEnergiaReferenciaService tarifas;
     @MockitoBean DashboardDadosService dashboard;
     @MockitoBean CompradorRepository compradores;
     @MockitoBean Modelo3mfParser parser;
@@ -493,6 +507,8 @@ class ApiContratoTest {
         m.setTipo("COMPRA");
         m.setMedida("g");
         m.setDescricao("PLA Amarelo");
+        m.setReferencia(UUID.randomUUID());
+        when(movimentos.coresDosFilamentos(List.of(m))).thenReturn(Map.of(m.getReferencia(), "#f5da30"));
         m.setOrigem("filamento");
         m.setQuantidade(new BigDecimal("123456789.123456"));
         m.setSaldoApos(new BigDecimal("987654321.000001"));
@@ -505,6 +521,7 @@ class ApiContratoTest {
                 .andExpect(status().isOk())
                 .andExpect(
                         jsonPath("$.movimentacoes.itens[0].quantidade").value("123456789.123456"))
+                .andExpect(jsonPath("$.movimentacoes.itens[0].codigoCor").value("#f5da30"))
                 .andExpect(jsonPath("$.movimentacoes.itens[0].saldoApos").value("987654321.000001"))
                 .andExpect(
                         jsonPath("$.movimentacoes.itens[0].data")
@@ -578,10 +595,84 @@ class ApiContratoTest {
     }
 
     @Test
+    void compraNoCatalogoUsaChaveEQuantidadeDeRolos() throws Exception {
+        var id = UUID.randomUUID();
+        var chave = UUID.randomUUID();
+        when(operacoes.executar(eq(chave), eq("COMPRA_FILAMENTO"), anyString(), any()))
+                .thenAnswer(i -> i.<java.util.function.Supplier<String>>getArgument(3).get());
+        when(filamentos.registrarCompra(eq(id), any())).thenReturn(true);
+        mvc.perform(post("/api/v1/catalogo/filamentos/" + id + "/compras")
+                        .header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"chave":"%s","compra":{"unidadesCompra":2,"pesoRoloGramas":"750","precoRolo":"80.50"}}
+                                """.formatted(chave)))
+                .andExpect(status().isNoContent());
+        verify(filamentos).registrarCompra(eq(id), argThat(c -> c.getQuantidadeTotalGramas().intValueExact() == 1500));
+    }
+
+    @Test
+    void edicaoDeEmbalagemCarregaEAtualizaCusto() throws Exception {
+        var id = UUID.randomUUID();
+        var caixa = br.com.criare3d.models.Embalagem.builder().nome("Caixa").custoUnitario(BigDecimal.ONE).build();
+        when(embalagens.fetchById(id)).thenReturn(Optional.of(caixa));
+        when(embalagens.update(eq(id), any())).thenReturn(Optional.of(caixa));
+        var rota = "/api/v1/catalogo/embalagens/" + id;
+        mvc.perform(get(rota + "/edicao").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nome").value("Caixa"));
+        mvc.perform(put(rota).header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nome":"Caixa nova","custoUnitario":"2.50"}
+                                """))
+                .andExpect(status().isNoContent());
+        verify(embalagens).update(eq(id), argThat(e -> new BigDecimal("2.50").compareTo(e.getCustoUnitario()) == 0));
+    }
+
+    @Test
+    void configuracaoUsaValoresDaLojaEValidaPercentualDeFalhas() throws Exception {
+        var config = br.com.criare3d.models.Configuracao.builder().tarifaEnergiaKwh(new BigDecimal("0.79"))
+                .embalagemFixa(false).build();
+        when(configuracoes.buscarOuCriarConfiguracao()).thenReturn(config);
+        mvc.perform(get("/api/v1/configuracao").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.tarifaEnergiaKwh").value(0.79));
+        var entrada = """
+                {"markupOpcao1":15,"markupOpcao2":40,"markupOpcao3":50,"tarifaEnergiaKwh":0.85,
+                 "embalagemFixa":false,"taxaFalhaAtivada":true,"percentualFalha":%d}
+                """;
+        mvc.perform(put("/api/v1/configuracao").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(entrada.formatted(101)))
+                .andExpect(status().isUnprocessableEntity());
+        when(configuracoes.update(any(), any())).thenAnswer(i -> Optional.of(i.getArgument(1)));
+        mvc.perform(put("/api/v1/configuracao").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content(entrada.formatted(5)))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.percentualFalha").value(5))
+                .andExpect(jsonPath("$.markupOpcao1").value(15));
+    }
+
+    @Test
+    void referenciaDeEnergiaECidadeSaoConsultadasSemAlterarConfiguracao() throws Exception {
+        when(tarifas.listar()).thenReturn(List.of(new br.com.criare3d.dto.TarifaEnergiaReferenciaResponse(
+                "Distribuidora teste", new BigDecimal("0.798"), null, null, "MWh")));
+        mvc.perform(get("/api/v1/configuracao/tarifas").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0].valorKwh").value(0.798));
+        when(tarifas.localizarCidade(-23.5, -46.6)).thenReturn(Map.of("cidade", "São Paulo", "uf", "SP"));
+        mvc.perform(post("/api/v1/configuracao/cidade").header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON).content("""
+                                {"latitude":-23.5,"longitude":-46.6}
+                                """))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.uf").value("SP"));
+        verify(configuracoes, never()).update(any(), any());
+    }
+
+    @Test
     void previaConsideraDoisFilamentosETaxasDoCanal() throws Exception {
         var id = UUID.randomUUID();
         var resultado = mock(br.com.criare3d.dto.calculo.ResultadoCalculo.class);
         when(resultado.taxasPlataforma()).thenReturn(new BigDecimal("3.25"));
+        when(resultado.itensFilamento()).thenReturn(List.of(
+                new br.com.criare3d.dto.calculo.ResultadoCalculo.Item(null, "PLA", "Vermelho", "#FF0000",
+                        null, null, new BigDecimal("2.5"), BigDecimal.ZERO, new BigDecimal("1.26"), id),
+                new br.com.criare3d.dto.calculo.ResultadoCalculo.Item(null, "PETG", "Laranja", "#FF6600",
+                        null, null, new BigDecimal("7"), BigDecimal.ZERO, new BigDecimal("0.50"), null)));
         when(calculos.prever(any())).thenReturn(resultado);
         var entrada = """
                 {"pecaId":"%1$s","impressoraId":"%1$s","embalagemId":"%1$s","filamentos":[
@@ -590,16 +681,132 @@ class ApiContratoTest {
                 """.formatted(id, UUID.randomUUID());
         mvc.perform(post("/api/v1/calculos/previa").header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON).content(entrada))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.custos.taxasPlataforma").value(3.25));
+                .andExpect(status().isOk()) .andExpect(jsonPath("$.custos.taxasPlataforma").value(3.25))
+                .andExpect(jsonPath("$.filamentos.length()").value(2))
+                .andExpect(jsonPath("$.filamentos[0].custo").value(1.26))
+                .andExpect(jsonPath("$.filamentos[1].codigoCor").value("#FF6600"))
+                .andExpect(jsonPath("$.filamentos[1].gramas").value(7));
         verify(calculos).prever(argThat(r -> r.getFilamentos().size() == 2 && r.isFreteGratisTikTok()
                 && r.getPlataformaVenda() == br.com.criare3d.models.enums.PlataformaVenda.TIKTOK));
         verifyNoInteractions(historico);
     }
 
     @Test
+    void custoExtraMensalUsaUnidadesPrevistasEPreservaEstadoAoPausar() throws Exception {
+        var id=UUID.randomUUID();
+        var chave=UUID.randomUUID();
+        var custo = new CustoLoja();
+        custo.setId(id);
+        custo.setMeta(new BigDecimal("120"));
+        when(operacoes.executar(eq(chave), eq("CRIAR_CUSTO_LOJA"), anyString(), any()))
+                .thenAnswer(inv -> inv.<java.util.function.Supplier<String>>getArgument(3).get());
+        when(custosLoja.save(any())).thenReturn(custo);
+        String dados = """
+                {"descricao":"Energia fixa","inicio":"2026-11-01","meta":120,"tipo":"RATEIO_MENSAL","unidadesPrevistas":60}
+                """;
+        mvc.perform(post("/api/v1/custos-loja?chave="+chave).header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content(dados)).andExpect(status().isCreated())
+                .andExpect(jsonPath("$").value(id.toString()));
+        verify(custosLoja).save(argThat(c -> c.isAtivo() && c.getUnidadesPrevistas()==60 && c.getTipo()==CustoLoja.Tipo.RATEIO_MENSAL));
+        when(custosLoja.findById(id)).thenReturn(Optional.of(custo));
+        when(rateios.recuperado(id)).thenReturn(new BigDecimal("18"));
+        mvc.perform(put("/api/v1/custos-loja/"+id+"/estado?ativo=false").header("Authorization","Bearer "+token)).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/custos-loja/"+id).header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.custo.restante").value(102)).andExpect(jsonPath("$.custo.ativo").value(false));
+    }
+
+    @Test
+    void exclusaoSelecionadaPreservaItensEmUso() throws Exception {
+        var livre=UUID.randomUUID();
+        var usado=UUID.randomUUID();
+        when(pecas.deleteUnused(any())).thenReturn(List.of(usado));
+        mvc.perform(post("/api/v1/catalogo/pecas/remover-lote").header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"ids\":[\""+livre+"\",\""+usado+"\"]}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[0]").value(usado.toString()));
+        verify(pecas).deleteUnused(argThat(ids -> ids.size()==2 && ids.containsAll(List.of(livre,usado))));
+    }
+
+    @Test
+    void cadastrosDoCatalogoGravamNasQuatroCategorias() throws Exception {
+        when(operacoes.executar(any(), startsWith("CADASTRAR_"), anyString(), any()))
+                .thenAnswer(inv -> inv.<java.util.function.Supplier<String>>getArgument(3).get());
+        var cadastros = Map.of(
+                "pecas", """
+                    {"nome":"Suporte","categoria":"Decoração","quantidadeFilamentoGramas":"12.5","tempoImpressaoMinutos":"30"}
+                    """,
+                "filamentos", """
+                    {"nome":"PLA","cor":"Branco","codigoCor":"#ffffff","pesoRoloGramas":"1000","precoRolo":"50","estoqueGramas":"500"}
+                    """,
+                "impressoras", """
+                    {"nome":"Da loja","modelo":"Modelo A","potenciaWatts":"120"}
+                    """,
+                "embalagens", """
+                    {"nome":"Caixa","custoUnitario":"1.25"}
+                    """);
+        for (var entrada : cadastros.entrySet()) {
+            mvc.perform(post("/api/v1/catalogo/"+entrada.getKey()).param("chave",UUID.randomUUID().toString())
+                    .header("Authorization","Bearer "+token).contentType(MediaType.APPLICATION_JSON).content(entrada.getValue()))
+                    .andExpect(status().isNoContent());
+        }
+        verify(pecas).create(argThat(p -> "Suporte".equals(p.getNome())));
+        verify(filamentos).create(argThat(f -> f.getEstoqueGramas().intValueExact() == 500));
+        verify(impressoras).create(argThat(i -> "Modelo A".equals(i.getModelo())));
+        verify(embalagens).create(argThat(e -> e.getCustoUnitario().compareTo(new BigDecimal("1.25")) == 0));
+    }
+
+    @Test
+    void loteSeparaReservasDaQuantidadeProntaParaVenda() throws Exception {
+        var id=UUID.randomUUID();
+        var lote=new CalculoHistorico();
+        lote.setNomePeca("Suporte");
+        lote.setUnidades(5);
+        lote.setUnidadesVendidas(1);
+        lote.setProduzido(true);
+        lote.setCustoTotal(BigDecimal.TEN);
+        var op=new ConsultaLoteService.Operacao(lote,3,List.of(),List.of(),List.of(),List.of(),
+                BigDecimal.ZERO,BigDecimal.ONE,BigDecimal.TEN,BigDecimal.ZERO);
+        when(consultaLote.buscar(id)).thenReturn(Optional.of(op));
+        mvc.perform(get("/api/v1/vendas/"+id).header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.disponiveis").value(1))
+                .andExpect(jsonPath("$.reservadas").value(3)).andExpect(jsonPath("$.custoLote").value(50));
+        lote.setProduzido(false);
+        mvc.perform(get("/api/v1/vendas/"+id).header("Authorization","Bearer "+token))
+                .andExpect(jsonPath("$.disponiveis").value(0)).andExpect(jsonPath("$.reservadas").value(3));
+    }
+
+    @Test
+    void cancelamentoDoLoteUsaVendaEQuantidadeConfirmadas() throws Exception {
+        var id = UUID.randomUUID();
+        var vendaId = UUID.randomUUID();
+        var chave = UUID.randomUUID();
+        when(operacoes.executar(eq(chave), eq("CANCELAR_VENDA_LOTE"), anyString(), any()))
+                .thenAnswer(inv -> inv.<java.util.function.Supplier<String>>getArgument(3).get());
+        when(venda.cancelarVenda(id, vendaId, 2)).thenReturn(ResultadoOperacao.OK);
+        mvc.perform(post("/api/v1/vendas/"+id+"/cancelamento").header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {"vendaId":"%s","unidades":2,"chave":"%s"}
+                        """.formatted(vendaId,chave)))
+                .andExpect(status().isNoContent());
+        verify(venda).cancelarVenda(id, vendaId, 2);
+    }
+
+    @Test
+    void vendaRejeitadaPorReservaDevolveConflito() throws Exception {
+        var id=UUID.randomUUID();
+        var chave=UUID.randomUUID();
+        when(venda.registrarVenda(id,2,null,null,null,chave)).thenReturn(ResultadoOperacao.RESERVA_ATIVA);
+        mvc.perform(post("/api/v1/vendas/"+id+"/venda").header("Authorization","Bearer "+token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"unidades\":2,\"chave\":\""+chave+"\"}"))
+                .andExpect(status().isConflict()).andExpect(jsonPath("$.codigo").value("reservaAtiva"));
+    }
+
+    @Test
     void importarConsultaRapidaDevolveConsumoPorCorSemSalvar() throws Exception {
         var modelo = mock(br.com.criare3d.dto.Modelo3mfResponse.class);
         when(modelo.numeroPlacas()).thenReturn(2);
+        when(modelo.placas()).thenReturn(List.of(
+                new br.com.criare3d.dto.Modelo3mfPlacaResponse(1, "", null, null, List.of()),
+                new br.com.criare3d.dto.Modelo3mfPlacaResponse(2, "data:image/png;base64,AQ==", null, null, List.of())));
         when(modelo.filamentosUsados()).thenReturn(List.of(
                 new br.com.criare3d.dto.Modelo3mfFilamentoResponse(1, "PLA", "#ff0000", 13.5),
                 new br.com.criare3d.dto.Modelo3mfFilamentoResponse(2, "PLA", "#ffffff", 6.75)));
@@ -607,6 +814,7 @@ class ApiContratoTest {
         mvc.perform(multipart("/api/v1/calculos/arquivo").file("arquivo3mf",new byte[]{1})
                         .header("Authorization","Bearer "+token))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.placas").value(2))
+                .andExpect(jsonPath("$.imagemPreviewDataUri").value("data:image/png;base64,AQ=="))
                 .andExpect(jsonPath("$.materiais[1].cor").value("#ffffff"))
                 .andExpect(jsonPath("$.materiais[1].pesoGramas").value(6.75));
         verifyNoInteractions(historico, calculos);

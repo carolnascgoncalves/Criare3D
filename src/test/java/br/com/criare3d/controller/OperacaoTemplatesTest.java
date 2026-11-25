@@ -56,7 +56,7 @@ class OperacaoTemplatesTest {
     void loteSemProducaoRenderizaPreviaSemLiberarVenda() {
         var dados = new HashMap<String, Object>();
         dados.put("lote", lote(false));
-        dados.put("materiais", List.of(new OperacaoLoteController.Material("PLA", BigDecimal.TEN, new BigDecimal("100"))));
+        dados.put("materiais", List.of(new br.com.criare3d.service.ConsultaLoteService.Material("PLA", BigDecimal.TEN, new BigDecimal("100"))));
         dados.put("vendas", List.of());
         dados.put("falhas", List.of());
         dados.put("filamentos", List.of());
@@ -72,7 +72,7 @@ class OperacaoTemplatesTest {
         var dados = new HashMap<String, Object>();
         var c = lote(false);
         dados.put("lote", c);
-        dados.put("materiais", List.of(new OperacaoLoteController.Material("PLA", new BigDecimal("80.94"), new BigDecimal("8.78"))));
+        dados.put("materiais", List.of(new br.com.criare3d.service.ConsultaLoteService.Material("PLA", new BigDecimal("80.94"), new BigDecimal("8.78"))));
         dados.put("vendas", List.of());
         dados.put("falhas", List.of());
         dados.put("filamentos", List.of());
@@ -82,7 +82,7 @@ class OperacaoTemplatesTest {
         assertThat(renderizar("vendas-estoque/lote", dados)).contains("operacao-material-insuficiente", "faltam 72,16 g");
         c.setProduzido(true);
         assertThat(renderizar("vendas-estoque/lote", dados)).doesNotContain("operacao-material-insuficiente", "Estoque insuficiente");
-        var exato = new OperacaoLoteController.Material("PLA", BigDecimal.TEN, BigDecimal.TEN);
+        var exato = new br.com.criare3d.service.ConsultaLoteService.Material("PLA", BigDecimal.TEN, BigDecimal.TEN);
         assertThat(exato.isInsuficiente()).isFalse();
         assertThat(exato.getFalta()).isZero();
     }
@@ -180,7 +180,7 @@ class OperacaoTemplatesTest {
     void loteIdentificaCorEExibeCustoDoLoteEUnidade() {
         var dados = new HashMap<String, Object>();
         dados.put("lote", lote(false));
-        dados.put("materiais", List.of(new OperacaoLoteController.Material("PLA", BigDecimal.TEN, BigDecimal.TEN, "Vermelho", "#ff0000", new BigDecimal("3"))));
+        dados.put("materiais", List.of(new br.com.criare3d.service.ConsultaLoteService.Material("PLA", BigDecimal.TEN, BigDecimal.TEN, "Vermelho", "#ff0000", new BigDecimal("3"))));
         dados.put("vendas", List.of());
         dados.put("falhas", List.of());
         dados.put("filamentos", List.of());

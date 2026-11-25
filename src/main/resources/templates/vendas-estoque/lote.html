@@ -128,7 +128,7 @@
                         <strong th:text="|R$ ${#numbers.formatDecimal(resultadoVendas,1,'POINT',2,'COMMA')}|"></strong>
                     </div>
                 </div>
-                <p class="texto-apoio">Valores das unidades vendidas; custos de produção estimados.</p>
+                <p class="texto-apoio">Cada venda considera o custo de produção previsto e a parcela dos custos personalizados e das perdas de filamento registrados até a venda.</p>
                 <p th:if="${#lists.isEmpty(vendas)}">Nenhuma venda registrada.</p>
                 <article class="operacao-registro" th:each="v : ${vendas}">
                     <div>

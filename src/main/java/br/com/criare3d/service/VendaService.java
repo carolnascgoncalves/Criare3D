@@ -99,8 +99,10 @@ public class VendaService {
         venda.setDescontoUnitario(descontoAplicado);
         venda.setTaxasUnitarias(taxasAplicadas);
         venda.setValoresReais(preco != null && taxas != null);
+        BigDecimal adicionalPorUnidade = calculoHistoricoRepository.totalAdicionalDoLote(id)
+            .divide(BigDecimal.valueOf(calculo.getUnidades()), 8, java.math.RoundingMode.HALF_UP);
         venda.setLucroUnitario(precoAplicado.subtract(descontoAplicado).subtract(taxasAplicadas)
-            .subtract(calculo.getCustoTotal()));
+            .subtract(calculo.getCustoTotal()).subtract(adicionalPorUnidade));
         vendaCalculoRepository.save(venda);
         if (movimentos != null)
             movimentos.registrar("VENDA_3D", calculo.getNomePeca(), BigDecimal.valueOf(unidades).negate(), "un.", "lote", id);

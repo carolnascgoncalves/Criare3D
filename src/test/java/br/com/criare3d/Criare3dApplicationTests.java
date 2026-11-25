@@ -97,6 +97,29 @@ class Criare3dApplicationTests {
             });
     }
 
+    @Autowired private HistoricoCalculoService historicoComFoto;
+    @Autowired private br.com.criare3d.api.ApiCalculosController apiCalculos;
+
+    @Test
+    void fotoSalvaNoHistoricoReabreNaListaEDepoisNosDetalhes() throws Exception {
+        var usuario = criarUsuario("foto-" + UUID.randomUUID() + "@teste.local");
+        autenticarComo(usuario);
+        var imagem = new java.awt.image.BufferedImage(500, 250, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var saida = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(imagem, "png", saida);
+        var original = saida.toByteArray();
+        var id = historicoComFoto.create(novoCalculoHistorico(usuario), "image/png", original).getId();
+
+        assertThat(calculoFotoRepository.findById(id).orElseThrow().getBytes()).containsExactly(original);
+        assertThat(apiCalculos.listar(0, "").itens()).anyMatch(item -> id.equals(item.id()) && item.temFoto());
+        var primeira = apiCalculos.foto(id).getBody();
+        assertThat(primeira).isNotNull();
+        var miniatura = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(
+                java.util.Base64.getDecoder().decode(primeira.base64())));
+        assertThat(miniatura.getWidth()).isEqualTo(320);
+        assertThat(apiCalculos.foto(id).getBody()).isEqualTo(primeira);
+    }
+
     @Test
     void contextoDaAplicacaoIniciaComBancoDeTeste() {
         assertThat(passwordEncoder).isNotNull();
@@ -648,6 +671,8 @@ class Criare3dApplicationTests {
         }
     }
 
+    @Autowired private CustoPersonalizadoService custosDoLote;
+
     @Test
     void vendaParcialComPrecoRealECancelamentoPreservaAuditoria() {
         var u = criarUsuario("venda-parcial-" + UUID.randomUUID() + "@teste.local");
@@ -656,6 +681,7 @@ class Criare3dApplicationTests {
         try {
             assertThat(vendaService.registrarVenda(c.getId(), 1)).isEqualTo(ResultadoOperacao.PRODUCAO_NECESSARIA);
             assertThat(producaoService.atualizarProduzido(c.getId(), true)).isEqualTo(ResultadoOperacao.OK);
+            custosDoLote.registrar(c.getId(), "Acabamento", new BigDecimal("12"));
             assertThat(vendaService.registrarVenda(c.getId(), 2, new BigDecimal("18"), new BigDecimal("2"), new BigDecimal("3"))).isEqualTo(ResultadoOperacao.OK);
             var venda = vendaCalculoRepository.findByCalculo_IdOrderByDataVendaDesc(c.getId()).getFirst();
             assertThat(vendaService.cancelarVenda(c.getId(), venda.getId(), 1)).isEqualTo(ResultadoOperacao.OK);
@@ -665,7 +691,7 @@ class Criare3dApplicationTests {
             assertThat(calculoHistoricoRepository.findById(c.getId()).orElseThrow().getUnidadesVendidas()).isEqualTo(1);
             assertThat(producaoService.atualizarProduzido(c.getId(), false)).isEqualTo(ResultadoOperacao.VENDA_ATIVA);
             var agora = LocalDateTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
-            assertThat(indicadoresService.somarLucroVendidoEntre(agora.minusDays(1), agora.plusDays(1))).isEqualByComparingTo("10.12");
+            assertThat(indicadoresService.somarLucroVendidoEntre(agora.minusDays(1), agora.plusDays(1))).isEqualByComparingTo("6.12");
         } finally {
             limparOperacao(u);
         }
@@ -968,7 +994,11 @@ class Criare3dApplicationTests {
     }
 
     private CalculoHistorico criarCalculoHistorico(Usuario usuario) {
-        return calculoHistoricoRepository.saveAndFlush(CalculoHistorico.builder()
+        return calculoHistoricoRepository.saveAndFlush(novoCalculoHistorico(usuario));
+    }
+
+    private CalculoHistorico novoCalculoHistorico(Usuario usuario) {
+        return CalculoHistorico.builder()
             .nomePeca("Peça do histórico")
             .nomeFilamento("PLA teste")
             .precoRoloFilamento(new BigDecimal("80.00"))
@@ -987,6 +1017,6 @@ class Criare3dApplicationTests {
             .precoSugerido(new BigDecimal("5.76"))
             .dataCalculo(LocalDateTime.now())
             .usuario(usuario)
-            .build());
+            .build();
     }
 }

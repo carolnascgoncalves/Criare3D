@@ -33,6 +33,7 @@ class VendasOperacaoTest {
         c.setPrecoSugerido(new BigDecimal("20"));
         c.setCustoTotal(new BigDecimal("5"));
         when(historicos.bloquearPorId(id)).thenReturn(Optional.of(c));
+        when(historicos.totalAdicionalDoLote(id)).thenReturn(BigDecimal.ZERO);
         return c;
     }
 
@@ -81,6 +82,20 @@ class VendasOperacaoTest {
         assertThat(captor.getValue().getDataVenda()).isEqualTo(LocalDateTime.of(2026, 11, 11, 22, 30));
         assertThat(captor.getValue().isValoresReais()).isTrue();
         assertThat(c.getUnidadesVendidas()).isEqualTo(2);
+    }
+
+    @Test
+    void vendaParcialDescontaSomenteAParcelaDoAdicionalDoLote() {
+        var c = lote(true);
+        when(historicos.totalAdicionalDoLote(id)).thenReturn(new BigDecimal("12"));
+        assertThat(service.registrarVenda(id, 2)).isEqualTo(ResultadoOperacao.OK);
+        var registro = org.mockito.ArgumentCaptor.forClass(VendaCalculo.class);
+        verify(vendas).save(registro.capture());
+        var venda = registro.getValue();
+        assertThat(c.getPrecoSugerido().subtract(c.getCustoTotal())).isEqualByComparingTo("15");
+        assertThat(venda.getLucroUnitario()).isEqualByComparingTo("11");
+        assertThat(venda.getLucroUnitario().multiply(BigDecimal.valueOf(venda.getUnidadesAtivas())))
+            .isEqualByComparingTo("22");
     }
 
     @Test

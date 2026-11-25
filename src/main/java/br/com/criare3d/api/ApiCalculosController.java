@@ -4,6 +4,7 @@ import br.com.criare3d.models.CalculoHistorico;
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.models.enums.PlataformaVenda;
 import br.com.criare3d.dto.Modelo3mfFilamentoResponse;
+import br.com.criare3d.dto.Modelo3mfPlacaResponse;
 import br.com.criare3d.service.Modelo3mfParser;
 import br.com.criare3d.service.FotoCalculoService;
 import br.com.criare3d.service.PecaArquivoService;
@@ -56,12 +57,13 @@ public class ApiCalculosController {
             @PositiveOrZero BigDecimal freteMercadoLivreManual) {}
 
     public record ArquivoConsulta(String nome, int placas, Double segundos, Double gramas,
-            List<Modelo3mfFilamentoResponse> materiais, boolean completo) {}
+            List<Modelo3mfFilamentoResponse> materiais, boolean completo, String imagemPreviewDataUri) {}
 
     @PostMapping(value="/arquivo", consumes="multipart/form-data")
     public ArquivoConsulta arquivo(@RequestParam("arquivo3mf") MultipartFile arquivo) throws IOException {
         var m = parser.analisarConsulta(arquivo);
-        return new ArquivoConsulta(m.nome(), m.numeroPlacas(), m.tempoTotalSegundos(), m.pesoTotalGramas(), m.filamentosUsados(), m.estatisticasCompletas());
+        return new ArquivoConsulta(m.nome(), m.numeroPlacas(), m.tempoTotalSegundos(), m.pesoTotalGramas(), m.filamentosUsados(), m.estatisticasCompletas(),
+                m.placas().stream().map(Modelo3mfPlacaResponse::imagemPreviewDataUri).filter(uri -> uri != null && !uri.isBlank()).findFirst().orElse(null));
     }
 
     @GetMapping("/{id}/foto")
@@ -89,25 +91,31 @@ public class ApiCalculosController {
 
     public record CustosCalculo(BigDecimal custoFilamento, BigDecimal custoEnergia, BigDecimal custoDepreciacao, BigDecimal custoManutencao, BigDecimal custoEmbalagem, BigDecimal custoMaoObra, BigDecimal custoFalha, BigDecimal custoPurga, BigDecimal custoLoja, BigDecimal taxasPlataforma, BigDecimal precoVendaPlataforma, BigDecimal lucroLiquido) {}
 
-    public record ValorCalculo(UUID id, String nome, BigDecimal custoUnitario, BigDecimal precoUnitario, Integer unidades, CustosCalculo custos) {}
+    public record ValorCalculo(UUID id, String nome, BigDecimal custoUnitario, BigDecimal precoUnitario, Integer unidades, CustosCalculo custos,
+            String plataforma, BigDecimal comissao, BigDecimal markup, List<FilamentoResultado> filamentos) {}
+    public record FilamentoResultado(String nome, String cor, String codigoCor, BigDecimal gramas, BigDecimal custo) {}
 
     public record ConfirmacaoCalculo(@NotNull @Valid EntradaCalculo entrada,
             @NotNull BigDecimal custoEsperado, @NotNull BigDecimal precoEsperado, BigDecimal precoPlataformaEsperado,
             @Size(min = 1, max = 3 * 1024 * 1024) byte[] foto) {}
 
-    public record PadroesCalculo(boolean embalagemFixa, boolean markupFixo, BigDecimal markup, boolean avancado) {}
+    public record PadroesCalculo(boolean embalagemFixa, BigDecimal custoEmbalagemFixa, boolean markupFixo, BigDecimal markup, boolean avancado, List<BigDecimal> atalhosMarkup, boolean maoObraAtivada, boolean maoObraTempoFixo, Long tempoMaoObraFixoMinutos) {}
 
     @GetMapping("/padroes")
     public PadroesCalculo padroes() {
         var config = configuracoes.buscarConfiguracao().orElseGet(ConfiguracaoPadrao::criar);
-        return new PadroesCalculo(Boolean.TRUE.equals(config.getEmbalagemFixa()),
-                Boolean.TRUE.equals(config.getMarkupFixo()), config.getMarkupPercentual(), Boolean.TRUE.equals(config.getFormularioAvancado()));
+        var dados = br.com.criare3d.dto.ConfiguracaoRequest.toDto(config);
+        return new PadroesCalculo(Boolean.TRUE.equals(config.getEmbalagemFixa()), config.getCustoEmbalagemFixa(),
+                Boolean.TRUE.equals(config.getMarkupFixo()), config.getMarkupPercentual(), Boolean.TRUE.equals(config.getFormularioAvancado()),
+                List.of(dados.getMarkupOpcao1(), dados.getMarkupOpcao2(), dados.getMarkupOpcao3()),
+                dados.getMaoObraAtivada(), dados.getMaoObraTempoFixo(), dados.getTempoMaoObraFixoMinutos());
     }
 
     public record CalculoSalvo(ValorCalculo valores, String impressora, String filamento, String embalagem,
             Long minutos, String situacao, java.time.LocalDate data) {}
 
     @GetMapping("/{id}")
+    @Transactional(readOnly=true)
     public CalculoSalvo detalhe(@PathVariable UUID id) {
         var h = historico.fetchById(id).orElseThrow();
         return new CalculoSalvo(valores(h),
@@ -117,11 +125,15 @@ public class ApiCalculosController {
     }
 
     private ValorCalculo valores(CalculoHistorico h) {
+        var materiais = h.getItensFilamento().stream().map(i -> new FilamentoResultado(i.getNomeFilamento(),
+                i.getCorFilamento(), i.getCodigoCor(), i.getQuantidadeFilamentoGramas(), i.getCustoFilamento())).toList();
+        if (materiais.isEmpty() && h.getNomeFilamento() != null)
+            materiais = List.of(new FilamentoResultado(h.getNomeFilamento(), null, null, h.getQuantidadeFilamentoGramas(), h.getCustoFilamento()));
         return new ValorCalculo(h.getId(), h.getNomePeca(), h.getCustoTotal(), h.getPrecoSugerido(), h.getUnidades(),
                 new CustosCalculo(h.getCustoFilamento(), h.getCustoEnergia(), h.getCustoDepreciacao(),
                         h.getCustoManutencao(), h.getCustoEmbalagem(), h.getCustoMaoObra(), h.getCustoFalha(),
                         h.getCustoPurga(), h.getCustoLoja(), h.getTaxasPlataforma(),
-                        h.getPrecoVendaPlataforma(), h.getLucroLiquido()));
+                        h.getPrecoVendaPlataforma(), h.getLucroLiquido()), h.getPlataformaVenda(), h.getPercentualComissaoPlataforma(), h.getMarkupPercentual(), materiais);
     }
 
     private CalculoRequest preparar(EntradaCalculo entrada) {
@@ -170,7 +182,9 @@ public class ApiCalculosController {
                 resultado.custoPurga(), resultado.custoLoja(), resultado.taxasPlataforma(),
                 resultado.precoVendaPlataforma(), resultado.lucroLiquido());
         return new ValorCalculo(null, resultado.nomePeca(), resultado.custoTotal(), resultado.precoSugerido(),
-                resultado.unidades(), custos);
+                resultado.unidades(), custos, resultado.plataformaVenda(), resultado.percentualComissaoPlataforma(), resultado.markupPercentual(),
+                resultado.itensFilamento().stream().map(i -> new FilamentoResultado(i.nomeFilamento(), i.corFilamento(), i.codigoCor(),
+                        i.quantidadeFilamentoGramas(), i.custoFilamento())).toList());
     }
 
     @PostMapping

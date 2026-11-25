@@ -53,6 +53,7 @@ class NovasOperacoesTest {
         c.setUnidadesVendidas(0);
         c.setCustoTotal(BigDecimal.ONE);
         c.setPrecoSugerido(BigDecimal.TEN);
+        when(historicos.totalAdicionalDoLote(id)).thenReturn(java.math.BigDecimal.ZERO);
         when(historicos.bloquearPorId(id)).thenReturn(Optional.of(c));
         when(historicos.findById(id)).thenReturn(Optional.of(c));
         assertThat(service.registrarVenda(id, 2)).isEqualTo(ResultadoOperacao.OK);

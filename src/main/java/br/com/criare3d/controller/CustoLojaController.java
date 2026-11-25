@@ -34,6 +34,7 @@ public class CustoLojaController {
 
     @Getter
     @Setter
+    @io.swagger.v3.oas.annotations.media.Schema(name="CustoLojaEntrada")
     public static class Formulario {
         @NotBlank
         @Size(min = 2, max = 150)
@@ -53,6 +54,24 @@ public class CustoLojaController {
         @Min(1)
         @Max(10000000)
         private Integer unidadesPrevistas;
+
+        public CustoLoja novo() {
+            var c = new CustoLoja();
+            c.setDescricao(getDescricao().trim());
+            c.setInicio(getInicio());
+            c.setMeta(getMeta());
+            c.setTipo(getTipo());
+            c.setValor(getValor() == null ? BigDecimal.ZERO : getValor());
+            c.setUnidadesPrevistas(getUnidadesPrevistas());
+            return c;
+        }
+        public String validarRateio() {
+            if (tipo == CustoLoja.Tipo.RATEIO_MENSAL)
+                return unidadesPrevistas == null ? "Informe as unidades previstas." : null;
+            if (valor == null) return "Informe o valor ou percentual por unidade.";
+            return tipo == CustoLoja.Tipo.PERCENTUAL && valor.compareTo(new BigDecimal("100")) > 0
+                    ? "Use um percentual de até 100%." : null;
+        }
     }
 
     public record Resumo(CustoLoja custo, BigDecimal recuperado, BigDecimal restante, BigDecimal excedente) {
@@ -76,26 +95,16 @@ public class CustoLojaController {
 
     @PostMapping("/custos-loja")
     public ModelAndView criar(@Valid @ModelAttribute("custo") Formulario form, BindingResult erros) {
-        if (form.getTipo() == CustoLoja.Tipo.RATEIO_MENSAL) {
-            if (form.getUnidadesPrevistas() == null)
-                erros.rejectValue("unidadesPrevistas", "obrigatorio", "Informe as unidades previstas.");
-        } else if (form.getValor() == null)
-            erros.rejectValue("valor", "obrigatorio", "Informe o valor ou percentual por unidade.");
-        if (form.getTipo() == CustoLoja.Tipo.PERCENTUAL && form.getValor() != null && form.getValor().compareTo(new BigDecimal("100")) > 0)
-            erros.rejectValue("valor", "limite", "Use um percentual de atÃ© 100%.");
+        var erro = form.validarRateio();
+        if (erro != null)
+            erros.rejectValue(form.getTipo() == CustoLoja.Tipo.RATEIO_MENSAL ? "unidadesPrevistas" : "valor", "rateio", erro);
         if (erros.hasErrors()) {
             var mv = pagina(form);
             mv.addObject("erros", erros.getAllErrors().stream().map(e -> e.getDefaultMessage()).toList());
             mv.setStatus(org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY);
             return mv;
         }
-        var c = new CustoLoja();
-        c.setDescricao(form.getDescricao().trim());
-        c.setInicio(form.getInicio());
-        c.setMeta(form.getMeta());
-        c.setTipo(form.getTipo());
-        c.setValor(form.getValor() == null ? BigDecimal.ZERO : form.getValor());
-        c.setUnidadesPrevistas(form.getUnidadesPrevistas());
+        var c = form.novo();
         custos.save(c);
         return new ModelAndView("redirect:/custos-loja?criado");
     }

@@ -62,7 +62,7 @@ public class VendaCalculo {
     @Getter
     @Setter
     private java.math.BigDecimal taxasUnitarias;
-    @Column(precision = 16, scale = 8)
+    @Column(precision = 24, scale = 8)
     @Getter
     @Setter
     private java.math.BigDecimal lucroUnitario;

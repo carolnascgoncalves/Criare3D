@@ -39,6 +39,7 @@ public class ApiExtratoController {
             String origem,
             UUID referencia,
             UUID filamentoId,
+            String codigoCor,
             String saldoApos,
             OffsetDateTime data) {}
 
@@ -103,14 +104,16 @@ public class ApiExtratoController {
                         : new Abertura(
                                 resultado.abertura().getTotal(),
                                 decimal(resultado.abertura().getGramas()));
+        var cores = movimentos.coresDosFilamentos(resultado.pagina().getContent());
         return new Extrato(
-                PaginaResponse.de(resultado.pagina().map(this::linha)),
+                PaginaResponse.de(resultado.pagina().map(m -> linha(m, cores))),
                 resumo,
                 abertura,
                 decimal(resultado.pecasVendidas()));
     }
 
-    private MovimentacaoResponse linha(Movimentacao m) {
+    private MovimentacaoResponse linha(Movimentacao m, Map<UUID, String> cores) {
+        var material = m.getFilamentoId() != null ? m.getFilamentoId() : "filamento".equals(m.getOrigem()) ? m.getReferencia() : null;
         return new MovimentacaoResponse(
                 m.getId(),
                 m.getTipo(),
@@ -120,6 +123,7 @@ public class ApiExtratoController {
                 m.getOrigem(),
                 m.getReferencia(),
                 m.getFilamentoId(),
+                material == null ? null : cores.get(material),
                 m.getSaldoApos() == null ? null : decimal(m.getSaldoApos()),
                 datas.converter(m.getData()));
     }

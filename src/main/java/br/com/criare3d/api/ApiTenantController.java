@@ -46,6 +46,13 @@ public class ApiTenantController {
                         : null);
     }
 
+    @GetMapping("/icone")
+    public ApiPainelController.FotoCatalogo icone(@AuthenticationPrincipal UsuarioPrincipal usuario) {
+        var imagem=logo(usuario);
+        return new ApiPainelController.FotoCatalogo(imagem.getHeaders().getContentType().toString(),
+                java.util.Base64.getEncoder().encodeToString(imagem.getBody()));
+    }
+
     @GetMapping("/logo")
     public ResponseEntity<byte[]> logo(@AuthenticationPrincipal UsuarioPrincipal usuario) {
         var tema = temas.buscarTema(usuario.getTenantId()).orElseThrow();

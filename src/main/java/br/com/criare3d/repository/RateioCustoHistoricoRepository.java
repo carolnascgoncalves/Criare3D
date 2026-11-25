@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface RateioCustoHistoricoRepository extends JpaRepository<RateioCustoHistorico, UUID> {
+    long countByCustoLoja_Id(UUID id);
+
     @Query("select coalesce(sum(r.valorUnitario * r.calculo.unidadesVendidas), 0) from RateioCustoHistorico r where r.custoLoja.id = :id")
     BigDecimal recuperado(@Param("id") UUID id);
 

@@ -44,7 +44,7 @@ public class ApiPainelController {
     public record FilamentoCatalogo(UUID id, String nome, String cor, String estoque, String codigoCor, String pesoRolo, String marca, String precoRolo) {}
     public record ImpressoraCatalogo(UUID id, String nome, String modelo, String watts, Integer aquecimento) {}
     public record EmbalagemCatalogo(UUID id, String nome, String custo, long usos) {}
-    public record LoteResumo(UUID id, String nome, Integer unidades, Integer vendidas, Long disponiveis, String preco) {}
+    public record LoteResumo(UUID id, String nome, Integer unidades, Integer vendidas, Long disponiveis, long reservadas, String plataforma, String preco) {}
     public record Recente(UUID id, String nome, String situacao, String custoUnitario, String precoSugerido, Integer unidades) {}
     public record InicioLoja(List<Recente> recentes, long aguardandoVenda, FilamentoCatalogo estoqueCritico, boolean valorHoraConfigurado) {}
 
@@ -145,10 +145,13 @@ public class ApiPainelController {
                                                @RequestParam(defaultValue = "0") int pagina) {
         var ordem = Sort.by(Sort.Order.desc("dataCalculo"), Sort.Order.asc("id"));
         var lotes = catalogo.buscarHistorico("", null, "", "TODOS", "TODOS", grupo.name(), PaginaResponse.pedido(pagina, 12, ordem));
-        return PaginaResponse.de(lotes.map(l -> new LoteResumo(l.id(), l.nomePeca(), l.unidades(), l.unidadesVendidas(),
-                grupo == GrupoVenda.ESTOQUE ? Math.max(0L, (l.unidades() == null ? 1 : l.unidades()) -
-                        (l.unidadesVendidas() == null ? 0 : l.unidadesVendidas()) - reservas.reservadas(l.id())) : null,
-                decimal(l.precoVendaPlataforma() != null ? l.precoVendaPlataforma() : l.precoSugerido()))));
+        return PaginaResponse.de(lotes.map(l -> {
+            long reservadas = reservas.reservadas(l.id());
+            int estoque = Boolean.TRUE.equals(l.produzido()) ? (l.unidades() == null ? 1 : l.unidades()) - (l.unidadesVendidas() == null ? 0 : l.unidadesVendidas()) : 0;
+            return new LoteResumo(l.id(), l.nomePeca(), l.unidades(), l.unidadesVendidas(),
+                    Math.max(0L, estoque - reservadas), reservadas, l.plataformaVenda(),
+                    decimal(l.precoVendaPlataforma() != null ? l.precoVendaPlataforma() : l.precoSugerido()));
+        }));
     }
 
     public record PontoLucro(String data, String valor) {}

@@ -69,6 +69,15 @@ public class MovimentacaoService {
         return new Exportacao(pagina.getContent(), nomes, pagina.getTotalElements() > LIMITE_CSV);
     }
 
+    public Map<UUID, String> coresDosFilamentos(List<Movimentacao> linhas) {
+        var ids = linhas.stream().map(m -> m.getFilamentoId() != null ? m.getFilamentoId()
+                : "filamento".equals(m.getOrigem()) ? m.getReferencia() : null)
+                .filter(Objects::nonNull).distinct().toList();
+        return ids.isEmpty() ? Map.of() : filamentos.findAllByIdIn(ids).stream()
+                .filter(f -> f.getCodigoCor() != null)
+                .collect(Collectors.toMap(Filamento::getId, Filamento::getCodigoCor));
+    }
+
     private Page<Movimentacao> consultar(FiltroMovimentacao filtro, Pageable pageable) {
         return movimentos.extrato(filtro.inicio().atStartOfDay(), filtro.fim().plusDays(1).atStartOfDay(),
             filtro.tipo(), filtro.direcao(), filtro.saldo(), filtro.busca(), filtro.filamento(), filtro.tudo(), pageable);
