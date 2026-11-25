@@ -16,7 +16,7 @@ public final class MateriaisPedido {
     }
 
     @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMaterial")
-    public record Material(UUID id, String nome, String cor, BigDecimal necessario, BigDecimal estoque,
+    public record Material(UUID id, String nome, String cor, String codigoCor, BigDecimal necessario, BigDecimal estoque,
                            BigDecimal falta, Integer rolos, BigDecimal reposicao) {
     }
 
@@ -66,7 +66,7 @@ public final class MateriaisPedido {
                     total = total.add(custo);
                 }
             }
-            resultado.add(new Material(f.getId(), f.getNome(), f.getCor(), e.getValue(), estoque, falta, rolos, custo));
+            resultado.add(new Material(f.getId(), f.getNome(), f.getCor(), f.getCodigoCor(), e.getValue(), estoque, falta, rolos, custo));
         }
         return new Resumo(List.copyOf(resultado), total, semPreco);
     }

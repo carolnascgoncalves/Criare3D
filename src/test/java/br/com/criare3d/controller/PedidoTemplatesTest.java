@@ -76,7 +76,7 @@ class PedidoTemplatesTest {
         pronta.setPrecoUnitario(BigDecimal.TEN);
         pronta.setCusto(BigDecimal.ZERO);
         p.getItens().add(pronta);
-        var m = new br.com.criare3d.service.MateriaisPedido.Material(UUID.randomUUID(), "PLA", "Azul", new BigDecimal("1100"), new BigDecimal("100"), new BigDecimal("1000"), 1, new BigDecimal("80"));
+        var m = new br.com.criare3d.service.MateriaisPedido.Material(UUID.randomUUID(), "PLA", "Azul", "#0000ff", new BigDecimal("1100"), new BigDecimal("100"), new BigDecimal("1000"), 1, new BigDecimal("80"));
         var dados = new HashMap<String, Object>();
         dados.put("pedido", p);
         dados.put("etapa", 4);
