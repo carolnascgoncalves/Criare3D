@@ -64,7 +64,7 @@ class ApiContratoTest {
         ApiExtratoController.class,
         ApiTenantController.class,
         ApiCatalogoEdicaoController.class, ApiPainelController.class, ApiLotesController.class, ApiCustosLojaController.class,
-        ApiConfiguracaoController.class, ApiCalculosController.class,
+        ApiConfiguracaoController.class, ApiCalculosController.class, ApiPlanejamentoController.class,
         ApiRotaAusenteController.class
     })
     static class App {
@@ -101,6 +101,9 @@ class ApiContratoTest {
     @MockitoBean CustoPersonalizadoService custosLote;
     @MockitoBean FalhaProducaoService falhasLote;
     @MockitoBean IdempotenciaService operacoes;
+    @MockitoBean PlanejamentoProducaoRepository planos;
+    @MockitoBean ImpressoraRepository maquinas;
+    @MockitoBean PlanejamentoProducaoService planejamento;
     @MockitoBean ItemPedidoRepository reservas;
     @MockitoBean TarifaEnergiaReferenciaService tarifas;
     @MockitoBean DashboardDadosService dashboard;
@@ -153,6 +156,16 @@ class ApiContratoTest {
         token = jwt.emitir(usuario, familia);
     }
 
+    @Test
+    void consultaPlanejamentoSelecionaIntervaloDeSeteDias() throws Exception {
+        var inicio = LocalDate.of(2026,11,20);
+        when(maquinas.findByArquivadoFalse(any())).thenReturn(Page.empty());
+        mvc.perform(get("/api/v1/planejamentos").param("inicio",inicio.toString())
+                        .param("concluidos","true").header("Authorization","Bearer "+token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.inicio").value("2026-11-20"))
+                .andExpect(jsonPath("$.trabalhos").isArray());
+        verify(planos).naSemana(inicio.atStartOfDay(),inicio.plusDays(7).atStartOfDay(),true);
+    }
     @Test
     void semTokenNaoRedirecionaParaHtmlNemAceitaSessaoDoSite() throws Exception {
         var sessao = new MockHttpSession();

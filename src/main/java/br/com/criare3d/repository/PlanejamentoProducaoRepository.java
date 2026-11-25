@@ -11,6 +11,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface PlanejamentoProducaoRepository extends JpaRepository<PlanejamentoProducao, UUID> {
+    @org.springframework.data.jpa.repository.Query("""
+        SELECT p FROM PlanejamentoProducao p JOIN FETCH p.calculo
+        WHERE p.cancelado=false AND p.inicio < :fim AND p.fim > :inicio
+          AND p.impressora.tenantId=p.tenantId AND p.calculo.tenantId=p.tenantId
+          AND ((:concluidos=true AND (p.concluido=true OR COALESCE(p.calculo.unidadesVendidas,0)>=p.calculo.unidades))
+            OR (:concluidos=false AND p.concluido=false AND COALESCE(p.calculo.unidadesVendidas,0)<p.calculo.unidades))
+        ORDER BY p.inicio,p.id
+        """)
+    List<PlanejamentoProducao> naSemana(java.time.LocalDateTime inicio, java.time.LocalDateTime fim, boolean concluidos);
     @org.springframework.data.jpa.repository.Query(value = """
          SELECT p FROM PlanejamentoProducao p JOIN FETCH p.calculo
          WHERE p.cancelado=false AND p.concluido=false
