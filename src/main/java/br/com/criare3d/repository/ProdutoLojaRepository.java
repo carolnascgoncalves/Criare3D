@@ -10,5 +10,7 @@ import java.util.UUID;
 public interface ProdutoLojaRepository extends JpaRepository<ProdutoLoja, UUID> {
     Page<ProdutoLoja> findByArquivadoFalseOrderByNomeAsc(Pageable pagina);
 
+    Page<ProdutoLoja> findByArquivadoTrueOrderByNomeAsc(Pageable pagina);
+
     Page<ProdutoLoja> findAllByOrderByNomeAsc(Pageable pagina);
 }

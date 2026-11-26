@@ -64,7 +64,7 @@ class ApiContratoTest {
         ApiExtratoController.class,
         ApiTenantController.class,
         ApiCatalogoEdicaoController.class, ApiPainelController.class, ApiLotesController.class, ApiCustosLojaController.class,
-        ApiConfiguracaoController.class, ApiCalculosController.class, ApiPlanejamentoController.class, ApiOrcamentosController.class,
+        ApiConfiguracaoController.class, ApiCalculosController.class, ApiPlanejamentoController.class, ApiOrcamentosController.class, ApiOutrasVendasController.class,
         ApiRotaAusenteController.class
     })
     static class App {
@@ -91,6 +91,9 @@ class ApiContratoTest {
     @MockitoBean br.com.criare3d.service.interfaces.ImpressoraService impressoras;
     @MockitoBean br.com.criare3d.service.interfaces.EmbalagemService embalagens;
     @MockitoBean CustoLojaRepository custosLoja;
+    @MockitoBean ProdutoLojaRepository produtosLoja;
+    @MockitoBean VendaProdutoLojaRepository vendasProdutoLoja;
+    @MockitoBean OutrasVendasService outrasVendas;
     @MockitoBean RateioCustoHistoricoRepository rateios;
     @MockitoBean CatalogoModelosImpressora modelosImpressora;
     @MockitoBean MercadoLivreDepreciacaoService referenciasDepreciacao;
