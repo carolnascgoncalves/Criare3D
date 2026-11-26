@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,6 +45,18 @@ public interface FilamentoRepository extends
     Page<Filamento> findByArquivadoTrue(Pageable pageable);
 
     Page<Filamento> findByNomeContainingIgnoreCaseAndArquivadoFalse(String nome, Pageable pageable);
+
+    @Query("""
+        SELECT f FROM Filamento f
+        WHERE f.arquivado = false AND (
+            lower(f.nome) LIKE lower(concat('%', :busca, '%')) OR
+            lower(f.cor) LIKE lower(concat('%', :busca, '%')) OR
+            lower(coalesce(f.codigoCor, '')) LIKE lower(concat('%', :busca, '%')) OR
+            lower(coalesce(f.marca, '')) LIKE lower(concat('%', :busca, '%'))
+        )
+        """)
+    Page<Filamento> buscarAtivosPorTexto(@Param("busca") String busca,
+                                         Pageable pageable);
 
     long countByArquivadoFalse();
 

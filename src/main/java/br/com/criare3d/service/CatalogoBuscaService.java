@@ -45,7 +45,7 @@ public class CatalogoBuscaService {
     }
 
     public Page<Filamento> buscarFilamentos(String nome, Pageable pageable) {
-        return filamentoRepository.findByNomeContainingIgnoreCaseAndArquivadoFalse(nome, pageable);
+        return filamentoRepository.buscarAtivosPorTexto(nome, pageable);
     }
 
     public Page<Embalagem> buscarEmbalagens(String nome, Pageable pageable) {
