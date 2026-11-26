@@ -43,6 +43,19 @@ public interface PedidoOrcamentoRepository extends JpaRepository<PedidoOrcamento
         """)
     Page<PedidoOrcamento> buscar(@Param("busca") String busca, @Param("arquivados") boolean arquivados, @Param("status") br.com.criare3d.models.enums.StatusPedido status, Pageable pagina);
 
+    @Query("""
+        SELECT p FROM PedidoOrcamento p WHERE p.arquivado=:arquivados
+        AND ((p.status IN :status AND (p.status<>br.com.criare3d.models.enums.StatusPedido.APROVADO OR EXISTS
+          (SELECT i.id FROM ItemPedido i LEFT JOIN i.loteProducao l WHERE i.pedido=p AND i.quantidade>i.usarEstoque AND (l.id IS NULL OR l.produzido IS NULL OR l.produzido=false))))
+          OR (:incluiPronto=true AND p.status=br.com.criare3d.models.enums.StatusPedido.APROVADO AND NOT EXISTS
+          (SELECT i.id FROM ItemPedido i LEFT JOIN i.loteProducao l WHERE i.pedido=p AND i.quantidade>i.usarEstoque AND (l.id IS NULL OR l.produzido IS NULL OR l.produzido=false))))
+        AND (lower(p.titulo) LIKE lower(concat('%',:busca,'%')) OR lower(p.cliente) LIKE lower(concat('%',:busca,'%')))
+        ORDER BY p.criadoEm DESC
+        """)
+    Page<PedidoOrcamento> buscarVarios(@Param("busca") String busca, @Param("arquivados") boolean arquivados,
+        @Param("status") java.util.Collection<br.com.criare3d.models.enums.StatusPedido> status,
+        @Param("incluiPronto") boolean incluiPronto, Pageable pagina);
+
     /**
      * Quantos orçamentos cada cliente tem e quando foi o último (cancelados ficam de fora).
      */

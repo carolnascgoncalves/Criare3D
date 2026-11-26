@@ -180,6 +180,18 @@ class ApiContratoTest {
     }
 
     @Test
+    void listaOrcamentosAceitaVariosStatus() throws Exception {
+        var status = List.of(br.com.criare3d.models.enums.StatusPedido.RASCUNHO,
+            br.com.criare3d.models.enums.StatusPedido.APROVADO);
+        when(pedidos.listarComStatus("",0,false,status)).thenReturn(Page.empty());
+        when(pedidosMobile.findByArquivadoFalseAndStatusIn(any())).thenReturn(List.of());
+        mvc.perform(get("/api/v1/orcamentos").param("status","RASCUNHO,APROVADO")
+                .header("Authorization","Bearer "+token))
+            .andExpect(status().isOk());
+        verify(pedidos).listarComStatus("",0,false,status);
+    }
+
+    @Test
     void impedePagamentoComRevisaoDesatualizada() throws Exception {
         var id=UUID.randomUUID();var p=new PedidoOrcamento();p.setRevisao(2);
         when(pedidosMobile.bloquear(id)).thenReturn(Optional.of(p));

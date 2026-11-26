@@ -68,12 +68,22 @@ public class OrcamentoPedidoService {
 
     @Transactional(readOnly = true)
     public Page<PedidoOrcamento> listar(String busca, int pagina, boolean arquivados) {
-        return listar(busca, pagina, arquivados, null);
+        return listar(busca, pagina, arquivados, (StatusPedido) null);
     }
 
     @Transactional(readOnly = true)
     public Page<PedidoOrcamento> listar(String busca, int pagina, boolean arquivados, StatusPedido status) {
         Page<PedidoOrcamento> resultado = pedidos.buscar(busca == null ? "" : busca.strip(), arquivados, status, PageRequest.of(Math.max(0, pagina), 12));
+        return prepararListagem(resultado);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PedidoOrcamento> listarComStatus(String busca, int pagina, boolean arquivados, List<StatusPedido> status) {
+        if (status == null || status.isEmpty()) return listar(busca, pagina, arquivados, (StatusPedido) null);
+        if (status.size() == 1) return listar(busca, pagina, arquivados, status.getFirst());
+        Page<PedidoOrcamento> resultado = pedidos.buscarVarios(
+            busca == null ? "" : busca.strip(), arquivados, status,
+            status.contains(StatusPedido.PRONTO), PageRequest.of(Math.max(0, pagina), 12));
         return prepararListagem(resultado);
     }
 

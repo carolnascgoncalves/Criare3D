@@ -40,8 +40,12 @@ public class ApiOrcamentosController {
     private Resumo resumo(PedidoOrcamento p){
         return new Resumo(p.getId(),p.getCodigo(),p.getTitulo(),p.getCliente(),p.getContato(),p.getEmail(),p.getCompradorId(),p.getSituacao(),p.getStatus(),p.isArquivado(),p.getPagoEm()!=null,p.getRevisao(),p.getCriadoEm(),p.getTotal());
     }
-    @GetMapping public Lista listar(@RequestParam(defaultValue="false") boolean arquivados,@RequestParam(required=false) StatusPedido status,@RequestParam(defaultValue="0") int pagina){
-        var page=service.listar("",pagina,arquivados,status);
+    @GetMapping public Lista listar(@RequestParam(defaultValue="false") boolean arquivados,@RequestParam(required=false) List<StatusPedido> status,@RequestParam(defaultValue="0") int pagina){
+        var page=status==null || status.isEmpty()
+            ? service.listar("",pagina,arquivados,(StatusPedido)null)
+            : status.size()==1
+                ? service.listar("",pagina,arquivados,status.getFirst())
+                : service.listarComStatus("",pagina,arquivados,status);
         var ativos=pedidos.findByArquivadoFalseAndStatusIn(List.of(StatusPedido.APROVADO,StatusPedido.PRONTO,StatusPedido.ENTREGUE));
         var receber=BigDecimal.ZERO;long prontos=0,produzir=0;
         for(var p:ativos){ if(p.getPagoEm()==null) receber=receber.add(p.getTotal());
