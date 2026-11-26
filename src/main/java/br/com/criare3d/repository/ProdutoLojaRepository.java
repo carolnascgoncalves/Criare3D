@@ -12,5 +12,7 @@ public interface ProdutoLojaRepository extends JpaRepository<ProdutoLoja, UUID> 
 
     Page<ProdutoLoja> findByArquivadoTrueOrderByNomeAsc(Pageable pagina);
 
+    Page<ProdutoLoja> findByArquivadoAndNomeContainingIgnoreCaseOrderByNomeAsc(boolean arquivado, String nome, Pageable pagina);
+
     Page<ProdutoLoja> findAllByOrderByNomeAsc(Pageable pagina);
 }

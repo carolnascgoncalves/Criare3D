@@ -20,6 +20,15 @@ public interface VendaProdutoLojaRepository extends JpaRepository<VendaProdutoLo
     @Query("select v from VendaProdutoLoja v where lower(v.nomeProduto) like lower(concat('%',:busca,'%')) order by v.dataVenda desc,v.id")
     Page<VendaProdutoLoja> pesquisar(@Param("busca") String busca, Pageable pagina);
 
+    @Query("""
+        select coalesce(sum(v.quantidade-v.canceladas),0) as unidades,
+          coalesce(sum(v.precoUnitario*(v.quantidade-v.canceladas)),0) as receita,
+          coalesce(sum(case when v.custoUnitario is not null then ((v.precoUnitario-v.custoUnitario)*(v.quantidade-v.canceladas)-round(v.custoEmbalagem*coalesce(v.quantidadeEmbalagens,v.quantidade)*(v.quantidade-v.canceladas)/v.quantidade,2)) else 0 end),0) as lucro,
+          coalesce(sum(case when v.custoUnitario is null then v.quantidade-v.canceladas else 0 end),0) as semCusto
+        from VendaProdutoLoja v where lower(v.nomeProduto) like lower(concat('%',:busca,'%'))
+        """)
+    Resumo resumirBusca(@Param("busca") String busca);
+
     @Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
     @Query("select v from VendaProdutoLoja v where v.id=:id")
     Optional<VendaProdutoLoja> bloquear(@Param("id") UUID id);

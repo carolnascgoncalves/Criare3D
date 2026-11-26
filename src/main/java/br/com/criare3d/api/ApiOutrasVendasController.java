@@ -32,6 +32,7 @@ public class ApiOutrasVendasController {
                         BigDecimal custoUnitario, BigDecimal receita, BigDecimal lucro, String nomeEmbalagem,
                         BigDecimal custoEmbalagem, LocalDate data) {}
     public record Lista<T>(List<T> itens, long total, int pagina, int tamanho) {}
+    public record ResumoVendas(BigDecimal receita, BigDecimal lucro, Long unidades, Long semCusto) {}
     public record ProdutoEntrada(UUID id, @NotBlank @Size(min=2,max=150) String nome,
                                  @NotNull @DecimalMin("0.00") @Digits(integer=8,fraction=2) BigDecimal preco,
                                  @DecimalMin("0.00") @Digits(integer=8,fraction=2) BigDecimal custo) {}
@@ -44,9 +45,10 @@ public class ApiOutrasVendasController {
 
     @GetMapping("/produtos")
     public Lista<Produto> produtos(@RequestParam(defaultValue="false") boolean arquivados,
-                                   @RequestParam(defaultValue="0") int pagina) {
-        var page = arquivados ? produtos.findByArquivadoTrueOrderByNomeAsc(PageRequest.of(Math.max(0,pagina),20))
-                : produtos.findByArquivadoFalseOrderByNomeAsc(PageRequest.of(Math.max(0,pagina),20));
+                                   @RequestParam(defaultValue="0") int pagina,
+                                   @RequestParam(defaultValue="") String busca) {
+        if (busca.length() > 150 || pagina > 100000) throw new IllegalArgumentException("Busca ou página inválida.");
+        var page = produtos.findByArquivadoAndNomeContainingIgnoreCaseOrderByNomeAsc(arquivados,busca.strip(),PageRequest.of(Math.max(0,pagina),20));
         return new Lista<>(page.getContent().stream().map(p -> new Produto(p.getId(),p.getNome(),p.getPreco(),p.getCusto(),p.isArquivado())).toList(),
                 page.getTotalElements(),page.getNumber(),page.getSize());
     }
@@ -57,6 +59,12 @@ public class ApiOutrasVendasController {
         return new Lista<>(page.getContent().stream().map(v -> new Venda(v.getId(),v.getNomeProduto(),v.getQuantidade(),v.getAtivas(),v.getCanceladas(),
                 v.getPrecoUnitario(),v.getCustoUnitario(),v.getReceita(),v.getLucro(),v.getNomeEmbalagem(),v.getCustoEmbalagemAtivas(),v.getDataVenda().toLocalDate())).toList(),
                 page.getTotalElements(),page.getNumber(),page.getSize());
+    }
+
+    @GetMapping("/vendas/resumo")
+    public ResumoVendas resumo(@RequestParam(defaultValue="") String busca) {
+        var r = vendas.resumirBusca(busca.strip());
+        return new ResumoVendas(r.getReceita(),r.getLucro(),r.getUnidades(),r.getSemCusto());
     }
 
     @PostMapping("/produtos")

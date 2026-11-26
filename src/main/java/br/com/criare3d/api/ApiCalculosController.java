@@ -212,9 +212,11 @@ public class ApiCalculosController {
 
     @GetMapping
     public PaginaResponse<HistoricoListaResponse> listar(@RequestParam(defaultValue="0") int pagina,
-            @RequestParam(defaultValue="") String busca) {
+            @RequestParam(defaultValue="") String busca,
+            @RequestParam(defaultValue="") String status) {
         var ordem = Sort.by(Sort.Order.desc("dataCalculo"), Sort.Order.asc("id"));
         return PaginaResponse.de(catalogo.buscarHistorico(busca.trim(), null, "", "TODOS", "TODOS",
+                java.util.Set.of("", "PARA_PRODUZIR", "ESTOQUE", "VENDIDOS").contains(status) ? status : "",
                 PaginaResponse.pedido(pagina, 12, ordem)));
     }
 }
