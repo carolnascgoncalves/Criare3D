@@ -217,6 +217,7 @@ public class ApiCalculosController {
         var ordem = Sort.by(Sort.Order.desc("dataCalculo"), Sort.Order.asc("id"));
         return PaginaResponse.de(catalogo.buscarHistorico(busca.trim(), null, "", "TODOS", "TODOS",
                 java.util.Set.of("", "PARA_PRODUZIR", "ESTOQUE", "VENDIDOS").contains(status) ? status : "",
+                true,
                 PaginaResponse.pedido(pagina, 12, ordem)));
     }
 }

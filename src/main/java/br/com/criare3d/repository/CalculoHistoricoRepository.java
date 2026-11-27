@@ -331,6 +331,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
                (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
                (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
+          AND (:excluirLotesPedido = false OR NOT EXISTS (
+                SELECT i.id FROM ItemPedido i WHERE i.loteProducao = h))
         """,
         countQuery = """
             SELECT COUNT(h)
@@ -348,6 +350,8 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                    (:statusLote = 'PARA_PRODUZIR' AND h.produzido = false AND h.unidadesVendidas = 0) OR
                    (:statusLote = 'ESTOQUE' AND h.produzido = true AND h.unidadesVendidas < h.unidades) OR
                    (:statusLote = 'VENDIDOS' AND h.unidadesVendidas > 0))
+              AND (:excluirLotesPedido = false OR NOT EXISTS (
+                    SELECT i.id FROM ItemPedido i WHERE i.loteProducao = h))
             """)
     Page<HistoricoListaResponse> buscarHistoricoFiltrado(
         @Param("nome") String nome,
@@ -360,6 +364,7 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
         @Param("filtrarVendido") boolean filtrarVendido,
         @Param("valorVendido") boolean valorVendido,
         @Param("statusLote") String statusLote,
+        @Param("excluirLotesPedido") boolean excluirLotesPedido,
         Pageable pageable
     );
 

@@ -70,6 +70,18 @@ public class CatalogoBuscaService {
         String vendido,
         String statusLote,
         Pageable pageable) {
+        return buscarHistorico(nome, data, plataforma, produzido, vendido, statusLote, false, pageable);
+    }
+
+    public Page<HistoricoListaResponse> buscarHistorico(
+        String nome,
+        LocalDate data,
+        String plataforma,
+        String produzido,
+        String vendido,
+        String statusLote,
+        boolean excluirLotesPedido,
+        Pageable pageable) {
 
         String nomeFiltro = nome == null ? "" : nome.trim();
 
@@ -99,6 +111,7 @@ public class CatalogoBuscaService {
             filtrarVendido,
             valorVendido,
             statusLote == null ? "" : statusLote,
+            excluirLotesPedido,
             pageable
         );
     }

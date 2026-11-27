@@ -38,10 +38,6 @@ public class PlanejamentoPedidoService {
         List<Linha> linhas = new ArrayList<>();
         for (var i : p.getItens()) {
             if (i.getProduzir() == 0) continue;
-            if (i.getPlanejamento() != null) {
-                linhas.add(new Linha(i.getId(), i.getNome(), i.getPlanejamento().getInicio(), i.getPlanejamento().getFim()));
-                continue;
-            }
             boolean anterior = fila.containsKey(i.getImpressoraId());
             var livre = anterior ? new InicioLivre(fila.get(i.getImpressoraId()), "") : inicioLivre(p, i.getImpressoraId());
             var cursor = anterior ? fila.get(i.getImpressoraId()) : livre.horario();

@@ -28,7 +28,7 @@ public class ApiOrcamentosController {
     private final IdempotenciaService chaves;
     private final PedidoOrcamentoRepository pedidos;
     @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMobileResumo")
-    public record Resumo(UUID id,String codigo,String titulo,String cliente,String contato,String email,UUID compradorId,
+    public record Resumo(UUID id,String codigo,String titulo,String pecasResumo,String cliente,String contato,String email,UUID compradorId,
         String situacao, StatusPedido status,boolean arquivado,boolean pago,long revisao,LocalDateTime criado,BigDecimal total){}
     @io.swagger.v3.oas.annotations.media.Schema(name="PedidoMobileLista")
     public record Lista(List<Resumo> itens,long total,int tamanho,BigDecimal receber,long prontos,long produzir){}
@@ -38,14 +38,16 @@ public class ApiOrcamentosController {
     public record Detalhe(Resumo resumo,List<Item> itens,PedidoDadosRequest dados,BigDecimal subtotal,BigDecimal desconto,BigDecimal custo,BigDecimal taxas,
         RentabilidadePedido resultado,LocalDateTime previsao,List<PlanejamentoPedidoService.Linha> linhas,List<PlanejamentoPedidoService.Ocupacao> ocupacoes,MateriaisPedido.Resumo materiais,String aviso){}
     private Resumo resumo(PedidoOrcamento p){
-        return new Resumo(p.getId(),p.getCodigo(),p.getTitulo(),p.getCliente(),p.getContato(),p.getEmail(),p.getCompradorId(),p.getSituacao(),p.getStatus(),p.isArquivado(),p.getPagoEm()!=null,p.getRevisao(),p.getCriadoEm(),p.getTotal());
+        var pecas=p.getItens().stream().map(ItemPedido::getNome).filter(Objects::nonNull).distinct().toList();
+        var pecasResumo=pecas.isEmpty()?p.getTitulo():pecas.getFirst()+(pecas.size()>1?" + "+(pecas.size()-1):"");
+        return new Resumo(p.getId(),p.getCodigo(),p.getTitulo(),pecasResumo,p.getCliente(),p.getContato(),p.getEmail(),p.getCompradorId(),p.getSituacao(),p.getStatus(),p.isArquivado(),p.getPagoEm()!=null,p.getRevisao(),p.getCriadoEm(),p.getTotal());
     }
-    @GetMapping public Lista listar(@RequestParam(defaultValue="false") boolean arquivados,@RequestParam(required=false) List<StatusPedido> status,@RequestParam(defaultValue="0") int pagina){
+    @GetMapping public Lista listar(@RequestParam(defaultValue="false") boolean arquivados,@RequestParam(required=false) List<StatusPedido> status,@RequestParam(defaultValue="0") int pagina,@RequestParam(defaultValue="") String busca){
         var page=status==null || status.isEmpty()
-            ? service.listar("",pagina,arquivados,(StatusPedido)null)
+            ? service.listar(busca,pagina,arquivados,(StatusPedido)null)
             : status.size()==1
-                ? service.listar("",pagina,arquivados,status.getFirst())
-                : service.listarComStatus("",pagina,arquivados,status);
+                ? service.listar(busca,pagina,arquivados,status.getFirst())
+                : service.listarComStatus(busca,pagina,arquivados,status);
         var ativos=pedidos.findByArquivadoFalseAndStatusIn(List.of(StatusPedido.APROVADO,StatusPedido.PRONTO,StatusPedido.ENTREGUE));
         var receber=BigDecimal.ZERO;long prontos=0,produzir=0;
         for(var p:ativos){ if(p.getPagoEm()==null) receber=receber.add(p.getTotal());
