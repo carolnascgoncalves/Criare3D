@@ -68,7 +68,7 @@ public class ApiTenantController {
                                 : "image/webp";
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(tipo))
-                .cacheControl(CacheControl.noStore())
+                .cacheControl(CacheControl.maxAge(java.time.Duration.ofHours(24)).cachePrivate())
                 .body(bytes);
     }
 }

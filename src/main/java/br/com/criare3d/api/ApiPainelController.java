@@ -115,6 +115,16 @@ public class ApiPainelController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/catalogo/pecas/{id}/placas/{numero}/foto/imagem")
+    public ResponseEntity<byte[]> fotoImagem(@PathVariable UUID id, @PathVariable int numero) {
+        if (numero < 1 || numero > 8) return ResponseEntity.notFound().build();
+        return arquivos.buscarImagem(id, numero).map(imagem -> ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.parseMediaType(imagem.mimeType()))
+                .cacheControl(org.springframework.http.CacheControl.maxAge(java.time.Duration.ofMinutes(5)).cachePrivate())
+                .body(imagem.bytes()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/catalogo/filamentos")
     public PaginaResponse<FilamentoCatalogo> filamentos(@RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "") String busca) {

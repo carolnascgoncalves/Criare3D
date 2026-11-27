@@ -9,6 +9,8 @@ import br.com.criare3d.service.Modelo3mfParser;
 import br.com.criare3d.service.FotoCalculoService;
 import br.com.criare3d.service.PecaArquivoService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
+import org.springframework.http.CacheControl;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -75,6 +77,21 @@ public class ApiCalculosController {
         var imagem = historico.fetchById(id).map(CalculoHistorico::getPeca).flatMap(this::imagemPeca);
         return imagem.map(i -> ResponseEntity.ok(new ApiPainelController.FotoCatalogo(i.mimeType(),
                 Base64.getEncoder().encodeToString(i.bytes())))).orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/{id}/foto/imagem")
+    @Transactional
+    public ResponseEntity<byte[]> fotoImagem(@PathVariable UUID id) {
+        var foto = fotos.buscarConteudoFoto(id, true);
+        if (foto.isPresent()) return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(foto.get().tipo()))
+                .cacheControl(CacheControl.maxAge(java.time.Duration.ofMinutes(5)).cachePrivate())
+                .body(foto.get().bytes());
+        var imagem = historico.fetchById(id).map(CalculoHistorico::getPeca).flatMap(this::imagemPeca);
+        return imagem.map(i -> ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(i.mimeType()))
+                .cacheControl(CacheControl.maxAge(java.time.Duration.ofMinutes(5)).cachePrivate())
+                .body(i.bytes())).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     private Optional<PecaArquivoService.ImagemPeca> imagemPeca(Peca peca) {
