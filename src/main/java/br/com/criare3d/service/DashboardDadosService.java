@@ -155,6 +155,11 @@ public class DashboardDadosService {
         model.addAttribute("fluxoPercentualProduzido", percentual(fluxoProduzidos, fluxoCalculados));
         model.addAttribute("fluxoPercentualVendido", percentual(fluxoVendidos, fluxoProduzidos));
         model.addAttribute("fluxoAguardandoVenda", Math.max(0, fluxoProduzidos - fluxoVendidos));
+        var ritmoProducao = historicoRepository.somarProducaoPorDia(
+            usuarioLogadoService.buscarTenantIdAtual(), inicio, fim).stream()
+            .map(linha -> Map.of("data", linha[0].toString(), "unidades", numero(linha[1])))
+            .toList();
+        model.addAttribute("ritmoProducao", ritmoProducao);
         model.addAttribute("periodo", periodo);
         model.addAttribute("totalCalculos", calculos);
         model.addAttribute("totalProduzidos", produzidos);

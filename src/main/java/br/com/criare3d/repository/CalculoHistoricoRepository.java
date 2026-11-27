@@ -116,6 +116,20 @@ public interface CalculoHistoricoRepository extends JpaRepository<CalculoHistori
                                                @Param("inicio") LocalDateTime inicio,
                                                @Param("fim") LocalDateTime fim);
 
+    @Query(value = """
+        SELECT CAST(h.data_producao_hist AS date) AS dia, COALESCE(SUM(h.unidades_hist), 0) AS unidades
+        FROM calculo_historico h
+        WHERE h.tenant_id = :tenantId
+          AND h.produzido_hist = TRUE
+          AND h.data_producao_hist >= :inicio
+          AND h.data_producao_hist < :fim
+        GROUP BY CAST(h.data_producao_hist AS date)
+        ORDER BY CAST(h.data_producao_hist AS date)
+        """, nativeQuery = true)
+    List<Object[]> somarProducaoPorDia(@Param("tenantId") UUID tenantId,
+                                      @Param("inicio") LocalDateTime inicio,
+                                      @Param("fim") LocalDateTime fim);
+
     @Query("""
         SELECT item.filamento.id, COUNT(DISTINCT item.calculoHistorico.id)
         FROM ItemCalculoHistorico item

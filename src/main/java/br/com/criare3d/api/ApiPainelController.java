@@ -155,6 +155,7 @@ public class ApiPainelController {
     }
 
     public record PontoLucro(String data, String valor) {}
+    public record PontoProducao(String data, long unidades) {}
     public record VendasPlataforma(String nome, long vendas, String lucro, String cor) {}
     public record EstoquePainel(String nome, String gramas, int restante, String cor) {}
     public record VendasCategoria(String nome, long unidades) {}
@@ -163,7 +164,8 @@ public class ApiPainelController {
     public record DashboardLoja(String lucro, long vendas, String horas, String filamentoKg,
             List<PontoLucro> serie, List<VendasPlataforma> plataformas, List<EstoquePainel> estoque,
             long calculadas, long produzidas, long vendidas, List<CustoPainel> custos, CadastrosPainel cadastros,
-            List<VendasCategoria> categorias, String lucroPlataformas, String variacaoLucro) {}
+            List<VendasCategoria> categorias, String lucroPlataformas, String variacaoLucro,
+            List<PontoProducao> ritmoProducao) {}
 
     @GetMapping("/dashboard")
     public DashboardLoja dashboard(@RequestParam(defaultValue = "30")
@@ -193,6 +195,10 @@ public class ApiPainelController {
             return new CustoPainel((String) item.get("nome"), decimal((BigDecimal) item.get("valor")),
                     ((Number) item.get("percentual")).intValue());
         }).toList();
+        var ritmoProducao = ((List<?>) dados.get("ritmoProducao")).stream().map(row -> {
+            var item = (java.util.Map<?, ?>) row;
+            return new PontoProducao((String) item.get("data"), ((Number) item.get("unidades")).longValue());
+        }).toList();
         var cadastros = new CadastrosPainel(((Number) dados.get("totalPecas")).longValue(),
                 ((Number) dados.get("totalFilamentos")).longValue(), ((Number) dados.get("totalImpressoras")).longValue(),
                 ((Number) dados.get("totalEmbalagens")).longValue(), compradores.countByArquivadoFalse());
@@ -201,7 +207,7 @@ public class ApiPainelController {
                 decimal((BigDecimal) dados.get("filamentoUsadoKg")), serie, plataformas, estoque,
                 ((Number) dados.get("fluxoCalculados")).longValue(), ((Number) dados.get("fluxoProduzidos")).longValue(),
                 ((Number) dados.get("fluxoVendidos")).longValue(), custos, cadastros, categorias,
-                decimal((BigDecimal) dados.get("lucroPlataformas")), (String) dados.get("textoVariacaoLucro"));
+                decimal((BigDecimal) dados.get("lucroPlataformas")), (String) dados.get("textoVariacaoLucro"), ritmoProducao);
     }
 
     @GetMapping("/inicio")
