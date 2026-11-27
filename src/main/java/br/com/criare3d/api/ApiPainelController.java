@@ -2,6 +2,7 @@ package br.com.criare3d.api;
 
 import br.com.criare3d.models.Peca;
 import br.com.criare3d.models.Embalagem;
+import br.com.criare3d.models.enums.StatusPedido;
 import br.com.criare3d.dto.PecaArquivoResumo;
 import br.com.criare3d.dto.PecaMaterialResumo;
 import br.com.criare3d.service.PecaArquivoService;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class ApiPainelController {
     private final br.com.criare3d.service.DashboardDadosService dashboard;
     private final br.com.criare3d.repository.CompradorRepository compradores;
+    private final br.com.criare3d.repository.PedidoOrcamentoRepository pedidos;
     private final CatalogoBuscaService catalogo;
     private final PecaArquivoService arquivos;
     private final PecaService pecas;
@@ -175,7 +177,8 @@ public class ApiPainelController {
             List<PontoLucro> serie, List<VendasPlataforma> plataformas, List<EstoquePainel> estoque,
             long calculadas, long produzidas, long vendidas, List<CustoPainel> custos, CadastrosPainel cadastros,
             List<VendasCategoria> categorias, String lucroPlataformas, String variacaoLucro,
-            List<PontoProducao> ritmoProducao) {}
+            List<PontoProducao> ritmoProducao, BigDecimal receber, long aguardandoVenda,
+            FilamentoCatalogo estoqueCritico) {}
 
     @GetMapping("/dashboard")
     public DashboardLoja dashboard(@RequestParam(defaultValue = "30")
@@ -212,12 +215,21 @@ public class ApiPainelController {
         var cadastros = new CadastrosPainel(((Number) dados.get("totalPecas")).longValue(),
                 ((Number) dados.get("totalFilamentos")).longValue(), ((Number) dados.get("totalImpressoras")).longValue(),
                 ((Number) dados.get("totalEmbalagens")).longValue(), compradores.countByArquivadoFalse());
+        var pedidosAtivos = pedidos.findByArquivadoFalseAndStatusIn(List.of(StatusPedido.APROVADO, StatusPedido.PRONTO, StatusPedido.ENTREGUE));
+        var receber = pedidosAtivos.stream().filter(p -> p.getPagoEm() == null)
+                .map(br.com.criare3d.models.PedidoOrcamento::getTotal).filter(java.util.Objects::nonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        var estoqueCritico = filamentos.fetchEstoqueCritico().map(f -> new FilamentoCatalogo(f.getId(), f.getNome(),
+                f.getCor(), decimal(f.getEstoqueGramas()), f.getCodigoCor(), decimal(f.getPesoRoloGramas()),
+                f.getMarca(), decimal(f.getPrecoRolo()))).orElse(null);
+        long aguardandoVenda = Math.max(0, indicadores.contarProduzidos() - indicadores.contarVendidos());
         return new DashboardLoja(decimal((BigDecimal) dados.get("lucroVendido")),
                 ((Number) dados.get("totalVendasLoja")).longValue(), decimal((BigDecimal) dados.get("horasProduzidas")),
                 decimal((BigDecimal) dados.get("filamentoUsadoKg")), serie, plataformas, estoque,
                 ((Number) dados.get("fluxoCalculados")).longValue(), ((Number) dados.get("fluxoProduzidos")).longValue(),
                 ((Number) dados.get("fluxoVendidos")).longValue(), custos, cadastros, categorias,
-                decimal((BigDecimal) dados.get("lucroPlataformas")), (String) dados.get("textoVariacaoLucro"), ritmoProducao);
+                decimal((BigDecimal) dados.get("lucroPlataformas")), (String) dados.get("textoVariacaoLucro"),
+                ritmoProducao, receber, aguardandoVenda, estoqueCritico);
     }
 
     @GetMapping("/inicio")
